@@ -24,6 +24,10 @@ and problems that plague IRC
 
 This project will implement an open source implementation of this in C++.
 
+## Companion projects
+
+https://github.com/visualopsholdings/zmqchat
+
 ## Current development focus
 
 ### Reference version in NodeJS
