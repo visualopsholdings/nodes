@@ -26,7 +26,7 @@ This project will implement an open source implementation of this in C++.
 
 ## Companion projects
 
-https://github.com/visualopsholdings/zmqchat
+https://github.com/visualopsholdings/zmqirc
 
 ## Current development focus
 
