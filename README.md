@@ -24,6 +24,15 @@ and problems that plague IRC
 
 This project will implement an open source implementation of this in C++.
 
+## Testing
+
+The end to end tests use cucumber (Ruby), to get that going:
+
+```
+$ bundle install
+$ bundle exec cucumber
+```
+
 ## Companion projects
 
 https://github.com/visualopsholdings/zmqirc
@@ -35,6 +44,5 @@ https://github.com/visualopsholdings/zmqirc
 ## License
 
 ZMQChat is licensed under [version 3 of the GNU General Public License] contained in LICENSE.
-
 
 
