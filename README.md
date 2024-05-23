@@ -254,7 +254,7 @@ https://github.com/visualopsholdings/zmqirc
 
 ## Current development focus
 
-### Implement
+### Implement login message
 
 ## License
 
@@ -279,3 +279,5 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 22 May 2024
 - Initial simple test implementation.
 
+### 23 May 2024
+- Start in on login msg and mongoDB access.
