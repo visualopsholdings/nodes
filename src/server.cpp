@@ -11,6 +11,8 @@
 
 #include "server.hpp"
 
+#include "storage.hpp"
+
 #include <boost/log/trivial.hpp>
 
 Server::Server(int pub, int rep) {
@@ -24,11 +26,13 @@ Server::Server(int pub, int rep) {
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
 	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ as Local REP on " << rep;
 
-  _messages["login"] = bind(&Server::loginMsg, this, placeholders::_1);
-  _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1);
-  _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1 );
-  _messages["message"] = bind(&Server::messageMsg, this, placeholders::_1);
+  _messages["login"] = bind(&Server::loginMsg, this, placeholders::_1, placeholders::_2);
+  _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1, placeholders::_2);
+  _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1, placeholders::_2);
+  _messages["message"] = bind(&Server::messageMsg, this, placeholders::_1, placeholders::_2);
 
+  _storage.reset(new Storage());
+  
 }
   
 Server::~Server() {
@@ -72,7 +76,7 @@ void Server::run() {
           BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type;
           continue;
         }
-        handler->second(&doc);
+        handler->second(&doc, _storage);
       }
       catch (zmq::error_t &e) {
         BOOST_LOG_TRIVIAL(warning) << "got exc with rep recv" << e.what() << "(" << e.num() << ")";
@@ -117,7 +121,18 @@ bool Server::getString(json *j, const string &name, string *value) {
 
 }
 
-void Server::streamsMsg(json *j) {
+bool Server::getId(json *j, string *id) {
+
+  try {
+    *id = boost::json::value_to<string>(j->at("_id").at("$oid"));
+    return true;
+  }
+  catch (...) {
+    return false;
+  }
+}
+
+void Server::streamsMsg(json *j, shared_ptr<Storage> storage) {
 
   string user;
   if (!getString(j, "user", &user)) {
@@ -136,7 +151,7 @@ void Server::streamsMsg(json *j) {
 
 }
 
-void Server::policyUsersMsg(json *j) {
+void Server::policyUsersMsg(json *j, shared_ptr<Storage> storage) {
 
   string policy;
   if (!getString(j, "policy", &policy)) {
@@ -159,7 +174,7 @@ void Server::policyUsersMsg(json *j) {
   
 }
 
-void Server::messageMsg(json *j) {
+void Server::messageMsg(json *j, shared_ptr<Storage> storage) {
 
   string user;
   if (!getString(j, "user", &user)) {

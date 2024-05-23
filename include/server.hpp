@@ -21,7 +21,9 @@
 using namespace std;
 using json = boost::json::value;
 
-typedef function<void (json *json)> msgHandler;
+class Storage;
+
+typedef function<void (json *json, shared_ptr<Storage> storage)> msgHandler;
 
 class Server {
 
@@ -37,15 +39,17 @@ private:
   shared_ptr<zmq::socket_t> _pub;
   shared_ptr<zmq::socket_t> _rep;
   map<string, msgHandler> _messages;
+  shared_ptr<Storage> _storage;
   
   void send(const json &m);
   bool getString(json *j, const string &name, string *value);
+  bool getId(json *j, string *id);
 
   // handlers
-  void loginMsg(json *json);
-  void streamsMsg(json *json);
-  void policyUsersMsg(json *json);
-  void messageMsg(json *json);
+  void loginMsg(json *json, shared_ptr<Storage> storage);
+  void streamsMsg(json *json, shared_ptr<Storage> storage);
+  void policyUsersMsg(json *json, shared_ptr<Storage> storage);
+  void messageMsg(json *json, shared_ptr<Storage> storage);
   
 };
 

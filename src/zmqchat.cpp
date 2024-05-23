@@ -13,6 +13,8 @@
 
 #include "server.hpp"
 
+#include "storage.hpp"
+
 #include <iostream>
 #include <boost/program_options.hpp> 
 #include <boost/log/trivial.hpp>
@@ -67,6 +69,7 @@ int main(int argc, char *argv[]) {
 
   BOOST_LOG_TRIVIAL(info) << "ZMQCHAT 0.1, 23-May-2024.";
 
+//  Storage storage;
   Server server(pubPort, repPort);
   server.run();
   

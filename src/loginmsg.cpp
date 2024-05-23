@@ -11,9 +11,11 @@
 
 #include "server.hpp"
 
+#include "storage.hpp"
+
 #include <boost/log/trivial.hpp>
 
-void Server::loginMsg(json *j) {
+void Server::loginMsg(json *j, shared_ptr<Storage> storage) {
 
   string session;
   if (!getString(j, "session", &session)) {
@@ -25,26 +27,31 @@ void Server::loginMsg(json *j) {
     BOOST_LOG_TRIVIAL(error) << "no password";
     return;
   }
-  if (password == "tracy") {
-    send({
-      { "type", "user" },
-      { "session", session },
-      { "id", "u1" },
-      { "name", "tracy" },
-      { "fullname", "Tracy" }
-    });
+  json result = storage->getUser(password);
+  BOOST_LOG_TRIVIAL(trace) << result;
+  string id;
+  if (!getId(&result, &id)) {
+    send({ { "type", "err" }, { "msg", "User not found" } });
     return;
   }
-  if (password == "leanne") {
-    send({
-      { "type", "user" },
-      { "session", session },
-      { "id", "u2" },
-      { "name", "leanne" },
-      { "fullname", "Leanne" }
-    });
+
+  string name;
+  if (!getString(&result, "name", &name)) {
+    send({ { "type", "err" }, { "msg", "No name in user" } });
     return;
   }
-  send({ { "type", "err" }, { "msg", "User not found" } });
+  string fullname;
+  if (!getString(&result, "fullname", &fullname)) {
+    send({ { "type", "err" }, { "msg", "No fullname in user" } });
+    return;
+  }
+  
+  send({
+    { "type", "user" },
+    { "session", session },
+    { "id", id },
+    { "name", name },
+    { "fullname", fullname }
+  });
 
 }
