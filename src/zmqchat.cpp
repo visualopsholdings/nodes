@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
 
         map<string, msgHandler>::iterator handler = handlers.find(type);
         if (handler == handlers.end()) {
-          BOOST_LOG_TRIVIAL(error) << "unknown reply type " << type;
+          BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type;
           continue;
         }
         handler->second(&doc, &rep);

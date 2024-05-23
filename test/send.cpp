@@ -100,8 +100,12 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   handler->second(req, arg);
+  
   json jr = receive(req);
-  cout << boost::json::value_to<string>(jr.at( "type"));
+  stringstream ss;
+  ss << jr;
+  cout << ss.str();
+  
   return 0;
  
 }
