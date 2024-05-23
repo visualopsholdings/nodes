@@ -35,7 +35,7 @@ set(BOOSTLIBS ${Boost_CHRONO_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OP
 
 include_directories(include)
 
-add_executable(ZMQCHAT src/zmqchat.cpp)
+add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp src/loginmsg.cpp)
   target_link_libraries(ZMQCHAT ${LIBS} ${BOOSTLIBS})
 
 add_executable(Send test/send.cpp)
