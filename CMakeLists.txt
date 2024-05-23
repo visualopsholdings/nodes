@@ -49,7 +49,7 @@ add_executable(TestJson test/json.cpp)
 
 add_test(TestJson TestJson)
 
-add_executable(TestMongo test/mongo.cpp)
-  target_link_libraries(TestMongo ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${MONGOLIBS})
+add_executable(TestStorage test/storage.cpp src/storage.cpp)
+  target_link_libraries(TestStorage ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${Boost_JSON_LIBRARY} ${MONGOLIBS})
 
-add_test(TestMongo TestMongo)
+add_test(TestStorage TestStorage)
