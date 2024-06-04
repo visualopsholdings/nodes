@@ -296,3 +296,6 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 
 ### 23 May 2024
 - Start in on login msg and mongoDB access.
+
+### 4 June 2024
+- Write a general class for storage access and lot's of tests.

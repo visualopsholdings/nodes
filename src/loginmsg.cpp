@@ -15,34 +15,39 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::loginMsg(json *j, shared_ptr<Storage> storage) {
+void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
 
   string session;
   if (!getString(j, "session", &session)) {
-    BOOST_LOG_TRIVIAL(error) << "no session";
+    sendErr("no session");
     return;
   }
   string password;
   if (!getString(j, "password", &password)) {
-    BOOST_LOG_TRIVIAL(error) << "no password";
+    sendErr("no password");
     return;
   }
-  json result = storage->getUser(password);
-  BOOST_LOG_TRIVIAL(trace) << result;
+  auto result = storage->coll("users").find({ { "name", password } }).value();
+  if (!result) {
+    sendErr("DB Error");
+    return;
+  }
+  
+  BOOST_LOG_TRIVIAL(trace) << *result;
   string id;
-  if (!getId(&result, &id)) {
-    send({ { "type", "err" }, { "msg", "User not found" } });
+  if (!getId(result, &id)) {
+    sendErr("User not found");
     return;
   }
 
   string name;
-  if (!getString(&result, "name", &name)) {
-    send({ { "type", "err" }, { "msg", "No name in user" } });
+  if (!getString(result, "name", &name)) {
+    sendErr("No name in user");
     return;
   }
   string fullname;
-  if (!getString(&result, "fullname", &fullname)) {
-    send({ { "type", "err" }, { "msg", "No fullname in user" } });
+  if (!getString(result, "fullname", &fullname)) {
+    sendErr("No fullname in user");
     return;
   }
   

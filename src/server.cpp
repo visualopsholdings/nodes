@@ -66,7 +66,7 @@ void Server::run() {
         BOOST_LOG_TRIVIAL(debug) << "got reply " << doc;
 
         string type;
-        if (!getString(&doc, "type", &type)) {
+        if (!getString(doc, "type", &type)) {
           BOOST_LOG_TRIVIAL(error) << "no type";
           continue;
         }
@@ -76,7 +76,7 @@ void Server::run() {
           BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type;
           continue;
         }
-        handler->second(&doc, _storage);
+        handler->second(doc, _storage);
       }
       catch (zmq::error_t &e) {
         BOOST_LOG_TRIVIAL(warning) << "got exc with rep recv" << e.what() << "(" << e.num() << ")";
@@ -109,10 +109,29 @@ void Server::send(const json &j) {
 
 }
 
-bool Server::getString(json *j, const string &name, string *value) {
+void Server::sendErr(const string &msg) {
+  BOOST_LOG_TRIVIAL(error) << msg;
+  send({ { "type", "err" }, { "msg", msg } });
+}
+
+void Server::sendAck() {
+  send({ { "type", "ack" } });
+}
+
+bool Server::getString(optional<json> &j, const string &name, string *value) {
+
+  if (!j) {
+    return false;
+  }
+  
+  return getString(*j, name, value);
+
+}
+
+bool Server::getString(json &j, const string &name, string *value) {
 
   try {
-    *value = boost::json::value_to<string>(j->at(name));
+    *value = boost::json::value_to<string>(j.at(name));
     return true;
   }
   catch (const boost::system::system_error& ex) {
@@ -121,10 +140,20 @@ bool Server::getString(json *j, const string &name, string *value) {
 
 }
 
-bool Server::getId(json *j, string *id) {
+bool Server::getId(optional<json> &j, string *id) {
+
+  if (!j) {
+    return false;
+  }
+  
+  return getId(*j, id);
+
+}
+
+bool Server::getId(json &j, string *id) {
 
   try {
-    *id = boost::json::value_to<string>(j->at("_id").at("$oid"));
+    *id = boost::json::value_to<string>(j.at("_id").at("$oid"));
     return true;
   }
   catch (...) {
@@ -132,11 +161,11 @@ bool Server::getId(json *j, string *id) {
   }
 }
 
-void Server::streamsMsg(json *j, shared_ptr<Storage> storage) {
+void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
 
   string user;
   if (!getString(j, "user", &user)) {
-    BOOST_LOG_TRIVIAL(error) << "no user";
+    sendErr("no user");
     return;
   }
   send({
@@ -151,15 +180,15 @@ void Server::streamsMsg(json *j, shared_ptr<Storage> storage) {
 
 }
 
-void Server::policyUsersMsg(json *j, shared_ptr<Storage> storage) {
+void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
 
   string policy;
   if (!getString(j, "policy", &policy)) {
-    BOOST_LOG_TRIVIAL(error) << "no policy";
+    sendErr("no policy");
     return;
   }
   if (policy != "p1") {
-    send({ { "type", "err" }, { "msg", "not correct policy" } });
+    sendErr("not correct policy");
     return;
   }
   send({
@@ -174,34 +203,34 @@ void Server::policyUsersMsg(json *j, shared_ptr<Storage> storage) {
   
 }
 
-void Server::messageMsg(json *j, shared_ptr<Storage> storage) {
+void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
 
   string user;
   if (!getString(j, "user", &user)) {
-    BOOST_LOG_TRIVIAL(error) << "no user";
+    sendErr("no user");
     return;
   }
   string stream;
   if (!getString(j, "stream", &stream)) {
-    BOOST_LOG_TRIVIAL(error) << "no stream";
+    sendErr("no stream");
     return;
   }
   if (stream != "s1") {
-    send({ { "type", "err" }, { "msg", "not correct stream" } });
+    sendErr("not correct stream");
     return;
   }
   string policy;
   if (!getString(j, "policy", &policy)) {
-    BOOST_LOG_TRIVIAL(error) << "no policy";
+    sendErr("no policy");
     return;
   }
   if (policy != "p1") {
-    send({ { "type", "err" }, { "msg", "policy" } });
+    sendErr("not correct policy");
     return;
   }
   string text;
   if (!getString(j, "text", &text)) {
-    BOOST_LOG_TRIVIAL(error) << "no text";
+    sendErr("no text");
     return;
   }
   if (text == "hello") {
@@ -215,6 +244,6 @@ void Server::messageMsg(json *j, shared_ptr<Storage> storage) {
     return;
   }
   BOOST_LOG_TRIVIAL(info) << "got " << text << " from " << user;
-  send({ { "type", "ack" } });
+  sendAck();
 
 }
