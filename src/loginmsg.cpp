@@ -12,6 +12,7 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "schema.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -27,13 +28,14 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
     sendErr("no password");
     return;
   }
-  auto result = storage->coll("users").find({ { "name", password } }).value();
+  
+  auto result = User(*storage).find({ { "name", password } }).value();
   if (!result) {
     sendErr("DB Error");
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << *result;
+  BOOST_LOG_TRIVIAL(trace) << result.value();
   string id;
   if (!getId(result, &id)) {
     sendErr("User not found");

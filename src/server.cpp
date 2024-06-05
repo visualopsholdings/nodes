@@ -124,7 +124,7 @@ bool Server::getString(optional<json> &j, const string &name, string *value) {
     return false;
   }
   
-  return getString(*j, name, value);
+  return getString(j.value(), name, value);
 
 }
 
@@ -146,7 +146,7 @@ bool Server::getId(optional<json> &j, string *id) {
     return false;
   }
   
-  return getId(*j, id);
+  return getId(j.value(), id);
 
 }
 

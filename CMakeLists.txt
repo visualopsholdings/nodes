@@ -33,23 +33,25 @@ endif ()
 
 set(LIBS zmq)
 set(MONGOLIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
-set(BOOSTLIBS ${Boost_CHRONO_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_PROGRAM_OPTIONS_LIBRARY} 
-      ${Boost_FILESYSTEM_LIBRARY} ${Boost_LOG_SETUP_LIBRARY} ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY} )
+set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY} )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
 
-add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp src/loginmsg.cpp src/storage.cpp)
-    target_link_libraries(ZMQCHAT ${LIBS} ${BOOSTLIBS} ${MONGOLIBS})
+add_library(StorageLib SHARED src/storage.cpp src/schema.cpp src/collectioni.cpp src/cursor.cpp)
+    target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
+
+add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp src/loginmsg.cpp)
+    target_link_libraries(ZMQCHAT StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS})
 
 add_executable(Send test/send.cpp)
-  target_link_libraries(Send ${LIBS} ${BOOSTLIBS})
+  target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
 add_executable(TestJson test/json.cpp)
   target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${Boost_JSON_LIBRARY})
 
 add_test(TestJson TestJson)
 
-add_executable(TestStorage test/storage.cpp src/storage.cpp)
-  target_link_libraries(TestStorage ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${Boost_JSON_LIBRARY} ${Boost_LOG_LIBRARY} ${MONGOLIBS})
+add_executable(TestStorage test/storage.cpp)
+  target_link_libraries(TestStorage StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_test(TestStorage TestStorage)
