@@ -12,7 +12,6 @@
 #include <iostream>
 
 #include "storage.hpp"
-#include "schema.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>

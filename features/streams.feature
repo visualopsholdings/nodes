@@ -6,6 +6,6 @@ Feature: Streams
          | tracy     | true   | Tracy     | 6121bdfaec9e5a059715739c |
    
 	Scenario: get the streams from the system
-	   When she sends streams as "u1"
+	   When she sends streams as "tracy"
       Then she receives streams
  

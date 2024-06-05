@@ -9,11 +9,11 @@
   https://github.com/visualopsholdings/zmqchat
 */
 
-#include "schema.hpp"
+#include "storage/schema.hpp"
 
 #include "storage.hpp"
-#include "storagei.hpp"
-#include "collectioni.hpp"
+#include "storage/storagei.hpp"
+#include "storage/collectioni.hpp"
 
 User::User(Storage &storage): _storage(storage) {
 }

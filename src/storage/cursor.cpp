@@ -9,9 +9,9 @@
   https://github.com/visualopsholdings/zmqchat
 */
 
-#include "cursor.hpp"
+#include "storage/cursor.hpp"
 
-#include "cursori.hpp"
+#include "storage/cursori.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <bsoncxx/json.hpp>

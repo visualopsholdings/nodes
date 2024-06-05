@@ -144,7 +144,7 @@ void streamsMsg(zmq::socket_t &socket, const string &arg) {
 
     send(socket, {
       { "type", "streams" },
-      { "user", "u1" }
+      { "user", arg }
     });
 
 }
@@ -153,7 +153,7 @@ void policyUsersMsg(zmq::socket_t &socket, const string &arg) {
 
     send(socket, {
       { "type", "policyusers" },
-      { "policy", "p1" }
+      { "policy", arg }
     });
 
 }

@@ -9,9 +9,9 @@
   https://github.com/visualopsholdings/zmqchat
 */
 
-#include "collectioni.hpp"
+#include "storage/collectioni.hpp"
 
-#include "cursori.hpp"
+#include "storage/cursori.hpp"
 #include "storage.hpp"
 
 #include <mongocxx/cursor.hpp>

@@ -12,7 +12,6 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "schema.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -29,26 +28,26 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
   
-  auto result = User(*storage).find({ { "name", password } }).value();
-  if (!result) {
+  auto user = User(*storage).find({ { "name", password } }).value();
+  if (!user) {
     sendErr("DB Error");
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << result.value();
+  BOOST_LOG_TRIVIAL(trace) << user.value();
   string id;
-  if (!getId(result, &id)) {
+  if (!getId(user, &id)) {
     sendErr("User not found");
     return;
   }
 
   string name;
-  if (!getString(result, "name", &name)) {
+  if (!getString(user, "name", &name)) {
     sendErr("No name in user");
     return;
   }
   string fullname;
-  if (!getString(result, "fullname", &fullname)) {
+  if (!getString(user, "fullname", &fullname)) {
     sendErr("No fullname in user");
     return;
   }

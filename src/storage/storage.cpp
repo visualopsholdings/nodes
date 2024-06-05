@@ -11,9 +11,9 @@
 
 #include "storage.hpp"
 
-#include "storagei.hpp"
-#include "collectioni.hpp"
-#include "cursori.hpp"
+#include "storage/storagei.hpp"
+#include "storage/collectioni.hpp"
+#include "storage/cursori.hpp"
 
 #include <boost/log/trivial.hpp>
 

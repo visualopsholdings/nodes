@@ -19,7 +19,8 @@
 #ifndef H_storage
 #define H_storage
 
-#include "cursor.hpp"
+#include "storage/cursor.hpp"
+#include "storage/schema.hpp"
 
 #include <boost/json.hpp>
 

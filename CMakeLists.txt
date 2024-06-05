@@ -33,14 +33,20 @@ endif ()
 
 set(LIBS zmq)
 set(MONGOLIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
-set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY} )
+set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
+
+set(MESSAGES 
+  src/msg/login.cpp 
+  src/msg/message.cpp 
+  src/msg/streams.cpp
+  src/msg/policyusers.cpp)
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
 
-add_library(StorageLib SHARED src/storage.cpp src/schema.cpp src/collectioni.cpp src/cursor.cpp)
+add_library(StorageLib SHARED src/storage/storage.cpp src/storage/schema.cpp src/storage/collectioni.cpp src/storage/cursor.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
-add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp src/loginmsg.cpp)
+add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES})
     target_link_libraries(ZMQCHAT StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS})
 
 add_executable(Send test/send.cpp)
