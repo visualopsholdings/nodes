@@ -299,3 +299,6 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 
 ### 4 June 2024
 - Write a general class for storage access and lot's of tests.
+
+### 5 June 2024
+- Introduce schemas and simplify storage access.
