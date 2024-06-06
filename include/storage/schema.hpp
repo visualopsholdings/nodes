@@ -30,8 +30,31 @@ class User: public Schema {
 public:
   User(Storage &storage);
   
-  Cursor find(const json &query);
-  Cursor find();
+  Cursor find(const json &query, const vector<string> &fields = {});
+
+private:
+  Storage &_storage;
+  
+};
+
+class Policy: public Schema {
+
+public:
+  Policy(Storage &storage);
+  
+  Cursor find(const json &query, const vector<string> &fields = {});
+
+private:
+  Storage &_storage;
+  
+};
+
+class Stream: public Schema {
+
+public:
+  Stream(Storage &storage);
+  
+  Cursor find(const json &query, const vector<string> &fields = {});
 
 private:
   Storage &_storage;

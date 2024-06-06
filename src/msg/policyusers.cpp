@@ -17,23 +17,36 @@
 
 void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
 
-  string policy;
-  if (!getString(j, "policy", &policy)) {
+  string policyid;
+  if (!getString(j, "policy", &policyid)) {
     sendErr("no policy");
     return;
   }
-  if (policy != "p1") {
-    sendErr("not correct policy");
+
+  auto policy = Policy(*storage).find({ { "_id", { { "$oid", policyid } } } }, { "users" }).value();
+  if (!policy) {
+    sendErr("DB Error");
     return;
   }
+  
+  BOOST_LOG_TRIVIAL(trace) << policy.value();
+  vector<string> userids;
+  if (!getArray(policy, "users", &userids)) {
+    sendErr("Users not found");
+    return;
+  }
+  boost::json::array users;
+  for (auto i: userids) {
+    auto user = User(*storage).find({ { "_id", { { "$oid", i } } } }, { "_id", "name", "fullname" }).value();
+    if (user) {
+      users.push_back(user.value());
+    }
+  }
+
   send({
     { "type", "policyusers" },
-    { "id", "p1" },
-    { "users", {
-      { { "id", "u1" }, { "name", "tracy" }, { "fullname", "Tracy" } },
-      { { "id", "u2" }, { "name", "leanne" }, { "fullname", "Leanne" } }  
-      } 
-    }
+    { "id", policyid },
+    { "users", users }
   });
   
 }

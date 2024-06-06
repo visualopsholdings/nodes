@@ -25,7 +25,8 @@ BOOST_AUTO_TEST_CASE( user )
 {
   cout << "=== user ===" << endl;
   
-  auto doc = User(storage).find({ { "name", "tracy" }}).value();
+  auto doc = User(storage).find({{ "name", "tracy" }}, {"_id"}).value();
+//  cout << doc.value() << endl;
   BOOST_CHECK(doc);
   BOOST_CHECK(doc.value().is_object());
   BOOST_CHECK(doc.value().as_object().if_contains("_id"));
@@ -40,11 +41,14 @@ BOOST_AUTO_TEST_CASE( findAll )
 {
   cout << "=== findAll ===" << endl;
   
-  auto doc = User(storage).find().values();
+  auto doc = User(storage).find({{}}, {"_id"}).values();
   BOOST_CHECK(doc);
+//  cout << doc.value() << endl;
   BOOST_CHECK(doc.value().is_array());
-  BOOST_CHECK_EQUAL(doc.value().as_array().size(), 1);
+  BOOST_CHECK_EQUAL(doc.value().as_array().size(), 2);
   BOOST_CHECK(doc.value().as_array()[0].at("_id").is_object());
   BOOST_CHECK(doc.value().as_array()[0].at("_id").as_object().if_contains("$oid"));
+  BOOST_CHECK(doc.value().as_array()[1].at("_id").is_object());
+  BOOST_CHECK(doc.value().as_array()[1].at("_id").as_object().if_contains("$oid"));
   
 }

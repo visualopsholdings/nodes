@@ -23,7 +23,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto user = User(*storage).find({ { "name", username } }).value();
+  auto user = User(*storage).find(json{ { "name", username } }, { "_id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;

@@ -18,10 +18,20 @@
 User::User(Storage &storage): _storage(storage) {
 }
 
-Cursor User::find(const json &query) {
-  return _storage._impl->coll("users").find(query);
+Cursor User::find(const json &query, const vector<string> &fields) {
+  return _storage._impl->coll("users").find(query, fields);
 }
 
-Cursor User::find() {
-  return _storage._impl->coll("users").find();
+Policy::Policy(Storage &storage): _storage(storage) {
+}
+
+Cursor Policy::find(const json &query, const vector<string> &fields) {
+  return _storage._impl->coll("policies").find(query, fields);
+}
+
+Stream::Stream(Storage &storage): _storage(storage) {
+}
+
+Cursor Stream::find(const json &query, const vector<string> &fields) {
+  return _storage._impl->coll("streams").find(query, fields);
 }

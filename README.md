@@ -302,3 +302,6 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 
 ### 5 June 2024
 - Introduce schemas and simplify storage access.
+
+### 6 June 2024
+- Add projections to mongo queries (select).

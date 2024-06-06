@@ -35,6 +35,8 @@ public:
   
 private:
   friend class User;
+  friend class Policy;
+  friend class Stream;
 
   shared_ptr<StorageImpl> _impl;
     

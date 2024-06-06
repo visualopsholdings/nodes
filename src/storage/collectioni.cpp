@@ -21,14 +21,9 @@
 
 using bsoncxx::builder::basic::make_document;
 
-Cursor CollectionImpl::find(const json &query) {
+Cursor CollectionImpl::find(const json &query, const vector<string> &fields) {
   stringstream ss;
   ss << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
-  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_c, q)));
+  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_c, q, fields)));
 }
-
-Cursor CollectionImpl::find() {
-  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_c, make_document())));
-}
-

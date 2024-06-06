@@ -26,13 +26,14 @@ class CollectionImpl {
 
 private:
   friend class User;
+  friend class Policy;
+  friend class Stream;
   friend class StorageImpl;
   
   CollectionImpl(mongocxx::collection c): _c(c) {};
   CollectionImpl() {};
 
-  Cursor find(const json &query);
-  Cursor find();
+  Cursor find(const json &query, const vector<string> &fields);
 
   mongocxx::collection _c;
   

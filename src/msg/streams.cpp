@@ -23,7 +23,7 @@ void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto user = User(*storage).find({ { "name", username } }).value();
+  auto user = User(*storage).find(json{ { "name", username } }, { "_id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;
@@ -36,14 +36,17 @@ void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
+  auto streams = Stream(*storage).find({{}}, { "_id", "name", "policy" }).values();
+  if (!streams) {
+    sendErr("DB Error");
+    return;
+  }
+  BOOST_LOG_TRIVIAL(trace) << streams.value();
+  
   send({
     { "type", "streams" },
     { "user", userid },
-    { "streams", {
-      { { "name", "My Conversation 1" }, { "id", "s1" }, { "policy", "p1" } },
-      { { "name", "My Conversation 2" }, { "id", "s2" }, { "policy", "p2" } }
-      } 
-    }
+    { "streams", streams.value() }
   });
 
 }

@@ -28,7 +28,7 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
   
-  auto user = User(*storage).find({ { "name", password } }).value();
+  auto user = User(*storage).find(json{ { "name", password } }, {"name", "fullname"}).value();
   if (!user) {
     sendErr("DB Error");
     return;

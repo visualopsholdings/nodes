@@ -18,7 +18,8 @@ Then('she receives ack') do
    expect(lastResult["type"]).to eq("ack")
 end
 
-When('she sends policy users as {string}') do |policy|
+When('she sends policy users as {string}') do |id|
+   policy = Policy.where(name: id).first._id.to_s
    lastResult = JSON.parse(`build/Send --cmd=policyusers --arg="#{policy}"`)
 end
 

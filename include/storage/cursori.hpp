@@ -23,11 +23,15 @@ using json = boost::json::value;
 class CursorImpl {
 
 public:
-  CursorImpl(mongocxx::collection c, bsoncxx::document::view_or_value q): _c(c), _q(q) {};
+  CursorImpl(mongocxx::collection coll, bsoncxx::document::view_or_value query, const vector<string> &fields): 
+    _c(coll), _q(query), _f(fields) {};
 
 private:
   friend class Cursor;
   
+  mongocxx::cursor find();
+  
+  vector<string> _f;
   mongocxx::collection _c;
   bsoncxx::document::view_or_value _q;
   

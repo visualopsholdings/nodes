@@ -9,4 +9,12 @@ FactoryBot.define do
       f.hash { '9TxF9r/DTwYKu1WadrlhHlnbXnAWflF5gqZ9+M0VX1Hyq8ixnle6OIkS+lm2xl6KxxW0Af9CaJNacVGuBi5Pbsj4RiSN1FrXxtKnLqKkdskNfSQnRktDzZO88iBC7kp80vscAUysH0H+U2Ihs623eEN3LY47Z5vUu+uTsN5Wxs8=' }
    end
 
+   factory :stream do |f|
+      f.modifyDate { DateTime.now }
+   end
+
+   factory :policy do |f|
+      f.modifyDate { DateTime.now }
+   end
+
 end
