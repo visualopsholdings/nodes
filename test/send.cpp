@@ -20,19 +20,20 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/json.hpp>
 #include <zmq.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace po = boost::program_options;
 
 using namespace std;
 using json = boost::json::value;
 
-typedef function<void (zmq::socket_t &socket, const string &arg)> msgHandler;
+typedef function<void (zmq::socket_t &socket, const vector<string> &args)> msgHandler;
 void send(zmq::socket_t &socket, const json &json);
 json receive(zmq::socket_t &socket);
-void loginMsg(zmq::socket_t &socket, const string &arg);
-void streamsMsg(zmq::socket_t &socket, const string &arg);
-void policyUsersMsg(zmq::socket_t &socket, const string &arg);
-void messageMsg(zmq::socket_t &socket, const string &arg);
+void loginMsg(zmq::socket_t &socket, const vector<string> &args);
+void streamsMsg(zmq::socket_t &socket, const vector<string> &args);
+void policyUsersMsg(zmq::socket_t &socket, const vector<string> &args);
+void messageMsg(zmq::socket_t &socket, const vector<string> &args);
 
 int main(int argc, char *argv[]) {
 
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
   int reqPort;
   string logLevel;
   string cmd;
-  string arg;
+  string args;
   
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]) {
     ("reqPort", po::value<int>(&reqPort)->default_value(3013), "ZMQ Req port.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
     ("cmd", po::value<string>(&cmd)->required(), "The command to send")
-    ("arg", po::value<string>(&arg)->default_value(""), "The argument for the command")
+    ("args", po::value<string>(&args)->default_value(""), "The argument for the command")
     ("help", "produce help message")
     ;
   po::positional_options_description p;
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]) {
   }
 
   boost::log::formatter logFmt =
-         boost::log::expressions::format("%1%\t[%2%]\t%3%")
+         boost::log::expressions::format("%1%\tSend [%2%]\t%3%")
         %  boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") 
         %  boost::log::expressions::attr< boost::log::trivial::severity_level>("Severity")
         %  boost::log::expressions::smessage;
@@ -94,12 +95,15 @@ int main(int argc, char *argv[]) {
   zmq::socket_t req(context, ZMQ_REQ);
   req.connect("tcp://127.0.0.1:" + to_string(reqPort));
   
+  vector<string> arglist;
+  boost::split(arglist, args, boost::is_any_of(","));
+  
   map<string, msgHandler>::iterator handler = handlers.find(cmd);
   if (handler == handlers.end()) {
     BOOST_LOG_TRIVIAL(error) << "unknown cmd " << cmd;
     return 1;
   }
-  handler->second(req, arg);
+  handler->second(req, arglist);
   
   json jr = receive(req);
   stringstream ss;
@@ -130,42 +134,62 @@ json receive(zmq::socket_t &socket) {
 
 }
 
-void loginMsg(zmq::socket_t &socket, const string &arg) {
+void loginMsg(zmq::socket_t &socket, const vector<string> &args) {
 
-    send(socket, {
-      { "type", "login" },
-      { "session", "1" },
-      { "password", arg }
-    });
-
-}
-
-void streamsMsg(zmq::socket_t &socket, const string &arg) {
-
-    send(socket, {
-      { "type", "streams" },
-      { "user", arg }
-    });
+  if (args.size() != 1) {
+    BOOST_LOG_TRIVIAL(error) << "usage: login password";
+    return;
+  }
+  
+  send(socket, {
+    { "type", "login" },
+    { "session", "1" },
+    { "password", args[0] }
+  });
 
 }
 
-void policyUsersMsg(zmq::socket_t &socket, const string &arg) {
+void streamsMsg(zmq::socket_t &socket, const vector<string> &args) {
 
-    send(socket, {
-      { "type", "policyusers" },
-      { "policy", arg }
-    });
+  if (args.size() != 1) {
+    BOOST_LOG_TRIVIAL(error) << "usage: streams pasusersword";
+    return;
+  }
+  
+  send(socket, {
+    { "type", "streams" },
+    { "user", args[0] }
+  });
 
 }
 
-void messageMsg(zmq::socket_t &socket, const string &arg) {
+void policyUsersMsg(zmq::socket_t &socket, const vector<string> &args) {
 
-    send(socket, {
-      { "type", "message" },
-      { "user", arg },
-      { "stream", "s1" },
-      { "policy", "p1" },
-      { "text", "xxxx" }
-    });
+  if (args.size() != 1) {
+    BOOST_LOG_TRIVIAL(error) << "usage: policyusers policy";
+    return;
+  }
+  
+  send(socket, {
+    { "type", "policyusers" },
+    { "policy", args[0] }
+  });
+
+}
+
+void messageMsg(zmq::socket_t &socket, const vector<string> &args) {
+
+   if (args.size() != 4) {
+    BOOST_LOG_TRIVIAL(error) << "usage: message user stream policy text";
+    return;
+  }
+  
+  send(socket, {
+    { "type", "message" },
+    { "user", args[0] },
+    { "stream", args[1] },
+    { "policy", args[2] },
+    { "text", args[3] }
+  });
 
 }

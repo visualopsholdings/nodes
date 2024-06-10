@@ -17,26 +17,19 @@
 
 void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
 
-  string username;
-  if (!getString(j, "user", &username)) {
+  string userid;
+  if (!getString(j, "user", &userid)) {
     sendErr("no user");
     return;
   }
 
-  auto user = User(*storage).find(json{ { "name", username } }, { "_id" }).value();
+  auto user = User(*storage).find(userid, { "_id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << user.value();
-  string userid;
-  if (!getId(user, &userid)) {
-    sendErr("User not found");
-    return;
-  }
-
-  auto streams = Stream(*storage).find({{}}, { "_id", "name", "policy" }).values();
+  auto streams = Stream(*storage).find(json{{}}, { "_id", "name", "policy" }).values();
   if (!streams) {
     sendErr("DB Error");
     return;

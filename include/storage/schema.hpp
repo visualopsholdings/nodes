@@ -28,9 +28,17 @@ public:
   Schema(Storage &storage) : _storage(storage) {}
 
   void deleteMany(const json &doc);
+    // delete all documents that match the query.
+    
   optional<string> insert(const json &doc);
+    // insert a new document.
+    
   Cursor find(const json &query, const vector<string> &fields = {});
-
+    // find documents with the query.
+    
+  Cursor find(const string &id, const vector<string> &fields = {});
+    // find the document with this id.
+    
   virtual string collName() = 0;
   
 private:

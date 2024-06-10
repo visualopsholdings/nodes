@@ -17,58 +17,50 @@
 
 void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
 
-  string username;
-  if (!getString(j, "user", &username)) {
+  string userid;
+  if (!getString(j, "user", &userid)) {
     sendErr("no user");
     return;
   }
 
-  auto user = User(*storage).find(json{ { "name", username } }, { "_id" }).value();
+  auto user = User(*storage).find(userid, { "_id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << user.value();
-  string userid;
-  if (!getId(user, &userid)) {
-    sendErr("User not found");
-    return;
-  }
-
-  string stream;
-  if (!getString(j, "stream", &stream)) {
+//  BOOST_LOG_TRIVIAL(trace) << user.value();
+  
+  string streamid;
+  if (!getString(j, "stream", &streamid)) {
     sendErr("no stream");
     return;
   }
-  if (stream != "s1") {
-    sendErr("not correct stream");
-    return;
-  }
-  string policy;
-  if (!getString(j, "policy", &policy)) {
+  
+//   auto stream = Stream(*storage).find(streamid, { "_id" }).value();
+//   if (!stream) {
+//     sendErr("DB Error");
+//     return;
+//   }
+
+  string policyid;
+  if (!getString(j, "policy", &policyid)) {
     sendErr("no policy");
     return;
   }
-  if (policy != "p1") {
-    sendErr("not correct policy");
-    return;
-  }
+
+//   auto policy = Policy(*storage).find(policyid, { "_id" }).value();
+//   if (!stream) {
+//     sendErr("DB Error");
+//     return;
+//   }
+
   string text;
   if (!getString(j, "text", &text)) {
     sendErr("no text");
     return;
   }
-  if (text == "hello") {
-    send({
-      { "type", "message" },
-      { "text", "world" },
-      { "stream", "s1" },
-      { "policy", "p1" },
-      { "user", userid }
-    });
-    return;
-  }
+  
   BOOST_LOG_TRIVIAL(info) << "got " << text << " from " << userid;
   sendAck();
 

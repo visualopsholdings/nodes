@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE( findAll )
   
   dbSetup();
 
-  auto doc = User(storage).find({{}}, {"_id"}).values();
+  auto doc = User(storage).find(json{{}}, {"_id"}).values();
   BOOST_CHECK(doc);
 //  cout << doc.value() << endl;
   BOOST_CHECK(doc.value().is_array());

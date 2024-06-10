@@ -22,11 +22,19 @@
 
 Cursor Schema::find(const json &query, const vector<string> &fields) {
 
+  BOOST_LOG_TRIVIAL(trace) << "find " << query;
+
   stringstream ss;
   ss << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
   return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_storage._impl->coll(collName())._c, q, fields)));
 
+}
+
+Cursor Schema::find(const string &id, const vector<string> &fields) {
+
+  return find(json{ { "_id", { { "$oid", id } } } }, fields);
+  
 }
 
 void Schema::deleteMany(const json &doc) {
@@ -42,6 +50,8 @@ void Schema::deleteMany(const json &doc) {
 }
   
 optional<string> Schema::insert(const json &doc) {
+
+  BOOST_LOG_TRIVIAL(trace) << "insert " << doc;
 
   stringstream ss;
   ss << doc;
