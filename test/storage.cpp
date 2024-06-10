@@ -21,9 +21,25 @@ using namespace std;
 // only one can be.
 Storage storage;
 
+void dbSetup() {
+  User(storage).deleteMany({{}});
+  BOOST_CHECK(User(storage).insert({
+    { "name", "tracy" },
+    { "admin", true },
+    { "fullname", "Tracy" }
+  }));
+  BOOST_CHECK(User(storage).insert({
+    { "name", "leanne" },
+    { "admin", false },
+    { "fullname", "Leanne" }
+  }));
+}
+
 BOOST_AUTO_TEST_CASE( user )
 {
   cout << "=== user ===" << endl;
+  
+  dbSetup();
   
   auto doc = User(storage).find({{ "name", "tracy" }}, {"_id"}).value();
 //  cout << doc.value() << endl;
@@ -41,6 +57,8 @@ BOOST_AUTO_TEST_CASE( findAll )
 {
   cout << "=== findAll ===" << endl;
   
+  dbSetup();
+
   auto doc = User(storage).find({{}}, {"_id"}).values();
   BOOST_CHECK(doc);
 //  cout << doc.value() << endl;

@@ -14,24 +14,44 @@
 #include "storage.hpp"
 #include "storage/storagei.hpp"
 #include "storage/collectioni.hpp"
+#include "storage/cursori.hpp"
 
-User::User(Storage &storage): _storage(storage) {
+#include <boost/log/trivial.hpp>
+#include <sstream>
+#include <bsoncxx/json.hpp>
+
+Cursor Schema::find(const json &query, const vector<string> &fields) {
+
+  stringstream ss;
+  ss << query;
+  bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
+  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_storage._impl->coll(collName())._c, q, fields)));
+
 }
 
-Cursor User::find(const json &query, const vector<string> &fields) {
-  return _storage._impl->coll("users").find(query, fields);
-}
+void Schema::deleteMany(const json &doc) {
 
-Policy::Policy(Storage &storage): _storage(storage) {
-}
+  BOOST_LOG_TRIVIAL(trace) << "deleteMany " << doc;
 
-Cursor Policy::find(const json &query, const vector<string> &fields) {
-  return _storage._impl->coll("policies").find(query, fields);
-}
+  stringstream ss;
+  ss << doc;
+  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
 
-Stream::Stream(Storage &storage): _storage(storage) {
-}
+  _storage._impl->coll(collName())._c.delete_many(d);
 
-Cursor Stream::find(const json &query, const vector<string> &fields) {
-  return _storage._impl->coll("streams").find(query, fields);
+}
+  
+optional<string> Schema::insert(const json &doc) {
+
+  stringstream ss;
+  ss << doc;
+  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+  
+  auto result = _storage._impl->coll(collName())._c.insert_one(d);
+  if (result) {
+    return result.value().inserted_id().get_oid().value.to_string();
+   }
+  
+  return nullopt;
+
 }

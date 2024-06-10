@@ -25,15 +25,11 @@ class Cursor;
 class CollectionImpl {
 
 private:
-  friend class User;
-  friend class Policy;
-  friend class Stream;
+  friend class Schema;
   friend class StorageImpl;
   
   CollectionImpl(mongocxx::collection c): _c(c) {};
   CollectionImpl() {};
-
-  Cursor find(const json &query, const vector<string> &fields);
 
   mongocxx::collection _c;
   

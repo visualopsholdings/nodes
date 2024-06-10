@@ -305,3 +305,8 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 
 ### 6 June 2024
 - Add projections to mongo queries (select).
+
+### 10 June 2024
+- Tests correctly setup mongo data
+- deleteMany() and insert() implemented for Mongo.
+

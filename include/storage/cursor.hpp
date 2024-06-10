@@ -32,7 +32,7 @@ public:
     // return the value of the query as a JSON array.
 
 private:
-  friend class CollectionImpl;
+  friend class Schema;
   
   Cursor(shared_ptr<CursorImpl> impl): _impl(impl) {};
 

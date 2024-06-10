@@ -23,42 +23,46 @@ class Storage;
 class Cursor;
 
 class Schema {
+
+public:
+  Schema(Storage &storage) : _storage(storage) {}
+
+  void deleteMany(const json &doc);
+  optional<string> insert(const json &doc);
+  Cursor find(const json &query, const vector<string> &fields = {});
+
+  virtual string collName() = 0;
+  
+private:
+  Storage &_storage;
+  
 };
 
 class User: public Schema {
 
 public:
-  User(Storage &storage);
+  User(Storage &storage): Schema(storage) {}
   
-  Cursor find(const json &query, const vector<string> &fields = {});
+  virtual string collName() { return "users"; };
 
-private:
-  Storage &_storage;
-  
 };
 
 class Policy: public Schema {
 
 public:
-  Policy(Storage &storage);
+  Policy(Storage &storage): Schema(storage) {}
   
-  Cursor find(const json &query, const vector<string> &fields = {});
+  virtual string collName() { return "policies"; };
 
-private:
-  Storage &_storage;
-  
 };
 
 class Stream: public Schema {
 
 public:
-  Stream(Storage &storage);
+  Stream(Storage &storage): Schema(storage) {}
   
-  Cursor find(const json &query, const vector<string> &fields = {});
+  virtual string collName() { return "streams"; };
 
-private:
-  Storage &_storage;
-  
 };
 
 #endif // H_schema

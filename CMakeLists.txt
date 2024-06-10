@@ -43,7 +43,7 @@ set(MESSAGES
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
 
-add_library(StorageLib SHARED src/storage/storage.cpp src/storage/schema.cpp src/storage/collectioni.cpp src/storage/cursor.cpp)
+add_library(StorageLib SHARED src/storage/storage.cpp src/storage/schema.cpp src/storage/cursor.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
 add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES})
