@@ -23,7 +23,7 @@ void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto user = User(*storage).find(userid, { "_id" }).value();
+  auto user = User(*storage).findById(userid, { "_id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;

@@ -26,6 +26,7 @@ Server::Server(int pub, int rep) {
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
 	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ as Local REP on " << rep;
 
+  _messages["certs"] = bind(&Server::certsMsg, this, placeholders::_1, placeholders::_2);
   _messages["login"] = bind(&Server::loginMsg, this, placeholders::_1, placeholders::_2);
   _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1, placeholders::_2);
   _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1, placeholders::_2);
@@ -82,6 +83,29 @@ void Server::run() {
         BOOST_LOG_TRIVIAL(warning) << "got exc with rep recv" << e.what() << "(" << e.num() << ")";
       }
     }
+  }
+
+}
+
+void Server::publish(const json &j) {
+
+  stringstream ss;
+  ss << j;
+  string m = ss.str();
+  
+  BOOST_LOG_TRIVIAL(info) << "publishing " << m;
+
+	zmq::message_t msg(m.length());
+	memcpy(msg.data(), m.c_str(), m.length());
+  try {
+#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
+    _pub->send(msg);
+#else
+    _pub->send(msg, zmq::send_flags::none);
+#endif
+  }
+  catch (zmq::error_t &e) {
+    BOOST_LOG_TRIVIAL(warning) << "got exc publish" << e.what() << "(" << e.num() << ")";
   }
 
 }
@@ -152,13 +176,14 @@ bool Server::getId(optional<json> &j, string *id) {
 
 bool Server::getId(json &j, string *id) {
 
-  try {
-    *id = boost::json::value_to<string>(j.at("_id").at("$oid"));
-    return true;
-  }
-  catch (...) {
-    return false;
-  }
+  return getString(j, "_id", id);
+//   try {
+//     *id = boost::json::value_to<string>(j.at("_id").at("$oid"));
+//     return true;
+//   }
+//   catch (...) {
+//     return false;
+//   }
 }
 
 bool Server::getArray(optional<json> &j, const string &name, vector<string> *value) {

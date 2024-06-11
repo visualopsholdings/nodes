@@ -36,6 +36,7 @@ set(MONGOLIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
 set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
 
 set(MESSAGES 
+  src/msg/certs.cpp
   src/msg/login.cpp 
   src/msg/message.cpp 
   src/msg/streams.cpp
@@ -52,12 +53,17 @@ add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES})
 add_executable(Send test/send.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
-add_executable(TestJson test/json.cpp)
+add_executable(TestJson test/testjson.cpp)
   target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${Boost_JSON_LIBRARY})
 
 add_test(TestJson TestJson)
 
-add_executable(TestStorage test/storage.cpp)
+add_executable(TestStorage test/teststorage.cpp)
   target_link_libraries(TestStorage StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_test(TestStorage TestStorage)
+
+add_executable(TestCursor test/testcursor.cpp src/storage/cursor.cpp)
+  target_link_libraries(TestCursor ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+
+add_test(TestCursor TestCursor)

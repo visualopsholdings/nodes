@@ -310,3 +310,6 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 - Tests correctly setup mongo data
 - deleteMany() and insert() implemented for Mongo.
 
+### 11 June 2024
+- Almost get end to end chat working.
+

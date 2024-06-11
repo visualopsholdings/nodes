@@ -41,6 +41,7 @@ private:
   map<string, msgHandler> _messages;
   shared_ptr<Storage> _storage;
   
+  void publish(const json &j);
   void send(const json &m);
   void sendErr(const string &msg);
   void sendAck();
@@ -56,6 +57,7 @@ private:
   void streamsMsg(json &json, shared_ptr<Storage> storage);
   void policyUsersMsg(json &json, shared_ptr<Storage> storage);
   void messageMsg(json &json, shared_ptr<Storage> storage);
+  void certsMsg(json &json, shared_ptr<Storage> storage);
   
 };
 

@@ -38,6 +38,21 @@ mongocxx::cursor CursorImpl::find() {
 
 }
 
+json CursorImpl::replaceIds(const json &j) {
+
+  boost::json::object o;
+  for (auto i: j.as_object()) {
+    if (i.key() == "_id") {
+      o["id"] = i.value().at("$oid");
+    }
+    else {
+      o[i.key()] = i.value();
+    }
+  }
+  return o;
+
+}
+
 optional<json> Cursor::value() {
   
   if (!_impl->_c) {
@@ -50,17 +65,9 @@ optional<json> Cursor::value() {
     return {};
   }
   boost::json::array val;
-  int count = 0;
   for (auto i: cursor) {
-    string s = bsoncxx::to_json(i);
-    val.push_back(boost::json::parse(s));
-    count++;
+    return _impl->replaceIds(boost::json::parse(bsoncxx::to_json(i)));
   }
-  if (count == 1) {
-    return val[0];
-  }
-  
-  BOOST_LOG_TRIVIAL(error) << "more than 1 value";
   return {};
   
 }
@@ -78,7 +85,7 @@ optional<json> Cursor::values() {
   }
   boost::json::array val;
   for (auto i: cursor) {
-    val.push_back(boost::json::parse(bsoncxx::to_json(i)));
+    val.push_back(_impl->replaceIds(boost::json::parse(bsoncxx::to_json(i))));
   }
   return val;
   

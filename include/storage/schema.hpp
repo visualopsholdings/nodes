@@ -36,7 +36,7 @@ public:
   Cursor find(const json &query, const vector<string> &fields = {});
     // find documents with the query.
     
-  Cursor find(const string &id, const vector<string> &fields = {});
+  Cursor findById(const string &id, const vector<string> &fields = {});
     // find the document with this id.
     
   virtual string collName() = 0;
@@ -70,6 +70,15 @@ public:
   Stream(Storage &storage): Schema(storage) {}
   
   virtual string collName() { return "streams"; };
+
+};
+
+class Idea: public Schema {
+
+public:
+  Idea(Storage &storage): Schema(storage) {}
+  
+  virtual string collName() { return "ideas"; };
 
 };
 

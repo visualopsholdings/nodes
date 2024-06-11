@@ -23,7 +23,7 @@ void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto policy = Policy(*storage).find(policyid, { "users" }).value();
+  auto policy = Policy(*storage).findById(policyid, { "users" }).value();
   if (!policy) {
     sendErr("DB Error");
     return;
@@ -37,7 +37,7 @@ void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
   }
   boost::json::array users;
   for (auto i: userids) {
-    auto user = User(*storage).find(i, { "_id", "name", "fullname" }).value();
+    auto user = User(*storage).findById(i, { "_id", "name", "fullname" }).value();
     if (user) {
       users.push_back(user.value());
     }

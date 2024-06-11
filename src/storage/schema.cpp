@@ -31,7 +31,7 @@ Cursor Schema::find(const json &query, const vector<string> &fields) {
 
 }
 
-Cursor Schema::find(const string &id, const vector<string> &fields) {
+Cursor Schema::findById(const string &id, const vector<string> &fields) {
 
   return find(json{ { "_id", { { "$oid", id } } } }, fields);
   

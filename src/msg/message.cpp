@@ -23,7 +23,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto user = User(*storage).find(userid, { "_id" }).value();
+  auto user = User(*storage).findById(userid, { "_id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;
@@ -37,7 +37,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
   
-//   auto stream = Stream(*storage).find(streamid, { "_id" }).value();
+//   auto stream = Stream(*storage).findById(streamid, { "_id" }).value();
 //   if (!stream) {
 //     sendErr("DB Error");
 //     return;
@@ -49,7 +49,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-//   auto policy = Policy(*storage).find(policyid, { "_id" }).value();
+//   auto policy = Policy(*storage).findById(policyid, { "_id" }).value();
 //   if (!stream) {
 //     sendErr("DB Error");
 //     return;
@@ -61,7 +61,20 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
   
-  BOOST_LOG_TRIVIAL(info) << "got " << text << " from " << userid;
+  json idea = {
+    { "user", userid },
+    { "stream", streamid },
+    { "policy", policyid },
+    { "text", text}
+  };
+  auto result = Idea(*storage).insert(idea);
+  if (!result) {
+    sendErr("DB Error");
+    return;
+  }
+  BOOST_LOG_TRIVIAL(trace) << "inserted " << *result;
+    
+  publish(idea);
   sendAck();
 
 }

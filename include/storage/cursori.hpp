@@ -26,6 +26,9 @@ public:
   CursorImpl(mongocxx::collection coll, bsoncxx::document::view_or_value query, const vector<string> &fields): 
     _c(coll), _q(query), _f(fields) {};
 
+  // public for testing.
+  json replaceIds(const json &json);
+
 private:
   friend class Cursor;
   
