@@ -47,8 +47,6 @@ private:
   void sendAck();
   bool getString(json &j, const string &name, string *value);
   bool getString(optional<json> &j, const string &name, string *value);
-  bool getId(json &j, string *id);
-  bool getId(optional<json> &j, string *id);
   bool getArray(json &j, const string &name, vector<string> *value);
   bool getArray(optional<json> &j, const string &name, vector<string> *value);
 

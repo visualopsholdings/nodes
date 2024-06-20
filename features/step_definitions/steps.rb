@@ -3,7 +3,7 @@ require 'json'
 lastResult = nil
 
 When('she sends login as {string}') do |username|
-   lastResult = JSON.parse(`build/Send --cmd=login --arg="#{username}"`)
+   lastResult = JSON.parse(`build/Send --cmd=login --args="#{username}"`)
 end
 
 Then('she receives user') do

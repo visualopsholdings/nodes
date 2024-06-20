@@ -23,13 +23,13 @@ void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto user = User(*storage).findById(userid, { "_id" }).value();
+  auto user = User(*storage).findById(userid, { "id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;
   }
   
-  auto streams = Stream(*storage).find(json{{}}, { "_id", "name", "policy" }).values();
+  auto streams = Stream(*storage).find(json{{}}, { "id", "name", "policy" }).values();
   if (!streams) {
     sendErr("DB Error");
     return;

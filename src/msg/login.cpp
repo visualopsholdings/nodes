@@ -37,7 +37,7 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
   BOOST_LOG_TRIVIAL(trace) << user.value();
   
   string id;
-  if (!getId(user, &id)) {
+  if (!getString(user, "id", &id)) {
     sendErr("User not found");
     return;
   }

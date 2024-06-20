@@ -23,7 +23,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto user = User(*storage).findById(userid, { "_id" }).value();
+  auto user = User(*storage).findById(userid, { "id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;
@@ -37,7 +37,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
   
-//   auto stream = Stream(*storage).findById(streamid, { "_id" }).value();
+//   auto stream = Stream(*storage).findById(streamid, { "id" }).value();
 //   if (!stream) {
 //     sendErr("DB Error");
 //     return;
@@ -49,7 +49,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-//   auto policy = Policy(*storage).findById(policyid, { "_id" }).value();
+//   auto policy = Policy(*storage).findById(policyid, { "id" }).value();
 //   if (!stream) {
 //     sendErr("DB Error");
 //     return;

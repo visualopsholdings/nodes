@@ -164,28 +164,6 @@ bool Server::getString(json &j, const string &name, string *value) {
 
 }
 
-bool Server::getId(optional<json> &j, string *id) {
-
-  if (!j) {
-    return false;
-  }
-  
-  return getId(j.value(), id);
-
-}
-
-bool Server::getId(json &j, string *id) {
-
-  return getString(j, "_id", id);
-//   try {
-//     *id = boost::json::value_to<string>(j.at("_id").at("$oid"));
-//     return true;
-//   }
-//   catch (...) {
-//     return false;
-//   }
-}
-
 bool Server::getArray(optional<json> &j, const string &name, vector<string> *value) {
 
   if (!j) {

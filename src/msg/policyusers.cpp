@@ -37,7 +37,7 @@ void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
   }
   boost::json::array users;
   for (auto i: userids) {
-    auto user = User(*storage).findById(i, { "_id", "name", "fullname" }).value();
+    auto user = User(*storage).findById(i, { "id", "name", "fullname" }).value();
     if (user) {
       users.push_back(user.value());
     }
