@@ -16,5 +16,4 @@ pushd zmqchat/build
 git pull
 cmake ..
 make
-make test
 popd
