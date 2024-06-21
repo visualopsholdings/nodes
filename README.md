@@ -238,6 +238,12 @@ sudo cmake --build . --target install
 cd ../..
 ```
 
+On a linux you might need:
+
+```
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+```
+
 Now this project:
 
 ```
