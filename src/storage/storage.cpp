@@ -29,7 +29,7 @@ StorageImpl::StorageImpl() {
  
 // TBD: command switch...
 //  mongocxx::uri uri("mongodb://127.0.0.1:27017");
-  mongocxx::uri uri("mongodb://fiveEstellas:visualops@127.0.0.1:27017");
+  mongocxx::uri uri("mongodb://fiveEstellas:visualops@127.0.0.1:27017/?authSource=fiveEstellas");
   _client.reset(new mongocxx::client(uri));
 //  _db = (*_client)["dev"];
   _db = (*_client)["fiveEstellas"];
