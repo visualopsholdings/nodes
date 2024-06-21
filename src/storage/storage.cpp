@@ -26,7 +26,9 @@ Storage::Storage() {
 StorageImpl::StorageImpl() {
 
   _instance.reset(new mongocxx::instance());
-  mongocxx::uri uri("mongodb://127.0.0.1:27017");
+ 
+//  mongocxx::uri uri("mongodb://127.0.0.1:27017");
+  mongocxx::uri uri(" mongodb://fiveEstellas:visualops@localhost/fiveEstellas");
   _client.reset(new mongocxx::client(uri));
   _db = (*_client)["dev"];
 
