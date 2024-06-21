@@ -29,7 +29,7 @@ class StorageImpl;
 class Storage {
 
 public:
-  Storage();
+  Storage(const string &dbConn, const string &dbName);
   
 private:
   friend class Schema;

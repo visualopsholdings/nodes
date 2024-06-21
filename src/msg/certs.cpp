@@ -17,13 +17,19 @@
 
 void Server::certsMsg(json &j, shared_ptr<Storage> storage) {
 
-// TBD: source this from the server info
-  send({
-    { "type", "certs" }, 
-//     { "ssl", false }
-    { "ssl", true },
-    { "certFile", "/etc/letsencrypt/live/irc.visualops.com/privkey.pem" }, 
-    { "chainFile", "/etc/letsencrypt/live/irc.visualops.com/fullchain.pem" }
-  });
+  if (_certFile.empty()) {
+    send({
+      { "type", "certs" }, 
+      { "ssl", false }
+    });
+  }
+  else {
+    send({
+      { "type", "certs" }, 
+      { "ssl", true },
+      { "certFile", _certFile }, 
+      { "chainFile", _chainFile }
+    });
+  }
 
 }

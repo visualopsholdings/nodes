@@ -24,7 +24,7 @@ class CollectionImpl;
 class StorageImpl {
 
 public:  
-  StorageImpl();
+  StorageImpl(const string &dbConn, const string &dbName);
 
   CollectionImpl coll(const string &name);
 

@@ -253,11 +253,6 @@ mkdir build
 cd build
 cmake ..
 make
-```
-
-And run the tests but CAREFUL this will wipe out tables in your "dev" DB.
-
-```
 make test
 ```
 

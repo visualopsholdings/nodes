@@ -17,22 +17,19 @@
 
 #include <boost/log/trivial.hpp>
 
-Storage::Storage() {
+Storage::Storage(const string &dbConn, const string &dbName) {
   
-  _impl.reset(new StorageImpl());
+  _impl.reset(new StorageImpl(dbConn, dbName));
   
 }
 
-StorageImpl::StorageImpl() {
+StorageImpl::StorageImpl(const string &dbConn, const string &dbName) {
 
   _instance.reset(new mongocxx::instance());
  
-// TBD: command switch...
-//  mongocxx::uri uri("mongodb://127.0.0.1:27017");
-  mongocxx::uri uri("mongodb://fiveEstellas:visualops@127.0.0.1:27017/?authSource=fiveEstellas");
+  mongocxx::uri uri(dbConn);
   _client.reset(new mongocxx::client(uri));
-//  _db = (*_client)["dev"];
-  _db = (*_client)["fiveEstellas"];
+  _db = (*_client)[dbName];
 
 }
 

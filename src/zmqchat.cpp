@@ -31,12 +31,20 @@ int main(int argc, char *argv[]) {
   int pubPort;
   int repPort;
   string logLevel;
+  string dbName;
+  string dbConn;
+  string certFile;
+  string chainFile;
   
   po::options_description desc("Allowed options");
   desc.add_options()
     ("pubPort", po::value<int>(&pubPort)->default_value(3012), "ZMQ Pub port.")
     ("repPort", po::value<int>(&repPort)->default_value(3013), "ZMQ Rep port.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
+    ("dbConn", po::value<string>(&dbConn)->default_value("mongodb://127.0.0.1:27017"), "DB Connection string.")
+    ("dbName", po::value<string>(&dbName)->default_value("dev"), "DB name.")
+    ("certFile", po::value<string>(&certFile)->default_value(""), "Certificate file for SSL.")
+    ("chainFile", po::value<string>(&chainFile)->default_value(""), "Certificate chain file for SSL.")
     ("help", "produce help message")
     ;
   po::positional_options_description p;
@@ -67,10 +75,10 @@ int main(int argc, char *argv[]) {
   boost::log::add_common_attributes();
   boost::log::add_console_log(clog)->set_formatter(logFmt);
 
-  BOOST_LOG_TRIVIAL(info) << "ZMQCHAT 0.1, 23-May-2024.";
+  BOOST_LOG_TRIVIAL(info) << "ZMQCHAT 0.2, 21-Jun-2024.";
 
 //  Storage storage;
-  Server server(pubPort, repPort);
+  Server server(pubPort, repPort, dbConn, dbName, certFile, chainFile);
   server.run();
   
 }

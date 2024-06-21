@@ -19,7 +19,7 @@
 using namespace std;
 
 // only one can be.
-Storage storage;
+Storage storage("mongodb://127.0.0.1:27017", "dev");
 
 void dbSetup() {
   User(storage).deleteMany({{}});

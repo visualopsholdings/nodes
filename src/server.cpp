@@ -15,7 +15,8 @@
 
 #include <boost/log/trivial.hpp>
 
-Server::Server(int pub, int rep) {
+Server::Server(int pub, int rep, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
+    _certFile(certFile), _chainFile(chainFile) {
 
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));
@@ -32,7 +33,7 @@ Server::Server(int pub, int rep) {
   _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1, placeholders::_2);
   _messages["message"] = bind(&Server::messageMsg, this, placeholders::_1, placeholders::_2);
 
-  _storage.reset(new Storage());
+  _storage.reset(new Storage(dbConn, dbName));
   
 }
   
