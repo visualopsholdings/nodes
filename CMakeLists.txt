@@ -67,3 +67,9 @@ add_executable(TestCursor test/testcursor.cpp src/storage/cursor.cpp)
   target_link_libraries(TestCursor ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_test(TestCursor TestCursor)
+
+add_executable(TestVID test/testvid.cpp src/vid.cpp)
+  target_link_libraries(TestVID ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+add_test(TestVID TestVID)
+
