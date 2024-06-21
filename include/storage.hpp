@@ -22,7 +22,7 @@
 #include "storage/cursor.hpp"
 #include "storage/schema.hpp"
 
-#include <boost/json.hpp>
+#include <memory>
 
 using namespace std;
 
