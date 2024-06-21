@@ -8,6 +8,8 @@ then
   exit 1
 fi
 
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
 ./zmqchat/build/ZMQCHAT \
   --logLevel=trace \
   --dbConn=mongodb://fiveEstellas:visualops@127.0.0.1:27017/?authSource=fiveEstellas \
