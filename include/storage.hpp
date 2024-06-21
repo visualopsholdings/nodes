@@ -22,8 +22,6 @@
 #include "storage/cursor.hpp"
 #include "storage/schema.hpp"
 
-#include <memory>
-
 using namespace std;
 
 class StorageImpl;
