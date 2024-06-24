@@ -47,12 +47,12 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
       return;
     }
     string salt;
-    if (!getString(j, "salt", &salt)) {
+    if (!getString(user, "salt", &salt)) {
       sendErr("no salt");
       return;
     }
     string hash;
-    if (!getString(j, "hash", &hash)) {
+    if (!getString(user, "hash", &hash)) {
       sendErr("no hash");
       return;
     }
