@@ -41,7 +41,7 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
   else {
     // use password.
     VID vid(password);
-    user = User(*storage).findById(vid.uuid(), {"name", "fullname"}).value();
+    user = User(*storage).findById(vid.uuid(), {"name", "fullname", "salt", "hash"}).value();
     if (!user) {
       sendErr("DB Error");
       return;
