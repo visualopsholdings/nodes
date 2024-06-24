@@ -12,6 +12,8 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "vid.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -28,12 +30,37 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
   
-  auto user = User(*storage).find(json{ { "name", password } }, {"name", "fullname"}).value();
-  if (!user) {
-    sendErr("DB Error");
-    return;
+  optional<json> user;
+  if (_test) {
+    user = User(*storage).find(json{ { "name", password } }, {"name", "fullname"}).value();
+    if (!user) {
+      sendErr("DB Error");
+      return;
+    }
   }
-  
+  else {
+    // use password.
+    VID vid(password);
+    user = User(*storage).findById(vid.uuid(), {"name", "fullname"}).value();
+    if (!user) {
+      sendErr("DB Error");
+      return;
+    }
+    string salt;
+    if (!getString(j, "salt", &salt)) {
+      sendErr("no salt");
+      return;
+    }
+    string hash;
+    if (!getString(j, "hash", &hash)) {
+      sendErr("no hash");
+      return;
+    }
+    if (!Security::valid(vid, salt, hash)) {
+      sendErr("Incorrect password");
+      return;
+    }
+  }
   BOOST_LOG_TRIVIAL(trace) << user.value();
   
   string id;

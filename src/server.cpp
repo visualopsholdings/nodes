@@ -15,8 +15,8 @@
 
 #include <boost/log/trivial.hpp>
 
-Server::Server(int pub, int rep, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
-    _certFile(certFile), _chainFile(chainFile) {
+Server::Server(bool test, int pub, int rep, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
+    _test(test), _certFile(certFile), _chainFile(chainFile) {
 
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));

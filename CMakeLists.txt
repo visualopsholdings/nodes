@@ -16,6 +16,7 @@ project (zmqchat)
   find_package(cppzmq REQUIRED)
   find_package(mongocxx REQUIRED)
   find_package(bsoncxx REQUIRED)
+  find_package(OpenSSL REQUIRED)
   add_definitions(-DBOOST_ALL_DYN_LINK) 
   enable_testing()
 
@@ -47,8 +48,8 @@ include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR}
 add_library(StorageLib SHARED src/storage/storage.cpp src/storage/schema.cpp src/storage/cursor.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
-add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES})
-    target_link_libraries(ZMQCHAT StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS})
+add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES} src/vid.cpp src/security.cpp src/b64.cpp)
+    target_link_libraries(ZMQCHAT StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS} ${OPENSSL_LIBRARIES})
 
 add_executable(Send test/send.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
@@ -68,8 +69,18 @@ add_executable(TestCursor test/testcursor.cpp src/storage/cursor.cpp)
 
 add_test(TestCursor TestCursor)
 
-add_executable(TestVID test/testvid.cpp src/vid.cpp)
+add_executable(TestB64 test/testb64.cpp src/b64.cpp)
+  target_link_libraries(TestB64 ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+add_test(TestB64 TestB64)
+
+add_executable(TestVID test/testvid.cpp src/vid.cpp src/b64.cpp)
   target_link_libraries(TestVID ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
 add_test(TestVID TestVID)
+
+add_executable(TestPassword test/testsecurity.cpp src/security.cpp src/vid.cpp src/b64.cpp)
+  target_link_libraries(TestPassword ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${OPENSSL_LIBRARIES})
+
+add_test(TestPassword TestPassword)
 

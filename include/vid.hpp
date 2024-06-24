@@ -24,7 +24,8 @@ public:
   VID(const string &vid);
   
   bool valid();
-  string password() { return _password; }
+  string uuid() const { return _uuid; }
+  string password() const { return _password; }
   void describe();
  
 private:

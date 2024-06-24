@@ -18,13 +18,14 @@
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( processPi )
+BOOST_AUTO_TEST_CASE( PiVID )
 {
-  cout << "=== processPi ===" << endl;
+  cout << "=== PiVID ===" << endl;
   
   VID vid("Vk9WNIdltNaXa0eOG9cAdmlzdWFsb3Bz");
   vid.describe();
   BOOST_CHECK(vid.valid());
-//  BOOST_CHECK_EQUAL(vid.password(), "visualops");
+  BOOST_CHECK_EQUAL(vid.password(), "visualops");
+  BOOST_CHECK_EQUAL(vid.uuid(), "56348765B4D6976B478E1BD7");
 
 }

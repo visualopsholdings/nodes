@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
   string dbConn;
   string certFile;
   string chainFile;
+  bool test;
   
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -45,6 +46,7 @@ int main(int argc, char *argv[]) {
     ("dbName", po::value<string>(&dbName)->default_value("dev"), "DB name.")
     ("certFile", po::value<string>(&certFile)->default_value(""), "Certificate file for SSL.")
     ("chainFile", po::value<string>(&chainFile)->default_value(""), "Certificate chain file for SSL.")
+    ("test", po::bool_switch(&test), "We are testing so don't use VIDs.")
     ("help", "produce help message")
     ;
   po::positional_options_description p;
@@ -78,7 +80,7 @@ int main(int argc, char *argv[]) {
   BOOST_LOG_TRIVIAL(info) << "ZMQCHAT 0.2, 21-Jun-2024.";
 
 //  Storage storage;
-  Server server(pubPort, repPort, dbConn, dbName, certFile, chainFile);
+  Server server(test, pubPort, repPort, dbConn, dbName, certFile, chainFile);
   server.run();
   
 }

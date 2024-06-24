@@ -28,7 +28,7 @@ typedef function<void (json &json, shared_ptr<Storage> storage)> msgHandler;
 class Server {
 
 public:
-  Server(int pub, int rep, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile);
+  Server(bool test, int pub, int rep, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile);
   ~Server();
   
   void run();
@@ -42,6 +42,7 @@ private:
   shared_ptr<Storage> _storage;
   string _certFile;
   string _chainFile;
+  bool _test;
   
   void publish(const json &j);
   void send(const json &m);

@@ -321,3 +321,6 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 11 June 2024
 - Almost get end to end chat working.
 
+### 24 June 2024
+- Implement VIDs and password checking for production (hash and salt in the DB)
+
