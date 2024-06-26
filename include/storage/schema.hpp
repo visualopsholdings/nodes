@@ -39,9 +39,14 @@ public:
   Cursor findById(const string &id, const vector<string> &fields = {});
     // find the document with this id.
     
+  void aggregate(const string &filename);
+    // process an aggregatin pipeline in the file.
+
   virtual string collName() = 0;
   
 private:
+  friend class Group;
+  
   Storage &_storage;
   
 };
@@ -80,6 +85,15 @@ public:
   
   virtual string collName() { return "ideas"; };
 
+};
+
+class Group: public Schema {
+
+public:
+  Group(Storage &storage): Schema(storage) {}
+  
+  virtual string collName() { return "groups"; };
+  
 };
 
 #endif // H_schema

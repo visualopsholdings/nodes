@@ -17,4 +17,16 @@ FactoryBot.define do
       f.modifyDate { DateTime.now }
    end
 
+   factory :access do |f|
+      f.users { [] }
+      f.groups { [] }
+   end
+
+   factory :group do |f|
+      f.modifyDate { DateTime.now }
+   end
+
+   factory :group_member do |f|
+   end
+
 end

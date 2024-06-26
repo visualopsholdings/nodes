@@ -324,3 +324,6 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 24 June 2024
 - Implement VIDs and password checking for production (hash and salt in the DB)
 
+### 26 June 2024
+- Implement aggregation piplelines for security indexng.
+

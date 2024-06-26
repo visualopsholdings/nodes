@@ -19,6 +19,9 @@
 #include <boost/log/trivial.hpp>
 #include <sstream>
 #include <bsoncxx/json.hpp>
+#include <fstream>
+
+using namespace bsoncxx::builder::basic;
 
 Cursor Schema::find(const json &query, const vector<string> &fields) {
 
@@ -65,3 +68,60 @@ optional<string> Schema::insert(const json &doc) {
   return nullopt;
 
 }
+
+void Schema::aggregate(const string &filename) {
+
+  ifstream file(filename);
+  if (!file) {
+    BOOST_LOG_TRIVIAL(error) << "file not found";
+    return;    
+  }
+  string input(istreambuf_iterator<char>(file), {});
+  json j = boost::json::parse(input);
+  if (!j.is_array()) {
+    BOOST_LOG_TRIVIAL(error) << "file does not contain array";
+    return;    
+  }
+  
+  // build pipleline from JSON.
+  mongocxx::pipeline p;
+  for (auto i: j.as_array()) {
+    auto first = i.as_object().begin();
+    string key = first->key();
+    auto value = first->value();
+    if (key == "$unwind") {
+      p.unwind(value.at("path").as_string().c_str());
+    }
+    else if (key == "$out") {
+      p.out(value.as_string().c_str());
+    }
+    else {
+      if (!value.is_object()) {
+        BOOST_LOG_TRIVIAL(error) << "key is not object " << key;
+        return;
+      }
+      stringstream ss;
+      ss << value;
+      bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+      if (key == "$group") {
+        p.group(d);
+      }
+      else if (key == "$project") {
+        p.project(d);
+      }
+      else if (key == "$match") {
+        p.match(d);
+      }
+      else {
+        BOOST_LOG_TRIVIAL(error) << "ignoring " << key;
+      }
+    }
+  }
+   
+  // run aggregation.               
+  auto cursor = _storage._impl->coll(collName())._c.aggregate(p, mongocxx::options::aggregate{});
+  if (cursor.begin() != cursor.end()) {
+    BOOST_LOG_TRIVIAL(info) << "aggregation had output";
+  }
+}
+

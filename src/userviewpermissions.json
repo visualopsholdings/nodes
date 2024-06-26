@@ -1,0 +1,52 @@
+[
+  {
+    "$unwind": {
+      "path": "$accesses"
+    }
+  }, {
+    "$match": {
+      "accesses.name": "view"
+    }
+  }, {
+    "$unwind": {
+      "path": "$accesses.users"
+    }
+  }, {
+    "$group": {
+      "_id": "$accesses.users", 
+      "array": {
+        "$push": "$_id"
+      }
+    }
+  }, {
+    "$project": {
+      "value": {
+        "$reduce": {
+          "input": "$array", 
+          "initialValue": "", 
+          "in": {
+            "$concat": [
+              "$$value", {
+                "$cond": {
+                  "if": {
+                    "$eq": [
+                      "$$value", ""
+                    ]
+                  }, 
+                  "then": "", 
+                  "else": ","
+                }
+              }, {
+                "$toString": "$$this"
+              }
+            ]
+          }
+
+
+        }
+      }
+    }
+  }, {
+    "$out": "userviewpermissions"
+  }
+]

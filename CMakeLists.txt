@@ -54,6 +54,9 @@ add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES} src/vid.cpp sr
 add_executable(Send test/send.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
+add_executable(Aggregate src/aggregate.cpp src/storage/storage.cpp src/storage/schema.cpp src/storage/cursor.cpp)
+  target_link_libraries(Aggregate ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+
 add_executable(TestJson test/testjson.cpp)
   target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${Boost_JSON_LIBRARY})
 
