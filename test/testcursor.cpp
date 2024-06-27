@@ -18,9 +18,9 @@
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( replaceIds )
+BOOST_AUTO_TEST_CASE( goodIds )
 {
-  cout << "=== replaceIds ===" << endl;
+  cout << "=== goodIds ===" << endl;
   
   CursorImpl impl({}, {}, {});
 
@@ -30,10 +30,44 @@ BOOST_AUTO_TEST_CASE( replaceIds )
       }
     }
   });
-  cout << doc << endl;
+//  cout << doc << endl;
   BOOST_CHECK(doc.is_object());
   BOOST_CHECK(doc.at("id").is_string());
   BOOST_CHECK_EQUAL(doc.at("id").as_string(), "xxxx");
+  
+}
+
+BOOST_AUTO_TEST_CASE( badIds )
+{
+  cout << "=== badIds ===" << endl;
+  
+  CursorImpl impl({}, {}, {});
+
+  auto doc = impl.replaceIds({
+    { "_id", "xxxx" }
+  });
+//  cout << doc << endl;
+  BOOST_CHECK(doc.is_object());
+  BOOST_CHECK(doc.at("_id").is_string());
+  BOOST_CHECK_EQUAL(doc.at("_id").as_string(), "xxxx");
+  
+}
+
+BOOST_AUTO_TEST_CASE( noOID )
+{
+  cout << "=== noOID ===" << endl;
+  
+  CursorImpl impl({}, {}, {});
+
+  auto doc = impl.replaceIds({
+    { "_id", {
+        { "string", "xxxx" }
+      }
+    }
+  });
+//  cout << doc << endl;
+  BOOST_CHECK(doc.is_object());
+  BOOST_CHECK(doc.at("_id").is_object());
   
 }
 

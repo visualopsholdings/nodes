@@ -7,7 +7,7 @@ class Policy
   
    field :name, type: String
    field :modifyDate, type: Time
-   field :users, type: Array
+#   field :users, type: Array
       
 end
 

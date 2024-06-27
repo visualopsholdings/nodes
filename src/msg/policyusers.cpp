@@ -12,6 +12,7 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -23,18 +24,9 @@ void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto policy = Policy(*storage).findById(policyid, { "users" }).value();
-  if (!policy) {
-    sendErr("DB Error");
-    return;
-  }
-  
-  BOOST_LOG_TRIVIAL(trace) << policy.value();
   vector<string> userids;
-  if (!getArray(policy, "users", &userids)) {
-    sendErr("Users not found");
-    return;
-  }
+  Security::getPolicyUsers(*storage, policyid, &userids);
+
   boost::json::array users;
   for (auto i: userids) {
     auto user = User(*storage).findById(i, { "id", "name", "fullname" }).value();

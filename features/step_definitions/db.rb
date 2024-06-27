@@ -31,54 +31,54 @@ Given(/^there are policies:$/) do |table|
          policy._id = s[:id]
       end
       
-      if s[:users] && s[:users].length > 0
-         policy.users = []
-         s[:users].split(" ").each do |u|
-            policy.users.push(User.where(name: u).first._id.to_s)
+#       if s[:users] && s[:users].length > 0
+#          policy.users = []
+#          s[:users].split(" ").each do |u|
+#             policy.users.push(User.where(name: u).first._id.to_s)
+#          end
+#       end
+      
+      access = FactoryBot.build(:access)
+      access.name = 'view'
+      if s[:viewuser] && s[:viewuser].length > 0
+         s[:viewuser].split(" ").each do |u|
+            access.users << User.where(name: u).first._id.to_s
          end
       end
+      if s[:viewgroup] && s[:viewgroup].length > 0
+         s[:viewgroup].split(";").each do |g|
+            access.groups << Group.where(name: g).first._id.to_s
+         end
+      end
+      policy.accesses << access
       
-#       access = FactoryBot.build(:access)
-#       access.name = 'view'
-#       if s[:viewuser] && s[:viewuser].length > 0
-#          s[:viewuser].split(" ").each do |u|
-#             access.users << User.where(name: u).first._id.to_s
-#          end
-#       end
-#       if s[:viewgroup] && s[:viewgroup].length > 0
-#          s[:viewgroup].split(";").each do |g|
-#             access.groups << Group.where(name: g).first._id.to_s
-#          end
-#       end
-#       policy.accesses << access
-#       
-#       access = FactoryBot.build(:access)
-#       access.name = 'edit'
-#       if s[:edituser] && s[:edituser].length > 0
-#          s[:edituser].split(" ").each do |u|
-#             access.users << User.where(name: u).first._id.to_s
-#          end
-#       end
-#       if s[:editgroup] && s[:editgroup].length > 0
-#          s[:editgroup].split(";").each do |g|
-#             access.groups << Group.where(name: g).first._id.to_s
-#          end
-#       end
-#       policy.accesses << access
-# 
-#       access = FactoryBot.build(:access)
-#       access.name = 'exec'
-#       if s[:execuser] && s[:execuser].length > 0
-#          s[:execuser].split(" ").each do |u|
-#             access.users << User.where(name: u).first._id.to_s
-#          end
-#       end
-#       if s[:execgroup] && s[:execgroup].length > 0
-#          s[:execgroup].split(";").each do |g|
-#             access.groups << Group.where(name: g).first._id.to_s
-#          end
-#       end
-#       policy.accesses << access
+      access = FactoryBot.build(:access)
+      access.name = 'edit'
+      if s[:edituser] && s[:edituser].length > 0
+         s[:edituser].split(" ").each do |u|
+            access.users << User.where(name: u).first._id.to_s
+         end
+      end
+      if s[:editgroup] && s[:editgroup].length > 0
+         s[:editgroup].split(";").each do |g|
+            access.groups << Group.where(name: g).first._id.to_s
+         end
+      end
+      policy.accesses << access
+
+      access = FactoryBot.build(:access)
+      access.name = 'exec'
+      if s[:execuser] && s[:execuser].length > 0
+         s[:execuser].split(" ").each do |u|
+            access.users << User.where(name: u).first._id.to_s
+         end
+      end
+      if s[:execgroup] && s[:execgroup].length > 0
+         s[:execgroup].split(";").each do |g|
+            access.groups << Group.where(name: g).first._id.to_s
+         end
+      end
+      policy.accesses << access
       
       policy.save
    end

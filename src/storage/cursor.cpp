@@ -42,7 +42,7 @@ json CursorImpl::replaceIds(const json &j) {
 
   boost::json::object o;
   for (auto i: j.as_object()) {
-    if (i.key() == "_id") {
+    if (i.key() == "_id" && i.value().is_object() && i.value().as_object().if_contains("$oid")) {
       o["id"] = i.value().at("$oid");
     }
     else {
@@ -64,11 +64,12 @@ optional<json> Cursor::value() {
     BOOST_LOG_TRIVIAL(error) << "not found";
     return {};
   }
-  boost::json::array val;
-  for (auto i: cursor) {
-    return _impl->replaceIds(boost::json::parse(bsoncxx::to_json(i)));
+  auto first = cursor.begin();
+  if (first == cursor.end()) {
+    return {}; 
   }
-  return {};
+//  return boost::json::parse(bsoncxx::to_json(*first));
+  return _impl->replaceIds(boost::json::parse(bsoncxx::to_json(*first)));
   
 }
 

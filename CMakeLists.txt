@@ -82,8 +82,13 @@ add_executable(TestVID test/testvid.cpp src/vid.cpp src/b64.cpp)
 
 add_test(TestVID TestVID)
 
-add_executable(TestPassword test/testsecurity.cpp src/security.cpp src/vid.cpp src/b64.cpp)
-  target_link_libraries(TestPassword ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${OPENSSL_LIBRARIES})
+add_executable(TestSecurity test/testsecurity.cpp src/security.cpp src/vid.cpp src/b64.cpp)
+  target_link_libraries(TestSecurity StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${OPENSSL_LIBRARIES} ${BOOSTLIBS} ${MONGOLIBS})
 
-add_test(TestPassword TestPassword)
+add_test(TestSecurity TestSecurity)
+
+add_executable(TestAggregate test/testaggregate.cpp)
+  target_link_libraries(TestAggregate StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+
+add_test(TestAggregate TestAggregate)
 

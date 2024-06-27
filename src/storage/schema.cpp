@@ -19,6 +19,7 @@
 #include <boost/log/trivial.hpp>
 #include <sstream>
 #include <bsoncxx/json.hpp>
+#include <bsoncxx/oid.hpp>
 #include <fstream>
 
 using namespace bsoncxx::builder::basic;
@@ -36,7 +37,26 @@ Cursor Schema::find(const json &query, const vector<string> &fields) {
 
 Cursor Schema::findById(const string &id, const vector<string> &fields) {
 
-  return find(json{ { "_id", { { "$oid", id } } } }, fields);
+  BOOST_LOG_TRIVIAL(trace) << "find " << id;
+
+  bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
+  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_storage._impl->coll(collName())._c, q, fields)));
+  
+}
+
+Cursor Schema::findByIds(const vector<string> &ids, const vector<string> &fields) {
+
+  BOOST_LOG_TRIVIAL(trace) << "find ids " << ids.size();
+
+  auto array = bsoncxx::builder::basic::array{};
+  for (auto id: ids) {
+    array.append(bsoncxx::oid(id));
+  }
+  bsoncxx::document::view_or_value q = make_document(kvp("_id", make_document(kvp("$in", array))));
+  
+  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_storage._impl->coll(collName())._c, q, fields)));
+
+//  return find(json{ { "_id", { { "$oid", ids[0] } } } }, fields);
   
 }
 

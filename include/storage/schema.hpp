@@ -39,6 +39,9 @@ public:
   Cursor findById(const string &id, const vector<string> &fields = {});
     // find the document with this id.
     
+  Cursor findByIds(const vector<string> &ids, const vector<string> &fields = {});
+    // find the document with these ids.
+    
   void aggregate(const string &filename);
     // process an aggregatin pipeline in the file.
 
@@ -93,6 +96,51 @@ public:
   Group(Storage &storage): Schema(storage) {}
   
   virtual string collName() { return "groups"; };
+  
+};
+
+class UserInGroups: public Schema {
+
+public:
+  UserInGroups(Storage &storage): Schema(storage) {}
+  
+  virtual string collName() { return "useringroups"; };
+  
+};
+
+class GroupViewPermissions: public Schema {
+
+public:
+  GroupViewPermissions(Storage &storage): Schema(storage) {}
+  
+  virtual string collName() { return "groupviewpermissions"; };
+  
+};
+
+class GroupEditPermissions: public Schema {
+
+public:
+  GroupEditPermissions(Storage &storage): Schema(storage) {}
+  
+  virtual string collName() { return "groupeditpermissions"; };
+  
+};
+
+class UserViewPermissions: public Schema {
+
+public:
+  UserViewPermissions(Storage &storage): Schema(storage) {}
+  
+  virtual string collName() { return "userviewpermissions"; };
+  
+};
+
+class UserEditPermissions: public Schema {
+
+public:
+  UserEditPermissions(Storage &storage): Schema(storage) {}
+  
+  virtual string collName() { return "usereditpermissions"; };
   
 };
 
