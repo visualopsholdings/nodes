@@ -25,7 +25,7 @@ void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
   }
 
   vector<string> userids;
-  Security::getPolicyUsers(*storage, policyid, &userids);
+  Security::instance()->getPolicyUsers(*storage, policyid, &userids);
 
   boost::json::array users;
   for (auto i: userids) {

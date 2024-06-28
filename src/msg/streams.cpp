@@ -12,6 +12,7 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -23,23 +24,18 @@ void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto user = User(*storage).findById(userid, { "id" }).value();
-  if (!user) {
+  Stream streams(*storage);
+  auto docs = Security::instance()->withView(streams, userid, {{}}, { "id", "name", "policy" });
+  if (!docs) {
     sendErr("DB Error");
     return;
   }
-  
-  auto streams = Stream(*storage).find(json{{}}, { "id", "name", "policy" }).values();
-  if (!streams) {
-    sendErr("DB Error");
-    return;
-  }
-  BOOST_LOG_TRIVIAL(trace) << streams.value();
+  BOOST_LOG_TRIVIAL(trace) << docs.value();
   
   send({
     { "type", "streams" },
     { "user", userid },
-    { "streams", streams.value() }
+    { "streams", docs.value() }
   });
 
 }

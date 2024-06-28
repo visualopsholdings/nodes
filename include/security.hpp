@@ -18,24 +18,48 @@
 #include <boost/json.hpp>
 
 using namespace std;
+using json = boost::json::value;
 
 class VID;
 class Storage;
+class Schema;
 
 class Security {
 
 public:
 
-  static bool valid(const VID &vid, const string &salt, const string &hash);
+  static shared_ptr<Security> instance() {
+    if(!_instance) {
+      _instance.reset(new Security());
+    }
+    return _instance;
+  };
+    
+  bool valid(const VID &vid, const string &salt, const string &hash);
     // return true if the VID is valid. The salt is generated with the user, and the
     // hash is a premade hash of the password (we don't store the actual password)
     
-  static void getPolicyUsers(Storage &storage, const string &id, vector<string> *users);
+  void getPolicyUsers(Storage &storage, const string &id, vector<string> *users);
     // get a list of users that are in this policy.
   
+  optional<json> withView(Schema &schema, const string &userid, const json &query, const vector<string> &fields = {});
+    // execute a query ensuring that the user can view the results.
+    
+  optional<json> withEdit(Schema &schema, const string &userid, const json &query, const vector<string> &fields = {});
+    // execute a query ensuring that the user can edit the results.
+    
+    
 private:
 
-  static void addTo(vector<string> *v, const string &val);
+  // there can be only 1.
+  Security() {};
+  static shared_ptr<Security> _instance;
+  
+  void addTo(vector<string> *v, const string &val);
+  void getIndexes(Schema &schema, const string &id, vector<string> *ids);
+  void queryIndexes(Schema &schema, const vector<string> &inids, vector<string> *ids);
+  boost::json::array createArray(const vector<string> &list);
+  optional<json> with(Schema &schema, Schema &gperm, Schema &uperm, const string &userid, const json &query, const vector<string> &fields);
 
 };
 

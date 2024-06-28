@@ -26,6 +26,7 @@ class Schema {
 
 public:
   Schema(Storage &storage) : _storage(storage) {}
+  Schema(Schema &schema) : _storage(schema._storage) {}
 
   void deleteMany(const json &doc);
     // delete all documents that match the query.
@@ -48,8 +49,7 @@ public:
   virtual string collName() = 0;
   
 private:
-  friend class Group;
-  
+    
   Storage &_storage;
   
 };
@@ -58,6 +58,7 @@ class User: public Schema {
 
 public:
   User(Storage &storage): Schema(storage) {}
+  User(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "users"; };
 
@@ -67,6 +68,7 @@ class Policy: public Schema {
 
 public:
   Policy(Storage &storage): Schema(storage) {}
+  Policy(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "policies"; };
 
@@ -76,6 +78,7 @@ class Stream: public Schema {
 
 public:
   Stream(Storage &storage): Schema(storage) {}
+  Stream(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "streams"; };
 
@@ -85,6 +88,7 @@ class Idea: public Schema {
 
 public:
   Idea(Storage &storage): Schema(storage) {}
+  Idea(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "ideas"; };
 
@@ -94,6 +98,7 @@ class Group: public Schema {
 
 public:
   Group(Storage &storage): Schema(storage) {}
+  Group(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "groups"; };
   
@@ -103,6 +108,7 @@ class UserInGroups: public Schema {
 
 public:
   UserInGroups(Storage &storage): Schema(storage) {}
+  UserInGroups(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "useringroups"; };
   
@@ -112,6 +118,7 @@ class GroupViewPermissions: public Schema {
 
 public:
   GroupViewPermissions(Storage &storage): Schema(storage) {}
+  GroupViewPermissions(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "groupviewpermissions"; };
   
@@ -121,6 +128,7 @@ class GroupEditPermissions: public Schema {
 
 public:
   GroupEditPermissions(Storage &storage): Schema(storage) {}
+  GroupEditPermissions(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "groupeditpermissions"; };
   
@@ -130,6 +138,7 @@ class UserViewPermissions: public Schema {
 
 public:
   UserViewPermissions(Storage &storage): Schema(storage) {}
+  UserViewPermissions(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "userviewpermissions"; };
   
@@ -139,6 +148,7 @@ class UserEditPermissions: public Schema {
 
 public:
   UserEditPermissions(Storage &storage): Schema(storage) {}
+  UserEditPermissions(Schema &schema): Schema(schema) {}
   
   virtual string collName() { return "usereditpermissions"; };
   

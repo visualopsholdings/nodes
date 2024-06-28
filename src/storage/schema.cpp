@@ -53,10 +53,7 @@ Cursor Schema::findByIds(const vector<string> &ids, const vector<string> &fields
     array.append(bsoncxx::oid(id));
   }
   bsoncxx::document::view_or_value q = make_document(kvp("_id", make_document(kvp("$in", array))));
-  
   return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_storage._impl->coll(collName())._c, q, fields)));
-
-//  return find(json{ { "_id", { { "$oid", ids[0] } } } }, fields);
   
 }
 

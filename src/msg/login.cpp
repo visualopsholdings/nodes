@@ -56,7 +56,7 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
       sendErr("no hash");
       return;
     }
-    if (!Security::valid(vid, salt, hash)) {
+    if (!Security::instance()->valid(vid, salt, hash)) {
       sendErr("Incorrect password");
       return;
     }

@@ -327,3 +327,6 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 26 June 2024
 - Implement aggregation piplelines for security indexng.
 
+### 28 June 2024
+- Implement widthView and withEdit for queries.
+

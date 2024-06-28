@@ -20,9 +20,12 @@
 #include <iostream>
 #include <boost/log/trivial.hpp>
 #include <bsoncxx/oid.hpp>
+#include <boost/algorithm/string.hpp>
 
 #define SHA1_LEN    128
 #define ITERATIONS  12000
+
+shared_ptr<Security> Security::_instance;
 
 bool Security::valid(const VID &vid, const string &salt, const string &hash) {
 
@@ -53,12 +56,16 @@ void Security::addTo(vector<string> *v, const string &val) {
 
 void Security::getPolicyUsers(Storage &storage, const string &id, vector<string> *users) {
 
+  // This is so much simpler than the Visual Ops version which determines the role of
+  // each user.
+  
   auto policy = Policy(storage).findById(id, { "accesses" }).value();
   if (!policy) {
     BOOST_LOG_TRIVIAL(error) << "policy missing";
     return;
   }
-  BOOST_LOG_TRIVIAL(trace) << policy.value();
+
+  // add all the users directly referenced and collect the groups.
   vector<string> grps;
   for (auto a: policy.value().at("accesses").as_array()) {
     for (auto u: a.at("users").as_array()) {
@@ -78,5 +85,88 @@ void Security::getPolicyUsers(Storage &storage, const string &id, vector<string>
       }
     }
   }
+  
+}
+
+void Security::getIndexes(Schema &schema, const string &id, vector<string> *ids) {
+
+  auto indexes = schema.find({{ "_id", id }}, {"value"}).value();
+  if (!indexes) {
+    BOOST_LOG_TRIVIAL(error) << "indexes missing";
+    return;
+  }
+  string s = boost::json::value_to<string>(indexes.value().at("value"));
+  boost::split(*ids, s, boost::is_any_of(","));
+
+}
+
+boost::json::array Security::createArray(const vector<string> &list) {
+
+  boost::json::array a;
+  for (auto i: list) {
+    a.push_back(boost::json::string(i));
+  }
+  return a;
+
+}
+
+void Security::queryIndexes(Schema &schema, const vector<string> &inids, vector<string> *ids) {
+
+  json q = { { "_id", {{ "$in", createArray(inids) }}}};
+  
+  auto indexes = schema.find(q).values();
+  if (!indexes) {
+    BOOST_LOG_TRIVIAL(error) << "indexes missing";
+    return;
+  }
+  for (auto i: indexes.value().as_array()) {
+    vector<string> l;
+    string s = boost::json::value_to<string>(i.at("value"));
+    boost::split(l, s, boost::is_any_of(","));
+    for (auto j: l) {
+      addTo(ids, j);
+    }
+  }
+  
+
+}
+
+optional<json> Security::with(Schema &schema, Schema &gperm, Schema &uperm, const string &userid, const json &query, const vector<string> &fields) {
+
+  // collect all the groups the user is in.
+  vector<string> glist;
+  UserInGroups useringroups(schema);
+  getIndexes(useringroups, userid, &glist);
+  
+  // collect all the policies for those groips
+  vector<string> plist;
+  queryIndexes(gperm, glist, &plist);
+  
+  // add all the policies just for this user.
+  queryIndexes(uperm, { userid }, &plist);
+
+  json q = { { "$and", { 
+    query,
+    { { "policy", { { "$in", createArray(plist) } } } }
+  } } };
+  BOOST_LOG_TRIVIAL(trace) << q;
+  
+  return schema.find(q, fields).values();
+
+}
+
+optional<json> Security::withView(Schema &schema, const string &userid, const json &query, const vector<string> &fields) {
+
+  GroupViewPermissions groupviews(schema);
+  UserViewPermissions userviews(schema);
+  return with(schema, groupviews, userviews, userid, query, fields);
+  
+}
+
+optional<json> Security::withEdit(Schema &schema, const string &userid, const json &query, const vector<string> &fields) {
+
+  GroupEditPermissions groupviews(schema);
+  UserEditPermissions userviews(schema);
+  return with(schema, groupviews, userviews, userid, query, fields);
   
 }
