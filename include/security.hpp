@@ -16,6 +16,7 @@
 
 #include <string>
 #include <boost/json.hpp>
+#include <memory>
 
 using namespace std;
 using json = boost::json::value;
