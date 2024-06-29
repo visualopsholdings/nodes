@@ -22,7 +22,6 @@ using namespace std;
 using json = boost::json::value;
 
 class VID;
-class Storage;
 class Schema;
 
 class Security {
@@ -40,7 +39,7 @@ public:
     // return true if the VID is valid. The salt is generated with the user, and the
     // hash is a premade hash of the password (we don't store the actual password)
     
-  void getPolicyUsers(Storage &storage, const string &id, vector<string> *users);
+  void getPolicyUsers(const string &id, vector<string> *users);
     // get a list of users that are in this policy.
   
   optional<json> withView(Schema &schema, const string &userid, const json &query, const vector<string> &fields = {});

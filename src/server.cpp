@@ -27,13 +27,13 @@ Server::Server(bool test, int pub, int rep, const string &dbConn, const string &
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
 	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ as Local REP on " << rep;
 
-  _messages["certs"] = bind(&Server::certsMsg, this, placeholders::_1, placeholders::_2);
-  _messages["login"] = bind(&Server::loginMsg, this, placeholders::_1, placeholders::_2);
-  _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1, placeholders::_2);
-  _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1, placeholders::_2);
-  _messages["message"] = bind(&Server::messageMsg, this, placeholders::_1, placeholders::_2);
+  _messages["certs"] = bind(&Server::certsMsg, this, placeholders::_1);
+  _messages["login"] = bind(&Server::loginMsg, this, placeholders::_1);
+  _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1);
+  _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1);
+  _messages["message"] = bind(&Server::messageMsg, this, placeholders::_1);
 
-  _storage.reset(new Storage(dbConn, dbName));
+  Storage::instance()->init(dbConn, dbName);
   
 }
   
@@ -78,7 +78,7 @@ void Server::run() {
           BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type;
           continue;
         }
-        handler->second(doc, _storage);
+        handler->second(doc);
       }
       catch (zmq::error_t &e) {
         BOOST_LOG_TRIVIAL(warning) << "got exc with rep recv" << e.what() << "(" << e.num() << ")";

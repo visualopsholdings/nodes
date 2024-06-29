@@ -16,7 +16,7 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
+void Server::policyUsersMsg(json &j) {
 
   string policyid;
   if (!getString(j, "policy", &policyid)) {
@@ -25,11 +25,11 @@ void Server::policyUsersMsg(json &j, shared_ptr<Storage> storage) {
   }
 
   vector<string> userids;
-  Security::instance()->getPolicyUsers(*storage, policyid, &userids);
+  Security::instance()->getPolicyUsers(policyid, &userids);
 
   boost::json::array users;
   for (auto i: userids) {
-    auto user = User(*storage).findById(i, { "id", "name", "fullname" }).value();
+    auto user = User().findById(i, { "id", "name", "fullname" }).value();
     if (user) {
       users.push_back(user.value());
     }

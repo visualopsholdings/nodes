@@ -18,18 +18,18 @@
 
 using namespace std;
 
-// only one can be.
-Storage storage("mongodb://127.0.0.1:27017", "dev");
-
 void dbSetup() {
-  User(storage).deleteMany({{}});
-  BOOST_CHECK(User(storage).insert({
+
+  Storage::instance()->init("mongodb://127.0.0.1:27017", "dev");
+
+  User().deleteMany({{}});
+  BOOST_CHECK(User().insert({
     { "_id", { { "$oid", "667d0baedfb1ed18430d8ed3" } } },
     { "name", "tracy" },
     { "admin", true },
     { "fullname", "Tracy" }
   }));
-  BOOST_CHECK(User(storage).insert({
+  BOOST_CHECK(User().insert({
     { "_id", { { "$oid", "667d0baedfb1ed18430d8ed4" } } },
     { "name", "leanne" },
     { "admin", false },
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE( user )
   
   dbSetup();
   
-  auto doc = User(storage).find({{ "name", "tracy" }}, {"id"}).value();
+  auto doc = User().find({{ "name", "tracy" }}, {"id"}).value();
   cout << doc.value() << endl;
   BOOST_CHECK(doc);
   BOOST_CHECK(doc.value().is_object());
@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE( findAll )
   
   dbSetup();
 
-  auto doc = User(storage).find(json{{}}, {"id"}).values();
+  auto doc = User().find(json{{}}, {"id"}).values();
   BOOST_CHECK(doc);
 //  cout << doc.value() << endl;
   BOOST_CHECK(doc.value().is_array());
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE( findById )
   
   dbSetup();
 
-  auto doc = User(storage).findById("667d0baedfb1ed18430d8ed3", {"name"}).value();
+  auto doc = User().findById("667d0baedfb1ed18430d8ed3", {"name"}).value();
   BOOST_CHECK(doc);
 //  cout << doc.value() << endl;
   BOOST_CHECK(doc.value().is_object());
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE( findByIds )
   
   dbSetup();
 
-  auto doc = User(storage).findByIds({"667d0baedfb1ed18430d8ed3", "667d0baedfb1ed18430d8ed4"}, {"name"}).values();
+  auto doc = User().findByIds({"667d0baedfb1ed18430d8ed3", "667d0baedfb1ed18430d8ed4"}, {"name"}).values();
   BOOST_CHECK(doc);
 //  cout << doc.value() << endl;
   BOOST_CHECK(doc.value().is_array());

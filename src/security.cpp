@@ -54,12 +54,12 @@ void Security::addTo(vector<string> *v, const string &val) {
 
 }
 
-void Security::getPolicyUsers(Storage &storage, const string &id, vector<string> *users) {
+void Security::getPolicyUsers(const string &id, vector<string> *users) {
 
   // This is so much simpler than the Visual Ops version which determines the role of
   // each user.
   
-  auto policy = Policy(storage).findById(id, { "accesses" }).value();
+  auto policy = Policy().findById(id, { "accesses" }).value();
   if (!policy) {
     BOOST_LOG_TRIVIAL(error) << "policy missing";
     return;
@@ -78,7 +78,7 @@ void Security::getPolicyUsers(Storage &storage, const string &id, vector<string>
   
   // add all the users in all the groups.
   if (grps.size() > 0) {
-    auto groups = Group(storage).findByIds(grps, { "members" }).values();
+    auto groups = Group().findByIds(grps, { "members" }).values();
     for (auto g: groups.value().as_array()) {
       for (auto u: g.at("members").as_array()) {
         addTo(users, u.at("user").as_string().c_str());
@@ -135,7 +135,7 @@ optional<json> Security::with(Schema &schema, Schema &gperm, Schema &uperm, cons
 
   // collect all the groups the user is in.
   vector<string> glist;
-  UserInGroups useringroups(schema);
+  UserInGroups useringroups;
   getIndexes(useringroups, userid, &glist);
   
   // collect all the policies for those groips
@@ -157,16 +157,16 @@ optional<json> Security::with(Schema &schema, Schema &gperm, Schema &uperm, cons
 
 optional<json> Security::withView(Schema &schema, const string &userid, const json &query, const vector<string> &fields) {
 
-  GroupViewPermissions groupviews(schema);
-  UserViewPermissions userviews(schema);
+  GroupViewPermissions groupviews;
+  UserViewPermissions userviews;
   return with(schema, groupviews, userviews, userid, query, fields);
   
 }
 
 optional<json> Security::withEdit(Schema &schema, const string &userid, const json &query, const vector<string> &fields) {
 
-  GroupEditPermissions groupviews(schema);
-  UserEditPermissions userviews(schema);
+  GroupEditPermissions groupviews;
+  UserEditPermissions userviews;
   return with(schema, groupviews, userviews, userid, query, fields);
   
 }

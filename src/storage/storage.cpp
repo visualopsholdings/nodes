@@ -17,10 +17,16 @@
 
 #include <boost/log/trivial.hpp>
 
-Storage::Storage(const string &dbConn, const string &dbName) {
-  
+shared_ptr<Storage> Storage::_instance;
+
+void Storage::init(const string &dbConn, const string &dbName) {
+
+  if (_impl.get()) {
+    BOOST_LOG_TRIVIAL(trace) << "ignoring extra Storage::init";
+    return;
+  }
   _impl.reset(new StorageImpl(dbConn, dbName));
-  
+
 }
 
 StorageImpl::StorageImpl(const string &dbConn, const string &dbName) {

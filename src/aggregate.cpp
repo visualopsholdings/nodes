@@ -77,13 +77,13 @@ int main(int argc, char *argv[]) {
 
   BOOST_LOG_TRIVIAL(info) << "aggregating collection " << coll;
   
-  Storage storage(dbConn, dbName);
+  Storage::instance()->init(dbConn, dbName);
   
   if (coll == "group") {
-    Group(storage).aggregate(filename);
+    Group().aggregate(filename);
   }
   else if (coll == "policy") {
-    Policy(storage).aggregate(filename);
+    Policy().aggregate(filename);
   }
   else {
     BOOST_LOG_TRIVIAL(error) << "unknown collection " << coll;

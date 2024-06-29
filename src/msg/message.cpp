@@ -15,7 +15,7 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
+void Server::messageMsg(json &j) {
 
   string userid;
   if (!getString(j, "user", &userid)) {
@@ -23,7 +23,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  auto user = User(*storage).findById(userid, { "id" }).value();
+  auto user = User().findById(userid, { "id" }).value();
   if (!user) {
     sendErr("DB Error");
     return;
@@ -37,7 +37,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
   
-//   auto stream = Stream(*storage).findById(streamid, { "id" }).value();
+//   auto stream = Stream().findById(streamid, { "id" }).value();
 //   if (!stream) {
 //     sendErr("DB Error");
 //     return;
@@ -49,7 +49,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-//   auto policy = Policy(*storage).findById(policyid, { "id" }).value();
+//   auto policy = Policy().findById(policyid, { "id" }).value();
 //   if (!stream) {
 //     sendErr("DB Error");
 //     return;
@@ -67,7 +67,7 @@ void Server::messageMsg(json &j, shared_ptr<Storage> storage) {
     { "policy", policyid },
     { "text", text}
   };
-  auto result = Idea(*storage).insert(idea);
+  auto result = Idea().insert(idea);
   if (!result) {
     sendErr("DB Error");
     return;

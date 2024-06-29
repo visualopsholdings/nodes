@@ -15,7 +15,7 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::certsMsg(json &j, shared_ptr<Storage> storage) {
+void Server::certsMsg(json &j) {
 
   if (_certFile.empty()) {
     send({

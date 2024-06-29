@@ -16,7 +16,7 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
+void Server::streamsMsg(json &j) {
 
   string userid;
   if (!getString(j, "user", &userid)) {
@@ -24,7 +24,7 @@ void Server::streamsMsg(json &j, shared_ptr<Storage> storage) {
     return;
   }
 
-  Stream streams(*storage);
+  Stream streams;
   auto docs = Security::instance()->withView(streams, userid, {{}}, { "id", "name", "policy" });
   if (!docs) {
     sendErr("DB Error");

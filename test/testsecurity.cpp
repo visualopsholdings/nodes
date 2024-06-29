@@ -21,8 +21,11 @@
 
 using namespace std;
 
-// only one can be.
-Storage storage("mongodb://127.0.0.1:27017", "dev");
+void dbSetup() {
+
+  Storage::instance()->init("mongodb://127.0.0.1:27017", "dev");
+
+}
 
 BOOST_AUTO_TEST_CASE( PiVID )
 {
@@ -43,9 +46,10 @@ BOOST_AUTO_TEST_CASE( getPolicyUsers )
 {
   cout << "=== getPolicyUsers ===" << endl;
   
-  Policy(storage).deleteMany({{}});
+  dbSetup();
+  Policy().deleteMany({{}});
   boost::json::array empty;
-  BOOST_CHECK(Policy(storage).insert({
+  BOOST_CHECK(Policy().insert({
     { "_id", { { "$oid", "667bfee4b07cc40ec3dd6ee8" } } },
     { "accesses", {
       { { "name", "view" }, 
@@ -65,7 +69,7 @@ BOOST_AUTO_TEST_CASE( getPolicyUsers )
   }));
 
   vector<string> users;
-  Security::instance()->getPolicyUsers(storage, "667bfee4b07cc40ec3dd6ee8", &users);
+  Security::instance()->getPolicyUsers("667bfee4b07cc40ec3dd6ee8", &users);
   BOOST_CHECK_EQUAL(users.size(), 2);
   
 }
@@ -74,9 +78,10 @@ BOOST_AUTO_TEST_CASE( getPolicyUsersInGroup )
 {
   cout << "=== getPolicyUsersInGroup ===" << endl;
   
-  Policy(storage).deleteMany({{}});
-  Group(storage).deleteMany({{}});
-  BOOST_CHECK(Group(storage).insert({
+  dbSetup();
+  Policy().deleteMany({{}});
+  Group().deleteMany({{}});
+  BOOST_CHECK(Group().insert({
     { "_id", { { "$oid", "667d0bae39ae84d0890a2141" } } },
     { "name", "Team 1" },
     { "members", {
@@ -86,7 +91,7 @@ BOOST_AUTO_TEST_CASE( getPolicyUsersInGroup )
     }
   }));
   boost::json::array empty;
-  BOOST_CHECK(Policy(storage).insert({
+  BOOST_CHECK(Policy().insert({
     { "_id", { { "$oid", "667bfee4b07cc40ec3dd6ee8" } } },
     { "accesses", {
       { { "name", "view" }, 
@@ -106,7 +111,7 @@ BOOST_AUTO_TEST_CASE( getPolicyUsersInGroup )
   }));
   
   vector<string> users;
-  Security::instance()->getPolicyUsers(storage, "667bfee4b07cc40ec3dd6ee8", &users);
+  Security::instance()->getPolicyUsers("667bfee4b07cc40ec3dd6ee8", &users);
   BOOST_CHECK_EQUAL(users.size(), 2);
   
 }
@@ -119,10 +124,11 @@ BOOST_AUTO_TEST_CASE( with )
   string tracy = "667d0baedfb1ed18430d8ed3";
   string leanne = "667d0baedfb1ed18430d8ed4";
   
-  Policy(storage).deleteMany({{}});
-  Group(storage).deleteMany({{}});
-  Stream(storage).deleteMany({{}});
-  BOOST_CHECK(Group(storage).insert({
+  dbSetup();
+  Policy().deleteMany({{}});
+  Group().deleteMany({{}});
+  Stream().deleteMany({{}});
+  BOOST_CHECK(Group().insert({
     { "_id", { { "$oid", team } } },
     { "name", "Team 1" },
     { "members", {
@@ -131,7 +137,7 @@ BOOST_AUTO_TEST_CASE( with )
     }
   }));
   boost::json::array empty;
-  BOOST_CHECK(Policy(storage).insert({
+  BOOST_CHECK(Policy().insert({
     { "_id", { { "$oid", "667bfee4b07cc40ec3dd6ee8" } } },
     { "accesses", {
       { { "name", "view" }, 
@@ -149,18 +155,18 @@ BOOST_AUTO_TEST_CASE( with )
       } 
     }
   }));
-  BOOST_CHECK(Stream(storage).insert({
+  BOOST_CHECK(Stream().insert({
     { "name", "Conversation 1" },
     { "policy", "667bfee4b07cc40ec3dd6ee8" }
   }));
 
-  Group(storage).aggregate("../src/useringroups.json");
-  Policy(storage).aggregate("../src/groupviewpermissions.json");
-  Policy(storage).aggregate("../src/userviewpermissions.json");
-  Policy(storage).aggregate("../src/groupeditpermissions.json");
-  Policy(storage).aggregate("../src/usereditpermissions.json");
+  Group().aggregate("../src/useringroups.json");
+  Policy().aggregate("../src/groupviewpermissions.json");
+  Policy().aggregate("../src/userviewpermissions.json");
+  Policy().aggregate("../src/groupeditpermissions.json");
+  Policy().aggregate("../src/usereditpermissions.json");
 
-  Stream streams(storage);
+  Stream streams;
   {
     // tracy is in the team that can view.
     auto doc = Security::instance()->withView(streams, tracy, {{ "name", "Conversation 1" }});

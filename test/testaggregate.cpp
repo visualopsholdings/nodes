@@ -19,15 +19,19 @@
 
 using namespace std;
 
-// only one can be.
-Storage storage("mongodb://127.0.0.1:27017", "dev");
+void dbSetup() {
+
+  Storage::instance()->init("mongodb://127.0.0.1:27017", "dev");
+
+}
 
 BOOST_AUTO_TEST_CASE( userInGroups )
 {
   cout << "=== userInGroups ===" << endl;
   
-  Group(storage).deleteMany({{}});
-  BOOST_CHECK(Group(storage).insert({
+  dbSetup();
+  Group().deleteMany({{}});
+  BOOST_CHECK(Group().insert({
     { "name", "Team 1" },
     { "members", {
       { { "user", "u1" } },
@@ -36,9 +40,9 @@ BOOST_AUTO_TEST_CASE( userInGroups )
     }
   }));
   
-  Group(storage).aggregate("../src/useringroups.json");
+  Group().aggregate("../src/useringroups.json");
   
-  auto doc = UserInGroups(storage).find({{ "_id", "u2"}}, {"value"}).value();
+  auto doc = UserInGroups().find({{ "_id", "u2"}}, {"value"}).value();
   BOOST_CHECK(doc);
   BOOST_CHECK(doc.value().is_object());
   BOOST_CHECK(doc.value().at("value").is_string());

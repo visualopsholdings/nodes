@@ -17,7 +17,7 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
+void Server::loginMsg(json &j) {
 
   string session;
   if (!getString(j, "session", &session)) {
@@ -32,7 +32,7 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
   
   optional<json> user;
   if (_test) {
-    user = User(*storage).find(json{ { "name", password } }, {"name", "fullname"}).value();
+    user = User().find(json{ { "name", password } }, {"name", "fullname"}).value();
     if (!user) {
       sendErr("DB Error");
       return;
@@ -41,7 +41,7 @@ void Server::loginMsg(json &j, shared_ptr<Storage> storage) {
   else {
     // use password.
     VID vid(password);
-    user = User(*storage).findById(vid.uuid(), {"name", "fullname", "salt", "hash"}).value();
+    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash"}).value();
     if (!user) {
       sendErr("DB Error");
       return;

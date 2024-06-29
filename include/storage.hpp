@@ -29,11 +29,22 @@ class StorageImpl;
 class Storage {
 
 public:
-  Storage(const string &dbConn, const string &dbName);
+  static shared_ptr<Storage> instance() {
+    if(!_instance) {
+      _instance.reset(new Storage());
+    }
+    return _instance;
+  };
+    
+  void init(const string &dbConn, const string &dbName);
   
 private:
   friend class Schema;
 
+  // there can be only 1.
+  Storage() {};
+  static shared_ptr<Storage> _instance;
+  
   shared_ptr<StorageImpl> _impl;
     
 };

@@ -31,7 +31,7 @@ Cursor Schema::find(const json &query, const vector<string> &fields) {
   stringstream ss;
   ss << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
-  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_storage._impl->coll(collName())._c, q, fields)));
+  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(Storage::instance()->_impl->coll(collName())._c, q, fields)));
 
 }
 
@@ -40,7 +40,7 @@ Cursor Schema::findById(const string &id, const vector<string> &fields) {
   BOOST_LOG_TRIVIAL(trace) << "find " << id;
 
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
-  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_storage._impl->coll(collName())._c, q, fields)));
+  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(Storage::instance()->_impl->coll(collName())._c, q, fields)));
   
 }
 
@@ -53,7 +53,7 @@ Cursor Schema::findByIds(const vector<string> &ids, const vector<string> &fields
     array.append(bsoncxx::oid(id));
   }
   bsoncxx::document::view_or_value q = make_document(kvp("_id", make_document(kvp("$in", array))));
-  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(_storage._impl->coll(collName())._c, q, fields)));
+  return Cursor(shared_ptr<CursorImpl>(new CursorImpl(Storage::instance()->_impl->coll(collName())._c, q, fields)));
   
 }
 
@@ -65,7 +65,7 @@ void Schema::deleteMany(const json &doc) {
   ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
 
-  _storage._impl->coll(collName())._c.delete_many(d);
+  Storage::instance()->_impl->coll(collName())._c.delete_many(d);
 
 }
   
@@ -77,7 +77,7 @@ optional<string> Schema::insert(const json &doc) {
   ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
   
-  auto result = _storage._impl->coll(collName())._c.insert_one(d);
+  auto result = Storage::instance()->_impl->coll(collName())._c.insert_one(d);
   if (result) {
     return result.value().inserted_id().get_oid().value.to_string();
    }
@@ -136,7 +136,7 @@ void Schema::aggregate(const string &filename) {
   }
    
   // run aggregation.               
-  auto cursor = _storage._impl->coll(collName())._c.aggregate(p, mongocxx::options::aggregate{});
+  auto cursor = Storage::instance()->_impl->coll(collName())._c.aggregate(p, mongocxx::options::aggregate{});
   if (cursor.begin() != cursor.end()) {
     BOOST_LOG_TRIVIAL(info) << "aggregation had output";
   }
