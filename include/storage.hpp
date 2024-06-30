@@ -19,7 +19,7 @@
 #ifndef H_storage
 #define H_storage
 
-#include "storage/cursor.hpp"
+#include "storage/result.hpp"
 #include "storage/schema.hpp"
 
 using namespace std;
@@ -38,15 +38,14 @@ public:
     
   void init(const string &dbConn, const string &dbName);
   
+  shared_ptr<StorageImpl> _impl;
+
 private:
-  friend class Schema;
 
   // there can be only 1.
   Storage() {};
   static shared_ptr<Storage> _instance;
   
-  shared_ptr<StorageImpl> _impl;
-    
 };
 
 #endif // H_storage

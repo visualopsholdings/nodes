@@ -1,5 +1,5 @@
 /*
-  cursor.cpp
+  result.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 5-June-2024
@@ -9,9 +9,10 @@
   https://github.com/visualopsholdings/zmqchat
 */
 
-#include "storage/cursor.hpp"
+#include "storage/result.hpp"
 
-#include "storage/cursori.hpp"
+#include "storage/resulti.hpp"
+#include "storage/schemai.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <bsoncxx/json.hpp>
@@ -21,7 +22,7 @@
 using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::basic::make_document;
 
-mongocxx::cursor CursorImpl::find() {
+mongocxx::cursor ResultImpl::find() {
 
   mongocxx::options::find opts{};
   if (_f.size() > 0) {
@@ -38,7 +39,7 @@ mongocxx::cursor CursorImpl::find() {
 
 }
 
-json CursorImpl::replaceIds(const json &j) {
+json ResultImpl::replaceIds(const json &j) {
 
   boost::json::object o;
   for (auto i: j.as_object()) {
@@ -53,13 +54,13 @@ json CursorImpl::replaceIds(const json &j) {
 
 }
 
-optional<json> Cursor::value() {
+optional<json> ResultImpl::value() {
   
-  if (!_impl->_c) {
+  if (!_c) {
     return {};
   }
   
-  mongocxx::cursor cursor = _impl->find();
+  mongocxx::cursor cursor = find();
   if (cursor.begin() == cursor.end()) {
     BOOST_LOG_TRIVIAL(error) << "not found";
     return {};
@@ -68,25 +69,24 @@ optional<json> Cursor::value() {
   if (first == cursor.end()) {
     return {}; 
   }
-//  return boost::json::parse(bsoncxx::to_json(*first));
-  return _impl->replaceIds(boost::json::parse(bsoncxx::to_json(*first)));
+  return replaceIds(boost::json::parse(bsoncxx::to_json(*first)));
   
 }
 
-optional<json> Cursor::values() {
+optional<boost::json::array> ResultImpl::values() {
   
-  if (!_impl->_c) {
+  if (!_c) {
     return {};
   }
   
-  mongocxx::cursor cursor = _impl->find();
+  mongocxx::cursor cursor = find();
   if (cursor.begin() == cursor.end()) {
     BOOST_LOG_TRIVIAL(error) << "not found";
     return {};
   }
   boost::json::array val;
   for (auto i: cursor) {
-    val.push_back(_impl->replaceIds(boost::json::parse(bsoncxx::to_json(i))));
+    val.push_back(replaceIds(boost::json::parse(bsoncxx::to_json(i))));
   }
   return val;
   

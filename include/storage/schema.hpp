@@ -2,9 +2,9 @@
   schema.hpp
   
   Author: Paul Hamilton (paul@visualops.com)
-  Date: 5-June-2024
+  Date: 30-June-2024
     
-  DB Schemas for ZMQChat.
+  A typed schema for ZMQChat.
 
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
@@ -14,40 +14,44 @@
 #ifndef H_schema
 #define H_schema
 
-#include <boost/json.hpp>
+#include "schemai.hpp"
 
-using namespace std;
-using json = boost::json::value;
-
-class Cursor;
-
-class Schema {
+template <typename RowType>
+class Schema: public SchemaImpl {
 
 public:
- 
-  void deleteMany(const json &doc);
-    // delete all documents that match the query.
-    
-  optional<string> insert(const json &doc);
-    // insert a new document.
-    
-  Cursor find(const json &query, const vector<string> &fields = {});
-    // find documents with the query.
-    
-  Cursor findById(const string &id, const vector<string> &fields = {});
-    // find the document with this id.
-    
-  Cursor findByIds(const vector<string> &ids, const vector<string> &fields = {});
-    // find the document with these ids.
-    
-  void aggregate(const string &filename);
-    // process an aggregatin pipeline in the file.
 
-  virtual string collName() = 0;
+  // find documents with the query.
+  Result<RowType> find(const json &query, const vector<string> &fields = {}) {
+    return Result<RowType>(findResult(query, fields));
+  }
+    
+  // find the document with this id.
+  Result<RowType> findById(const string &id, const vector<string> &fields = {}) {
+    return Result<RowType>(findByIdResult(id, fields));
+  }
+  
+  // find the document with these ids.
+  Result<RowType> findByIds(const vector<string> &ids, const vector<string> &fields = {}) {
+    return Result<RowType>(findByIdsResult(ids, fields));
+  }
+
+};
+
+class UserRow: public DynamicRow {
+
+public:
+  UserRow(json json): DynamicRow(json) {}
+  
+  string id() { return getString("id"); }
+  string name() { return getString("name"); }
+  string fullname() { return getString("fullname"); }
+  string salt() { return getString("salt"); }
+  string hash() { return getString("hash"); }
   
 };
 
-class User: public Schema {
+class User: public Schema<UserRow> {
 
 public:
   
@@ -55,7 +59,26 @@ public:
 
 };
 
-class Policy: public Schema {
+class AccessRow: public DynamicRow {
+
+public:
+  AccessRow(json json): DynamicRow(json) {}
+  
+  vector<string> users() { return getStringArray("users"); }
+  vector<string> groups() { return getStringArray("groups"); }
+  
+};
+
+class PolicyRow: public DynamicRow {
+
+public:
+  PolicyRow(json json): DynamicRow(json) {}
+  
+  vector<AccessRow> accesses();
+  
+};
+
+class Policy: public Schema<PolicyRow> {
 
 public:
   
@@ -63,7 +86,14 @@ public:
 
 };
 
-class Stream: public Schema {
+class StreamRow: public DynamicRow {
+
+public:
+  StreamRow(json json): DynamicRow(json) {}
+
+};
+
+class Stream: public Schema<StreamRow> {
 
 public:
   
@@ -71,7 +101,14 @@ public:
 
 };
 
-class Idea: public Schema {
+class IdeaRow: public DynamicRow {
+
+public:
+  IdeaRow(json json): DynamicRow(json) {}
+
+};
+
+class Idea: public Schema<IdeaRow> {
 
 public:
   
@@ -79,7 +116,25 @@ public:
 
 };
 
-class Group: public Schema {
+class MemberRow: public DynamicRow {
+
+public:
+  MemberRow(json json): DynamicRow(json) {}
+  
+  string user() { return getString("user"); }
+  
+};
+
+class GroupRow: public DynamicRow {
+
+public:
+  GroupRow(json json): DynamicRow(json) {}
+  
+  vector<MemberRow> members();
+  
+};
+
+class Group: public Schema<GroupRow> {
 
 public:
   
@@ -87,7 +142,16 @@ public:
   
 };
 
-class UserInGroups: public Schema {
+class IndexRow: public DynamicRow {
+
+public:
+  IndexRow(json json): DynamicRow(json) {}
+  
+  vector<string> values();
+  
+};
+
+class UserInGroups: public Schema<IndexRow> {
 
 public:
   
@@ -95,7 +159,7 @@ public:
   
 };
 
-class GroupViewPermissions: public Schema {
+class GroupViewPermissions: public Schema<IndexRow> {
 
 public:
   
@@ -103,7 +167,7 @@ public:
   
 };
 
-class GroupEditPermissions: public Schema {
+class GroupEditPermissions: public Schema<IndexRow> {
 
 public:
   
@@ -111,7 +175,7 @@ public:
   
 };
 
-class UserViewPermissions: public Schema {
+class UserViewPermissions: public Schema<IndexRow> {
 
 public:
   
@@ -119,7 +183,7 @@ public:
   
 };
 
-class UserEditPermissions: public Schema {
+class UserEditPermissions: public Schema<IndexRow> {
 
 public:
   

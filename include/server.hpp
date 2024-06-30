@@ -21,6 +21,8 @@
 using namespace std;
 using json = boost::json::value;
 
+class DynamicRow;
+
 typedef function<void (json &json)> msgHandler;
 
 class Server {
@@ -46,9 +48,6 @@ private:
   void sendErr(const string &msg);
   void sendAck();
   bool getString(json &j, const string &name, string *value);
-  bool getString(optional<json> &j, const string &name, string *value);
-  bool getArray(json &j, const string &name, vector<string> *value);
-  bool getArray(optional<json> &j, const string &name, vector<string> *value);
 
   // handlers
   void loginMsg(json &json);

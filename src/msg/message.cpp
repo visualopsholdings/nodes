@@ -23,13 +23,10 @@ void Server::messageMsg(json &j) {
     return;
   }
 
-  auto user = User().findById(userid, { "id" }).value();
-  if (!user) {
-    sendErr("DB Error");
+  if (!User().findById(userid, { "id" }).value()) {
+    sendErr("User not found");
     return;
   }
-  
-//  BOOST_LOG_TRIVIAL(trace) << user.value();
   
   string streamid;
   if (!getString(j, "stream", &streamid)) {
@@ -37,9 +34,8 @@ void Server::messageMsg(json &j) {
     return;
   }
   
-//   auto stream = Stream().findById(streamid, { "id" }).value();
-//   if (!stream) {
-//     sendErr("DB Error");
+//   if (!Stream().findById(streamid, { "id" }).value()) {
+//     sendErr("Stream not found");
 //     return;
 //   }
 
@@ -49,9 +45,8 @@ void Server::messageMsg(json &j) {
     return;
   }
 
-//   auto policy = Policy().findById(policyid, { "id" }).value();
-//   if (!stream) {
-//     sendErr("DB Error");
+//   if (!Policy().findById(policyid, { "id" }).value()) {
+//     sendErr("Policy not found");
 //     return;
 //   }
 

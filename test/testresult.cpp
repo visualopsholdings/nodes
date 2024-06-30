@@ -1,5 +1,5 @@
 /*
-  testcursor.cpp
+  testresult.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 11-Jun-2024
@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-#include "storage/cursori.hpp"
+#include "storage/resulti.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE( goodIds )
 {
   cout << "=== goodIds ===" << endl;
   
-  CursorImpl impl({}, {}, {});
+  ResultImpl impl({}, {}, {});
 
   auto doc = impl.replaceIds({
     { "_id", {
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE( badIds )
 {
   cout << "=== badIds ===" << endl;
   
-  CursorImpl impl({}, {}, {});
+  ResultImpl impl({}, {}, {});
 
   auto doc = impl.replaceIds({
     { "_id", "xxxx" }
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE( noOID )
 {
   cout << "=== noOID ===" << endl;
   
-  CursorImpl impl({}, {}, {});
+  ResultImpl impl({}, {}, {});
 
   auto doc = impl.replaceIds({
     { "_id", {

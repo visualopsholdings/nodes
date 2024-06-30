@@ -43,14 +43,12 @@ BOOST_AUTO_TEST_CASE( user )
   
   dbSetup();
   
-  auto doc = User().find({{ "name", "tracy" }}, {"id"}).value();
-  cout << doc.value() << endl;
+  auto doc = User().find({{ "name", "tracy" }}, {"id", "name"}).value();
+//  cout << doc.value().j() << endl;
   BOOST_CHECK(doc);
-  BOOST_CHECK(doc.value().is_object());
-  BOOST_CHECK(doc.value().as_object().if_contains("id"));
-  BOOST_CHECK(doc.value().at("id").is_string());
-  string id = boost::json::value_to<string>(doc.value().at("id"));
-  cout << id << endl;
+  BOOST_CHECK_EQUAL(doc->name(), "tracy");
+  BOOST_CHECK_EQUAL(doc->id().size(), 24);
+  cout << doc->id() << endl;
   
 }
 
@@ -62,11 +60,10 @@ BOOST_AUTO_TEST_CASE( findAll )
 
   auto doc = User().find(json{{}}, {"id"}).values();
   BOOST_CHECK(doc);
-//  cout << doc.value() << endl;
-  BOOST_CHECK(doc.value().is_array());
-  BOOST_CHECK_EQUAL(doc.value().as_array().size(), 2);
-  BOOST_CHECK(doc.value().as_array()[0].at("id").is_string());
-  BOOST_CHECK(doc.value().as_array()[1].at("id").is_string());
+//  cout << doc.value().j() << endl;
+  BOOST_CHECK_EQUAL(doc.value().size(), 2);
+  BOOST_CHECK_EQUAL(doc.value()[0].id().size(), 24);
+  BOOST_CHECK_EQUAL(doc.value()[1].id().size(), 24);
   
 }
 
@@ -78,9 +75,8 @@ BOOST_AUTO_TEST_CASE( findById )
 
   auto doc = User().findById("667d0baedfb1ed18430d8ed3", {"name"}).value();
   BOOST_CHECK(doc);
-//  cout << doc.value() << endl;
-  BOOST_CHECK(doc.value().is_object());
-  BOOST_CHECK(doc.value().at("name").is_string());
+//  cout << doc.value().j() << endl;
+  BOOST_CHECK_EQUAL(doc->name(), "tracy");
   
 }
 
@@ -93,8 +89,7 @@ BOOST_AUTO_TEST_CASE( findByIds )
   auto doc = User().findByIds({"667d0baedfb1ed18430d8ed3", "667d0baedfb1ed18430d8ed4"}, {"name"}).values();
   BOOST_CHECK(doc);
 //  cout << doc.value() << endl;
-  BOOST_CHECK(doc.value().is_array());
-  BOOST_CHECK_EQUAL(doc.value().as_array().size(), 2);
+  BOOST_CHECK_EQUAL(doc.value().size(), 2);
   
 }
 

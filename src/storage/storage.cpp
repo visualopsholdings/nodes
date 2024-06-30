@@ -13,7 +13,7 @@
 
 #include "storage/storagei.hpp"
 #include "storage/collectioni.hpp"
-#include "storage/cursori.hpp"
+#include "storage/resulti.hpp"
 
 #include <boost/log/trivial.hpp>
 

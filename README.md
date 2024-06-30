@@ -330,3 +330,7 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 28 June 2024
 - Implement widthView and withEdit for queries.
 
+### 30 June 2024
+- Type system for DB data.
+
+

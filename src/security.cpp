@@ -13,8 +13,7 @@
 
 #include "vid.hpp"
 #include "b64.hpp"
-#include "storage/schema.hpp"
-#include "storage/cursor.hpp"
+#include "storage.hpp"
 
 #include <openssl/evp.h>
 #include <iostream>
@@ -67,36 +66,18 @@ void Security::getPolicyUsers(const string &id, vector<string> *users) {
 
   // add all the users directly referenced and collect the groups.
   vector<string> grps;
-  for (auto a: policy.value().at("accesses").as_array()) {
-    for (auto u: a.at("users").as_array()) {
-      addTo(users, u.as_string().c_str());
-    }
-    for (auto g: a.at("groups").as_array()) {
-      addTo(&grps, g.as_string().c_str());
-    }
+  for (auto a: policy.value().accesses()) {
+    for (auto u: a.users()) addTo(users, u);
+    for (auto g: a.groups()) addTo(&grps, g);
   }
-  
+ 
   // add all the users in all the groups.
   if (grps.size() > 0) {
     auto groups = Group().findByIds(grps, { "members" }).values();
-    for (auto g: groups.value().as_array()) {
-      for (auto u: g.at("members").as_array()) {
-        addTo(users, u.at("user").as_string().c_str());
-      }
+    for (auto g: groups.value()) {
+      for (auto u: g.members()) addTo(users, u.user());
     }
   }
-  
-}
-
-void Security::getIndexes(Schema &schema, const string &id, vector<string> *ids) {
-
-  auto indexes = schema.find({{ "_id", id }}, {"value"}).value();
-  if (!indexes) {
-    BOOST_LOG_TRIVIAL(error) << "indexes missing";
-    return;
-  }
-  string s = boost::json::value_to<string>(indexes.value().at("value"));
-  boost::split(*ids, s, boost::is_any_of(","));
 
 }
 
@@ -110,7 +91,7 @@ boost::json::array Security::createArray(const vector<string> &list) {
 
 }
 
-void Security::queryIndexes(Schema &schema, const vector<string> &inids, vector<string> *ids) {
+void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids) {
 
   json q = { { "_id", {{ "$in", createArray(inids) }}}};
   
@@ -119,11 +100,8 @@ void Security::queryIndexes(Schema &schema, const vector<string> &inids, vector<
     BOOST_LOG_TRIVIAL(error) << "indexes missing";
     return;
   }
-  for (auto i: indexes.value().as_array()) {
-    vector<string> l;
-    string s = boost::json::value_to<string>(i.at("value"));
-    boost::split(l, s, boost::is_any_of(","));
-    for (auto j: l) {
+  for (auto i: indexes.value()) {
+    for (auto j: i.values()) {
       addTo(ids, j);
     }
   }
@@ -131,12 +109,15 @@ void Security::queryIndexes(Schema &schema, const vector<string> &inids, vector<
 
 }
 
-optional<json> Security::with(Schema &schema, Schema &gperm, Schema &uperm, const string &userid, const json &query, const vector<string> &fields) {
+json Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const json &query) {
 
   // collect all the groups the user is in.
-  vector<string> glist;
   UserInGroups useringroups;
-  getIndexes(useringroups, userid, &glist);
+  auto indexes = useringroups.find({{ "_id", userid }}, {"value"}).value();
+  vector<string> glist;
+  if (indexes) {
+    glist = indexes.value().values();
+  }
   
   // collect all the policies for those groips
   vector<string> plist;
@@ -150,23 +131,7 @@ optional<json> Security::with(Schema &schema, Schema &gperm, Schema &uperm, cons
     { { "policy", { { "$in", createArray(plist) } } } }
   } } };
   BOOST_LOG_TRIVIAL(trace) << q;
-  
-  return schema.find(q, fields).values();
 
-}
-
-optional<json> Security::withView(Schema &schema, const string &userid, const json &query, const vector<string> &fields) {
-
-  GroupViewPermissions groupviews;
-  UserViewPermissions userviews;
-  return with(schema, groupviews, userviews, userid, query, fields);
-  
-}
-
-optional<json> Security::withEdit(Schema &schema, const string &userid, const json &query, const vector<string> &fields) {
-
-  GroupEditPermissions groupviews;
-  UserEditPermissions userviews;
-  return with(schema, groupviews, userviews, userid, query, fields);
+  return q;
   
 }

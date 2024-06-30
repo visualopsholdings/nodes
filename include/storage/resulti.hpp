@@ -1,18 +1,18 @@
 /*
-  cursori.hpp
+  resulti.hpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 5-June-2024
     
-  DB Cursor implemementation for ZMQChat.
+  DB result implementation for ZMQChat.
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
   https://github.com/visualopsholdings/zmqchat
 */
 
-#ifndef H_cursori
-#define H_cursori
+#ifndef H_resulti
+#define H_resulti
 
 #include <mongocxx/collection.hpp>
 #include <boost/json.hpp>
@@ -20,17 +20,20 @@
 using namespace std;
 using json = boost::json::value;
 
-class CursorImpl {
+class ResultImpl {
 
 public:
-  CursorImpl(mongocxx::collection coll, bsoncxx::document::view_or_value query, const vector<string> &fields): 
+  ResultImpl(mongocxx::collection coll, bsoncxx::document::view_or_value query, const vector<string> &fields): 
     _c(coll), _q(query), _f(fields) {};
 
   // public for testing.
   json replaceIds(const json &json);
 
-private:
-  friend class Cursor;
+  optional<json> value();
+  optional<boost::json::array> values();
+  
+//private:
+//  friend class Result;
   
   mongocxx::cursor find();
   
@@ -41,4 +44,4 @@ private:
 };
 
 
-#endif // H_cursori
+#endif // H_resulti

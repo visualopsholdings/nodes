@@ -15,18 +15,12 @@
 #define H_collectioni
 
 #include <mongocxx/collection.hpp>
-#include <boost/json.hpp>
 
 using namespace std;
-using json = boost::json::value;
-
-class Cursor;
 
 class CollectionImpl {
 
-private:
-  friend class Schema;
-  friend class StorageImpl;
+public:
   
   CollectionImpl(mongocxx::collection c): _c(c) {};
   CollectionImpl() {};

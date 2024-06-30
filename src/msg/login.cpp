@@ -30,7 +30,7 @@ void Server::loginMsg(json &j) {
     return;
   }
   
-  optional<json> user;
+  optional<UserRow> user;
   if (_test) {
     user = User().find(json{ { "name", password } }, {"name", "fullname"}).value();
     if (!user) {
@@ -46,46 +46,19 @@ void Server::loginMsg(json &j) {
       sendErr("DB Error");
       return;
     }
-    string salt;
-    if (!getString(user, "salt", &salt)) {
-      sendErr("no salt");
-      return;
-    }
-    string hash;
-    if (!getString(user, "hash", &hash)) {
-      sendErr("no hash");
-      return;
-    }
-    if (!Security::instance()->valid(vid, salt, hash)) {
+    if (!Security::instance()->valid(vid, user->salt(), user->hash())) {
       sendErr("Incorrect password");
       return;
     }
   }
-  BOOST_LOG_TRIVIAL(trace) << user.value();
-  
-  string id;
-  if (!getString(user, "id", &id)) {
-    sendErr("User not found");
-    return;
-  }
-
-  string name;
-  if (!getString(user, "name", &name)) {
-    sendErr("No name in user");
-    return;
-  }
-  string fullname;
-  if (!getString(user, "fullname", &fullname)) {
-    sendErr("No fullname in user");
-    return;
-  }
+//  BOOST_LOG_TRIVIAL(trace) << user.value().j();
   
   send({
     { "type", "user" },
     { "session", session },
-    { "id", id },
-    { "name", name },
-    { "fullname", fullname }
+    { "id", user->id() },
+    { "name", user->name() },
+    { "fullname", user->fullname() }
   });
 
 }

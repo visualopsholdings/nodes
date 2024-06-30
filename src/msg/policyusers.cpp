@@ -31,7 +31,7 @@ void Server::policyUsersMsg(json &j) {
   for (auto i: userids) {
     auto user = User().findById(i, { "id", "name", "fullname" }).value();
     if (user) {
-      users.push_back(user.value());
+      users.push_back(user.value().j());
     }
   }
 

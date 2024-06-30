@@ -30,12 +30,15 @@ void Server::streamsMsg(json &j) {
     sendErr("DB Error");
     return;
   }
-  BOOST_LOG_TRIVIAL(trace) << docs.value();
-  
+//  BOOST_LOG_TRIVIAL(trace) << docs.value();
+  boost::json::array s;
+  for (auto i: docs.value()) {
+    s.push_back(i.j());
+  }
   send({
     { "type", "streams" },
     { "user", userid },
-    { "streams", docs.value() }
+    { "streams", s }
   });
 
 }

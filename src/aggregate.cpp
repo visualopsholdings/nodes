@@ -12,7 +12,7 @@
 */
 
 #include "storage.hpp"
-#include "storage/schema.hpp"
+#include "storage/schemai.hpp"
 
 #include <iostream>
 #include <boost/program_options.hpp> 

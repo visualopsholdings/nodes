@@ -45,7 +45,7 @@ set(MESSAGES
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
 
-add_library(StorageLib SHARED src/storage/storage.cpp src/storage/schema.cpp src/storage/cursor.cpp)
+add_library(StorageLib SHARED src/storage/storage.cpp src/storage/schemai.cpp src/storage/result.cpp src/storage/dynamicrow.cpp src/storage/schema.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
 add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES} src/vid.cpp src/security.cpp src/b64.cpp)
@@ -54,8 +54,8 @@ add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES} src/vid.cpp sr
 add_executable(Send test/send.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
-add_executable(Aggregate src/aggregate.cpp src/storage/storage.cpp src/storage/schema.cpp src/storage/cursor.cpp)
-  target_link_libraries(Aggregate ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+add_executable(Aggregate src/aggregate.cpp)
+  target_link_libraries(Aggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_executable(TestJson test/testjson.cpp)
   target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${Boost_JSON_LIBRARY})
@@ -67,10 +67,10 @@ add_executable(TestStorage test/teststorage.cpp)
 
 add_test(TestStorage TestStorage)
 
-add_executable(TestCursor test/testcursor.cpp src/storage/cursor.cpp)
-  target_link_libraries(TestCursor ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+add_executable(TestResult test/testresult.cpp src/storage/result.cpp)
+  target_link_libraries(TestResult ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
-add_test(TestCursor TestCursor)
+add_test(TestResult TestResult)
 
 add_executable(TestB64 test/testb64.cpp src/b64.cpp)
   target_link_libraries(TestB64 ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})

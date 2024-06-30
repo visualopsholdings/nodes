@@ -14,6 +14,8 @@
 #ifndef H_security
 #define H_security
 
+#include "storage/schema.hpp"
+
 #include <string>
 #include <boost/json.hpp>
 #include <memory>
@@ -22,7 +24,6 @@ using namespace std;
 using json = boost::json::value;
 
 class VID;
-class Schema;
 
 class Security {
 
@@ -42,12 +43,25 @@ public:
   void getPolicyUsers(const string &id, vector<string> *users);
     // get a list of users that are in this policy.
   
-  optional<json> withView(Schema &schema, const string &userid, const json &query, const vector<string> &fields = {});
-    // execute a query ensuring that the user can view the results.
+  // execute a query ensuring that the user can view the results.
+  template <typename RowType>
+  optional<vector<RowType> > withView(Schema<RowType> &schema, const string &userid, const json &query, const vector<string> &fields = {}) {
+  
+    GroupViewPermissions groupviews;
+    UserViewPermissions userviews;
+    return schema.find(withQuery(groupviews, userviews, userid, query), fields).values();
     
-  optional<json> withEdit(Schema &schema, const string &userid, const json &query, const vector<string> &fields = {});
+  }
+
     // execute a query ensuring that the user can edit the results.
+  template <typename RowType>
+  optional<vector<RowType> > withEdit(Schema<RowType> &schema, const string &userid, const json &query, const vector<string> &fields = {}) {
+  
+    GroupEditPermissions groupviews;
+    UserEditPermissions userviews;
+    return schema.find(withQuery(groupviews, userviews, userid, query), fields).values();
     
+  }
     
 private:
 
@@ -56,10 +70,9 @@ private:
   static shared_ptr<Security> _instance;
   
   void addTo(vector<string> *v, const string &val);
-  void getIndexes(Schema &schema, const string &id, vector<string> *ids);
-  void queryIndexes(Schema &schema, const vector<string> &inids, vector<string> *ids);
+  void queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids);
   boost::json::array createArray(const vector<string> &list);
-  optional<json> with(Schema &schema, Schema &gperm, Schema &uperm, const string &userid, const json &query, const vector<string> &fields);
+  json withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const json &query);
 
 };
 

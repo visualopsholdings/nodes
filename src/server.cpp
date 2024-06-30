@@ -143,16 +143,6 @@ void Server::sendAck() {
   send({ { "type", "ack" } });
 }
 
-bool Server::getString(optional<json> &j, const string &name, string *value) {
-
-  if (!j) {
-    return false;
-  }
-  
-  return getString(j.value(), name, value);
-
-}
-
 bool Server::getString(json &j, const string &name, string *value) {
 
   try {
@@ -163,34 +153,4 @@ bool Server::getString(json &j, const string &name, string *value) {
     return false;
   }
 
-}
-
-bool Server::getArray(optional<json> &j, const string &name, vector<string> *value) {
-
-  if (!j) {
-    return false;
-  }
-  
-  return getArray(j.value(), name, value);
-
-}
-
-bool Server::getArray(json &j, const string &name, vector<string> *value) {
-
-  if (!j.as_object().if_contains(name)) {
-    return false;
-  }
-  if (!j.at(name).is_array()) {
-    return false;
-  }
-  value->clear();
-  for (auto i: j.at(name).as_array()) {
-    try {
-      value->push_back(boost::json::value_to<string>(i));
-    }
-    catch (...) {
-      return false;
-    }
-  }
-  return true;
 }

@@ -171,8 +171,7 @@ BOOST_AUTO_TEST_CASE( with )
     // tracy is in the team that can view.
     auto doc = Security::instance()->withView(streams, tracy, {{ "name", "Conversation 1" }});
     BOOST_CHECK(doc);
-    BOOST_CHECK(doc.value().is_array());
-    BOOST_CHECK_EQUAL(doc.value().as_array().size(), 1);
+    BOOST_CHECK_EQUAL(doc.value().size(), 1);
   }
   {
     // leanne can only edit.
@@ -183,8 +182,7 @@ BOOST_AUTO_TEST_CASE( with )
     // leanne is in the team that can edit.
     auto doc = Security::instance()->withEdit(streams, leanne, {{ "name", "Conversation 1" }});
     BOOST_CHECK(doc);
-    BOOST_CHECK(doc.value().is_array());
-    BOOST_CHECK_EQUAL(doc.value().as_array().size(), 1);
+    BOOST_CHECK_EQUAL(doc.value().size(), 1);
   }
   {
     // tracy can only view.

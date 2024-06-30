@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "storage.hpp"
-#include "storage/schema.hpp"
+#include "storage/schemai.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -44,8 +44,8 @@ BOOST_AUTO_TEST_CASE( userInGroups )
   
   auto doc = UserInGroups().find({{ "_id", "u2"}}, {"value"}).value();
   BOOST_CHECK(doc);
-  BOOST_CHECK(doc.value().is_object());
-  BOOST_CHECK(doc.value().at("value").is_string());
-  BOOST_CHECK_EQUAL(doc.value().at("value").as_string().size(), 24);
+  BOOST_CHECK(doc.value().j().is_object());
+  BOOST_CHECK(doc.value().j().at("value").is_string());
+  BOOST_CHECK_EQUAL(doc.value().j().at("value").as_string().size(), 24);
 
 }
