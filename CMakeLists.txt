@@ -17,7 +17,6 @@ project (zmqchat)
   find_package(mongocxx REQUIRED)
   find_package(bsoncxx REQUIRED)
   find_package(OpenSSL REQUIRED)
-  find_package(FLTK REQUIRED)
   add_definitions(-DBOOST_ALL_DYN_LINK) 
   enable_testing()
 
@@ -61,6 +60,7 @@ add_executable(ZCAggregate src/zcaggregate.cpp)
 # FLTK applications
 
 if (APPLE)
+  find_package(FLTK REQUIRED)
   add_executable(ZCAdmin MACOSX_BUNDLE src/zcadmin.cpp)
   target_include_directories(ZCAdmin PRIVATE ${FLTK_INCLUDE_DIR})
   # Workaround: fltk.framework does not exist, so we have to replace it by libfltk.dylib
