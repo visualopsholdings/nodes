@@ -146,15 +146,15 @@ When('there are users in group {string}:') do |name, table|
    end
    group.save
    
-   puts `build/Aggregate --coll=group src/useringroups.json`
+   puts `build/ZCAggregate --coll=group src/useringroups.json`
 
 end
 
 When('the security indexes are generated') do
 
-   puts `build/Aggregate --coll=policy src/groupeditpermissions.json`
-   puts `build/Aggregate --coll=policy src/groupviewpermissions.json`
-   puts `build/Aggregate --coll=policy src/usereditpermissions.json`
-   puts `build/Aggregate --coll=policy src/userviewpermissions.json`
+   puts `build/ZCAggregate --coll=policy src/groupeditpermissions.json`
+   puts `build/ZCAggregate --coll=policy src/groupviewpermissions.json`
+   puts `build/ZCAggregate --coll=policy src/usereditpermissions.json`
+   puts `build/ZCAggregate --coll=policy src/userviewpermissions.json`
 
 end

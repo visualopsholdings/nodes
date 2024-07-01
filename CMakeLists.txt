@@ -55,20 +55,20 @@ add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES} src/vid.cpp sr
 add_executable(Send test/send.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
-add_executable(Aggregate src/aggregate.cpp)
-  target_link_libraries(Aggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+add_executable(ZCAggregate src/zcaggregate.cpp)
+  target_link_libraries(ZCAggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 # FLTK applications
 
-add_executable(ZCAdmin MACOSX_BUNDLE src/admin.cpp)
-target_include_directories(ZCAdmin PRIVATE ${FLTK_INCLUDE_DIR})
 if (APPLE)
+  add_executable(ZCAdmin MACOSX_BUNDLE src/zcadmin.cpp)
+  target_include_directories(ZCAdmin PRIVATE ${FLTK_INCLUDE_DIR})
   # Workaround: fltk.framework does not exist, so we have to replace it by libfltk.dylib
   string(REPLACE "libfltk_images" "libfltk" FLTK_LIBRARY_NAME "${FLTK_IMAGES_LIBRARY_RELEASE}")
   string(REPLACE "/usr/local/fltk.framework" "${FLTK_LIBRARY_NAME}" FLTK_LIBRARIES "${FLTK_LIBRARIES}")
-endif()
-target_link_libraries(ZCAdmin ${FLTK_LIBRARIES})
-set_target_properties(ZCAdmin PROPERTIES FOLDER "Applications")
+  target_link_libraries(ZCAdmin ${FLTK_LIBRARIES})
+  set_target_properties(ZCAdmin PROPERTIES FOLDER "Applications")
+endif ()
 
 # Tests
 

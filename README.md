@@ -246,7 +246,7 @@ export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
 FLTK.
 
-On OS X or Linux:
+On OS X:
 
 ```
 git clone https://github.com/fltk/fltk.git

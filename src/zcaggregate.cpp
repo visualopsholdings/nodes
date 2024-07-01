@@ -1,5 +1,5 @@
 /*
-  aggregate.cpp
+  zcaggregate.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 25-Jun-2024
