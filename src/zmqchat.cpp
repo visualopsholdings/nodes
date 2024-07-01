@@ -77,9 +77,8 @@ int main(int argc, char *argv[]) {
   boost::log::add_common_attributes();
   boost::log::add_console_log(clog)->set_formatter(logFmt);
 
-  BOOST_LOG_TRIVIAL(info) << "ZMQCHAT 0.2, 21-Jun-2024.";
+  BOOST_LOG_TRIVIAL(info) << "ZMQCHAT 0.3, 1-Jul-2024.";
 
-//  Storage storage;
   Server server(test, pubPort, repPort, dbConn, dbName, certFile, chainFile);
   server.run();
   

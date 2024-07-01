@@ -17,6 +17,7 @@ project (zmqchat)
   find_package(mongocxx REQUIRED)
   find_package(bsoncxx REQUIRED)
   find_package(OpenSSL REQUIRED)
+  find_package(FLTK REQUIRED)
   add_definitions(-DBOOST_ALL_DYN_LINK) 
   enable_testing()
 
@@ -56,6 +57,20 @@ add_executable(Send test/send.cpp)
 
 add_executable(Aggregate src/aggregate.cpp)
   target_link_libraries(Aggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+
+# FLTK applications
+
+add_executable(ZCAdmin MACOSX_BUNDLE src/admin.cpp)
+target_include_directories(ZCAdmin PRIVATE ${FLTK_INCLUDE_DIR})
+if (APPLE)
+  # Workaround: fltk.framework does not exist, so we have to replace it by libfltk.dylib
+  string(REPLACE "libfltk_images" "libfltk" FLTK_LIBRARY_NAME "${FLTK_IMAGES_LIBRARY_RELEASE}")
+  string(REPLACE "/usr/local/fltk.framework" "${FLTK_LIBRARY_NAME}" FLTK_LIBRARIES "${FLTK_LIBRARIES}")
+endif()
+target_link_libraries(ZCAdmin ${FLTK_LIBRARIES})
+set_target_properties(ZCAdmin PROPERTIES FOLDER "Applications")
+
+# Tests
 
 add_executable(TestJson test/testjson.cpp)
   target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${Boost_JSON_LIBRARY})

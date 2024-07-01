@@ -244,6 +244,20 @@ On a linux you might need:
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ```
 
+FLTK.
+
+On OS X or Linux:
+
+```
+git clone https://github.com/fltk/fltk.git
+cd fltk
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
+
 Now this project:
 
 ```
