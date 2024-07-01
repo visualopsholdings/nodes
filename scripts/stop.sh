@@ -1,8 +1,8 @@
 #!/bin/bash
 # 
-# Stop ZMQCHAT
+# Stop zmqchat
 
-LIST=`ps -ef | grep "ZMQCHAT" | grep -v grep | awk '{print $2}'`
+LIST=`ps -ef | grep "zmqchat" | grep -v grep | awk '{print $2}'`
 if [ ! -z "$LIST" ]; then
 	sudo kill -9 $LIST
 fi

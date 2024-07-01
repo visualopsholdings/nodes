@@ -48,26 +48,26 @@ include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR}
 add_library(StorageLib SHARED src/storage/storage.cpp src/storage/schemai.cpp src/storage/result.cpp src/storage/dynamicrow.cpp src/storage/schema.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
-add_executable(ZMQCHAT src/zmqchat.cpp src/server.cpp ${MESSAGES} src/vid.cpp src/security.cpp src/b64.cpp)
-    target_link_libraries(ZMQCHAT StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS} ${OPENSSL_LIBRARIES})
+add_executable(zmqchat src/zmqchat.cpp src/server.cpp ${MESSAGES} src/vid.cpp src/security.cpp src/b64.cpp)
+    target_link_libraries(zmqchat StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS} ${OPENSSL_LIBRARIES})
 
 add_executable(Send test/send.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
-add_executable(ZCAggregate src/zcaggregate.cpp)
-  target_link_libraries(ZCAggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+add_executable(zcaggregate src/zcaggregate.cpp)
+  target_link_libraries(zcaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 # FLTK applications
 
 if (APPLE)
   find_package(FLTK REQUIRED)
-  add_executable(ZCAdmin MACOSX_BUNDLE src/zcadmin.cpp)
-  target_include_directories(ZCAdmin PRIVATE ${FLTK_INCLUDE_DIR})
+  add_executable(zcadmin MACOSX_BUNDLE src/zcadmin.cpp)
+  target_include_directories(zcadmin PRIVATE ${FLTK_INCLUDE_DIR})
   # Workaround: fltk.framework does not exist, so we have to replace it by libfltk.dylib
   string(REPLACE "libfltk_images" "libfltk" FLTK_LIBRARY_NAME "${FLTK_IMAGES_LIBRARY_RELEASE}")
   string(REPLACE "/usr/local/fltk.framework" "${FLTK_LIBRARY_NAME}" FLTK_LIBRARIES "${FLTK_LIBRARIES}")
-  target_link_libraries(ZCAdmin ${FLTK_LIBRARIES})
-  set_target_properties(ZCAdmin PROPERTIES FOLDER "Applications")
+  target_link_libraries(zcadmin ${FLTK_LIBRARIES})
+  set_target_properties(zcadmin PROPERTIES FOLDER "Applications")
 endif ()
 
 # Tests
