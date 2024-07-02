@@ -32,6 +32,7 @@ Server::Server(bool test, int pub, int rep, const string &dbConn, const string &
   _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1);
   _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1);
   _messages["message"] = bind(&Server::messageMsg, this, placeholders::_1);
+  _messages["users"] = bind(&Server::usersMsg, this, placeholders::_1);
 
   Storage::instance()->init(dbConn, dbName);
   
@@ -69,13 +70,13 @@ void Server::run() {
 
         string type;
         if (!getString(doc, "type", &type)) {
-          BOOST_LOG_TRIVIAL(error) << "no type";
+          sendErr("no type");
           continue;
         }
 
         map<string, msgHandler>::iterator handler = _messages.find(type);
         if (handler == _messages.end()) {
-          BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type;
+          sendErr("unknown msg type " + type);
           continue;
         }
         handler->second(doc);

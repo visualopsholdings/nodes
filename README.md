@@ -347,4 +347,7 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 30 June 2024
 - Type system for DB data.
 
+### 2 Jul 2024
+- New FLTK admin interface (start of it) 
+
 

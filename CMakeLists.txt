@@ -41,7 +41,8 @@ set(MESSAGES
   src/msg/login.cpp 
   src/msg/message.cpp 
   src/msg/streams.cpp
-  src/msg/policyusers.cpp)
+  src/msg/policyusers.cpp
+  src/msg/users.cpp)
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
 
@@ -61,12 +62,12 @@ add_executable(zcaggregate src/zcaggregate.cpp)
 
 if (APPLE)
   find_package(FLTK REQUIRED)
-  add_executable(zcadmin MACOSX_BUNDLE src/zcadmin.cpp)
+  add_executable(zcadmin MACOSX_BUNDLE src/zcadmin.cpp src/json.cpp)
   target_include_directories(zcadmin PRIVATE ${FLTK_INCLUDE_DIR})
   # Workaround: fltk.framework does not exist, so we have to replace it by libfltk.dylib
   string(REPLACE "libfltk_images" "libfltk" FLTK_LIBRARY_NAME "${FLTK_IMAGES_LIBRARY_RELEASE}")
   string(REPLACE "/usr/local/fltk.framework" "${FLTK_LIBRARY_NAME}" FLTK_LIBRARIES "${FLTK_LIBRARIES}")
-  target_link_libraries(zcadmin ${FLTK_LIBRARIES})
+  target_link_libraries(zcadmin ${FLTK_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
   set_target_properties(zcadmin PROPERTIES FOLDER "Applications")
 endif ()
 
@@ -106,4 +107,9 @@ add_executable(TestAggregate test/testaggregate.cpp)
   target_link_libraries(TestAggregate StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_test(TestAggregate TestAggregate)
+
+add_executable(TestDate test/testdate.cpp src/json.cpp)
+  target_link_libraries(TestDate ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
+
+add_test(TestDate TestDate)
 

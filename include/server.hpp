@@ -55,6 +55,7 @@ private:
   void policyUsersMsg(json &json);
   void messageMsg(json &json);
   void certsMsg(json &json);
+  void usersMsg(json &json);
   
 };
 
