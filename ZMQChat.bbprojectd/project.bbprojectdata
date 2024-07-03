@@ -14,6 +14,7 @@
 		<string>15EA175B-F9CE-45A1-BCEB-01788C7D2E45</string>
 		<string>4E2AD4B7-0561-444E-A7BB-B0F2EA8A969E</string>
 		<string>6BFE5094-17B8-41FE-A064-3C8AC77ADF7D</string>
+		<string>78C6E57F-7E5C-44CC-9FE1-28C290D24A0D</string>
 	</array>
 	<key>ProjectItems</key>
 	<dict>
@@ -290,6 +291,53 @@
 			<string>scripts</string>
 			<key>ItemType</key>
 			<string>FolderReference</string>
+		</dict>
+		<key>78C6E57F-7E5C-44CC-9FE1-28C290D24A0D</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9va9ACAAAAAAQQMAAAAGR7xWwJxZA2bKi3dYSSH6rH
+				d/444Yyyg6hdbgRPm0kozAEAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBhdWwDAAAAAQEA
+				AERldgAHAAAAAQEAAHptcWNoYXQAAgAAAAEBAAB1aQAA
+				FAAAAAEGAAAQAAAAIAAAACwAAAA4AAAASAAAAAgAAAAE
+				AwAA2FoAAAAAAAAIAAAABAMAALwyBAAAAAAACAAAAAQD
+				AABGgxYAAAAAAAgAAAAEAwAAcg6PDwAAAAAIAAAABAMA
+				AKIt6REAAAAAFAAAAAEGAABwAAAAgAAAAJAAAACgAAAA
+				sAAAAAgAAAAABAAAQcYak6FBhbgYAAAAAQIAAAIAAAAA
+				AAAADwAAAAAAAAAAAAAAAAAAAAgAAAAEAwAAAwAAAAAA
+				AAAEAAAAAwMAAPUBAAAIAAAAAQkAAGZpbGU6Ly8vDAAA
+				AAEBAABNYWNpbnRvc2ggSEQIAAAABAMAAACQgpbnAAAA
+				CAAAAAAEAABBxfUErAAAACQAAAABAQAAQTE0RTlGMzgt
+				QUNBRC00RUZCLTk0Q0EtMzQ0NTcxRkU1QzY5GAAAAAEC
+				AACBAAAAAQAAAO8TAAABAAAAAAAAAAAAAAABAAAAAQEA
+				AC8AAAAAAAAAAQUAAMwAAAD+////AQAAAAAAAAAQAAAA
+				BBAAAFQAAAAAAAAABRAAAMAAAAAAAAAAEBAAAOwAAAAA
+				AAAAQBAAANwAAAAAAAAAAiAAALgBAAAAAAAABSAAACgB
+				AAAAAAAAECAAADgBAAAAAAAAESAAAGwBAAAAAAAAEiAA
+				AEwBAAAAAAAAEyAAAFwBAAAAAAAAICAAAJgBAAAAAAAA
+				MCAAAMQBAAAAAAAAAcAAAAwBAAAAAAAAEcAAACAAAAAA
+				AAAAEsAAABwBAAAAAAAAENAAAAQAAAAAAAAA
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/paul/Dev/zmqchat/ui/</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./ui</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>ui</string>
+			<key>ItemType</key>
+			<string>FolderReference</string>
+			<key>UserOverrideItemName</key>
+			<true/>
 		</dict>
 		<key>804FBF52-0171-47E2-80E6-20189972AA68</key>
 		<dict>

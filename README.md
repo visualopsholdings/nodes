@@ -211,16 +211,26 @@ make
 sudo make install
 sudo ldconfig
 cd ..
-cd ..
+
+git clone https://github.com/zeromq/libzmq.git
+cd libzmq
+mkdir build
+cd build
+cmake ..
+make -j4
+make test
+sudo make install
+cd ../..
 
 git clone https://github.com/zeromq/cppzmq
 cd cppzmq
 mkdir build
 cd build
 cmake ..
-make
+make -j4
 sudo make install
 cd ../..
+cd ..
 ```
 
 #### MongoDB
@@ -235,7 +245,7 @@ cmake ..                                            \
     -DCMAKE_BUILD_TYPE=Release                      \
     -DBSONCXX_POLY_USE_BOOST=1                      \
     -DMONGOCXX_OVERRIDE_DEFAULT_INSTALL_PREFIX=OFF
-cmake --build .
+cmake --build . -j4
 sudo cmake --build . --target install
 cd ../..
 ```

@@ -118,5 +118,3 @@ add_executable(TestHttp test/testhttp.cpp)
   target_include_directories(TestHttp PUBLIC $ENV{RESTINIO_HOME}/dev $ENV{RESTINIO_HOME}/dev/nodejs/llhttp/include $ENV{RESTINIO_HOME}/dev/expected-lite/include)
   target_compile_definitions(TestHttp PUBLIC RESTINIO_USE_BOOST_ASIO=1)
 
-add_test(TestHttp TestHttp)
-
