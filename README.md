@@ -162,7 +162,7 @@ So on your Linux (or mac using Homebrew etc), get all you need:
 
 ```
 sudo apt-get update
-sudo apt-get -y install g++ gcc make cmake
+sudo apt-get -y install g++ gcc make cmake ruby-rubygems
 ```
 
 ### Prerequisites
@@ -175,7 +175,9 @@ mkdir working
 cd working
 ```
 
-Boost 1.85.0 if you can get this or later with a simple tool then do that, otherwise you will
+#### Boost 1.85.0
+
+if you can get this or later with a simple tool then do that, otherwise you will
 need to build it from source:
 
 ```
@@ -189,7 +191,7 @@ as root user:
 ./b2 install threading=multi link=shared
 ```
 
-ZMQ Stuff.
+#### ZMQ
 
 ```
 wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.19-stable.tar.gz  
@@ -221,7 +223,7 @@ sudo make install
 cd ../..
 ```
 
-MongoDB.
+#### MongoDB
 
 On OS X or Linux:
 
@@ -244,7 +246,9 @@ On a linux you might need:
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ```
 
-FLTK.
+#### FLTK
+
+We build some simple GUIs for admin, and for that we use FLTK.
 
 On OS X:
 
@@ -258,9 +262,24 @@ make
 sudo make install
 ```
 
+#### Restinio
+
+```
+sudo gem install Mxx_ru
+git clone https://github.com/stiffstream/restinio.git
+cd restinio
+mxxruexternals
+cd dev
+cmake -Bcmake_build \
+   -DCMAKE_BUILD_TYPE=Debug \
+   -DRESTINIO_ASIO_SOURCE=boost
+cmake --build cmake_build --config Debug
+```
+
 Now this project:
 
 ```
+export RESTINIO_HOME=/where/restinio/went
 git clone https://github.com/visualopsholdings/zmqchat.git
 cd zmqchat
 mkdir build
@@ -310,6 +329,19 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### End to end testing
 
 - https://cucumber.io/
+
+### MongoDB
+
+- https://www.mongodb.com
+- https://mongocxx.org/api/current/annotated.html
+
+### FLTK
+
+- https://www.fltk.org/doc-1.4
+
+#### Restinio
+
+- https://stiffstream.com/en/docs/restinio/0.7/
 
 ## Change Log
 
