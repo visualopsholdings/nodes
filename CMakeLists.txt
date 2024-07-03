@@ -115,9 +115,6 @@ add_test(TestDate TestDate)
 
 add_executable(TestHttp test/testhttp.cpp)
   target_link_libraries(TestHttp ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} $ENV{RESTINIO_HOME}/dev/cmake_build/lib/libfmtd.a $ENV{RESTINIO_HOME}/dev/cmake_build/lib/libllhttp.a)
-  target_include_directories(TestHttp PUBLIC $ENV{RESTINIO_HOME}/dev 
-    $ENV{RESTINIO_HOME}/dev/nodejs/llhttp/include 
-    $ENV{RESTINIO_HOME}/dev/expected-lite/include
-    $ENV{RESTINIO_HOME}/dev/fmt/include)
+  target_include_directories(TestHttp PUBLIC $ENV{RESTINIO_HOME}/dev $ENV{RESTINIO_HOME}/dev/nodejs/llhttp/include $ENV{RESTINIO_HOME}/dev/expected-lite/include $ENV{RESTINIO_HOME}/dev/fmt/include)
   target_compile_definitions(TestHttp PUBLIC RESTINIO_USE_BOOST_ASIO=1)
 
