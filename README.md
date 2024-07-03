@@ -275,6 +275,7 @@ sudo make install
 #### Restinio
 
 ```
+cd working
 sudo gem install Mxx_ru
 git clone https://github.com/stiffstream/restinio.git
 cd restinio
@@ -283,20 +284,20 @@ cd dev
 cmake -Bcmake_build \
    -DCMAKE_BUILD_TYPE=Debug \
    -DRESTINIO_ASIO_SOURCE=boost
-cmake --build cmake_build --config Debug
+cmake --build cmake_build --config Debug -j 4
+```
+
+You will need this in your .bashrc or equivalent
+
+```
+export RESTINIO_HOME=/where/restinio/went
 ```
 
 Now this project:
 
 ```
-export RESTINIO_HOME=/where/restinio/went
 git clone https://github.com/visualopsholdings/zmqchat.git
-cd zmqchat
-mkdir build
-cd build
-cmake ..
-make
-make test
+zmqchat/scripts/build.sh
 ```
 
 To run all the unit tests. And show failures.

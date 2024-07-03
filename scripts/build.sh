@@ -15,5 +15,5 @@ fi
 pushd zmqchat/build
 git pull
 cmake ..
-make
+make -j4
 popd
