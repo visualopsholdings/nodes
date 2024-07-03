@@ -25,7 +25,8 @@ BOOST_AUTO_TEST_CASE( simple )
   restinio::run(
     restinio::on_this_thread()
       .port(8080)
-      .address("localhost")
+//      .address("localhost")
+      .address("52.62.155.91")
       .request_handler([](auto req) {
         return req->create_response().set_body("Hello, World!").done();
       }));
