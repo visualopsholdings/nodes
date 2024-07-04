@@ -393,4 +393,7 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 2 Jul 2024
 - New FLTK admin interface (start of it) 
 
+### 4 Jul 2024
+- New RESTINIO based http daemon.
+
 
