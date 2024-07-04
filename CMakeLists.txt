@@ -58,6 +58,11 @@ add_executable(Send test/send.cpp)
 add_executable(zcaggregate src/zcaggregate.cpp)
   target_link_libraries(zcaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
+add_executable(zchttp src/zchttp.cpp)
+  target_link_libraries(zchttp ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} zmq $ENV{RESTINIO_HOME}/dev/cmake_build/lib/libfmtd.a $ENV{RESTINIO_HOME}/dev/cmake_build/lib/libllhttp.a)
+  target_include_directories(zchttp PUBLIC $ENV{RESTINIO_HOME}/dev $ENV{RESTINIO_HOME}/dev/nodejs/llhttp/include $ENV{RESTINIO_HOME}/dev/expected-lite/include $ENV{RESTINIO_HOME}/dev/fmt/include)
+  target_compile_definitions(zchttp  PUBLIC RESTINIO_USE_BOOST_ASIO=1)
+
 # FLTK applications
 
 if (APPLE)
@@ -112,9 +117,3 @@ add_executable(TestDate test/testdate.cpp src/json.cpp)
   target_link_libraries(TestDate ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestDate TestDate)
-
-add_executable(TestHttp test/testhttp.cpp)
-  target_link_libraries(TestHttp ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} $ENV{RESTINIO_HOME}/dev/cmake_build/lib/libfmtd.a $ENV{RESTINIO_HOME}/dev/cmake_build/lib/libllhttp.a)
-  target_include_directories(TestHttp PUBLIC $ENV{RESTINIO_HOME}/dev $ENV{RESTINIO_HOME}/dev/nodejs/llhttp/include $ENV{RESTINIO_HOME}/dev/expected-lite/include $ENV{RESTINIO_HOME}/dev/fmt/include)
-  target_compile_definitions(TestHttp PUBLIC RESTINIO_USE_BOOST_ASIO=1)
-

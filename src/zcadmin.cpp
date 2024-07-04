@@ -4,7 +4,7 @@
   Author: Paul Hamilton (paul@visualops.com)
   Date: 1-Jul-2024
     
-  Adnin tool for ZMQChat.
+  Admin tool for ZMQChat using FLTK.
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
@@ -32,7 +32,6 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/json.hpp>
 #include <zmq.hpp>
-
 
 namespace po = boost::program_options;
 
@@ -63,21 +62,21 @@ class Users_Table : public Fl_Table {
     Users_Table(MainWindow *main, int x, int y, int width, int height) : Fl_Table {x, y, width, height} {
 
       main->send({ { "type", "users" } });
-      json jr = main->receive();
-      BOOST_LOG_TRIVIAL(trace) << jr;
-      auto type = main->getString(jr, "type");
+      json j = main->receive();
+      BOOST_LOG_TRIVIAL(trace) << j;
+      auto type = main->getString(j, "type");
       if (!type) {
         fl_message_title("Alert");
         fl_alert("Missing type");
         return;
       }
       if (type == "err") {
-        auto msg = main->getString(jr, "msg");
+        auto msg = main->getString(j, "msg");
         fl_message_title("Alert");
         fl_alert("%s", msg ? msg.value().c_str() : "unknown");
         return;
       }
-      auto users = main->getArray(jr, "users");
+      auto users = main->getArray(j, "users");
       if (!users) {
         fl_message_title("Alert");
         fl_alert("Missing users");
