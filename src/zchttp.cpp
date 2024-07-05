@@ -35,9 +35,10 @@ public:
   Server(const string &reqConn);
     
   void run(int httpPort);
-  auto server_handler();
+  auto handler();
   void send(const json &json);
   json receive();
+  optional<boost::json::array> getArray(json &reply, const string &name);
   
 private:
   zmq::context_t _context;
@@ -73,18 +74,26 @@ private:
 auto Handler::users(
   const restinio::request_handle_t& req, rr::route_params_t ) const
 {
-  auto resp = init_resp( req->create_response() );
-
   _server->send({ { "type", "users" } });
   json j = _server->receive();
+  auto users = _server->getArray(j, "users");
+  
+  if (!users) {
+    // send fatal error
+    BOOST_LOG_TRIVIAL(error) << "users missing users ";
+    return init_resp(req->create_response(restinio::status_internal_server_error())).done();
+  }
+
+  auto resp = init_resp( req->create_response() );
+
   stringstream ss;
-  ss << j;
+  ss << users.value();
   resp.set_body(ss.str());
 
   return resp.done();
 }
 
-auto Server::server_handler()
+auto Server::handler()
 {
   auto router = std::make_unique< router_t >();
 	auto handler = std::make_shared<Handler>(this);
@@ -94,7 +103,7 @@ auto Server::server_handler()
 		return std::bind( method, handler, _1, _2 );
 	};
 
-  router->http_get("/users", by(&Handler::users));
+  router->http_get("/rest/1.0/users", by(&Handler::users));
 
   return router;
 }
@@ -117,7 +126,7 @@ void Server::run(int httpPort) {
   restinio::run(
     restinio::on_this_thread<traits_t>()
       .port(httpPort).address("localhost")
-      .request_handler(server_handler())
+      .request_handler(handler())
   );
 }
 
@@ -140,6 +149,26 @@ json Server::receive() {
   return boost::json::parse(r);
 
 }
+
+optional<boost::json::array> Server::getArray(json &reply, const string &name) {
+
+  if (!reply.is_object()) {
+    BOOST_LOG_TRIVIAL(error) << "json is not object";
+    return {};
+  }
+  if (!reply.as_object().if_contains(name)) {
+    BOOST_LOG_TRIVIAL(error) << "json missing " << name;
+    return {};
+  }
+  auto obj = reply.at(name);
+  if (!obj.is_array()) {
+    BOOST_LOG_TRIVIAL(error) << "obj is not array";
+    return {};
+  }
+  return obj.as_array();
+  
+}
+
 
 int main(int argc, char *argv[]) {
 
