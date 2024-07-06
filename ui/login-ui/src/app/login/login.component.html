@@ -1,0 +1,41 @@
+<form id="app" [formGroup]="form">
+  <mat-dialog-content>
+    <div *ngIf="canRegister" fxLayout='row'>
+      <div fxFlex="1 1 auto"></div>
+      <p class="mat-typography">Enter a full name for your new account, then press Login.</p>
+      <div fxFlex="1 1 auto"></div>
+    </div>
+    <div *ngIf="canRegister" fxLayout='row'>
+      <div fxFlex="1 1 auto"></div>
+      <mat-form-field>
+        <input matInput type="fullname" name="fullname" [formControl]="fullnameCtrl" placeholder="Your name" autocapitalize=off required>
+      </mat-form-field>
+      <div fxFlex="1 1 auto"></div>
+    </div>
+    <input matInput name="name" class="username" [formControl]="usernameCtrl" placeholder="VID" autocapitalize=off>
+    <mat-form-field *ngIf="!canRegister">
+      <input matInput type="password" name="password" [formControl]="passwordCtrl" placeholder="Enter your VID" required>
+    </mat-form-field>
+    <button class="fileLoad" *ngIf="!canRegister && hasOpen()" (click)="uploadVID()"><mat-icon>file_upload</mat-icon></button>
+    <input *ngIf="!canRegister" type="file" #vidBrowserUpload id="vidBrowserUpload" name="vidBrowserUpload" accept="text/plain" style="display:none;" />
+    <div fxLayout='row'>
+      <div fxFlex="1 1 auto"></div>
+      <button class="login" mat-raised-button (click)="doLogin()" fxFlex="0 0 auto">Login</button>
+      <div fxFlex="1 1 auto"></div>
+    </div>
+    <div fxLayout='row'>
+      <div fxFlex="1 1 auto"></div>
+      <p></p>
+      <div fxFlex="1 1 auto"></div>
+    </div>
+    <div *ngIf="canRegister" fxLayout='row'>
+      <div fxFlex="1 1 auto"></div>
+      <a class="mat-typography" href="javascript: void(0);" (click)="existingUser()">Existing users click here</a>
+      <div fxFlex="1 1 auto"></div>
+    </div>
+    <p class="mat-typography">{{msg}}</p>
+    <p class="mat-typography error">{{errmsg}}</p>
+   </mat-dialog-content>
+  <mat-dialog-actions>
+  </mat-dialog-actions>
+</form>

@@ -52,6 +52,7 @@ public:
   Handler(Server *server): _server(server) {}
   
 	auto users(const restinio::request_handle_t& req, rr::route_params_t ) const;
+	auto login(const restinio::request_handle_t& req, rr::route_params_t ) const;
 
 private:
 
@@ -93,6 +94,16 @@ auto Handler::users(
   return resp.done();
 }
 
+auto Handler::login(
+  const restinio::request_handle_t& req, rr::route_params_t ) const
+{
+  auto resp = init_resp( req->create_response() );
+
+  resp.set_body("OK");
+
+  return resp.done();
+}
+
 auto Server::handler()
 {
   auto router = std::make_unique< router_t >();
@@ -103,6 +114,7 @@ auto Server::handler()
 		return std::bind( method, handler, _1, _2 );
 	};
 
+  router->http_get("/login", by(&Handler::login));
   router->http_get("/rest/1.0/users", by(&Handler::users));
 
   return router;
