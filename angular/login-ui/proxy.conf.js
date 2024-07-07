@@ -1,7 +1,6 @@
 const PROXY_CONFIG = [
     {
         context: [
-            "/login",
             "/rest",
             "/fonts",
             "/socket.io"

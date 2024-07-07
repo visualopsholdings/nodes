@@ -51,6 +51,7 @@ class Handler {
 public:
   Handler(Server *server): _server(server) {}
   
+	auto fonts(const restinio::request_handle_t& req, rr::route_params_t ) const;
 	auto users(const restinio::request_handle_t& req, rr::route_params_t ) const;
 	auto login(const restinio::request_handle_t& req, rr::route_params_t ) const;
 
@@ -71,6 +72,18 @@ private:
 	}
 
 };
+
+auto Handler::fonts(
+  const restinio::request_handle_t& req, rr::route_params_t params) const
+{
+  const auto file = restinio::cast_to<string>( params[ "file" ] );
+  BOOST_LOG_TRIVIAL(trace) << "font " << file;
+
+  auto resp = init_resp( req->create_response() );
+  resp.set_body(restinio::sendfile("../frontend/fonts/" + file));
+  
+  return resp.done();
+}
 
 auto Handler::users(
   const restinio::request_handle_t& req, rr::route_params_t ) const
@@ -114,6 +127,7 @@ auto Server::handler()
 		return std::bind( method, handler, _1, _2 );
 	};
 
+  router->http_get("/fonts/:file", by(&Handler::fonts));
   router->http_get("/login", by(&Handler::login));
   router->http_get("/rest/1.0/users", by(&Handler::users));
 
