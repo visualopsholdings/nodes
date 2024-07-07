@@ -77,9 +77,9 @@ auto Handler::fonts(
   const restinio::request_handle_t& req, rr::route_params_t params) const
 {
   const auto file = restinio::cast_to<string>( params[ "file" ] );
-  BOOST_LOG_TRIVIAL(trace) << "font " << file;
+//  BOOST_LOG_TRIVIAL(trace) << "font " << file;
 
-  auto resp = init_resp( req->create_response() );
+  auto resp = req->create_response();
   resp.set_body(restinio::sendfile("../frontend/fonts/" + file));
   
   return resp.done();
@@ -110,10 +110,8 @@ auto Handler::users(
 auto Handler::login(
   const restinio::request_handle_t& req, rr::route_params_t ) const
 {
-  auto resp = init_resp( req->create_response() );
-
-  resp.set_body("OK");
-
+  auto resp = req->create_response(restinio::status_permanent_redirect());
+	resp.append_header("Location", "/#/login");
   return resp.done();
 }
 
