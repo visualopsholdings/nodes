@@ -12,6 +12,7 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "json.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -68,15 +69,15 @@ void Server::run() {
 
         BOOST_LOG_TRIVIAL(debug) << "got reply " << doc;
 
-        string type;
-        if (!getString(doc, "type", &type)) {
+        auto type = Json::getString(doc, "type");
+        if (!type) {
           sendErr("no type");
           continue;
         }
 
-        map<string, msgHandler>::iterator handler = _messages.find(type);
+        map<string, msgHandler>::iterator handler = _messages.find(type.value());
         if (handler == _messages.end()) {
-          sendErr("unknown msg type " + type);
+          sendErr("unknown msg type " + type.value());
           continue;
         }
         handler->second(doc);
@@ -142,16 +143,4 @@ void Server::sendErr(const string &msg) {
 
 void Server::sendAck() {
   send({ { "type", "ack" } });
-}
-
-bool Server::getString(json &j, const string &name, string *value) {
-
-  try {
-    *value = boost::json::value_to<string>(j.at(name));
-    return true;
-  }
-  catch (const boost::system::system_error& ex) {
-    return false;
-  }
-
 }

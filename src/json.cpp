@@ -14,6 +14,7 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <boost/log/trivial.hpp>
 
 string Json::toISODate(json &date) {
 
@@ -39,3 +40,42 @@ string Json::toISODate(json &date) {
   return ss.str();
   
 }
+
+optional<string> Json::getString(json &j, const string &name) {
+
+  if (!j.is_object()) {
+    BOOST_LOG_TRIVIAL(error) << "json is not object";
+    return {};
+  }
+  if (!j.as_object().if_contains(name)) {
+    BOOST_LOG_TRIVIAL(error) << "json missing " << name;
+    return {};
+  }
+  auto obj = j.at(name);
+  if (!obj.is_string()) {
+    BOOST_LOG_TRIVIAL(error) << "obj is not string";
+    return {};
+  }
+  return boost::json::value_to<string>(obj);
+
+}
+
+optional<boost::json::array> Json::getArray(json &j, const string &name) {
+
+  if (!j.is_object()) {
+    BOOST_LOG_TRIVIAL(error) << "json is not object";
+    return {};
+  }
+  if (!j.as_object().if_contains(name)) {
+    BOOST_LOG_TRIVIAL(error) << "json missing " << name;
+    return {};
+  }
+  auto obj = j.at(name);
+  if (!obj.is_array()) {
+    BOOST_LOG_TRIVIAL(error) << "obj is not array";
+    return {};
+  }
+  return obj.as_array();
+  
+}
+

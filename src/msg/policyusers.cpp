@@ -13,19 +13,20 @@
 
 #include "storage.hpp"
 #include "security.hpp"
+#include "json.hpp"
 
 #include <boost/log/trivial.hpp>
 
 void Server::policyUsersMsg(json &j) {
 
-  string policyid;
-  if (!getString(j, "policy", &policyid)) {
+  auto policyid = Json::getString(j, "policy");
+  if (!policyid) {
     sendErr("no policy");
     return;
   }
 
   vector<string> userids;
-  Security::instance()->getPolicyUsers(policyid, &userids);
+  Security::instance()->getPolicyUsers(policyid.value(), &userids);
 
   boost::json::array users;
   for (auto i: userids) {
@@ -37,7 +38,7 @@ void Server::policyUsersMsg(json &j) {
 
   send({
     { "type", "policyusers" },
-    { "id", policyid },
+    { "id", policyid.value() },
     { "users", users }
   });
   

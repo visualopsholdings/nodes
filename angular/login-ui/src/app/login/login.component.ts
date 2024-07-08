@@ -89,7 +89,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   private login(password: string) {
 
-    this.loginService.login({ name: "", password: password, insecure: !this.isVopsID(password) } as Login).subscribe(result => {
+    this.loginService.login({ name: "", password: password } as Login).subscribe(result => {
       if (result) {
         if (result.redirect) {
           this.window.history.back();

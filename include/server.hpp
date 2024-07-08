@@ -47,7 +47,6 @@ private:
   void send(const json &m);
   void sendErr(const string &msg);
   void sendAck();
-  bool getString(json &j, const string &name, string *value);
 
   // handlers
   void loginMsg(json &json);

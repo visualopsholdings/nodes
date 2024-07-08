@@ -45,7 +45,17 @@ export class BackendService {
   public handleError<T> (operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
 
-      if (error.status == 0 || error.status == 504) {
+      if (error.status == 401) {
+         this.dialog.open(SecurityErrorComponent, {
+          width: '400px',
+          data: { message: error.error.err }
+        }).afterClosed().subscribe(success => {
+          if (success) {
+            window.location.href = "/apps/login/#/login";
+          }
+        });
+      }
+      else if (error.status == 0 || error.status == 504) {
         this.upService.down();
       }
       else {

@@ -13,19 +13,20 @@
 
 #include "storage.hpp"
 #include "security.hpp"
+#include "json.hpp"
 
 #include <boost/log/trivial.hpp>
 
 void Server::streamsMsg(json &j) {
 
-  string userid;
-  if (!getString(j, "user", &userid)) {
+  auto userid = Json::getString(j, "user");
+  if (!userid) {
     sendErr("no user");
     return;
   }
 
   Stream streams;
-  auto docs = Security::instance()->withView(streams, userid, {{}}, { "id", "name", "policy" });
+  auto docs = Security::instance()->withView(streams, userid.value(), {{}}, { "id", "name", "policy" });
   if (!docs) {
     sendErr("DB Error");
     return;
@@ -37,7 +38,7 @@ void Server::streamsMsg(json &j) {
   }
   send({
     { "type", "streams" },
-    { "user", userid },
+    { "user", userid.value() },
     { "streams", s }
   });
 

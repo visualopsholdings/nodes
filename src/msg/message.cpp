@@ -12,62 +12,63 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "json.hpp"
 
 #include <boost/log/trivial.hpp>
 
 void Server::messageMsg(json &j) {
 
-  string userid;
-  if (!getString(j, "user", &userid)) {
+  auto userid = Json::getString(j, "user");
+  if (!userid) {
     sendErr("no user");
     return;
   }
 
-  if (!User().findById(userid, { "id" }).value()) {
+  if (!User().findById(userid.value(), { "id" }).value()) {
     sendErr("User not found");
     return;
   }
   
-  string streamid;
-  if (!getString(j, "stream", &streamid)) {
+  auto streamid = Json::getString(j, "stream");
+  if (!streamid) {
     sendErr("no stream");
     return;
   }
   
-//   if (!Stream().findById(streamid, { "id" }).value()) {
+//   if (!Stream().findById(streamid.value(), { "id" }).value()) {
 //     sendErr("Stream not found");
 //     return;
 //   }
 
-  string policyid;
-  if (!getString(j, "policy", &policyid)) {
+  auto policyid = Json::getString(j, "policy");
+  if (!policyid) {
     sendErr("no policy");
     return;
   }
 
-//   if (!Policy().findById(policyid, { "id" }).value()) {
+//   if (!Policy().findById(policyid.value(), { "id" }).value()) {
 //     sendErr("Policy not found");
 //     return;
 //   }
 
-  string text;
-  if (!getString(j, "text", &text)) {
+  auto text = Json::getString(j, "text");
+  if (!text) {
     sendErr("no text");
     return;
   }
   
   json idea = {
-    { "user", userid },
-    { "stream", streamid },
-    { "policy", policyid },
-    { "text", text}
+    { "user", userid.value() },
+    { "stream", streamid.value() },
+    { "policy", policyid.value() },
+    { "text", text.value() }
   };
   auto result = Idea().insert(idea);
   if (!result) {
     sendErr("DB Error");
     return;
   }
-  BOOST_LOG_TRIVIAL(trace) << "inserted " << *result;
+  BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
     
   publish(idea);
   sendAck();

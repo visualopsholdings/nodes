@@ -11,6 +11,9 @@
   https://github.com/visualopsholdings/zmqchat
 */
 
+#include "json.hpp"
+#include "cookie.hpp"
+
 #include <boost/program_options.hpp> 
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
@@ -38,27 +41,16 @@ public:
   auto handler();
   void send(const json &json);
   json receive();
-  optional<boost::json::array> getArray(json &reply, const string &name);
   
+	auto fonts(const restinio::request_handle_t& req, rr::route_params_t );
+	auto users(const restinio::request_handle_t& req, rr::route_params_t );
+	auto login(const restinio::request_handle_t& req, rr::route_params_t );
+	auto dologin(const restinio::request_handle_t& req, rr::route_params_t );
+
 private:
   zmq::context_t _context;
   zmq::socket_t _req;
 
-};
-
-class Handler {
-
-public:
-  Handler(Server *server): _server(server) {}
-  
-	auto fonts(const restinio::request_handle_t& req, rr::route_params_t ) const;
-	auto users(const restinio::request_handle_t& req, rr::route_params_t ) const;
-	auto login(const restinio::request_handle_t& req, rr::route_params_t ) const;
-
-private:
-
-  Server *_server;
-  
 	template < typename RESP >
 	static RESP
 	init_resp( RESP resp )
@@ -71,10 +63,13 @@ private:
 		return resp;
 	}
 
+  optional<string> finishlogin(const string &password);
+  auto unauthorised(const restinio::request_handle_t& req);
+
 };
 
-auto Handler::fonts(
-  const restinio::request_handle_t& req, rr::route_params_t params) const
+auto Server::fonts(
+  const restinio::request_handle_t& req, rr::route_params_t params)
 {
   const auto file = restinio::cast_to<string>( params[ "file" ] );
 //  BOOST_LOG_TRIVIAL(trace) << "font " << file;
@@ -85,12 +80,35 @@ auto Handler::fonts(
   return resp.done();
 }
 
-auto Handler::users(
-  const restinio::request_handle_t& req, rr::route_params_t ) const
+auto Server::unauthorised(const restinio::request_handle_t& req) {
+
+  auto resp = init_resp(req->create_response(restinio::status_unauthorized()));
+  json err = {
+    { "status", 401 },
+    { "err", "Username/Password incorrect" }
+  };
+  stringstream ss;
+  ss << err;
+  resp.set_body(ss.str());
+  return resp.done();
+}
+
+auto Server::users(
+  const restinio::request_handle_t& req, rr::route_params_t )
 {
-  _server->send({ { "type", "users" } });
-  json j = _server->receive();
-  auto users = _server->getArray(j, "users");
+  if (!req->header().has_field("Cookie")) {
+    return unauthorised(req);
+  }
+  auto cookie = req->header().get_field("Cookie");
+  auto id = Cookie::parseCookie(cookie);
+  if (!id) {
+    BOOST_LOG_TRIVIAL(trace) << "couldn't find id in cookie " << cookie;  
+    return unauthorised(req);
+  }
+  
+  send({ { "type", "users" } });
+  json j = receive();
+  auto users = Json::getArray(j, "users");
   
   if (!users) {
     // send fatal error
@@ -107,27 +125,89 @@ auto Handler::users(
   return resp.done();
 }
 
-auto Handler::login(
-  const restinio::request_handle_t& req, rr::route_params_t ) const
+optional<string> Server::finishlogin(const string &password) {
+
+  send({
+    { "type", "login" },
+    { "session", "1" },
+    { "password", password }
+  });
+  json j = receive();
+  auto type = Json::getString(j, "type");
+  if (!type) {
+    BOOST_LOG_TRIVIAL(error) << "missing type in return";
+    return nullopt;
+  }
+  if (type.value() == "err") {
+    BOOST_LOG_TRIVIAL(error) << Json::getString(j, "msg").value();
+    return nullopt;
+  }
+  auto id = Json::getString(j, "id");
+  if (!id) {
+    BOOST_LOG_TRIVIAL(error) << "missing id in return";
+    return nullopt;
+  }
+
+  return id.value();
+}
+
+auto Server::login(
+  const restinio::request_handle_t& req, rr::route_params_t params)
 {
+  if (params.has("username")) {
+    const auto username = restinio::cast_to<string>(params["username"]);
+    auto id = finishlogin(username);
+    if (!id) {
+      return unauthorised(req);
+    }
+    auto resp = req->create_response(restinio::status_permanent_redirect());
+	  resp.append_header("Location", "/#/login");
+	  resp.append_header("Set-Cookie", "ss-id=" + id.value() + "; Path=/; Secure; HttpOnly");
+    return resp.done();
+  }
+
   auto resp = req->create_response(restinio::status_permanent_redirect());
 	resp.append_header("Location", "/#/login");
   return resp.done();
 }
 
+auto Server::dologin(
+  const restinio::request_handle_t& req, rr::route_params_t )
+{
+  json j = boost::json::parse(req->body());
+  BOOST_LOG_TRIVIAL(trace) << "dologin " << j;
+
+  auto password = Json::getString(j, "password");
+  if (!password) {
+    BOOST_LOG_TRIVIAL(error) << "missing password";
+    return unauthorised(req);
+  }
+
+  auto id = finishlogin(password.value());
+  if (!id) {
+    return unauthorised(req);
+  }
+
+  auto resp = req->create_response();
+	resp.append_header("Set-Cookie", "ss-id=" + id.value() + "; Path=/; Secure; HttpOnly");
+  resp.set_body("{}");
+  return resp.done();
+
+}
+
 auto Server::handler()
 {
   auto router = std::make_unique< router_t >();
-	auto handler = std::make_shared<Handler>(this);
 
 	auto by = [&]( auto method ) {
 		using namespace std::placeholders;
-		return std::bind( method, handler, _1, _2 );
+		return std::bind( method, this, _1, _2 );
 	};
 
-  router->http_get("/fonts/:file", by(&Handler::fonts));
-  router->http_get("/login", by(&Handler::login));
-  router->http_get("/rest/1.0/users", by(&Handler::users));
+  router->http_get("/fonts/:file", by(&Server::fonts));
+  router->http_get("/login", by(&Server::login));
+  router->http_post("/login", by(&Server::dologin));
+  router->http_get("/rest/1.0/users", by(&Server::users));
 
   return router;
 }
@@ -173,26 +253,6 @@ json Server::receive() {
   return boost::json::parse(r);
 
 }
-
-optional<boost::json::array> Server::getArray(json &reply, const string &name) {
-
-  if (!reply.is_object()) {
-    BOOST_LOG_TRIVIAL(error) << "json is not object";
-    return {};
-  }
-  if (!reply.as_object().if_contains(name)) {
-    BOOST_LOG_TRIVIAL(error) << "json missing " << name;
-    return {};
-  }
-  auto obj = reply.at(name);
-  if (!obj.is_array()) {
-    BOOST_LOG_TRIVIAL(error) << "obj is not array";
-    return {};
-  }
-  return obj.as_array();
-  
-}
-
 
 int main(int argc, char *argv[]) {
 
