@@ -310,6 +310,14 @@ make && make test || cat Testing/Temporary/LastTest.log
 
 The web client is written in angular and must be built before using the zchttp daemon
 
+To install angular.
+
+```
+npm install -g @angular/cli
+```
+
+To build http stuff.
+
 ```
 zmqchat/scripts/build-http.sh
 ```
