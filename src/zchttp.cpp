@@ -267,14 +267,22 @@ void Server::send(const json &json) {
   string m = ss.str();
   zmq::message_t msg(m.length());
   memcpy(msg.data(), m.c_str(), m.length());
+#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
   _req.send(msg);
+#else
+  _req.send(msg, zmq::send_flags::none);
+#endif
 
 }
 
 json Server::receive() {
 
   zmq::message_t reply;
+#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
   _req.recv(&reply);
+#else
+  auto res = _req.recv(reply, zmq::recv_flags::none);
+#endif
   string r((const char *)reply.data(), reply.size());
   return boost::json::parse(r);
 
