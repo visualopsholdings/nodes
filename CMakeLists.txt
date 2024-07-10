@@ -51,7 +51,13 @@ set(MESSAGES
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
 
-add_library(StorageLib SHARED src/storage/storage.cpp src/storage/schemai.cpp src/storage/result.cpp src/storage/dynamicrow.cpp src/storage/schema.cpp)
+add_library(StorageLib SHARED 
+  src/storage/storage.cpp 
+  src/storage/schemai.cpp 
+  src/storage/result.cpp 
+  src/storage/dynamicrow.cpp 
+  src/storage/schema.cpp 
+  src/json.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
 add_executable(zmqchat src/zmqchat.cpp src/server.cpp ${MESSAGES} ${UTILS} src/security.cpp)
@@ -63,7 +69,7 @@ add_executable(Send test/send.cpp)
 add_executable(zcaggregate src/zcaggregate.cpp)
   target_link_libraries(zcaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
-add_executable(zchttp src/zchttp.cpp ${UTILS})
+add_executable(zchttp src/zchttp.cpp ${UTILS} src/session.cpp)
   target_link_libraries(zchttp ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} zmq $ENV{RESTINIO_HOME}/dev/cmake_build/lib/libfmtd.a $ENV{RESTINIO_HOME}/dev/cmake_build/lib/libllhttp.a)
   target_include_directories(zchttp PUBLIC $ENV{RESTINIO_HOME}/dev $ENV{RESTINIO_HOME}/dev/nodejs/llhttp/include $ENV{RESTINIO_HOME}/dev/expected-lite/include $ENV{RESTINIO_HOME}/dev/fmt/include)
   target_compile_definitions(zchttp  PUBLIC RESTINIO_USE_BOOST_ASIO=1)
@@ -83,8 +89,8 @@ endif ()
 
 # Tests
 
-add_executable(TestJson test/testjson.cpp)
-  target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${Boost_JSON_LIBRARY})
+add_executable(TestJson test/testjson.cpp src/json.cpp)
+  target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestJson TestJson)
 
@@ -127,3 +133,8 @@ add_executable(TestCookie test/testcookie.cpp src/cookie.cpp)
   target_link_libraries(TestCookie ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
 add_test(TestCookie TestCookie)
+
+add_executable(TestSession test/testsession.cpp src/session.cpp)
+  target_link_libraries(TestSession ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+add_test(TestSession TestSession)

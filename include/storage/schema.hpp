@@ -48,6 +48,7 @@ public:
   string fullname() { return getString("fullname"); }
   string salt() { return getString("salt"); }
   string hash() { return getString("hash"); }
+  bool admin() { return getBool("admin"); }
   
 };
 

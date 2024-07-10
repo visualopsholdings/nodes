@@ -30,6 +30,7 @@ protected:
   string getString(const string &name);
   vector<string> getStringArray(const string &name);
   boost::json::array getArray(const string &name);
+  bool getBool(const string &name);
   
 private:
   json _json;

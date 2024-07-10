@@ -13,6 +13,7 @@
 
 #include "json.hpp"
 #include "cookie.hpp"
+#include "session.hpp"
 
 #include <boost/program_options.hpp> 
 #include <boost/log/trivial.hpp>
@@ -42,10 +43,10 @@ public:
   void send(const json &json);
   json receive();
   
-	auto fonts(const restinio::request_handle_t& req, rr::route_params_t );
-	auto users(const restinio::request_handle_t& req, rr::route_params_t );
-	auto login(const restinio::request_handle_t& req, rr::route_params_t );
-	auto dologin(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getfonts(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getusers(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getlogin(const restinio::request_handle_t& req, rr::route_params_t );
+	auto postlogin(const restinio::request_handle_t& req, rr::route_params_t );
 
 private:
   zmq::context_t _context;
@@ -68,7 +69,7 @@ private:
 
 };
 
-auto Server::fonts(
+auto Server::getfonts(
   const restinio::request_handle_t& req, rr::route_params_t params)
 {
   const auto file = restinio::cast_to<string>( params[ "file" ] );
@@ -93,16 +94,25 @@ auto Server::unauthorised(const restinio::request_handle_t& req) {
   return resp.done();
 }
 
-auto Server::users(
+auto Server::getusers(
   const restinio::request_handle_t& req, rr::route_params_t )
 {
   if (!req->header().has_field("Cookie")) {
+    BOOST_LOG_TRIVIAL(trace) << "no Cookie";  
     return unauthorised(req);
   }
   auto cookie = req->header().get_field("Cookie");
   auto id = Cookie::parseCookie(cookie);
   if (!id) {
     BOOST_LOG_TRIVIAL(trace) << "couldn't find id in cookie " << cookie;  
+    return unauthorised(req);
+  }
+  if (!Sessions::instance()->has(id.value())) {
+    BOOST_LOG_TRIVIAL(trace) << "couldn't find session id " << id.value();  
+    return unauthorised(req);
+  }
+  if (!Sessions::instance()->get(id.value())->isAdmin()) {
+    BOOST_LOG_TRIVIAL(trace) << "user is not admin " << id.value();  
     return unauthorised(req);
   }
   
@@ -133,11 +143,14 @@ optional<string> Server::finishlogin(const string &password) {
     { "password", password }
   });
   json j = receive();
+  BOOST_LOG_TRIVIAL(trace) << "login returned " << j;
+  
   auto type = Json::getString(j, "type");
   if (!type) {
     BOOST_LOG_TRIVIAL(error) << "missing type in return";
     return nullopt;
   }
+  
   if (type.value() == "err") {
     BOOST_LOG_TRIVIAL(error) << Json::getString(j, "msg").value();
     return nullopt;
@@ -147,35 +160,47 @@ optional<string> Server::finishlogin(const string &password) {
     BOOST_LOG_TRIVIAL(error) << "missing id in return";
     return nullopt;
   }
+  auto admin = Json::getBool(j, "admin");
+  if (!admin) {
+    BOOST_LOG_TRIVIAL(error) << "missing admin in return";
+    return nullopt;
+  }
 
-  return id.value();
+  return Sessions::instance()->create(id.value(), admin.value());
+  
 }
 
-auto Server::login(
+auto Server::getlogin(
   const restinio::request_handle_t& req, rr::route_params_t params)
 {
-  if (params.has("username")) {
-    const auto username = restinio::cast_to<string>(params["username"]);
+  BOOST_LOG_TRIVIAL(trace) << "GET /login";
+  
+  const auto qp = restinio::parse_query(req->header().query());
+  if (qp.has("username")) {
+    const auto username = restinio::cast_to<string>(qp["username"]);
     auto id = finishlogin(username);
     if (!id) {
+      BOOST_LOG_TRIVIAL(trace) << "no id generated";  
       return unauthorised(req);
     }
-    auto resp = req->create_response(restinio::status_permanent_redirect());
+    BOOST_LOG_TRIVIAL(trace) << "sending response with cookie " << id.value();  
+    auto resp = req->create_response(restinio::status_found());
 	  resp.append_header("Location", "/#/login");
 	  resp.append_header("Set-Cookie", "ss-id=" + id.value() + "; Path=/; Secure; HttpOnly");
+	  resp.append_header("Cache-Control", "nocache");
     return resp.done();
   }
 
-  auto resp = req->create_response(restinio::status_permanent_redirect());
+  auto resp = req->create_response(restinio::status_found());
 	resp.append_header("Location", "/#/login");
   return resp.done();
 }
 
-auto Server::dologin(
+auto Server::postlogin(
   const restinio::request_handle_t& req, rr::route_params_t )
 {
   json j = boost::json::parse(req->body());
-  BOOST_LOG_TRIVIAL(trace) << "dologin " << j;
+  BOOST_LOG_TRIVIAL(trace) << "postlogin " << j;
 
   auto password = Json::getString(j, "password");
   if (!password) {
@@ -190,6 +215,7 @@ auto Server::dologin(
 
   auto resp = req->create_response();
 	resp.append_header("Set-Cookie", "ss-id=" + id.value() + "; Path=/; Secure; HttpOnly");
+  resp.append_header("Cache-Control", "nocache");
   resp.set_body("{}");
   return resp.done();
 
@@ -204,10 +230,10 @@ auto Server::handler()
 		return std::bind( method, this, _1, _2 );
 	};
 
-  router->http_get("/fonts/:file", by(&Server::fonts));
-  router->http_get("/login", by(&Server::login));
-  router->http_post("/login", by(&Server::dologin));
-  router->http_get("/rest/1.0/users", by(&Server::users));
+  router->http_get("/fonts/:file", by(&Server::getfonts));
+  router->http_get("/login", by(&Server::getlogin));
+  router->http_post("/login", by(&Server::postlogin));
+  router->http_get("/rest/1.0/users", by(&Server::getusers));
 
   return router;
 }

@@ -11,44 +11,57 @@
 
 #include "storage/dynamicrow.hpp"
 
+#include "json.hpp"
+
 #include <boost/log/trivial.hpp>
 
 string DynamicRow::getString(const string &name) {
 
-  try {
-    return boost::json::value_to<string>(_json.at(name));
-  }
-  catch (const boost::system::system_error& ex) {
-    BOOST_LOG_TRIVIAL(error) << "field "<< name << " not found";
+  auto value = Json::getString(_json, name);
+  if (!value) {
     return "";
   }
+
+  return value.value();
 
 }
 
 boost::json::array DynamicRow::getArray(const string &name) {
 
-  try {
-    return _json.at(name).as_array();
-  }
-  catch (const boost::system::system_error& ex) {
-    BOOST_LOG_TRIVIAL(error) << "field "<< name << " not found";
+  auto value = Json::getArray(_json, name);
+  if (!value) {
     return {};
   }
+
+  return value.value();
 
 }
 
 vector<string> DynamicRow::getStringArray(const string &name) {
 
   vector<string> a;
-  try {
-    for (auto i: _json.at(name).as_array()) {
-      a.push_back(i.as_string().c_str());
-    }
+  auto value = Json::getArray(_json, name);
+  if (!value) {
+    return a;
   }
-  catch (const boost::system::system_error& ex) {
-    BOOST_LOG_TRIVIAL(error) << "field "<< name << " not found";
+
+  for (auto i: value.value()) {
+    a.push_back(i.as_string().c_str());
   }
 
   return a;
   
 }
+
+bool DynamicRow::getBool(const string &name) {
+  
+  auto value = Json::getBool(_json, name);
+  if (!value) {
+    return false;
+  }
+
+  return value.value();
+
+}
+
+

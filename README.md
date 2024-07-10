@@ -306,6 +306,19 @@ To run all the unit tests. And show failures.
 make && make test || cat Testing/Temporary/LastTest.log 
 ```
 
+## Web client
+
+The web client is written in angular and must be built before using the zchttp daemon
+
+```
+cd angular/login-ui
+./build.sh
+cd ../admin-ui
+./build.sh
+```
+
+Then your ready to host in nginx and the proxy is provided by zchttp.
+
 ## Testing
 
 The end to end tests use cucumber (Ruby), to get that going:
@@ -395,5 +408,8 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 
 ### 4 Jul 2024
 - New RESTINIO based http daemon.
+
+### 10 Jul 2024
+- FInish basic login ready for testing.
 
 

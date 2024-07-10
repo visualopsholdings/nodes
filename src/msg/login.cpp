@@ -33,7 +33,7 @@ void Server::loginMsg(json &j) {
   
   optional<UserRow> user;
   if (_test) {
-    user = User().find(json{ { "name", password.value() } }, {"name", "fullname"}).value();
+    user = User().find(json{ { "name", password.value() } }, {"name", "fullname", "admin"}).value();
     if (!user) {
       sendErr("Username/Password incorrect");
       return;
@@ -63,7 +63,8 @@ void Server::loginMsg(json &j) {
     { "session", session.value() },
     { "id", user->id() },
     { "name", user->name() },
-    { "fullname", user->fullname() }
+    { "fullname", user->fullname() },
+    { "admin", user->admin() }
   });
 
 }

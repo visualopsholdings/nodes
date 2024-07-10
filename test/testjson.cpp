@@ -11,8 +11,7 @@
 
 #include <iostream>
 
-#include <boost/system/error_code.hpp>
-#include <boost/json.hpp>
+#include "json.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -27,13 +26,10 @@ BOOST_AUTO_TEST_CASE( goodString )
   json j = {
     { "str", "a string" }
   };
-  try {
-    boost::json::value_to<string>(j.at("str"));
-  }
-  catch (const boost::system::system_error& ex) {
-    BOOST_FAIL("Threw");
-    cout << ex.code().message() << endl;
-  }
+  auto str = Json::getString(j, "str");
+  BOOST_CHECK(str);
+  BOOST_CHECK_EQUAL(str.value(), "a string");
+  
 }
 
 BOOST_AUTO_TEST_CASE( badString )
@@ -43,13 +39,9 @@ BOOST_AUTO_TEST_CASE( badString )
   json j = {
     { "num", 1.1 }
   };
-  try {
-    boost::json::value_to<string>(j.at("num"));
-    BOOST_FAIL("Didn't throw");
-  }
-  catch (const boost::system::system_error& ex) {
-    cout << ex.code().message() << endl;
-  }
+  auto num = Json::getString(j, "num");
+  BOOST_CHECK(!num);
+
 }
 
 BOOST_AUTO_TEST_CASE( missing )
@@ -59,12 +51,63 @@ BOOST_AUTO_TEST_CASE( missing )
   json j = {
     { "xxx", 1.1 }
   };
-  try {
-    boost::json::value_to<string>(j.at("num"));
-    BOOST_FAIL("Didn't throw");
-  }
-  catch (const boost::system::system_error& ex) {
-    cout << ex.code().message() << endl;
-  }
+  auto num = Json::getString(j, "num");
+  BOOST_CHECK(!num);
+
 }
+
+BOOST_AUTO_TEST_CASE( goodBool )
+{
+  cout << "=== goodBool ===" << endl;
+  
+  json j = {
+    { "xxx", true }
+  };
+  auto xxx = Json::getBool(j, "xxx");
+  BOOST_CHECK(xxx);
+
+}
+
+BOOST_AUTO_TEST_CASE( badBool )
+{
+  cout << "=== badBool ===" << endl;
+  
+  json j = {
+    { "xxx", "yyyy" }
+  };
+  auto xxx = Json::getBool(j, "xxx");
+  BOOST_CHECK(!xxx);
+
+}
+
+BOOST_AUTO_TEST_CASE( goodArray )
+{
+  cout << "=== goodArray ===" << endl;
+  
+  json j = {
+    { "xxx", { {
+      { "aaa", 42 }
+    } } }
+  };
+  auto xxx = Json::getArray(j, "xxx");
+  BOOST_CHECK(xxx);
+  BOOST_CHECK_EQUAL(xxx.value().size(), 1);
+  BOOST_CHECK(xxx.value()[0].is_object());
+  BOOST_CHECK(xxx.value()[0].at("aaa").is_int64());
+  BOOST_CHECK_EQUAL(xxx.value()[0].at("aaa").as_int64(), 42);
+
+}
+
+BOOST_AUTO_TEST_CASE( badArray )
+{
+  cout << "=== badArray ===" << endl;
+  
+  json j = {
+    { "xxx", "yyyy" }
+  };
+  auto xxx = Json::getArray(j, "xxx");
+  BOOST_CHECK(!xxx);
+
+}
+
 
