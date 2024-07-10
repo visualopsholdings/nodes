@@ -2,7 +2,7 @@
 # 
 # Start ZMQCHAT
 
-if [ ! -f "zmqchat/build/ZMQCHAT" ];
+if [ ! -f "zmqchat/build/zmqchat" ];
 then
   echo "Need to build project first"
   exit 1
