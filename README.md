@@ -313,7 +313,7 @@ The web client is written in angular and must be built before using the zchttp d
 To install angular.
 
 ```
-npm install -g @angular/cli
+npm install -g @angular/cli@16
 ```
 
 To build http stuff.

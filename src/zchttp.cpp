@@ -296,7 +296,7 @@ int main(int argc, char *argv[]) {
   
   po::options_description desc("Allowed options");
   desc.add_options()
-    ("httpPort", po::value<int>(&httpPort)->default_value(4000), "HTTP port.")
+    ("httpPort", po::value<int>(&httpPort)->default_value(3000), "HTTP port.")
     ("reqPort", po::value<int>(&reqPort)->default_value(3013), "ZMQ Req port.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
     ("help", "produce help message")
