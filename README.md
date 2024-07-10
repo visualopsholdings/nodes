@@ -311,13 +311,22 @@ make && make test || cat Testing/Temporary/LastTest.log
 The web client is written in angular and must be built before using the zchttp daemon
 
 ```
-cd angular/login-ui
-./build.sh
-cd ../admin-ui
-./build.sh
+zmqchat/scripts/build-http.sh
 ```
 
 Then your ready to host in nginx and the proxy is provided by zchttp.
+
+To start the http daemon.
+
+```
+zmqchat/scripts/start-http.sh
+```
+
+To stop.
+
+```
+zmqchat/scripts/stop-http.sh
+```
 
 ## Testing
 
