@@ -241,6 +241,7 @@ auto Server::handler()
 		return std::bind( method, this, _1, _2 );
 	};
 
+  router->http_get("", by(&Server::getroot));
   router->http_get("/", by(&Server::getroot));
   router->http_get("/fonts/:file", by(&Server::getfonts));
   router->http_get("/login", by(&Server::getlogin));
