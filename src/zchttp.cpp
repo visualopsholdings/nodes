@@ -43,6 +43,7 @@ public:
   void send(const json &json);
   json receive();
   
+	auto getroot(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getfonts(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getusers(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getlogin(const restinio::request_handle_t& req, rr::route_params_t );
@@ -68,6 +69,15 @@ private:
   auto unauthorised(const restinio::request_handle_t& req);
 
 };
+
+auto Server::getroot(
+  const restinio::request_handle_t& req, rr::route_params_t params)
+{
+  auto resp = req->create_response(restinio::status_found());
+	resp.append_header("Location", "/apps/login/#/");
+  return resp.done();
+  
+}
 
 auto Server::getfonts(
   const restinio::request_handle_t& req, rr::route_params_t params)
@@ -231,6 +241,7 @@ auto Server::handler()
 		return std::bind( method, this, _1, _2 );
 	};
 
+  router->http_get("/", by(&Server::getroot));
   router->http_get("/fonts/:file", by(&Server::getfonts));
   router->http_get("/login", by(&Server::getlogin));
   router->http_post("/login", by(&Server::postlogin));
