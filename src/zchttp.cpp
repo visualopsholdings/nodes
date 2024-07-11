@@ -74,7 +74,7 @@ auto Server::getroot(
   const restinio::request_handle_t& req, rr::route_params_t params)
 {
   auto resp = req->create_response(restinio::status_found());
-	resp.append_header("Location", "/apps/login/#/");
+	resp.append_header("Location", "/apps/admin/#/");
   return resp.done();
   
 }
