@@ -26,6 +26,7 @@ public:
   Session(const string &userid, bool admin): _userid(userid), _admin(admin) {};
   
   bool isAdmin() { return _admin; };
+  string userid() { return _userid; };
   
 private:
   string _userid;

@@ -29,3 +29,12 @@ BOOST_AUTO_TEST_CASE( PiVID )
   BOOST_CHECK_EQUAL(vid.uuid(), "56348765B4D6976B478E1BD7");
 
 }
+
+BOOST_AUTO_TEST_CASE( BadVID )
+{
+  cout << "=== BadVID ===" << endl;
+  
+  VID vid("tracy");
+  BOOST_CHECK(!vid.valid());
+
+}

@@ -14,6 +14,7 @@
 #include "b64.hpp"
 
 #include <boost/algorithm/hex.hpp>
+#include <boost/archive/iterators/dataflow_exception.hpp>
 #include <iostream>
 
 //  0123 	4 - 27 		28 29		30 - 
@@ -22,8 +23,16 @@
 
 VID::VID(const string &vid) {
 
-  string dec = B64::toBinary(vid);
-
+  string dec;
+  
+  try {
+    dec = B64::toBinary(vid);
+  } 
+  catch (boost::archive::iterators::dataflow_exception &ex) {
+    // not base64, don't try to parse.
+    return;
+  }
+  
   if (dec.length() < 16) {
     return;
   }

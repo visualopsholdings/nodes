@@ -111,8 +111,9 @@ auto Server::getusers(
     BOOST_LOG_TRIVIAL(trace) << "couldn't find session id " << id.value();  
     return unauthorised(req);
   }
-  if (!Sessions::instance()->get(id.value())->isAdmin()) {
-    BOOST_LOG_TRIVIAL(trace) << "user is not admin " << id.value();  
+  auto session = Sessions::instance()->get(id.value());
+  if (!session->isAdmin()) {
+    BOOST_LOG_TRIVIAL(trace) << "user is not admin " << session->userid();  
     return unauthorised(req);
   }
   
@@ -185,14 +186,14 @@ auto Server::getlogin(
     }
     BOOST_LOG_TRIVIAL(trace) << "sending response with cookie " << id.value();  
     auto resp = req->create_response(restinio::status_found());
-	  resp.append_header("Location", "/#/login");
+	  resp.append_header("Location", "/#/");
 	  resp.append_header("Set-Cookie", "ss-id=" + id.value() + "; Path=/; Secure; HttpOnly");
 	  resp.append_header("Cache-Control", "nocache");
     return resp.done();
   }
 
   auto resp = req->create_response(restinio::status_found());
-	resp.append_header("Location", "/#/login");
+	resp.append_header("Location", "/#/");
   return resp.done();
 }
 

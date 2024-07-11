@@ -46,7 +46,7 @@ void Server::loginMsg(json &j) {
       sendErr("Invalid VID");
       return;
     }
-    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash"}).value();
+    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin"}).value();
     if (!user) {
       sendErr("Username/Password incorrect");
       return;
