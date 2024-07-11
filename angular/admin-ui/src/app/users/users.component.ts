@@ -48,7 +48,7 @@ export class UsersComponent implements OnInit {
   }
 
   getIcon(item: any): string {
-    return this.iconService.getIcon(item);
+    return this.iconService.getIcon({ icon: "internal:user" });
   }
 
 }
