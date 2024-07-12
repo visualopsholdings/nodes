@@ -49,6 +49,7 @@ public:
 	auto getme(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getlogin(const restinio::request_handle_t& req, rr::route_params_t );
 	auto postlogin(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getlogout(const restinio::request_handle_t& req, rr::route_params_t );
 
 private:
   zmq::context_t _context;
@@ -255,6 +256,29 @@ auto Server::postlogin(
 
 }
 
+auto Server::getlogout(
+  const restinio::request_handle_t& req, rr::route_params_t params)
+{
+  BOOST_LOG_TRIVIAL(trace) << "GET /logout";
+  
+  if (!req->header().has_field("Cookie")) {
+    BOOST_LOG_TRIVIAL(trace) << "no Cookie";  
+    return unauthorised(req);
+  }
+  auto cookie = req->header().get_field("Cookie");
+  auto id = Cookie::parseCookie(cookie);
+  if (!id) {
+    BOOST_LOG_TRIVIAL(trace) << "couldn't find id in cookie " << cookie;  
+    return unauthorised(req);
+  }
+  Sessions::instance()->destroy(id.value());
+  
+  auto resp = req->create_response(restinio::status_found());
+	resp.append_header("Location", "/apps/login");
+  return resp.done();
+  
+}
+
 auto Server::handler()
 {
   auto router = std::make_unique< router_t >();
@@ -268,6 +292,7 @@ auto Server::handler()
   router->http_get("/", by(&Server::getroot));
   router->http_get("/fonts/:file", by(&Server::getfonts));
   router->http_get("/login", by(&Server::getlogin));
+  router->http_get("/logout", by(&Server::getlogout));
   router->http_post("/login", by(&Server::postlogin));
   router->http_get("/rest/1.0/users", by(&Server::getusers));
   router->http_get("/rest/1.0/users/me", by(&Server::getme));

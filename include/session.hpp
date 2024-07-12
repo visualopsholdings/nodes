@@ -51,13 +51,17 @@ public:
     return _instance;
   };
     
+  string create(json json);
+
   bool has(const string &sessid) {
     return _sessions.find(sessid) != _sessions.end();
   }
   shared_ptr<Session> get(const string &sessid) {
     return _sessions[sessid];
   }
-  string create(json json);
+  void destroy(const string &sessid) {
+    _sessions.erase(sessid);
+  }
   
 private:
 
