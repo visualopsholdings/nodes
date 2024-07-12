@@ -5,6 +5,13 @@
   right: 20px;
 }
 
+.name {
+  display: inline-block;
+  padding-bottom: 12px;
+  height: 28px;
+  vertical-align: bottom;
+}
+
 a {
   text-decoration: none;
 }
@@ -39,7 +46,6 @@ a {
 }
 
 mat-drawer-container {
-  height: 100%;
 }
 
 mat-drawer-content {

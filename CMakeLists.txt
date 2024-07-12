@@ -134,7 +134,7 @@ add_executable(TestCookie test/testcookie.cpp src/cookie.cpp)
 
 add_test(TestCookie TestCookie)
 
-add_executable(TestSession test/testsession.cpp src/session.cpp)
-  target_link_libraries(TestSession ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_executable(TestSession test/testsession.cpp src/session.cpp ${UTILS})
+  target_link_libraries(TestSession ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestSession TestSession)

@@ -46,6 +46,7 @@ public:
 	auto getroot(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getfonts(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getusers(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getme(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getlogin(const restinio::request_handle_t& req, rr::route_params_t );
 	auto postlogin(const restinio::request_handle_t& req, rr::route_params_t );
 
@@ -146,6 +147,38 @@ auto Server::getusers(
   return resp.done();
 }
 
+auto Server::getme(
+  const restinio::request_handle_t& req, rr::route_params_t )
+{
+  if (!req->header().has_field("Cookie")) {
+    BOOST_LOG_TRIVIAL(trace) << "no Cookie";  
+    return unauthorised(req);
+  }
+  auto cookie = req->header().get_field("Cookie");
+  auto id = Cookie::parseCookie(cookie);
+  if (!id) {
+    BOOST_LOG_TRIVIAL(trace) << "couldn't find id in cookie " << cookie;  
+    return unauthorised(req);
+  }
+  if (!Sessions::instance()->has(id.value())) {
+    BOOST_LOG_TRIVIAL(trace) << "couldn't find session id " << id.value();  
+    return unauthorised(req);
+  }
+  auto session = Sessions::instance()->get(id.value());
+  auto resp = init_resp( req->create_response() );
+
+  json j = { 
+    { "id", session->userid() },
+    { "name", session->name() },
+    { "fullname", session->fullname() }
+  };
+  stringstream ss;
+  ss << j;
+  resp.set_body(ss.str());
+
+  return resp.done();
+}
+
 optional<string> Server::finishlogin(const string &password) {
 
   send({
@@ -166,18 +199,8 @@ optional<string> Server::finishlogin(const string &password) {
     BOOST_LOG_TRIVIAL(error) << Json::getString(j, "msg").value();
     return nullopt;
   }
-  auto id = Json::getString(j, "id");
-  if (!id) {
-    BOOST_LOG_TRIVIAL(error) << "missing id in return";
-    return nullopt;
-  }
-  auto admin = Json::getBool(j, "admin");
-  if (!admin) {
-    BOOST_LOG_TRIVIAL(error) << "missing admin in return";
-    return nullopt;
-  }
 
-  return Sessions::instance()->create(id.value(), admin.value());
+  return Sessions::instance()->create(j);
   
 }
 
@@ -247,6 +270,7 @@ auto Server::handler()
   router->http_get("/login", by(&Server::getlogin));
   router->http_post("/login", by(&Server::postlogin));
   router->http_get("/rest/1.0/users", by(&Server::getusers));
+  router->http_get("/rest/1.0/users/me", by(&Server::getme));
 
   return router;
 }

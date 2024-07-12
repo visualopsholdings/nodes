@@ -48,7 +48,6 @@ optional<string> Json::getString(json &j, const string &name) {
     return {};
   }
   if (!j.as_object().if_contains(name)) {
-    BOOST_LOG_TRIVIAL(error) << "json missing " << name;
     return {};
   }
   auto obj = j.at(name);
@@ -67,7 +66,6 @@ optional<boost::json::array> Json::getArray(json &j, const string &name) {
     return {};
   }
   if (!j.as_object().if_contains(name)) {
-    BOOST_LOG_TRIVIAL(error) << "json missing " << name;
     return {};
   }
   auto obj = j.at(name);
@@ -86,7 +84,6 @@ optional<bool> Json::getBool(json &j, const string &name) {
     return {};
   }
   if (!j.as_object().if_contains(name)) {
-    BOOST_LOG_TRIVIAL(error) << "json missing " << name;
     return {};
   }
   auto obj = j.at(name);

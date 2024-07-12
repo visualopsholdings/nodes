@@ -17,19 +17,25 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <boost/json.hpp>
 
 using namespace std;
+using json = boost::json::value;
 
 class Session {
 
 public:
-  Session(const string &userid, bool admin): _userid(userid), _admin(admin) {};
+  Session(json json);
   
   bool isAdmin() { return _admin; };
   string userid() { return _userid; };
-  
+  string name() { return _name; };
+  string fullname() { return _fullname; };
+
 private:
   string _userid;
+  string _name;
+  string _fullname;
   bool _admin;
   
 };
@@ -51,7 +57,7 @@ public:
   shared_ptr<Session> get(const string &sessid) {
     return _sessions[sessid];
   }
-  string create(const string &userid, bool admin);
+  string create(json json);
   
 private:
 
