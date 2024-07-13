@@ -36,6 +36,7 @@ import { RestErrorComponent } from './rest-error/rest-error.component';
 import { SystemMaintenanceComponent } from './system-maintenance/system-maintenance.component';
 import { IconService }  from './icon.service';
 import { MeService }  from './me.service';
+import { UserService }  from './user.service';
 
 @NgModule({
   declarations: [
@@ -76,7 +77,7 @@ import { MeService }  from './me.service';
     MatDatepickerModule,
     MatNativeDateModule
   ],
-  providers: [IconService, MeService],
+  providers: [IconService, MeService, UserService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
