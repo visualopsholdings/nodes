@@ -18,6 +18,7 @@ const httpOptions = {
 export class UserService extends BackendService {
 
   private usersUrl = '/rest/1.0/users';
+  private rawusersUrl = '/rest/1.0/rawusers';
 
   constructor(
     dialog: MatDialog,
@@ -35,7 +36,7 @@ export class UserService extends BackendService {
   }
 
   getUsers(offset: number, limit: number): Observable<HttpResponse<User[]>> {
-    const url = `${this.usersUrl}?offset=${offset}&limit=${limit}`;
+    const url = `${this.rawusersUrl}?offset=${offset}&limit=${limit}`;
     return this.http.get<User[]>(url, { observe: 'response' })
     .pipe(
      catchError(this.handleResponseError<User[]>('getUsers', []))

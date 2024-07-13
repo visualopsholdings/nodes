@@ -45,7 +45,7 @@ public:
   
 	auto getroot(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getfonts(const restinio::request_handle_t& req, rr::route_params_t );
-	auto getusers(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getrawusers(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getme(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getlogin(const restinio::request_handle_t& req, rr::route_params_t );
 	auto postlogin(const restinio::request_handle_t& req, rr::route_params_t );
@@ -76,7 +76,7 @@ auto Server::getroot(
   const restinio::request_handle_t& req, rr::route_params_t params)
 {
   auto resp = req->create_response(restinio::status_found());
-	resp.append_header("Location", "/apps/admin/#/");
+	resp.append_header("Location", "/apps/chat/#/");
   return resp.done();
   
 }
@@ -106,7 +106,7 @@ auto Server::unauthorised(const restinio::request_handle_t& req) {
   return resp.done();
 }
 
-auto Server::getusers(
+auto Server::getrawusers(
   const restinio::request_handle_t& req, rr::route_params_t )
 {
   if (!req->header().has_field("Cookie")) {
@@ -294,7 +294,7 @@ auto Server::handler()
   router->http_get("/login", by(&Server::getlogin));
   router->http_get("/logout", by(&Server::getlogout));
   router->http_post("/login", by(&Server::postlogin));
-  router->http_get("/rest/1.0/users", by(&Server::getusers));
+  router->http_get("/rest/1.0/rawusers", by(&Server::getrawusers));
   router->http_get("/rest/1.0/users/me", by(&Server::getme));
 
   return router;
