@@ -427,6 +427,10 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 - New RESTINIO based http daemon.
 
 ### 10 Jul 2024
-- FInish basic login ready for testing.
+- Finish basic login ready for testing.
+
+### 12 Jul 2024
+- Fixed bugs in login/admin and add Logoff.
+
 
 

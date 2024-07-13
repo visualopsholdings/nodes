@@ -48,10 +48,12 @@ void Server::loginMsg(json &j) {
     }
     user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin"}).value();
     if (!user) {
+      BOOST_LOG_TRIVIAL(trace) << "couldn't find user";
       sendErr("Username/Password incorrect");
       return;
     }
     if (!Security::instance()->valid(vid, user->salt(), user->hash())) {
+      BOOST_LOG_TRIVIAL(trace) << "password incorrect salt(" << user->salt()  << ") hash(" << user->hash() << ")";
       sendErr("Username/Password incorrect");
       return;
     }
