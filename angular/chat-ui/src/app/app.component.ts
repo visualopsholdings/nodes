@@ -1,5 +1,4 @@
 import { Component, OnInit, EventEmitter, ViewChild } from '@angular/core';
-import { MatSidenav } from '@angular/material/sidenav';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 
@@ -12,14 +11,11 @@ import { BootstrapService } from './bootstrap.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
-
-  @ViewChild('sidenav') public sidenav: MatSidenav;
+export class AppComponent {
 
   me: Me;
-  title = 'admin-ui';
   height = "300px";
-  opened = true;
+  title = 'chat-ui';
 
   constructor(
     private dialog: MatDialog,
@@ -60,15 +56,6 @@ export class AppComponent implements OnInit {
 
   logoff() {
     window.open("/logout", "_self");
-  }
-
-  close(): void {
-    this.opened = false;
-    this.sidenav.close();
-  }
-  open(): void {
-    this.opened = true;
-    this.sidenav.open();
   }
 
   gotoApp(name: string, newwindow = false) {

@@ -17,3 +17,8 @@ pushd zmqchat/angular/admin-ui
 npm install
 ./build.sh
 popd
+
+pushd zmqchat/angular/chat-ui
+npm install
+./build.sh
+popd

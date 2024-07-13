@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
@@ -31,6 +31,14 @@ export class UserService extends BackendService {
   newUser (user: User): Observable<Message> {
     return this.http.post<Message>(`${this.usersUrl}/new`, user, httpOptions).pipe(
       catchError(this.handleError<Message>('newUser'))
+    );
+  }
+
+  getUsers(offset: number, limit: number): Observable<HttpResponse<User[]>> {
+    const url = `${this.usersUrl}?offset=${offset}&limit=${limit}`;
+    return this.http.get<User[]>(url, { observe: 'response' })
+    .pipe(
+     catchError(this.handleResponseError<User[]>('getUsers', []))
     );
   }
 
