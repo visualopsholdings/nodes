@@ -31,7 +31,6 @@ public:
 private:
   string _header;
   string _uuid;
-  bool _token;
   string _password;
     
 };

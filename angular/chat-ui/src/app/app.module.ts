@@ -35,13 +35,23 @@ import { RestErrorComponent } from './rest-error/rest-error.component';
 import { SystemMaintenanceComponent } from './system-maintenance/system-maintenance.component';
 import { IconService }  from './icon.service';
 import { MeService }  from './me.service';
+import { StreamsComponent } from './streams/streams.component';
+import { PeopleComponent } from './people/people.component';
+import { ChatComponent } from './chat/chat.component';
+import { AddStreamDialogComponent } from './add-stream-dialog/add-stream-dialog.component';
+import { ConfirmComponent } from './confirm/confirm.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     SecurityErrorComponent,
     RestErrorComponent,
-    SystemMaintenanceComponent
+    SystemMaintenanceComponent,
+    StreamsComponent,
+    PeopleComponent,
+    ChatComponent,
+    AddStreamDialogComponent,
+    ConfirmComponent
   ],
   imports: [
     BrowserModule,

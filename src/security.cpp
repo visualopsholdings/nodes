@@ -12,7 +12,6 @@
 #include "security.hpp"
 
 #include "vid.hpp"
-#include "b64.hpp"
 #include "storage.hpp"
 
 #include <openssl/evp.h>
@@ -20,6 +19,7 @@
 #include <boost/log/trivial.hpp>
 #include <bsoncxx/oid.hpp>
 #include <boost/algorithm/string.hpp>
+#include <base64.hpp>
 
 #define SHA1_LEN    128
 #define ITERATIONS  12000
@@ -33,7 +33,7 @@ bool Security::valid(const VID &vid, const string &salt, const string &hash) {
   unsigned char out[SHA1_LEN+1];
   int len = PKCS5_PBKDF2_HMAC_SHA1((const char *)password.c_str(), password.length(), (const unsigned char *)salt.c_str(), salt.length(), ITERATIONS, SHA1_LEN, out);
   
-  string dechash = B64::toBinary(hash);
+  string dechash = base64::from_base64(hash);
   
   for (int i=0; i<SHA1_LEN; i++) {
     if ((unsigned char)dechash[i] != out[i]) {

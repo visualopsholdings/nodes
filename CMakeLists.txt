@@ -32,12 +32,28 @@ if (APPLE)
   LINK_DIRECTORIES(/opt/homebrew/Cellar/zeromq/4.3.5_1/lib)
 endif ()
 
+# fetch from other repos.
+
+include(FetchContent)
+
+FetchContent_Declare(
+  base64
+  GIT_REPOSITORY https://github.com/tobiaslocker/base64.git
+  GIT_TAG master
+)
+FetchContent_GetProperties(base64)
+
+if(NOT base64_POPULATED)
+  message(STATUS "Fetching base64...")
+  FetchContent_Populate(base64)
+  include_directories(${base64_SOURCE_DIR}/include)
+endif()
+
 set(LIBS zmq)
 set(MONGOLIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
 set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
 set(UTILS
   src/vid.cpp 
-  src/b64.cpp
   src/json.cpp
   src/cookie.cpp
 )
@@ -104,17 +120,12 @@ add_executable(TestResult test/testresult.cpp src/storage/result.cpp)
 
 add_test(TestResult TestResult)
 
-add_executable(TestB64 test/testb64.cpp src/b64.cpp)
-  target_link_libraries(TestB64 ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-
-add_test(TestB64 TestB64)
-
-add_executable(TestVID test/testvid.cpp src/vid.cpp src/b64.cpp)
-  target_link_libraries(TestVID ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+add_executable(TestVID test/testvid.cpp src/vid.cpp)
+  target_link_libraries(TestVID ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestVID TestVID)
 
-add_executable(TestSecurity test/testsecurity.cpp src/security.cpp src/vid.cpp src/b64.cpp)
+add_executable(TestSecurity test/testsecurity.cpp src/security.cpp src/vid.cpp)
   target_link_libraries(TestSecurity StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${OPENSSL_LIBRARIES} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_test(TestSecurity TestSecurity)

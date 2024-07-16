@@ -31,12 +31,29 @@ BOOST_AUTO_TEST_CASE( PiVID )
 {
   cout << "=== PiVID ===" << endl;
   
-  // these would be stored with the User in teh DB.
+  // these would be stored with the User in the DB.
   string salt = "8BT0BEzcAQxE1ZtYcAIhHdN1L62xmSraWwwQdErnJgLb3iprl0yM1itsirteYRS5mnmTJT+qybk9PaLdIOJ7SQXv7+I0r6XzlM6o/G9HYw8tf9tRulECVQ0FvgfDHt1ZEzXEukeptsOJD/PfE7N2MPWDVgj55xkgb5kZ4F9eGkc=";
   string hash = "8zkMIA1llK50OpBLvXDIiDd1L2A8b1rMQZOnpn/ghHZNamhfR6pXLGWoEID6Kckw8nn6/uszpASZcKy2nuJGq3pe5J8WRpdNQ74D2m0wwT0VtXZzdox5JCM0xwCoZ4zlTCXqXqZn2MArieoAUNmMGPO31o8KZM49ICWbtTNhmcI=";
   
   // and this is passed in from the user.
   VID vid("Vk9WNIdltNaXa0eOG9cAdmlzdWFsb3Bz");
+  vid.describe();
+  
+  BOOST_CHECK(Security::instance()->valid(vid, salt, hash));
+  
+}
+
+BOOST_AUTO_TEST_CASE( TracyVID )
+{
+  cout << "=== TracyVID ===" << endl;
+  
+  // these would be stored with the User in the DB.
+  string salt = "xNeZ0SvhuzyUOwbqNKStHQr7Q58gRf77YBV0fo89ARxc/SjMkAIcL/1FAPEQ2gTSBHGeSKooq3hZhNhgNRXqYn9r4WNKncasIFIj2h4bQJ6m4zTUqYXfGLA/Q9nSPWWTO037Oj0fsST5CzHx0oEfgwDehTkifcBcfKBLoKjbxO4=";
+  string hash = "alRZUqzBRXT7CPNAmNPnWGoB7fvkVpW7AuagThZevCiXk4FwgPCuv6MhHr2ENDaTUBPlusi++R50dRSMAsyMBby4Cc33VvEY6SW0Pv3/EesROXedqqUKYbXRmpKoLKAb6bB5fuBx4UgDvs6/fX6D0IiCdNGgyhXurIk8roYd8Do=";
+  
+  // and this is passed in from the user.
+  VID vid("Vk9mF3iET2RYB0cHwToBZj0zxZyZMTFkaMXG+0kD2P5rVH3YdJpK");
+  vid.describe();
   
   BOOST_CHECK(Security::instance()->valid(vid, salt, hash));
   
