@@ -99,7 +99,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
           if (this.window.location.port) {
             url += ":" + this.window.location.port;
           }
-          this.window.location.href = "/apps/admin";
+          this.window.location.href = "/apps/chat";
         }
       }
     });
