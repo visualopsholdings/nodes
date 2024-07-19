@@ -42,3 +42,10 @@ mat-toolbar {
   flex: 0 0 auto;
   box-sizing: border-box;
 }
+
+.main {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+}

@@ -18,11 +18,23 @@ export class BackendService {
   constructor(
     dialog: MatDialog,
     private socketService: SocketService,
-    private upService: UpService,
+    public upService: UpService,
     http: HttpClient
   ) {
     this.http = http;
     this.dialog = dialog;
+  }
+
+  public get<T>(url: string, context: string): Observable<T> {
+    return this.http.get<T>(url).pipe(
+      catchError(this.handleError<T>(context))
+    );
+  }
+
+  public post<T>(url: string, data: any, context: string): Observable<T> {
+    return this.http.post<T>(url, data, { headers: this.httpHeaders() }).pipe(
+      catchError(this.handleError<T>(context))
+    );
   }
 
   public getTotal<T>(resp: HttpResponse<T>): number {
@@ -110,6 +122,16 @@ export class BackendService {
       // Let the app keep running by returning an empty result.
       return of(new HttpResponse<T>({ body: result }));
     };
+  }
+
+  public httpHeaders(): HttpHeaders {
+    let socketid = this.socketService.id();
+    if (socketid) {
+      return new HttpHeaders({ 'Content-Type': 'application/json', 'socketid': socketid });
+    }
+    else {
+      return new HttpHeaders({ 'Content-Type': 'application/json' });
+    }
   }
 
 }

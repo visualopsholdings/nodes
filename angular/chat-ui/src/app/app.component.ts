@@ -16,6 +16,7 @@ export class AppComponent {
   me: Me;
   height = "300px";
   title = 'chat-ui';
+  convName = "Chat";
 
   constructor(
     private dialog: MatDialog,

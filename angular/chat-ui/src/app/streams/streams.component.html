@@ -1,11 +1,6 @@
-<div  *ngIf="flags && !captive && !flags.buttonView" class="outer" (window:resize)="onResize($event)" [style.display]="opened ? 'block': 'none'">
+<div class="outer" (window:resize)="onResize($event)" [style.display]="opened ? 'block': 'none'">
   <mat-toolbar>
     <span class="title">{{tabTitle()}}</span>
-    <button *ngIf="showNewStream()" mat-icon-button class="add-stream" name="add-stream" (click)="addStreamDialog()"><mat-icon>add</mat-icon></button>
-    <button *ngIf="me.name != 'public' || site.publicShowMarket" mat-icon-button class="search" name="search"
-      (click)="gotoMarket()" [matBadge]="main.newstreams" [matBadgeHidden]="main.newstreams == 0"
-        matBadgeOverlap="true" matBadgeColor="warn"><mat-icon>search</mat-icon>
-    </button>
     <button mat-icon-button class="close" name="closestreams" (click)="close()"><mat-icon>close</mat-icon></button>
   </mat-toolbar>
   <div [style.height]="listheight" fxLayout='column'>
@@ -13,17 +8,10 @@
       <a mat-list-item class="stream" [routerLink]="[]" queryParamsHandling="preserve"
         [ngClass]="{ 'selected': isSelected(stream) }" (click)="selectStream(stream)" *ngFor="let stream of streams | sortStream : me">
         <p class="hidden">{{stream._id}}</p>
-        <p *ngIf="stream.emoji" class="emoji">{{stream.emoji}}</p>
-        <img *ngIf="!stream.emoji" class="image" src="{{getIcon(stream)}}">
-        <span class="badge" [matBadge]="stream.unread" [matBadgeHidden]="stream.unread == 0" matBadgeOverlap="true" matBadgeColor="warn"
-          matBadgePosition="above before">
-        </span>
-        <span class="overlay" *ngIf="stream.pidea">⤵️</span>
-        <span class="overlay" *ngIf="!stream.pidea && stream.keyType">🔒</span>
-        <span class="overlay" *ngIf="stream.room">🔊</span>
-        <span class="name">
+        <img class="image" src="{{getIcon(stream)}}">
+        <div class="name">
           <div class="trim-name">{{stream.name}}</div>
-        </span>
+        </div>
       </a>
     </mat-nav-list>
   </div>

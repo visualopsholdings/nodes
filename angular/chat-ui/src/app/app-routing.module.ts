@@ -1,7 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-const routes: Routes = [];
+import { ConversationComponent } from './conversation/conversation.component';
+
+const routes: Routes = [
+  { path: 'streams/:id', component: ConversationComponent },
+];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, { useHash: true })],

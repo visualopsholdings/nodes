@@ -432,5 +432,9 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 12 Jul 2024
 - Fixed bugs in login/admin and add Logoff.
 
+### 19 Jul 2024
+- Started in on "Chat" web app. Implemented streams.
+
+
 
 

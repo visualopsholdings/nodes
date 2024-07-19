@@ -35,11 +35,14 @@ import { RestErrorComponent } from './rest-error/rest-error.component';
 import { SystemMaintenanceComponent } from './system-maintenance/system-maintenance.component';
 import { IconService }  from './icon.service';
 import { MeService }  from './me.service';
+import { StreamService }  from './stream.service';
 import { StreamsComponent } from './streams/streams.component';
 import { PeopleComponent } from './people/people.component';
 import { ChatComponent } from './chat/chat.component';
 import { AddStreamDialogComponent } from './add-stream-dialog/add-stream-dialog.component';
 import { ConfirmComponent } from './confirm/confirm.component';
+import { SortStreamPipe } from './sort-stream.pipe';
+import { ConversationComponent } from './conversation/conversation.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +54,9 @@ import { ConfirmComponent } from './confirm/confirm.component';
     PeopleComponent,
     ChatComponent,
     AddStreamDialogComponent,
-    ConfirmComponent
+    ConfirmComponent,
+    SortStreamPipe,
+    ConversationComponent
   ],
   imports: [
     BrowserModule,
@@ -84,7 +89,7 @@ import { ConfirmComponent } from './confirm/confirm.component';
     MatDatepickerModule,
     MatNativeDateModule
   ],
-  providers: [IconService, MeService],
+  providers: [IconService, MeService, StreamService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

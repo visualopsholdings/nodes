@@ -3,7 +3,7 @@
   <mat-toolbar>
     <span>{{headerTitle()}}</span>
     <div class="build">{{version()}}</div>
-    <div class="title">Chat</div>
+    <div class="title">{{convName}}</div>
     <span class="username">
       <span class="name">Welcome <b>{{me ? me.fullname : ""}}</b></span>
       <button mat-icon-button [matMenuTriggerFor]="menu">
@@ -20,6 +20,9 @@
     </span>
   </mat-toolbar>
 
-  <router-outlet></router-outlet>
+  <div fxFlex="1 1 auto" class="main">
+    <app-streams [main]="this"></app-streams>
+    <router-outlet></router-outlet>
+  </div>
 
 </div>

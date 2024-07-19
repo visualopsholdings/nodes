@@ -46,6 +46,7 @@ public:
 	auto getroot(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getfonts(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getrawusers(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getstreams(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getme(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getlogin(const restinio::request_handle_t& req, rr::route_params_t );
 	auto postlogin(const restinio::request_handle_t& req, rr::route_params_t );
@@ -69,8 +70,57 @@ private:
 
   optional<string> finishlogin(const string &password);
   auto unauthorised(const restinio::request_handle_t& req);
+  optional<shared_ptr<Session> > getSession(const restinio::request_handle_t& req);
+  bool isAdmin(const restinio::request_handle_t& req);
 
 };
+
+optional<shared_ptr<Session> > Server::getSession(const restinio::request_handle_t& req) {
+
+  if (!req->header().has_field("Cookie")) {
+    BOOST_LOG_TRIVIAL(trace) << "no Cookie";  
+    return {};
+  }
+  auto cookie = req->header().get_field("Cookie");
+  auto id = Cookie::parseCookie(cookie);
+  if (!id) {
+    BOOST_LOG_TRIVIAL(trace) << "couldn't find id in cookie " << cookie;  
+    return {};
+  }
+  if (!Sessions::instance()->has(id.value())) {
+    BOOST_LOG_TRIVIAL(trace) << "couldn't find session id " << id.value();  
+    return {};
+  }
+  return Sessions::instance()->get(id.value());
+
+}
+
+auto Server::unauthorised(const restinio::request_handle_t& req) {
+
+  auto resp = init_resp(req->create_response(restinio::status_unauthorized()));
+  json err = {
+    { "status", 401 },
+    { "err", "Username/Password incorrect" }
+  };
+  stringstream ss;
+  ss << err;
+  resp.set_body(ss.str());
+  return resp.done();
+}
+
+bool Server::isAdmin(const restinio::request_handle_t& req) {
+
+  auto session = getSession(req);
+  if (!session) {
+    return false;
+  }
+  if (!session.value()->isAdmin()) {
+    BOOST_LOG_TRIVIAL(trace) << "user is not admin " << session.value()->userid();  
+    return false;
+  }
+  return true;
+  
+}
 
 auto Server::getroot(
   const restinio::request_handle_t& req, rr::route_params_t params)
@@ -93,39 +143,10 @@ auto Server::getfonts(
   return resp.done();
 }
 
-auto Server::unauthorised(const restinio::request_handle_t& req) {
-
-  auto resp = init_resp(req->create_response(restinio::status_unauthorized()));
-  json err = {
-    { "status", 401 },
-    { "err", "Username/Password incorrect" }
-  };
-  stringstream ss;
-  ss << err;
-  resp.set_body(ss.str());
-  return resp.done();
-}
-
 auto Server::getrawusers(
   const restinio::request_handle_t& req, rr::route_params_t )
 {
-  if (!req->header().has_field("Cookie")) {
-    BOOST_LOG_TRIVIAL(trace) << "no Cookie";  
-    return unauthorised(req);
-  }
-  auto cookie = req->header().get_field("Cookie");
-  auto id = Cookie::parseCookie(cookie);
-  if (!id) {
-    BOOST_LOG_TRIVIAL(trace) << "couldn't find id in cookie " << cookie;  
-    return unauthorised(req);
-  }
-  if (!Sessions::instance()->has(id.value())) {
-    BOOST_LOG_TRIVIAL(trace) << "couldn't find session id " << id.value();  
-    return unauthorised(req);
-  }
-  auto session = Sessions::instance()->get(id.value());
-  if (!session->isAdmin()) {
-    BOOST_LOG_TRIVIAL(trace) << "user is not admin " << session->userid();  
+  if (!isAdmin(req)) {
     return unauthorised(req);
   }
   
@@ -148,30 +169,53 @@ auto Server::getrawusers(
   return resp.done();
 }
 
+auto Server::getstreams(
+  const restinio::request_handle_t& req, rr::route_params_t )
+{
+  auto session = getSession(req);
+  if (!session) {
+    return unauthorised(req);
+  }
+  send({ 
+    { "type", "streams" },
+    { "user", session.value()->userid() }
+  });
+  json j = receive();
+  auto streams = Json::getArray(j, "streams");
+  
+  if (!streams) {
+    // send fatal error
+    BOOST_LOG_TRIVIAL(error) << "streams missing streams ";
+    return init_resp(req->create_response(restinio::status_internal_server_error())).done();
+  }
+
+  auto resp = init_resp( req->create_response() );
+
+  boost::json::array newstreams;
+  for (auto s: streams.value()) {
+    s.as_object()["_id"] = Json::getString(s, "id").value();
+    newstreams.push_back(s);
+  }
+  stringstream ss;
+  ss << newstreams;
+  resp.set_body(ss.str());
+
+  return resp.done();
+}
+
 auto Server::getme(
   const restinio::request_handle_t& req, rr::route_params_t )
 {
-  if (!req->header().has_field("Cookie")) {
-    BOOST_LOG_TRIVIAL(trace) << "no Cookie";  
+  auto session = getSession(req);
+  if (!session) {
     return unauthorised(req);
   }
-  auto cookie = req->header().get_field("Cookie");
-  auto id = Cookie::parseCookie(cookie);
-  if (!id) {
-    BOOST_LOG_TRIVIAL(trace) << "couldn't find id in cookie " << cookie;  
-    return unauthorised(req);
-  }
-  if (!Sessions::instance()->has(id.value())) {
-    BOOST_LOG_TRIVIAL(trace) << "couldn't find session id " << id.value();  
-    return unauthorised(req);
-  }
-  auto session = Sessions::instance()->get(id.value());
   auto resp = init_resp( req->create_response() );
 
   json j = { 
-    { "id", session->userid() },
-    { "name", session->name() },
-    { "fullname", session->fullname() }
+    { "id", session.value()->userid() },
+    { "name", session.value()->name() },
+    { "fullname", session.value()->fullname() }
   };
   stringstream ss;
   ss << j;
@@ -296,6 +340,7 @@ auto Server::handler()
   router->http_post("/login", by(&Server::postlogin));
   router->http_get("/rest/1.0/rawusers", by(&Server::getrawusers));
   router->http_get("/rest/1.0/users/me", by(&Server::getme));
+  router->http_get("/rest/1.0/streams", by(&Server::getstreams));
 
   return router;
 }

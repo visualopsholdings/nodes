@@ -15,16 +15,11 @@
 .list {
   overflow-y: scroll;
   overflow-x: hidden;
+  height: 100%;
 }
 
 .outer {
   z-index: 2;
-}
-
-.badge {
-  position: absolute;
-  left: 20px;
-  top: 10px;
 }
 
 /* Small format */
@@ -66,18 +61,6 @@
 
 /* Common */
 
-.search {
-  position: absolute;
-  right: 70px;
-  top: 2px;
-}
-
-.add-stream {
-  position: absolute;
-  right: 40px;
-  top: 2px;
-}
-
 .close {
   position: absolute;
   top: 2px;
@@ -102,19 +85,16 @@ mat-toolbar {
 }
 
 .name {
+  display: inline-block;
   width: 200px;
   padding-left: 5px;
+  vertical-align: super;
 }
 
 .trim-name {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.add-stream img, .search img {
-  width: 24px;
-  height: 24px;
 }
 
 mat-form-field {
@@ -154,24 +134,10 @@ mat-form-field {
   object-fit: contain;
 }
 
-.emoji {
-  font-size: xx-large;
-  height: 32px;
-  line-height: 32px;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
 .debug {
   background-color: blue;
   -webkit-box-shadow:inset 0px 0px 0px 10px blue;
     -moz-box-shadow:inset 0px 0px 0px 10px blue;
     box-shadow:inset 0px 0px 0px 10px blue;
-}
-
-.overlay {
-  position: absolute;
-  left: 42px;
-  top: 26px;
 }
 
