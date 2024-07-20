@@ -1,7 +1,7 @@
 <div class="outer" (window:resize)="onResize($event)" [style.display]="opened ? 'block': 'none'">
   <mat-toolbar>
     <span class="title">{{tabTitle()}}</span>
-    <button mat-icon-button class="close" name="closestreams" (click)="close()"><mat-icon>close</mat-icon></button>
+    <button mat-icon-button *ngIf="canClose()" class="close" name="closestreams" (click)="close()"><mat-icon>close</mat-icon></button>
   </mat-toolbar>
   <div [style.height]="listheight" fxLayout='column'>
     <mat-nav-list class="list" fxFlex="1 1 auto">

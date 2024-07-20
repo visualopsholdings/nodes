@@ -193,4 +193,9 @@ export class StreamsComponent implements OnInit, OnDestroy {
     this.opened = false;
   }
 
+  canClose(): boolean {
+//    return this.selectedStream != null;
+    return false;
+  }
+
 }
