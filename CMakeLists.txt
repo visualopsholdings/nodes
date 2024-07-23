@@ -63,7 +63,10 @@ set(MESSAGES
   src/msg/message.cpp 
   src/msg/streams.cpp
   src/msg/policyusers.cpp
-  src/msg/users.cpp)
+  src/msg/users.cpp
+  src/msg/ideas.cpp
+  src/msg/stream.cpp
+)
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
 

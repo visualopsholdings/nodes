@@ -77,6 +77,24 @@ optional<boost::json::array> Json::getArray(json &j, const string &name) {
   
 }
 
+optional<json> Json::getObject(json &j, const string &name) {
+
+  if (!j.is_object()) {
+    BOOST_LOG_TRIVIAL(error) << "json is not object";
+    return {};
+  }
+  if (!j.as_object().if_contains(name)) {
+    return {};
+  }
+  auto obj = j.at(name);
+  if (!obj.is_object()) {
+    BOOST_LOG_TRIVIAL(error) << "obj is not object";
+    return {};
+  }
+  return obj;
+  
+}
+
 optional<bool> Json::getBool(json &j, const string &name) {
 
   if (!j.is_object()) {

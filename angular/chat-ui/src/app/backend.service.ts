@@ -115,10 +115,9 @@ export class BackendService {
       else {
         this.dialog.open(RestErrorComponent, {
           width: '400px',
-          data: { message: error.status == 400 ? error.error.err : error.message }
+          data: { message: error.status == 400 ? (error.error ? error.error.err : error.status) : error.message }
         }).afterClosed().subscribe(success => {});
       }
-
       // Let the app keep running by returning an empty result.
       return of(new HttpResponse<T>({ body: result }));
     };

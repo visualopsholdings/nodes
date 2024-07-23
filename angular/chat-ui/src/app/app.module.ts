@@ -27,6 +27,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from "@angular/material/core";
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -43,6 +44,8 @@ import { AddStreamDialogComponent } from './add-stream-dialog/add-stream-dialog.
 import { ConfirmComponent } from './confirm/confirm.component';
 import { SortStreamPipe } from './sort-stream.pipe';
 import { ConversationComponent } from './conversation/conversation.component';
+import { IdeaComponent } from './idea/idea.component';
+import { IdeaService }  from './idea.service';
 
 @NgModule({
   declarations: [
@@ -56,7 +59,8 @@ import { ConversationComponent } from './conversation/conversation.component';
     AddStreamDialogComponent,
     ConfirmComponent,
     SortStreamPipe,
-    ConversationComponent
+    ConversationComponent,
+    IdeaComponent
   ],
   imports: [
     BrowserModule,
@@ -87,9 +91,10 @@ import { ConversationComponent } from './conversation/conversation.component';
     MatSidenavModule,
     MatExpansionModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatProgressSpinnerModule
   ],
-  providers: [IconService, MeService, StreamService],
+  providers: [IconService, MeService, StreamService, IdeaService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

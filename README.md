@@ -435,6 +435,9 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 19 Jul 2024
 - Started in on "Chat" web app. Implemented streams.
 
+### 23 Jul 2024
+- Implemented "Conversation" in web app.
+
 
 
 

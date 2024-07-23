@@ -55,6 +55,8 @@ private:
   void messageMsg(json &json);
   void certsMsg(json &json);
   void usersMsg(json &json);
+  void streamMsg(json &json);
+  void ideasMsg(json &json);
   
 };
 

@@ -47,6 +47,8 @@ public:
 	auto getfonts(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getrawusers(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getstreams(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getstream(const restinio::request_handle_t& req, rr::route_params_t );
+	auto getconversation(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getme(const restinio::request_handle_t& req, rr::route_params_t );
 	auto getlogin(const restinio::request_handle_t& req, rr::route_params_t );
 	auto postlogin(const restinio::request_handle_t& req, rr::route_params_t );
@@ -185,7 +187,7 @@ auto Server::getstreams(
   
   if (!streams) {
     // send fatal error
-    BOOST_LOG_TRIVIAL(error) << "streams missing streams ";
+    BOOST_LOG_TRIVIAL(error) << "streams missing streams";
     return init_resp(req->create_response(restinio::status_internal_server_error())).done();
   }
 
@@ -198,6 +200,83 @@ auto Server::getstreams(
   }
   stringstream ss;
   ss << newstreams;
+  resp.set_body(ss.str());
+
+  return resp.done();
+}
+
+auto Server::getstream(
+  const restinio::request_handle_t& req, rr::route_params_t params)
+{
+  auto session = getSession(req);
+  if (!session) {
+    return unauthorised(req);
+  }
+  const auto id = restinio::cast_to<string>(params["id"]);
+  if (id == "undefined") {
+    auto resp = init_resp( req->create_response() );
+    resp.set_body("{}");
+    return resp.done();
+  }
+  send({ 
+    { "type", "stream" },
+    { "stream", id }
+  });
+  json j = receive();
+  auto stream = Json::getObject(j, "stream");
+
+  if (!stream) {
+    // send fatal error
+    BOOST_LOG_TRIVIAL(error) << "stream missing stream";
+    return init_resp(req->create_response(restinio::status_internal_server_error())).done();
+  }
+
+  json newstream = stream.value();
+  newstream.as_object()["_id"] = Json::getString(newstream, "id").value();
+
+  auto resp = init_resp( req->create_response() );
+  stringstream ss;
+  ss << newstream;
+  resp.set_body(ss.str());
+
+  return resp.done();
+}
+
+auto Server::getconversation(
+  const restinio::request_handle_t& req, rr::route_params_t params)
+{
+  auto session = getSession(req);
+  if (!session) {
+    return unauthorised(req);
+  }
+  const auto id = restinio::cast_to<string>(params["id"]);
+  if (id == "undefined") {
+    auto resp = init_resp( req->create_response() );
+    resp.set_body("[]");
+    return resp.done();
+  }
+  send({ 
+    { "type", "ideas" },
+    { "stream", id }
+  });
+  json j = receive();
+  auto ideas = Json::getArray(j, "ideas");
+
+  if (!ideas) {
+    // send fatal error
+    BOOST_LOG_TRIVIAL(error) << "conversation missing ideas";
+    return init_resp(req->create_response(restinio::status_internal_server_error())).done();
+  }
+
+  boost::json::array newideas;
+  for (auto s: ideas.value()) {
+    s.as_object()["_id"] = Json::getString(s, "id").value();
+    newideas.push_back(s);
+  }
+
+  auto resp = init_resp( req->create_response() );
+  stringstream ss;
+  ss << newideas;
   resp.set_body(ss.str());
 
   return resp.done();
@@ -340,7 +419,9 @@ auto Server::handler()
   router->http_post("/login", by(&Server::postlogin));
   router->http_get("/rest/1.0/rawusers", by(&Server::getrawusers));
   router->http_get("/rest/1.0/users/me", by(&Server::getme));
+  router->http_get("/rest/1.0/streams/:id", by(&Server::getstream));
   router->http_get("/rest/1.0/streams", by(&Server::getstreams));
+  router->http_get("/rest/1.0/conversations/:id", by(&Server::getconversation));
 
   return router;
 }

@@ -110,4 +110,34 @@ BOOST_AUTO_TEST_CASE( badArray )
 
 }
 
+BOOST_AUTO_TEST_CASE( goodObject )
+{
+  cout << "=== goodObject ===" << endl;
+  
+  json j = {
+    { "xxx", {
+      { "aaa", 42 }
+    } }
+  };
+  auto xxx = Json::getObject(j, "xxx");
+  BOOST_CHECK(xxx);
+  BOOST_CHECK(xxx.value().is_object());
+  BOOST_CHECK(xxx.value().at("aaa").is_int64());
+  BOOST_CHECK_EQUAL(xxx.value().at("aaa").as_int64(), 42);
+
+}
+
+BOOST_AUTO_TEST_CASE( badObject )
+{
+  cout << "=== badObject ===" << endl;
+  
+  json j = {
+    { "xxx", "yyyy" }
+  };
+  auto xxx = Json::getObject(j, "xxx");
+  BOOST_CHECK(!xxx);
+
+}
+
+
 

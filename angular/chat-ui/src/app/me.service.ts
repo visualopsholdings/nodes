@@ -33,4 +33,12 @@ export class MeService extends BackendService {
     );
   }
 
+  typing(): Observable<any> {
+    return this.post<any>(`${this.meUrl}/typing`, {}, "typing");
+  }
+
+  clicking(): Observable<any> {
+    return this.post<any>(`${this.meUrl}/clicking`, {}, "clicking");
+  }
+
 }

@@ -80,6 +80,7 @@ export class StreamsComponent implements OnInit, OnDestroy {
     private streamService: StreamService,
     private socketService: SocketService,
     private bootstrapService: BootstrapService,
+    private streamOpenService: StreamOpenService,
   ) {
     router.events.subscribe(change => {
       if (change instanceof NavigationEnd) {
@@ -90,6 +91,29 @@ export class StreamsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.setTitle();
+    this.streamOpenService.openChanged$.subscribe(change => {
+      if (change.refresh) {
+        this.getStreams();
+        if (change.clear) {
+          this.selectedStream = null;
+        }
+        this.onResize(null);
+      }
+      else {
+        this.opened = change.open && this.shouldShowAtAll();
+        if (this.opened) {
+          var stream = change.streams && change.streams.length > 0 ? change.streams[0] : null;
+          if (stream) {
+            this.showStream(stream);
+            this.onResize(null);
+          }
+          else {
+            this.selectedStream = null;
+            this.getStreams();
+          }
+        }
+      }
+    });
     this.bootstrapService.meChanged$.subscribe(me => {
       [this.me] = me;
       this.getStreams();
@@ -194,8 +218,7 @@ export class StreamsComponent implements OnInit, OnDestroy {
   }
 
   canClose(): boolean {
-//    return this.selectedStream != null;
-    return false;
+    return this.selectedStream != null;
   }
 
 }
