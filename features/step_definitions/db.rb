@@ -158,3 +158,21 @@ When('the security indexes are generated') do
    puts `build/zcaggregate --coll=policy src/userviewpermissions.json`
 
 end
+
+When('there are ideas:') do |ideas|
+
+   ideas.hashes.each do |s|
+      idea = FactoryBot.build(:idea)
+      idea.text = s[:name]
+      idea.policy = Policy.where(name: s[:policy]).first._id.to_s
+      if s[:by] && s[:by].length > 0
+         idea.user = User.where(name: s[:by]).first._id.to_s
+      end
+      idea.stream = Stream.where(name: s[:stream]).first._id.to_s
+      if s[:modifyDate] && s[:modifyDate].length > 0
+         idea.modifyDate = parse_date(s[:modifyDate])
+      end
+      idea.save
+   end
+
+end

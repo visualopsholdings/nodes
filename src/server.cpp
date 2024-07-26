@@ -30,10 +30,11 @@ Server::Server(bool test, int pub, int rep, const string &dbConn, const string &
 
   _messages["certs"] = bind(&Server::certsMsg, this, placeholders::_1);
   _messages["login"] = bind(&Server::loginMsg, this, placeholders::_1);
-  _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1);
   _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1);
   _messages["message"] = bind(&Server::messageMsg, this, placeholders::_1);
   _messages["users"] = bind(&Server::usersMsg, this, placeholders::_1);
+  _messages["user"] = bind(&Server::userMsg, this, placeholders::_1);
+  _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1);
   _messages["stream"] = bind(&Server::streamMsg, this, placeholders::_1);
   _messages["ideas"] = bind(&Server::ideasMsg, this, placeholders::_1);
 

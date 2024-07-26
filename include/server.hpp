@@ -50,11 +50,12 @@ private:
 
   // handlers
   void loginMsg(json &json);
-  void streamsMsg(json &json);
   void policyUsersMsg(json &json);
   void messageMsg(json &json);
   void certsMsg(json &json);
   void usersMsg(json &json);
+  void userMsg(json &json);
+  void streamsMsg(json &json);
   void streamMsg(json &json);
   void ideasMsg(json &json);
   

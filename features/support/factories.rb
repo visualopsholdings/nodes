@@ -29,4 +29,8 @@ FactoryBot.define do
    factory :group_member do |f|
    end
 
+   factory :idea do |f|
+      f.modifyDate { DateTime.now }
+   end
+
 end

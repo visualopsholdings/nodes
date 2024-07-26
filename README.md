@@ -85,6 +85,31 @@ We process and return;
 }
 ```
 
+#### Stream
+
+When this is received:
+
+```
+{ 
+  "type": "stream", 
+  "stream": "stream guid"
+}
+```
+
+We process and return;
+
+```
+{ 
+  "type": "streams, 
+  "stream": ""stream guid",
+  "stream": {
+    "name": "Conversation 1",
+    "stream": "stream guid",
+    "policy": "stream policy guid"
+  }
+}
+```
+
 #### Policy users
 
 When this is received:
@@ -129,6 +154,61 @@ When this is received:
   "stream": "stream guid",
   "policy": "stream policy guid",
   "user": "user guid"
+}
+```
+
+#### Users
+
+When this is received:
+
+```
+{ 
+  "type": "users"
+}
+```
+
+We process and return;
+
+```
+{ 
+  "type": "users", 
+  "users": [
+    {
+      "name": "tracy",
+      "fullname": "Tracy",
+      "id": "user guid"
+    },
+    {
+      "name": "leanne",
+      "fullname": "Leanne",
+      "id": "user guid"
+    }
+  ]
+}
+```
+
+#### User
+
+When this is received:
+
+```
+{ 
+  "type": "user", 
+  "user": "user guid"
+}
+```
+
+We process and return;
+
+```
+{ 
+  "type": "user, 
+  "user": "user guid",
+  "user": {
+    "name": "tracy",
+    "fullname": "Tracy",
+    "id": "user guid"
+  }
 }
 ```
 
@@ -272,27 +352,6 @@ make
 sudo make install
 ```
 
-#### Restinio
-
-```
-cd working
-sudo gem install Mxx_ru
-git clone https://github.com/stiffstream/restinio.git
-cd restinio
-mxxruexternals
-cd dev
-cmake -Bcmake_build \
-   -DCMAKE_BUILD_TYPE=Debug \
-   -DRESTINIO_ASIO_SOURCE=boost
-cmake --build cmake_build --config Debug -j 4
-```
-
-You will need this in your .bashrc or equivalent
-
-```
-export RESTINIO_HOME=/where/restinio/went
-```
-
 Now this project:
 
 ```
@@ -304,36 +363,6 @@ To run all the unit tests. And show failures.
 
 ```
 make && make test || cat Testing/Temporary/LastTest.log 
-```
-
-## Web client
-
-The web client is written in angular and must be built before using the zchttp daemon
-
-To install angular.
-
-```
-npm install -g @angular/cli@16
-```
-
-To build http stuff.
-
-```
-zmqchat/scripts/build-http.sh
-```
-
-Then your ready to host in nginx and the proxy is provided by zchttp.
-
-To start the http daemon.
-
-```
-zmqchat/scripts/start-http.sh
-```
-
-To stop.
-
-```
-zmqchat/scripts/stop-http.sh
 ```
 
 ## Testing
@@ -348,10 +377,11 @@ $ bundle exec cucumber
 ## Companion projects
 
 https://github.com/visualopsholdings/zmqirc
+https://github.com/visualopsholdings/zchttp
 
 ## Current development focus
 
-### Implement login message
+### Implement chat web app
 
 ## License
 
@@ -379,10 +409,6 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### FLTK
 
 - https://www.fltk.org/doc-1.4
-
-#### Restinio
-
-- https://stiffstream.com/en/docs/restinio/0.7/
 
 ## Change Log
 
@@ -437,6 +463,10 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 
 ### 23 Jul 2024
 - Implemented "Conversation" in web app.
+
+### 26 Jul 2024
+- Move web app to https://github.com/visualopsholdings/zchttp
+
 
 
 
