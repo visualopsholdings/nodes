@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE( goodIds )
   
   ResultImpl impl({}, {}, {});
 
-  auto doc = impl.replaceIds({
+  auto doc = impl.fixObjects({
     { "_id", {
         { "$oid", "xxxx" }
       }
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE( badIds )
   
   ResultImpl impl({}, {}, {});
 
-  auto doc = impl.replaceIds({
+  auto doc = impl.fixObjects({
     { "_id", "xxxx" }
   });
 //  cout << doc << endl;
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE( noOID )
   
   ResultImpl impl({}, {}, {});
 
-  auto doc = impl.replaceIds({
+  auto doc = impl.fixObjects({
     { "_id", {
         { "string", "xxxx" }
       }
@@ -70,4 +70,24 @@ BOOST_AUTO_TEST_CASE( noOID )
   BOOST_CHECK(doc.at("_id").is_object());
   
 }
+
+BOOST_AUTO_TEST_CASE( goodDate )
+{
+  cout << "=== goodDate ===" << endl;
+  
+  ResultImpl impl({}, {}, {});
+
+  auto doc = impl.fixObjects({
+    { "modifyDate", {
+        { "$date", 1722068626483 }
+      }
+    }
+  });
+//  cout << doc << endl;
+  BOOST_CHECK(doc.is_object());
+  BOOST_CHECK(doc.at("modifyDate").is_string());
+  BOOST_CHECK_EQUAL(doc.at("modifyDate").as_string(), "2024-07-27T08:23:46.483+00:00");
+  
+}
+
 

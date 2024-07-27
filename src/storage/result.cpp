@@ -13,6 +13,7 @@
 
 #include "storage/resulti.hpp"
 #include "storage/schemai.hpp"
+#include "json.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <bsoncxx/json.hpp>
@@ -39,16 +40,21 @@ mongocxx::cursor ResultImpl::find() {
 
 }
 
-json ResultImpl::replaceIds(const json &j) {
+json ResultImpl::fixObjects(const json &j) {
 
   boost::json::object o;
   for (auto i: j.as_object()) {
-    if (i.key() == "_id" && i.value().is_object() && i.value().as_object().if_contains("$oid")) {
-      o["id"] = i.value().at("$oid");
+    if (i.value().is_object()) {
+      if (i.key() == "_id" && i.value().is_object() && i.value().as_object().if_contains("$oid")) {
+        o["id"] = i.value().at("$oid");
+        continue;
+      }
+      if (i.value().is_object() && i.value().as_object().if_contains("$date")) {
+        o[i.key()] = Json::toISODate(i.value());
+        continue;
+      }
     }
-    else {
-      o[i.key()] = i.value();
-    }
+    o[i.key()] = i.value();
   }
   return o;
 
@@ -69,7 +75,7 @@ optional<json> ResultImpl::value() {
   if (first == cursor.end()) {
     return {}; 
   }
-  return replaceIds(boost::json::parse(bsoncxx::to_json(*first)));
+  return fixObjects(boost::json::parse(bsoncxx::to_json(*first)));
   
 }
 
@@ -86,7 +92,7 @@ optional<boost::json::array> ResultImpl::values() {
   }
   boost::json::array val;
   for (auto i: cursor) {
-    val.push_back(replaceIds(boost::json::parse(bsoncxx::to_json(i))));
+    val.push_back(fixObjects(boost::json::parse(bsoncxx::to_json(i))));
   }
   return val;
   

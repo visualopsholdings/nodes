@@ -27,7 +27,7 @@ public:
     _c(coll), _q(query), _f(fields) {};
 
   // public for testing.
-  json replaceIds(const json &json);
+  json fixObjects(const json &json);
 
   optional<json> value();
   optional<boost::json::array> values();

@@ -108,7 +108,7 @@ add_executable(TestStorage test/teststorage.cpp)
 
 add_test(TestStorage TestStorage)
 
-add_executable(TestResult test/testresult.cpp src/storage/result.cpp)
+add_executable(TestResult test/testresult.cpp src/storage/result.cpp src/json.cpp)
   target_link_libraries(TestResult ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_test(TestResult TestResult)
