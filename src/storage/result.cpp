@@ -68,7 +68,7 @@ optional<json> ResultImpl::value() {
   
   mongocxx::cursor cursor = find();
   if (cursor.begin() == cursor.end()) {
-    BOOST_LOG_TRIVIAL(error) << "not found";
+    BOOST_LOG_TRIVIAL(trace) << "empty";
     return {};
   }
   auto first = cursor.begin();
@@ -87,7 +87,7 @@ optional<boost::json::array> ResultImpl::values() {
   
   mongocxx::cursor cursor = find();
   if (cursor.begin() == cursor.end()) {
-    BOOST_LOG_TRIVIAL(error) << "not found";
+    BOOST_LOG_TRIVIAL(trace) << "empty";
     return {};
   }
   boost::json::array val;

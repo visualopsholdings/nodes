@@ -97,7 +97,7 @@ void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inid
   
   auto indexes = schema.find(q).values();
   if (!indexes) {
-    BOOST_LOG_TRIVIAL(error) << "indexes missing for " << schema.collName();
+    BOOST_LOG_TRIVIAL(trace) << "indexes missing for " << schema.collName();
     return;
   }
   for (auto i: indexes.value()) {

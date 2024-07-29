@@ -26,7 +26,7 @@ using namespace bsoncxx::builder::basic;
 
 shared_ptr<ResultImpl> SchemaImpl::findResult(const json &query, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find " << query;
+  BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collName(); 
 
   stringstream ss;
   ss << query;
@@ -37,7 +37,7 @@ shared_ptr<ResultImpl> SchemaImpl::findResult(const json &query, const vector<st
 
 shared_ptr<ResultImpl> SchemaImpl::findByIdResult(const string &id, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find " << id;
+  BOOST_LOG_TRIVIAL(trace) << "find " << id << " in " << collName();
 
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
   return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collName())._c, q, fields));
@@ -46,7 +46,7 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdResult(const string &id, const vector
 
 shared_ptr<ResultImpl> SchemaImpl::findByIdsResult(const vector<string> &ids, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find ids " << ids.size();
+  BOOST_LOG_TRIVIAL(trace) << "find ids " << ids.size() << " in " << collName();
 
   auto array = bsoncxx::builder::basic::array{};
   for (auto id: ids) {
@@ -59,7 +59,7 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsResult(const vector<string> &ids, co
 
 void SchemaImpl::deleteMany(const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "deleteMany " << doc;
+  BOOST_LOG_TRIVIAL(trace) << "deleteMany " << doc << " in " << collName();
 
   stringstream ss;
   ss << doc;
@@ -71,7 +71,7 @@ void SchemaImpl::deleteMany(const json &doc) {
   
 optional<string> SchemaImpl::insert(const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "insert " << doc;
+  BOOST_LOG_TRIVIAL(trace) << "insert " << doc << " in " << collName();
 
   stringstream ss;
   ss << doc;
