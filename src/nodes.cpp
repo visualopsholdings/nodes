@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   
-  BOOST_LOG_TRIVIAL(info) << "Nodes 0.3, 1-Jul-2024.";
+  BOOST_LOG_TRIVIAL(info) << "Nodes 0.4, 29-Jul-2024.";
 
   Server server(test, pubPort, repPort, dbConn, dbName, certFile, chainFile);
   server.run();

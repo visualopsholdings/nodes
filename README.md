@@ -370,14 +370,13 @@ make && make test || cat Testing/Temporary/LastTest.log
 The end to end tests use cucumber (Ruby), to get that going:
 
 ```
-$ bundle install
-$ bundle exec cucumber
+bundle exec cucumber
 ```
 
 ## Companion projects
 
-https://github.com/visualopsholdings/zmqirc
-https://github.com/visualopsholdings/zchttp
+https://github.com/visualopsholdings/nodes-web
+https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
