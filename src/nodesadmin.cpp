@@ -1,14 +1,14 @@
 /*
-  zcadmin.cpp
+  nodesadmin.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 1-Jul-2024
     
-  Admin tool for ZMQChat using FLTK.
+  Admin tool for Nodes using FLTK.
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
-  https://github.com/visualopsholdings/zmqchat
+  https://github.com/visualopsholdings/nodes
 */
 
 #include "json.hpp"
@@ -151,7 +151,7 @@ class Users_Window : public Fl_Window {
 };
 
 MainWindow::MainWindow(const string &reqConn) : 
-  Fl_Window {200, 100, 140, 70, "ZMQChat Admin"}, 
+  Fl_Window {200, 100, 140, 70, "Nodes Admin"}, 
     _context(1), _req(_context, ZMQ_REQ) {
 
   _req.connect(reqConn);

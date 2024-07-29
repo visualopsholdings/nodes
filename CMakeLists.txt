@@ -3,15 +3,15 @@
 #   Author: Paul Hamilton (paul@visualops.com)
 #   Date: 21-May-2024
 #
-#   Input file for ZMQChat driver for Visual Ops
+#   Input file for Nodes driver for Visual Ops
 #
 #   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
 #   
-#   https://github.com/visualopsholdings/zmqchat
+#   https://github.com/visualopsholdings/nodes
 
 cmake_minimum_required(VERSION 3.5)
 
-project (zmqchat)
+project (nodes)
   find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread log_setup log json REQUIRED)
   find_package(cppzmq REQUIRED)
   find_package(mongocxx REQUIRED)
@@ -79,26 +79,26 @@ add_library(StorageLib SHARED
   src/json.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
-add_executable(zmqchat src/zmqchat.cpp src/server.cpp ${MESSAGES} ${UTILS} src/security.cpp)
-    target_link_libraries(zmqchat StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS} ${OPENSSL_LIBRARIES})
+add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS} src/security.cpp)
+    target_link_libraries(nodes StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS} ${OPENSSL_LIBRARIES})
 
 add_executable(Send test/send.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
-add_executable(zcaggregate src/zcaggregate.cpp)
-  target_link_libraries(zcaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+add_executable(nodesaggregate src/nodesaggregate.cpp)
+  target_link_libraries(nodesaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 # FLTK applications
 
 if (APPLE)
   find_package(FLTK REQUIRED)
-  add_executable(zcadmin MACOSX_BUNDLE src/zcadmin.cpp src/json.cpp)
-  target_include_directories(zcadmin PRIVATE ${FLTK_INCLUDE_DIR})
+  add_executable(nodesadmin MACOSX_BUNDLE src/nodesadmin.cpp src/json.cpp)
+  target_include_directories(nodesadmin PRIVATE ${FLTK_INCLUDE_DIR})
   # Workaround: fltk.framework does not exist, so we have to replace it by libfltk.dylib
   string(REPLACE "libfltk_images" "libfltk" FLTK_LIBRARY_NAME "${FLTK_IMAGES_LIBRARY_RELEASE}")
   string(REPLACE "/usr/local/fltk.framework" "${FLTK_LIBRARY_NAME}" FLTK_LIBRARIES "${FLTK_LIBRARIES}")
-  target_link_libraries(zcadmin ${FLTK_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
-  set_target_properties(zcadmin PROPERTIES FOLDER "Applications")
+  target_link_libraries(nodesadmin ${FLTK_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
+  set_target_properties(nodesadmin PROPERTIES FOLDER "Applications")
 endif ()
 
 # Tests

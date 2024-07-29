@@ -4,11 +4,11 @@
   Author: Paul Hamilton (paul@visualops.com)
   Date: 30-June-2024
     
-  A row that contains JSON for ZMQChat.
+  A row that contains JSON for Nodes.
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
-  https://github.com/visualopsholdings/zmqchat
+  https://github.com/visualopsholdings/nodes
 */
 
 #ifndef H_dynamicrow

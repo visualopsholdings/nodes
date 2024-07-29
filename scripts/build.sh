@@ -2,17 +2,17 @@
 # 
 # Build the project
 
-if [ ! -d "zmqchat" ];
+if [ ! -d "nodes" ];
 then
-  echo "zmqchat project missing."
+  echo "nodes project missing."
   exit 1
 fi
 
-if [ ! -d "zmqchat/build" ];
+if [ ! -d "nodes/build" ];
 then
-  mkdir zmqchat/build
+  mkdir nodes/build
 fi
-pushd zmqchat/build
+pushd nodes/build
 git pull
 cmake ..
 make -j4

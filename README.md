@@ -1,4 +1,4 @@
-# ZMQChat
+# Nodes
 
 A system for delivering JSON messages amongst a tree of servers using ZMQ.
 
@@ -13,7 +13,7 @@ and any device that can run a browser.
 - Messages persist in a MongoDB database.
 - A security system allows subsets of users to View and Edit "Streams" which are analagous to Channels
 in IRC.
-- A system called "ZMQChat" correctly delivers missing messages when nodes "go away".
+- A system called "Nodes" correctly delivers missing messages when nodes "go away".
 - The system uses ZMQ message queues in a novel fashion which are the backbone for delivery
 and use EC (Eliptical Curve) Cryptography to ensure transport security.
 - Visual Ops is monolithic. Every server is completely standalone and require no more resources
@@ -56,7 +56,7 @@ We process and return;
 }
 ```
 
-The session id, is just turned around for convenience. It isn't used by ZMQChat.
+The session id, is just turned around for convenience. It isn't used by Nodes.
 
 #### Streams
 
@@ -355,8 +355,8 @@ sudo make install
 Now this project:
 
 ```
-git clone https://github.com/visualopsholdings/zmqchat.git
-zmqchat/scripts/build.sh
+git clone https://github.com/visualopsholdings/nodes.git
+nodes/scripts/build.sh
 ```
 
 To run all the unit tests. And show failures.
@@ -385,7 +385,7 @@ https://github.com/visualopsholdings/zchttp
 
 ## License
 
-ZMQChat is licensed under [version 3 of the GNU General Public License] contained in LICENSE.
+Nodes is licensed under [version 3 of the GNU General Public License] contained in LICENSE.
 
 ## Acknowlegements
 
@@ -467,7 +467,8 @@ ZMQChat is licensed under [version 3 of the GNU General Public License] containe
 ### 26 Jul 2024
 - Move web app to https://github.com/visualopsholdings/zchttp
 
-
+### 29 Jul 2024
+- Rename project "nodes".
 
 
 

@@ -1,14 +1,14 @@
 /*
-  zmqchat.cpp
+  nodes.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 21-May-2024
     
-  Command line driver for ZMQChat.
+  Command line driver for Nodes.
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
-  https://github.com/visualopsholdings/zmqchat
+  https://github.com/visualopsholdings/nodes
 */
 
 #include "server.hpp"
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
   }
 
   boost::log::formatter logFmt =
-         boost::log::expressions::format("%1%\tzmqchat [%2%]\t%3%")
+         boost::log::expressions::format("%1%\tNodes [%2%]\t%3%")
         %  boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") 
         %  boost::log::expressions::attr< boost::log::trivial::severity_level>("Severity")
         %  boost::log::expressions::smessage;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   
-  BOOST_LOG_TRIVIAL(info) << "ZMQCHAT 0.3, 1-Jul-2024.";
+  BOOST_LOG_TRIVIAL(info) << "Nodes 0.3, 1-Jul-2024.";
 
   Server server(test, pubPort, repPort, dbConn, dbName, certFile, chainFile);
   server.run();
