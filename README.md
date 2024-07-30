@@ -174,7 +174,7 @@ make && make test || cat Testing/Temporary/LastTest.log
 The end to end tests use cucumber (Ruby), to get that going:
 
 ```
-bundle exec cucumber
+./test.sh
 ```
 
 ## Companion projects

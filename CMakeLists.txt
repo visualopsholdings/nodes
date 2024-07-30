@@ -37,6 +37,18 @@ endif ()
 include(FetchContent)
 
 FetchContent_Declare(
+  nodes-test
+  GIT_REPOSITORY https://github.com/visualopsholdings/nodes-test.git
+  GIT_TAG main
+)
+FetchContent_GetProperties(nodes-test)
+
+if(NOT nodes-test_POPULATED)
+  message(STATUS "Fetching nodes-test...")
+  FetchContent_Populate(nodes-test)
+endif()
+
+FetchContent_Declare(
   base64
   GIT_REPOSITORY https://github.com/tobiaslocker/base64.git
   GIT_TAG master
