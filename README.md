@@ -32,7 +32,7 @@ A REP socket on port tcp://127.0.0.1:3013.
 
 ### JSON formats
 
-https://github.com/visualopsholdings/nodes/tree/main/src/msg
+[Source for messages](tree/main/src/msg/README.md)
 
 ## Building
 
