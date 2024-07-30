@@ -24,15 +24,15 @@ and problems that plague IRC
 
 This project will implement an open source implementation of this in C++.
 
-### ZMQ messages
+### ZMQ API
 
-A PUB socket on port tcp://127.0.0.1:3012.
+You communicate with Nodes using the ZMQ message queues.
 
-A REP socket on port tcp://127.0.0.1:3013.
+A PUB/SUB socket on port tcp://127.0.0.1:3012.
 
-### JSON formats
+A REP/REQ socket on port tcp://127.0.0.1:3013.
 
-[Source code for message formats](src/msg/README.md)
+[Here are the formats for the messages](src/msg/README.md)
 
 ## Building
 
