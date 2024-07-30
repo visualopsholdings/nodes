@@ -80,6 +80,9 @@ We process and return;
 
 #### Policy users
 
+Since the Nodes system is persistent, when you join a stream, you can query the 
+users in that stream by the stream policy and join those users too.
+
 When this is received:
 
 ```
@@ -113,7 +116,8 @@ We process and return;
 
 #### Message
 
-When this is received:
+This is sent to the REQ socket when a message happens on IRC, and will be received on the 
+SUB socket when a new message is received.
 
 ```
 { 
@@ -179,6 +183,27 @@ We process and return;
   }
 }
 ```
+
+#### Certs
+
+```
+{ 
+  "type": "certs"
+}
+```
+
+This will be processed by the Visual Ops system and it will return:
+
+```
+{ 
+  "type": "certs", 
+  "ssl": true,
+  "cettFile": "xxxx",
+  "chainFile": "yyy"
+}
+```
+
+The session id, is just turned around for convenience. It isn't used by Visual Ops.
 
 #### Acknowlege
 

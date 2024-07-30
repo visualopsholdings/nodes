@@ -8,13 +8,86 @@
 	<integer>1032</integer>
 	<key>ExpandedItems:paul</key>
 	<array>
-		<string>E67A599A-1BBB-47A2-A98B-FF931CAD9D9B</string>
+		<string>F31E08FB-18A5-41A9-A3BA-74C92E684426</string>
 		<string>C22CE45E-7A81-48C3-84CF-9956EC75270C</string>
 	</array>
 	<key>FileFilterMode:paul</key>
 	<integer>0</integer>
 	<key>OpenDocuments:paul</key>
 	<array>
+		<dict>
+			<key>BookmarkData</key>
+			<data>
+			Ym9va1wDAAAAAAQQMAAAAJu6J8Kcn1jP0wqdXSVv8hljgZ9PoUWB
+			hVY6AizgethmTAIAAAQAAAADAwAAAAgAKAUAAAABAQAAVXNlcnMA
+			AAAEAAAAAQEAAHBhdWwDAAAAAQEAAERldgAFAAAAAQEAAG5vZGVz
+			AAAAAwAAAAEBAABzcmMAAwAAAAEBAABtc2cACQAAAAEBAABSRUFE
+			TUUubWQAAAAcAAAAAQYAABAAAAAgAAAALAAAADgAAABIAAAAVAAA
+			AGAAAAAIAAAABAMAANhaAAAAAAAACAAAAAQDAAC8MgQAAAAAAAgA
+			AAAEAwAARoMWAAAAAAAIAAAABAMAANM6PRIAAAAACAAAAAQDAABQ
+			Oz0SAAAAAAgAAAAEAwAAVDs9EgAAAAAIAAAABAMAAJtOQhIAAAAA
+			HAAAAAEGAACYAAAAqAAAALgAAADIAAAA2AAAAOgAAAD4AAAACAAA
+			AAAEAABBxixZghvJhRgAAAABAgAAAQAAAAAAAAAPAAAAAAAAAAAA
+			AAAAAAAACAAAAAQDAAAFAAAAAAAAAAQAAAADAwAA9QEAAAgAAAAB
+			CQAAZmlsZTovLy8MAAAAAQEAAE1hY2ludG9zaCBIRAgAAAAEAwAA
+			AJCClucAAAAIAAAAAAQAAEHF9QSsAAAAJAAAAAEBAABBMTRFOUYz
+			OC1BQ0FELTRFRkItOTRDQS0zNDQ1NzFGRTVDNjkYAAAAAQIAAIEA
+			AAABAAAA7xMAAAEAAAAAAAAAAAAAAAEAAAABAQAALwAAAAAAAAAB
+			BQAAGgAAAAEBAABOU1VSTERvY3VtZW50SWRlbnRpZmllcktleQAA
+			BAAAAAMDAADjDgYA2AAAAP7///8BAAAAAAAAABEAAAAEEAAAdAAA
+			AAAAAAAFEAAACAEAAAAAAAAQEAAAPAEAAAAAAABAEAAALAEAAAAA
+			AAACIAAACAIAAAAAAAAFIAAAeAEAAAAAAAAQIAAAiAEAAAAAAAAR
+			IAAAvAEAAAAAAAASIAAAnAEAAAAAAAATIAAArAEAAAAAAAAgIAAA
+			6AEAAAAAAAAwIAAAFAIAAAAAAAABwAAAXAEAAAAAAAARwAAAIAAA
+			AAAAAAASwAAAbAEAAAAAAAAQ0AAABAAAAAAAAAAcAgCAQAIAAAAA
+			AAA=
+			</data>
+			<key>FileURL</key>
+			<string>file:///Users/paul/Dev/nodes/src/msg/README.md</string>
+			<key>HasSecurityScope</key>
+			<true/>
+			<key>RelativePath</key>
+			<string>./src/msg/README.md</string>
+			<key>TypeID</key>
+			<string>_CFileLocator</string>
+			<key>Version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>BookmarkData</key>
+			<data>
+			Ym9vawgDAAAAAAQQMAAAAO1aLqJoMR4a8KTht3wMs8nlJYFO2N8R
+			WBX16IRMBvxSBAIAAAQAAAADAwAAAAgAKAUAAAABAQAAVXNlcnMA
+			AAAEAAAAAQEAAHBhdWwDAAAAAQEAAERldgAFAAAAAQEAAG5vZGVz
+			AAAAAwAAAAEBAABzcmMAGAAAAAEBAAB1c2Vydmlld3Blcm1pc3Np
+			b25zLmpzb24YAAAAAQYAABAAAAAgAAAALAAAADgAAABIAAAAVAAA
+			AAgAAAAEAwAA2FoAAAAAAAAIAAAABAMAALwyBAAAAAAACAAAAAQD
+			AABGgxYAAAAAAAgAAAAEAwAA0zo9EgAAAAAIAAAABAMAAFA7PRIA
+			AAAACAAAAAQDAABoOz0SAAAAABgAAAABBgAAlAAAAKQAAAC0AAAA
+			xAAAANQAAADkAAAACAAAAAAEAABBxiuvr5OMrBgAAAABAgAAAQAA
+			AAAAAAAPAAAAAAAAAAAAAAAAAAAACAAAAAQDAAAEAAAAAAAAAAQA
+			AAADAwAA9QEAAAgAAAABCQAAZmlsZTovLy8MAAAAAQEAAE1hY2lu
+			dG9zaCBIRAgAAAAEAwAAAJCClucAAAAIAAAAAAQAAEHF9QSsAAAA
+			JAAAAAEBAABBMTRFOUYzOC1BQ0FELTRFRkItOTRDQS0zNDQ1NzFG
+			RTVDNjkYAAAAAQIAAIEAAAABAAAA7xMAAAEAAAAAAAAAAAAAAAEA
+			AAABAQAALwAAAAAAAAABBQAAzAAAAP7///8BAAAAAAAAABAAAAAE
+			EAAAdAAAAAAAAAAFEAAA9AAAAAAAAAAQEAAAJAEAAAAAAABAEAAA
+			FAEAAAAAAAACIAAA8AEAAAAAAAAFIAAAYAEAAAAAAAAQIAAAcAEA
+			AAAAAAARIAAApAEAAAAAAAASIAAAhAEAAAAAAAATIAAAlAEAAAAA
+			AAAgIAAA0AEAAAAAAAAwIAAA/AEAAAAAAAABwAAARAEAAAAAAAAR
+			wAAAIAAAAAAAAAASwAAAVAEAAAAAAAAQ0AAABAAAAAAAAAA=
+			</data>
+			<key>FileURL</key>
+			<string>file:///Users/paul/Dev/nodes/src/userviewpermissions.json</string>
+			<key>HasSecurityScope</key>
+			<true/>
+			<key>RelativePath</key>
+			<string>./src/userviewpermissions.json</string>
+			<key>TypeID</key>
+			<string>_CFileLocator</string>
+			<key>Version</key>
+			<integer>1</integer>
+		</dict>
 		<dict>
 			<key>BookmarkData</key>
 			<data>
@@ -2388,7 +2461,7 @@
 	<array>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2430,7 +2503,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2472,7 +2545,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2514,7 +2587,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2556,7 +2629,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2598,7 +2671,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2640,7 +2713,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2682,7 +2755,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2724,7 +2797,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2766,7 +2839,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2808,7 +2881,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2850,7 +2923,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2892,7 +2965,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2934,7 +3007,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
@@ -2976,7 +3049,7 @@
 		</dict>
 		<dict>
 			<key>Date</key>
-			<date>2024-07-29T07:28:57Z</date>
+			<date>2024-07-30T05:55:14Z</date>
 			<key>Location</key>
 			<dict>
 				<key>BookmarkData</key>
