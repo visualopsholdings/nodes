@@ -19,10 +19,10 @@ and use EC (Eliptical Curve) Cryptography to ensure transport security.
 - Visual Ops is monolithic. Every server is completely standalone and require no more resources
 from the internet (Cloud).
 
-For these reasons, it would be the perfect backend for IRC Clients and solve many of the existing drawbacks
-and problems that plague IRC
+For these reasons, it would be the perfect backend for IRC Clients, or other messaging systems and solve many of the existing drawbacks
+and problems that plague IRC etc.
 
-This project will implement an open source implementation of this in C++.
+This project implements an open source implementation of this in C++.
 
 ### ZMQ API
 
@@ -49,7 +49,7 @@ sudo apt-get -y install g++ gcc make cmake ruby-rubygems
 ### Prerequisites
 
 For convenience, do all these inside a folder you can remove, they take a lot of disk space
-but aren't used once instsalled.
+but aren't used once installed.
 
 ```
 mkdir working
@@ -176,12 +176,17 @@ bundle exec cucumber
 
 ## Companion projects
 
+### A web front end
+
 https://github.com/visualopsholdings/nodes-web
+
+### An IRC front end
+
 https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Implement chat web app
+### Implement chat web app in nodes-web.
 
 ## License
 
