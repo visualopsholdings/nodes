@@ -32,7 +32,7 @@ A REP socket on port tcp://127.0.0.1:3013.
 
 ### JSON formats
 
-[Source for messages](tree/main/src/msg)
+[Source code for message formats](main/src/msg)
 
 ## Building
 
