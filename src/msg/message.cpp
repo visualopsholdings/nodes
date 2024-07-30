@@ -40,10 +40,19 @@ void Server::messageMsg(json &j) {
 //     return;
 //   }
 
-  auto policyid = Json::getString(j, "policy");
-  if (!policyid) {
-    sendErr("no policy");
-    return;
+  string policyid;
+  
+  auto pid = Json::getString(j, "policy");
+  if (pid) {
+    policyid = pid.value();
+  }
+  else {
+    auto doc = Stream().findById(streamid.value(), {"policy"}).value();
+    if (!doc) {
+      sendErr("invalid stream");
+      return;
+    }
+    policyid = doc->policy();
   }
 
 //   if (!Policy().findById(policyid.value(), { "id" }).value()) {
@@ -57,11 +66,14 @@ void Server::messageMsg(json &j) {
     return;
   }
   
+  auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  
   json idea = {
     { "user", userid.value() },
     { "stream", streamid.value() },
-    { "policy", policyid.value() },
-    { "text", text.value() }
+    { "policy", policyid },
+    { "text", text.value() },
+    { "modifyDate", { { "$date", now } } }
   };
   auto result = Idea().insert(idea);
   if (!result) {

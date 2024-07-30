@@ -92,6 +92,10 @@ class StreamRow: public DynamicRow {
 public:
   StreamRow(json json): DynamicRow(json) {}
 
+  string id() { return getString("id"); }
+  string name() { return getString("name"); }
+  string policy() { return getString("policy"); }
+  
 };
 
 class Stream: public Schema<StreamRow> {
