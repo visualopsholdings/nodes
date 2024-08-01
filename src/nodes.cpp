@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
   }
 
   boost::log::formatter logFmt =
-         boost::log::expressions::format("%1%\tNodes [%2%]\t%3%")
+         boost::log::expressions::format("%1%\tNodes     [%2%]\t%3%")
         %  boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") 
         %  boost::log::expressions::attr< boost::log::trivial::severity_level>("Severity")
         %  boost::log::expressions::smessage;

@@ -82,7 +82,9 @@ void Server::messageMsg(json &j) {
   }
   BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
     
+  idea.as_object()["type"] = "idea";
   publish(idea);
+
   sendAck();
 
 }

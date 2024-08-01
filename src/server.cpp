@@ -22,11 +22,11 @@ Server::Server(bool test, int pub, int rep, const string &dbConn, const string &
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));
   _pub->bind("tcp://127.0.0.1:" + to_string(pub));
-	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ as Local PUB on " << pub;
+	BOOST_LOG_TRIVIAL(info) << "Bound to ZMQ as Local PUB on " << pub;
 
   _rep.reset(new zmq::socket_t(*_context, ZMQ_REP));
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
-	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ as Local REP on " << rep;
+	BOOST_LOG_TRIVIAL(info) << "Bound to ZMQ as Local REP on " << rep;
 
   _messages["certs"] = bind(&Server::certsMsg, this, placeholders::_1);
   _messages["login"] = bind(&Server::loginMsg, this, placeholders::_1);
@@ -53,7 +53,7 @@ void Server::run() {
   const std::chrono::milliseconds timeout{500};
   while (1) {
   
-//      BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
     zmq::message_t message;
     zmq::poll(&items[0], 1, timeout);
   
@@ -93,21 +93,21 @@ void Server::run() {
 
 }
 
-void Server::publish(const json &j) {
+void Server::sendTo(shared_ptr<zmq::socket_t> _socket, const json &j, const string &type) {
 
   stringstream ss;
   ss << j;
   string m = ss.str();
   
-  BOOST_LOG_TRIVIAL(info) << "publishing " << m;
+  BOOST_LOG_TRIVIAL(info) << type << " " << m;
 
 	zmq::message_t msg(m.length());
 	memcpy(msg.data(), m.c_str(), m.length());
   try {
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-    _pub->send(msg);
+    _socket->send(msg);
 #else
-    _pub->send(msg, zmq::send_flags::none);
+    _socket->send(msg, zmq::send_flags::none);
 #endif
   }
   catch (zmq::error_t &e) {
@@ -116,34 +116,18 @@ void Server::publish(const json &j) {
 
 }
 
-void Server::send(const json &j) {
-
-  stringstream ss;
-  ss << j;
-  string m = ss.str();
-  
-  BOOST_LOG_TRIVIAL(info) << "sending " << m;
-
-	zmq::message_t msg(m.length());
-	memcpy(msg.data(), m.c_str(), m.length());
-  try {
-#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-    _rep->send(msg);
-#else
-    _rep->send(msg, zmq::send_flags::none);
-#endif
-  }
-  catch (zmq::error_t &e) {
-    BOOST_LOG_TRIVIAL(warning) << "got exc send" << e.what() << "(" << e.num() << ")";
-  }
-
-}
-
 void Server::sendErr(const string &msg) {
   BOOST_LOG_TRIVIAL(error) << msg;
-  send({ { "type", "err" }, { "msg", msg } });
+  send({ 
+    { "type", "err" }, 
+    { "msg", msg } 
+  });
 }
 
 void Server::sendAck() {
-  send({ { "type", "ack" } });
+
+  send({ 
+    { "type", "ack" } 
+  });
+  
 }

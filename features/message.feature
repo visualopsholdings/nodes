@@ -9,6 +9,6 @@ Feature: Message
          | My Conversation 2  | p1     |
 
 	Scenario: send a messsage to a user
-	   When she sends message "xxxxx" as "tracy" to "My Conversation 1" policy "p1"
+	   When she sends message "xxxxx" as "tracy" to "My Conversation 1"
       Then she receives ack
  

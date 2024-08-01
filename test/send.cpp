@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
   }
 
   boost::log::formatter logFmt =
-         boost::log::expressions::format("%1%\tSend [%2%]\t%3%")
+         boost::log::expressions::format("%1%\tSend      [%2%]\t%3%")
         %  boost::log::expressions::format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f") 
         %  boost::log::expressions::attr< boost::log::trivial::severity_level>("Severity")
         %  boost::log::expressions::smessage;
@@ -94,6 +94,7 @@ int main(int argc, char *argv[]) {
   zmq::context_t context(1);
   zmq::socket_t req(context, ZMQ_REQ);
   req.connect("tcp://127.0.0.1:" + to_string(reqPort));
+	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ as Local REQ on " << reqPort;
   
   vector<string> arglist;
   boost::split(arglist, args, boost::is_any_of(","));
@@ -106,10 +107,11 @@ int main(int argc, char *argv[]) {
   handler->second(req, arglist);
   
   json jr = receive(req);
+  BOOST_LOG_TRIVIAL(info) << "received " << jr;
   stringstream ss;
   ss << jr;
   cout << ss.str();
-  
+    
   return 0;
  
 }
@@ -179,8 +181,8 @@ void policyUsersMsg(zmq::socket_t &socket, const vector<string> &args) {
 
 void messageMsg(zmq::socket_t &socket, const vector<string> &args) {
 
-   if (args.size() != 4) {
-    BOOST_LOG_TRIVIAL(error) << "usage: message user stream policy text";
+   if (args.size() != 3) {
+    BOOST_LOG_TRIVIAL(error) << "usage: message user stream text";
     return;
   }
   
@@ -188,8 +190,7 @@ void messageMsg(zmq::socket_t &socket, const vector<string> &args) {
     { "type", "message" },
     { "user", args[0] },
     { "stream", args[1] },
-    { "policy", args[2] },
-    { "text", args[3] }
+    { "text", args[2] }
   });
 
 }

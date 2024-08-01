@@ -10,11 +10,10 @@ Then('she receives user') do
    expect(lastResult["type"]).to eq("user")
 end
 
-When('she sends message {string} as {string} to {string} policy {string}') do |text, user, stream, policy|
+When('she sends message {string} as {string} to {string}') do |text, user, stream|
    u = User.where(name: user).first._id.to_s
-   s = Policy.where(name: policy).first._id.to_s
-   p = Stream.where(name: stream).first._id.to_s
-   lastResult = JSON.parse(`build/Send --cmd=message --args="#{u},#{s},#{p},#{text}"`)
+   s = Stream.where(name: stream).first._id.to_s
+   lastResult = JSON.parse(`build/Send --cmd=message --args="#{u},#{s},#{text}"`)
 end
 
 Then('she receives ack') do

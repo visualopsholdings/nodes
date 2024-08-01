@@ -43,10 +43,15 @@ private:
   string _chainFile;
   bool _test;
   
-  void publish(const json &j);
-  void send(const json &m);
+  void publish(const json &m) {
+    sendTo(_pub, m, "publishing");
+  }
+  void send(const json &m) {
+    sendTo(_rep, m, "sending");
+  }
   void sendErr(const string &msg);
   void sendAck();
+  void sendTo(shared_ptr<zmq::socket_t> _socket, const json &j, const string &type);
 
   // handlers
   void loginMsg(json &json);
