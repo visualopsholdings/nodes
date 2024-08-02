@@ -10,12 +10,12 @@ fi
 
 if [ -d /home/nodes/nodes-lib ];
 then
-  LIBS="LD_LIBRARY_PATH=/usr/local/lib;/home/nodes/nodes/build;/home/nodes/nodes-lib"
+  export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib:/home/nodes/nodes/build:/home/nodes/nodes-lib:$LD_LIBRARY_PATH
 else
   export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 fi
 
-$LIBS ./nodes/build/nodes \
+./nodes/build/nodes \
   --logLevel=trace \
   --dbConn=mongodb://fiveEstellas:visualops@127.0.0.1:27017/?authSource=fiveEstellas \
   --dbName=fiveEstellas \
