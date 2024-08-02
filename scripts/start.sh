@@ -8,9 +8,7 @@ then
   exit 1
 fi
 
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-
-./nodes/build/nodes \
+LD_LIBRARY_PATH=/usr/local/lib:/home/nodes/nodes/build:/home/nodes/nodes-lib ./nodes/build/nodes \
   --logLevel=trace \
   --dbConn=mongodb://fiveEstellas:visualops@127.0.0.1:27017/?authSource=fiveEstellas \
   --dbName=fiveEstellas \
