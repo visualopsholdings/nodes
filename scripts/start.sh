@@ -8,14 +8,15 @@ then
   exit 1
 fi
 
-if [ "$#" -ne 2 ]; 
+if [ "$#" -ne 3 ]; 
 then
-	echo "usage: $0 dbname hostname"
+	echo "usage: $0 dbname dbpass hostname"
 	exit 1
 fi
 
 DBNAME=$1
-HOSTNAME=$2
+DBPASS=$2
+HOSTNAME=$3
 
 if [ -d /home/nodes/nodes-lib ];
 then
@@ -26,7 +27,7 @@ fi
 
 ./nodes/build/nodes \
   --logLevel=trace \
-  --dbConn=mongodb://$DBNAME:visualops@127.0.0.1:27017/?authSource=$DBNAME \
+  --dbConn=mongodb://$DBNAME:$DBPASS@127.0.0.1:27017/?authSource=$DBNAME \
   --dbName=$DBNAME \
   --certFile=/etc/letsencrypt/live/$HOSTNAME/privkey.pem \
   --chainFile=/etc/letsencrypt/live/$HOSTNAME/fullchain.pem \
