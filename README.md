@@ -179,6 +179,10 @@ The end to end tests use cucumber (Ruby), to get that going:
 
 ## Companion projects
 
+### DevOps
+
+https://github.com/visualopsholdings/nodes-devops
+
 ### A web front end
 
 https://github.com/visualopsholdings/nodes-web
