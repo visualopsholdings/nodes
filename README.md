@@ -110,7 +110,7 @@ make
 sudo make install
 ```
 
-Now this project:
+### This project
 
 ```
 git clone https://github.com/visualopsholdings/nodes.git
