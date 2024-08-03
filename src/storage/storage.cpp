@@ -41,10 +41,6 @@ StorageImpl::StorageImpl(const string &dbConn, const string &dbName) {
 
 CollectionImpl StorageImpl::coll(const string &name) {
 
-  if (!_db.has_collection(name)) {
-    BOOST_LOG_TRIVIAL(error) << "coll " << name << " not found";
-    return CollectionImpl();
-  }
-  
   return CollectionImpl(_db[name]);
+  
 }

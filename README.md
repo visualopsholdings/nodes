@@ -94,6 +94,8 @@ On a linux you might need:
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ```
 
+So put that into your .bashrc.
+
 #### FLTK
 
 We build some simple GUIs for admin, and for that we use FLTK.
