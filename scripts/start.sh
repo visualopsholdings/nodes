@@ -8,9 +8,9 @@ then
   exit 1
 fi
 
-if [ "$#" -ne 3 ]; 
+if [ "$#" -lt 2 ]; 
 then
-	echo "usage: $0 dbname dbpass hostname"
+	echo "usage: $0 dbname dbpass"
 	exit 1
 fi
 
@@ -25,10 +25,13 @@ else
   export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 fi
 
+if [ "$#" -eq 3 ]; 
+then
+  CERTS="--certFile=/etc/letsencrypt/live/$HOSTNAME/privkey.pem --chainFile=/etc/letsencrypt/live/$HOSTNAME/fullchain.pem"
+fi
+
 ./nodes/build/nodes \
   --logLevel=trace \
   --dbConn=mongodb://$DBNAME:$DBPASS@127.0.0.1:27017/?authSource=$DBNAME \
-  --dbName=$DBNAME \
-  --certFile=/etc/letsencrypt/live/$HOSTNAME/privkey.pem \
-  --chainFile=/etc/letsencrypt/live/$HOSTNAME/fullchain.pem \
+  --dbName=$DBNAME $CERTS \
   > nodes.log 2>&1 &
