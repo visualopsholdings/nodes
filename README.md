@@ -133,6 +133,8 @@ The end to end tests use cucumber (Ruby), to get that going:
 ./test.sh
 ```
 
+You will need a machine with a display for this, so don't try to run it headless (for now).
+
 ## Companion projects
 
 ### DevOps
