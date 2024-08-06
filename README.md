@@ -76,6 +76,7 @@ all from source.
 On OS X or Linux:
 
 ```
+cd working
 curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.10.1/mongo-cxx-driver-r3.10.1.tar.gz
 tar xzf mongo-cxx-driver-r3.10.1.tar.gz
 cd mongo-cxx-driver-r3.10.1/build
@@ -85,7 +86,7 @@ cmake ..                                            \
     -DMONGOCXX_OVERRIDE_DEFAULT_INSTALL_PREFIX=OFF
 cmake --build . -j4
 sudo cmake --build . --target install
-cd ../..
+cd ../../..
 ```
 
 On a linux you might need:
@@ -122,6 +123,7 @@ nodes/scripts/build.sh
 To run all the unit tests. And show failures.
 
 ```
+cd nodes/build
 make && make test || cat Testing/Temporary/LastTest.log 
 ```
 
@@ -134,6 +136,12 @@ The end to end tests use cucumber (Ruby), to get that going:
 ```
 
 You will need a machine with a display for this, so don't try to run it headless (for now).
+
+For other projects you will need this in your .bashrc or equivalent
+
+```
+export NODES_HOME=/where/nodes/went
+```
 
 ## Companion projects
 
