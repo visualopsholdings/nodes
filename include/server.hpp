@@ -32,6 +32,8 @@ public:
   ~Server();
   
   void run();
+  bool resetServer();
+  bool rebootServer();
 
 private:
 
@@ -52,7 +54,8 @@ private:
   void sendErr(const string &msg);
   void sendAck();
   void sendTo(shared_ptr<zmq::socket_t> _socket, const json &j, const string &type);
-
+  bool setInfo(const string &name, const string &text);
+  
   // handlers
   void loginMsg(json &json);
   void policyUsersMsg(json &json);
@@ -64,6 +67,7 @@ private:
   void streamMsg(json &json);
   void ideasMsg(json &json);
   void infosMsg(json &json);
+  void setinfoMsg(json &json);
   
 };
 

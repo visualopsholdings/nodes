@@ -19,7 +19,7 @@
 
 void Server::infosMsg(json &j) {
 
-  auto docs = Info().find(json{{}}, { "id", "modifyDate", "type", "text"}).values();
+  auto docs = Info().find(json{{}}, {"type", "text"}).values();
 
   boost::json::array s;
   for (auto i: docs.value()) {

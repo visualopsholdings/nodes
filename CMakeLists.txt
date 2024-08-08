@@ -67,6 +67,7 @@ set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
 set(UTILS
   src/vid.cpp 
   src/json.cpp
+  src/security.cpp
 )
 set(MESSAGES 
   src/msg/certs.cpp
@@ -79,6 +80,7 @@ set(MESSAGES
   src/msg/user.cpp
   src/msg/ideas.cpp
   src/msg/infos.cpp
+  src/msg/setinfo.cpp
 )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
@@ -92,7 +94,7 @@ add_library(StorageLib SHARED
   src/json.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
-add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS} src/security.cpp)
+add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
     target_link_libraries(nodes StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS} ${OPENSSL_LIBRARIES})
 
 add_executable(Send test/send.cpp)
@@ -150,4 +152,9 @@ add_executable(TestJson test/testjson.cpp src/json.cpp)
   target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestJson TestJson)
+
+add_executable(TestServer test/testserver.cpp src/server.cpp ${MESSAGES} ${UTILS})
+  target_link_libraries(TestServer StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS} ${LIBS} ${OPENSSL_LIBRARIES})
+
+add_test(TestServer TestServer)
 

@@ -38,6 +38,7 @@ Server::Server(bool test, int pub, int rep, const string &dbConn, const string &
   _messages["stream"] = bind(&Server::streamMsg, this, placeholders::_1);
   _messages["ideas"] = bind(&Server::ideasMsg, this, placeholders::_1);
   _messages["infos"] = bind(&Server::infosMsg, this, placeholders::_1);
+  _messages["setinfo"] = bind(&Server::setinfoMsg, this, placeholders::_1);
 
   Storage::instance()->init(dbConn, dbName);
   
@@ -59,7 +60,7 @@ void Server::run() {
     zmq::poll(&items[0], 1, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      BOOST_LOG_TRIVIAL(debug) << "got rep message";
+      BOOST_LOG_TRIVIAL(trace) << "got rep message";
       zmq::message_t reply;
       try {
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
@@ -71,7 +72,7 @@ void Server::run() {
         string r((const char *)reply.data(), reply.size());
         json doc = boost::json::parse(r);
 
-        BOOST_LOG_TRIVIAL(debug) << "got reply " << doc;
+        BOOST_LOG_TRIVIAL(trace) << "got reply " << doc;
 
         auto type = Json::getString(doc, "type");
         if (!type) {
@@ -79,6 +80,7 @@ void Server::run() {
           continue;
         }
 
+        BOOST_LOG_TRIVIAL(debug) << "handling " << type.value();
         map<string, msgHandler>::iterator handler = _messages.find(type.value());
         if (handler == _messages.end()) {
           sendErr("unknown msg type " + type.value());
@@ -100,7 +102,7 @@ void Server::sendTo(shared_ptr<zmq::socket_t> _socket, const json &j, const stri
   ss << j;
   string m = ss.str();
   
-  BOOST_LOG_TRIVIAL(info) << type << " " << m;
+  BOOST_LOG_TRIVIAL(debug) << type << " " << m;
 
 	zmq::message_t msg(m.length());
 	memcpy(msg.data(), m.c_str(), m.length());
@@ -132,3 +134,8 @@ void Server::sendAck() {
   });
   
 }
+
+bool Server::rebootServer() {
+  return false;
+}
+

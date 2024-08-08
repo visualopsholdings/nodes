@@ -32,6 +32,9 @@ public:
   optional<string> insert(const json &doc);
     // insert a new document.
     
+  optional<string> update(const json &query, const json &doc);
+    // update an existing document.
+    
   void aggregate(const string &filename);
     // process an aggregatin pipeline in the file.
 
