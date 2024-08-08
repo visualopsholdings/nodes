@@ -24,7 +24,7 @@ void Server::userMsg(json &j) {
     return;
   }
 
-  auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, { "id", "name", "fullname" }).value();
+  auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, { "id", "name", "fullname", "admin" }).value();
 
   send({
     { "type", "user" },

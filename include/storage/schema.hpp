@@ -147,6 +147,21 @@ public:
   
 };
 
+class InfoRow: public DynamicRow {
+
+public:
+  InfoRow(json json): DynamicRow(json) {}
+  
+};
+
+class Info: public Schema<InfoRow> {
+
+public:
+  
+  virtual string collName() { return "infos"; };
+  
+};
+
 class IndexRow: public DynamicRow {
 
 public:

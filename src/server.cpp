@@ -37,6 +37,7 @@ Server::Server(bool test, int pub, int rep, const string &dbConn, const string &
   _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1);
   _messages["stream"] = bind(&Server::streamMsg, this, placeholders::_1);
   _messages["ideas"] = bind(&Server::ideasMsg, this, placeholders::_1);
+  _messages["infos"] = bind(&Server::infosMsg, this, placeholders::_1);
 
   Storage::instance()->init(dbConn, dbName);
   

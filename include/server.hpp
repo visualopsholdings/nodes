@@ -63,6 +63,7 @@ private:
   void streamsMsg(json &json);
   void streamMsg(json &json);
   void ideasMsg(json &json);
+  void infosMsg(json &json);
   
 };
 

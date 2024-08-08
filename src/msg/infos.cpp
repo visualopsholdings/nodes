@@ -1,8 +1,8 @@
 /*
-  users.cpp
+  infosmsg.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
-  Date: 2-Jul-2024
+  Date: 7-Aug-2024
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
@@ -12,20 +12,22 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "security.hpp"
+#include "json.hpp"
 
 #include <boost/log/trivial.hpp>
 
-void Server::usersMsg(json &j) {
+void Server::infosMsg(json &j) {
 
-  auto docs = User().find(json{{}}, { "id", "modifyDate", "name", "fullname", "admin" }).values();
+  auto docs = Info().find(json{{}}, { "id", "modifyDate", "type", "text"}).values();
 
   boost::json::array s;
   for (auto i: docs.value()) {
     s.push_back(i.j());
   }
   send({
-    { "type", "users" },
-    { "users", s }
+    { "type", "infos" },
+    { "infos", s }
   });
-  
+
 }
