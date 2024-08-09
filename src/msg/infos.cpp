@@ -20,6 +20,10 @@
 void Server::infosMsg(json &j) {
 
   auto docs = Info().find(json{{}}, {"type", "text"}).values();
+  if (!docs) {
+    sendErr("no infos");
+    return;
+  }
 
   boost::json::array s;
   for (auto i: docs.value()) {
