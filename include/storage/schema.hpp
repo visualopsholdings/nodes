@@ -152,6 +152,9 @@ class InfoRow: public DynamicRow {
 public:
   InfoRow(json json): DynamicRow(json) {}
   
+  string type() const { return getString("type"); }
+  string text() const { return getString("text"); }
+  
 };
 
 class Info: public Schema<InfoRow> {

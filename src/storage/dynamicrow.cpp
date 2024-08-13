@@ -15,7 +15,7 @@
 
 #include <boost/log/trivial.hpp>
 
-string DynamicRow::getString(const string &name) {
+string DynamicRow::getString(const string &name) const {
 
   auto value = Json::getString(_json, name);
   if (!value) {
@@ -53,7 +53,7 @@ vector<string> DynamicRow::getStringArray(const string &name) {
   
 }
 
-bool DynamicRow::getBool(const string &name) {
+bool DynamicRow::getBool(const string &name) const {
   
   auto value = Json::getBool(_json, name);
   if (!value) {

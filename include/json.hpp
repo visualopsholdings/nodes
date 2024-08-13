@@ -25,10 +25,10 @@ class Json {
 public:
 
   static string toISODate(json &date);
-  static optional<string> getString(json &j, const string &name);
+  static optional<string> getString(const json &j, const string &name);
   static optional<boost::json::array> getArray(json &reply, const string &name);
   static optional<json> getObject(json &j, const string &name);
-  static optional<bool> getBool(json &j, const string &name);
+  static optional<bool> getBool(const json &j, const string &name);
 
 };
 

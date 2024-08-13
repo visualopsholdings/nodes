@@ -41,7 +41,7 @@ string Json::toISODate(json &date) {
   
 }
 
-optional<string> Json::getString(json &j, const string &name) {
+optional<string> Json::getString(const json &j, const string &name) {
 
   if (!j.is_object()) {
     BOOST_LOG_TRIVIAL(error) << "json is not object";
@@ -95,7 +95,7 @@ optional<json> Json::getObject(json &j, const string &name) {
   
 }
 
-optional<bool> Json::getBool(json &j, const string &name) {
+optional<bool> Json::getBool(const json &j, const string &name) {
 
   if (!j.is_object()) {
     BOOST_LOG_TRIVIAL(error) << "json is not object";

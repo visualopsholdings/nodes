@@ -36,11 +36,15 @@ int main(int argc, char *argv[]) {
   string certFile;
   string chainFile;
   bool test;
+  int dataReqPort;
+  int msgSubPort;
   
   po::options_description desc("Allowed options");
   desc.add_options()
     ("pubPort", po::value<int>(&pubPort)->default_value(3012), "ZMQ Pub port.")
     ("repPort", po::value<int>(&repPort)->default_value(3013), "ZMQ Rep port.")
+    ("dataReqPort", po::value<int>(&dataReqPort)->default_value(8810), "ZMQ Data Req port.")
+    ("msgSubPort", po::value<int>(&msgSubPort)->default_value(8811), "ZMQ Msg Sub port.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
     ("dbConn", po::value<string>(&dbConn)->default_value("mongodb://127.0.0.1:27017"), "DB Connection string.")
     ("dbName", po::value<string>(&dbName)->default_value("dev"), "DB name.")
@@ -84,7 +88,7 @@ int main(int argc, char *argv[]) {
   
   BOOST_LOG_TRIVIAL(info) << "Nodes 0.4, 29-Jul-2024.";
 
-  Server server(test, pubPort, repPort, dbConn, dbName, certFile, chainFile);
+  Server server(test, pubPort, repPort, dataReqPort, msgSubPort, dbConn, dbName, certFile, chainFile);
   server.run();
   
 }

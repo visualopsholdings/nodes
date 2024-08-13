@@ -27,10 +27,10 @@ public:
   json j() { return _json; }
 
 protected:
-  string getString(const string &name);
+  string getString(const string &name) const;
   vector<string> getStringArray(const string &name);
   boost::json::array getArray(const string &name);
-  bool getBool(const string &name);
+  bool getBool(const string &name) const;
   
 private:
   json _json;

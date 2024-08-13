@@ -13,11 +13,14 @@
 
 #include "storage.hpp"
 #include "json.hpp"
+#include "storage/schema.hpp"
+#include "upstream.hpp"
 
 #include <boost/log/trivial.hpp>
 
-Server::Server(bool test, int pub, int rep, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
-    _test(test), _certFile(certFile), _chainFile(chainFile) {
+Server::Server(bool test, int pub, int rep, int dataReq, int msgSub, 
+      const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
+    _test(test), _certFile(certFile), _chainFile(chainFile), _dataReqPort(dataReq), _msgSubPort(msgSub) {
 
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));
@@ -49,12 +52,18 @@ Server::~Server() {
   
 void Server::run() {
 
+  connectUpstream();
+  
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 }
   };
   const std::chrono::milliseconds timeout{500};
   while (1) {
   
+    // check connection events for upstream stuff.
+    _dataReq->check();
+    _msgSub->check();
+
 //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
     zmq::message_t message;
     zmq::poll(&items[0], 1, timeout);
@@ -96,7 +105,7 @@ void Server::run() {
 
 }
 
-void Server::sendTo(shared_ptr<zmq::socket_t> _socket, const json &j, const string &type) {
+void Server::sendTo(shared_ptr<zmq::socket_t> socket, const json &j, const string &type) {
 
   stringstream ss;
   ss << j;
@@ -108,14 +117,27 @@ void Server::sendTo(shared_ptr<zmq::socket_t> _socket, const json &j, const stri
 	memcpy(msg.data(), m.c_str(), m.length());
   try {
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-    _socket->send(msg);
+    socket->send(msg);
 #else
-    _socket->send(msg, zmq::send_flags::none);
+    socket->send(msg, zmq::send_flags::none);
 #endif
   }
   catch (zmq::error_t &e) {
     BOOST_LOG_TRIVIAL(warning) << "got exc publish" << e.what() << "(" << e.num() << ")";
   }
+
+}
+
+json Server::receiveFrom(shared_ptr<zmq::socket_t> socket) {
+
+  zmq::message_t reply;
+#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
+  socket->recv(&reply);
+#else
+  auto res = socket->recv(reply, zmq::recv_flags::none);
+#endif
+  string r((const char *)reply.data(), reply.size());
+  return boost::json::parse(r);
 
 }
 
@@ -135,7 +157,118 @@ void Server::sendAck() {
   
 }
 
-bool Server::rebootServer() {
-  return false;
+optional<string> Server::getInfo(const vector<InfoRow> &infos, const string &type) const {
+
+  auto i = find_if(infos.begin(), infos.end(), 
+    [&type](auto &e) { return e.type() == type; });
+  if (i == infos.end()) {
+    return nullopt;
+  }
+  return (*i).text();
 }
 
+void Server::connectUpstream() {
+
+  if (_dataReq) {
+    _dataReq->close();
+    _dataReq.reset();
+  }
+  if (_msgSub) {
+    _msgSub->close();
+    _msgSub.reset();
+  }
+  
+  auto docs = Info().find({{ "type", { { "$in", {"serverId", "upstream", "upstreamPubKey", "privateKey", "pubKey"}}} }}, {"type", "text"}).values();
+  if (!docs) {
+    BOOST_LOG_TRIVIAL(info) << "no infos.";
+    return;
+  }
+  auto serverId = getInfo(docs.value(), "serverId");
+  if (!serverId) {
+    BOOST_LOG_TRIVIAL(info) << "no serverId.";
+    return;
+  }
+  auto upstream = getInfo(docs.value(), "upstream");
+  if (!upstream) {
+    BOOST_LOG_TRIVIAL(info) << "no upstream.";
+    return;
+  }
+  auto upstreamPubKey = getInfo(docs.value(), "upstreamPubKey");
+  if (!upstreamPubKey) {
+    BOOST_LOG_TRIVIAL(error) << "upstream, but no upstreamPubKey";
+    return;
+  }
+  auto privateKey = getInfo(docs.value(), "privateKey");
+  if (!privateKey) {
+    BOOST_LOG_TRIVIAL(error) << "upstream, but no privateKey";
+    return;
+  }
+  auto pubKey = getInfo(docs.value(), "pubKey");
+  if (!pubKey) {
+    BOOST_LOG_TRIVIAL(error) << "upstream, but no pubKey";
+    return;
+  }
+	BOOST_LOG_TRIVIAL(trace) << "upstream: " << upstream.value();
+	BOOST_LOG_TRIVIAL(trace) << "upstreamPubKey: " << upstreamPubKey.value();
+  
+  _pubKey =  pubKey.value();
+  _serverId = serverId.value();
+  
+  _dataReq.reset(new Upstream(this, *_context, ZMQ_REQ, "dataReq", upstream.value(), _dataReqPort, 
+    upstreamPubKey.value(), privateKey.value(), _pubKey));
+  _msgSub.reset(new Upstream(this, *_context, ZMQ_SUB, "msgSub", upstream.value(), _msgSubPort, 
+    upstreamPubKey.value(), privateKey.value(), _pubKey));
+
+}
+
+void Server::goOnline() {
+
+  json j = {
+    { "type", "online" },
+    { "url", "localhost" },
+    { "build", "28474" },
+    { "name", "nodes" },
+    { "headerTitle", "Nodes" },
+    { "streamBgColor", "#00AA00" },
+    { "publicIP", "localhost" },
+    { "httpsPort", "443" },
+//    { "upstreamMirror", "true" },
+    { "hasInitialSync", "true" },
+    { "pubKey", _pubKey },
+    { "platform", "C++" },
+    { "memory", "2 GB" },
+    { "src", _serverId },
+//    { "dest", _upstreamId }    
+  };
+
+	sendTo(_dataReq, j, "req upstream");
+  j = receiveFrom(_dataReq);
+  
+  BOOST_LOG_TRIVIAL(trace) << j;
+
+  auto msg = Json::getString(j, "msg");
+  if (msg) {
+    BOOST_LOG_TRIVIAL(error) << "online err " << msg.value();
+    return;
+  }
+  
+  auto type = Json::getString(j, "type");
+  if (!type) {
+    BOOST_LOG_TRIVIAL(error) << "reply missing type";
+    return;
+  }
+  
+  if (type.value() == "upstream") {
+    auto id = Json::getString(j, "id");
+    if (!id) {
+      BOOST_LOG_TRIVIAL(error) << "got upstream with no id";
+      return;
+    }
+    _upstreamId = id.value();
+    BOOST_LOG_TRIVIAL(trace) << "uopstream " << _upstreamId;
+    return;
+  }
+  
+  BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();
+  
+}

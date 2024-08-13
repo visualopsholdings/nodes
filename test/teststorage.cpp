@@ -86,10 +86,14 @@ BOOST_AUTO_TEST_CASE( findByIds )
   
   dbSetup();
 
-  auto doc = User().findByIds({"667d0baedfb1ed18430d8ed3", "667d0baedfb1ed18430d8ed4"}, {"name"}).values();
-  BOOST_CHECK(doc);
+  auto docs = User().findByIds({"667d0baedfb1ed18430d8ed3", "667d0baedfb1ed18430d8ed4"}, {"name"}).values();
+  BOOST_CHECK(docs);
 //  cout << doc.value() << endl;
-  BOOST_CHECK_EQUAL(doc.value().size(), 2);
+  BOOST_CHECK_EQUAL(docs.value().size(), 2);
+  
+  BOOST_CHECK(find_if(docs.value().begin(), docs.value().end(), 
+    [](auto &e) { return e.name() == "tracy"; }) != docs.value().end());
+  BOOST_CHECK(find_if(docs.value().begin(), docs.value().end(), 
+    [](auto &e) { return e.name() == "xxx"; }) == docs.value().end());
   
 }
-

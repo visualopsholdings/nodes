@@ -28,7 +28,7 @@ void Server::setinfoMsg(json &j) {
       BOOST_LOG_TRIVIAL(trace) << "reset server";
       if (resetServer()) {
         sendAck();
-        rebootServer();
+        connectUpstream();
       }
       else {
         sendErr("could not reset server");
@@ -71,8 +71,8 @@ bool Server::setInfo(const string &name, const string &text) {
   
 }
 
-#define defaultUpstream "build.visualops.com"
-#define defaultUpstreamPubKey "S-ok7tO]VzL1Z.8Dk=?ym6oqobVU&bXWAd!0!VtM"
+#define defaultUpstream "nodes.visualops.com"
+#define defaultUpstreamPubKey "K]<n72U1y#9PUS.j9BpC=XNxz6HCqhRfnGbSnajO"
 
 bool Server::resetServer() {
   
