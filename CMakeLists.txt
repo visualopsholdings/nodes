@@ -82,6 +82,8 @@ set(MESSAGES
   src/msg/ideas.cpp
   src/msg/infos.cpp
   src/msg/setinfo.cpp
+  src/msg/site.cpp
+  src/msg/setsite.cpp
 )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})

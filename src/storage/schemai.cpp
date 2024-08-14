@@ -107,6 +107,26 @@ optional<string> SchemaImpl::update(const json &query, const json &doc) {
 
 }
 
+optional<string> SchemaImpl::updateById(const string &id, const json &doc) {
+
+  BOOST_LOG_TRIVIAL(trace) << "update " << id << " in " << collName();
+
+  bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
+
+  stringstream ss;
+  ss << doc;
+  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+  
+  auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
+  if (result) {
+    return "1";
+   }
+  
+  return nullopt;
+
+}
+
+
 void SchemaImpl::aggregate(const string &filename) {
 
   ifstream file(filename);

@@ -42,6 +42,8 @@ Server::Server(bool test, int pub, int rep, int dataReq, int msgSub,
   _messages["ideas"] = bind(&Server::ideasMsg, this, placeholders::_1);
   _messages["infos"] = bind(&Server::infosMsg, this, placeholders::_1);
   _messages["setinfo"] = bind(&Server::setinfoMsg, this, placeholders::_1);
+  _messages["site"] = bind(&Server::siteMsg, this, placeholders::_1);
+  _messages["setsite"] = bind(&Server::setsiteMsg, this, placeholders::_1);
 
   Storage::instance()->init(dbConn, dbName);
   

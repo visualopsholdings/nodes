@@ -35,6 +35,9 @@ public:
   optional<string> update(const json &query, const json &doc);
     // update an existing document.
     
+  optional<string> updateById(const string &id, const json &doc);
+    // update an existing document when you know the ID.
+    
   void aggregate(const string &filename);
     // process an aggregatin pipeline in the file.
 

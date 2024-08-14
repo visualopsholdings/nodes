@@ -80,6 +80,8 @@ private:
   void ideasMsg(json &json);
   void infosMsg(json &json);
   void setinfoMsg(json &json);
+  void siteMsg(json &json);
+  void setsiteMsg(json &json);
   
 };
 
