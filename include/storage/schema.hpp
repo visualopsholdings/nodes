@@ -165,6 +165,24 @@ public:
   
 };
 
+class SiteRow: public DynamicRow {
+
+public:
+  SiteRow(json json): DynamicRow(json) {}
+  
+  string headerTitle() const { return getString("headerTitle"); }
+  string streamBgColor() const { return getString("streamBgColor"); }
+
+};
+
+class Site: public Schema<SiteRow> {
+
+public:
+  
+  virtual string collName() { return "sites"; };
+  
+};
+
 class IndexRow: public DynamicRow {
 
 public:

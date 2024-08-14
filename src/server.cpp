@@ -223,20 +223,19 @@ void Server::connectUpstream() {
 
 void Server::goOnline() {
 
+  auto doc = Site().find({{}}, {}).value();
+  if (!doc) {
+    BOOST_LOG_TRIVIAL(info) << "no site.";
+    return;
+  }
+  
   json j = {
     { "type", "online" },
-    { "url", "localhost" },
     { "build", "28474" },
-    { "name", "nodes" },
-    { "headerTitle", "Nodes" },
-    { "streamBgColor", "#00AA00" },
-    { "publicIP", "localhost" },
-    { "httpsPort", "443" },
-//    { "upstreamMirror", "true" },
+    { "headerTitle", doc.value().headerTitle() },
+    { "streamBgColor", doc.value().streamBgColor() },
     { "hasInitialSync", "true" },
     { "pubKey", _pubKey },
-    { "platform", "C++" },
-    { "memory", "2 GB" },
     { "src", _serverId },
 //    { "dest", _upstreamId }    
   };

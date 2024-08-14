@@ -143,6 +143,20 @@ For other projects you will need this in your .bashrc or equivalent
 export NODES_HOME=/where/nodes/went
 ```
 
+## Testing dependencies
+
+Testing relies on the external project:
+
+https://github.com/visualopsholdings/nodes-test
+
+If this changes, you can fetch it down and rebuild again with:
+
+```
+cd build
+rm -rf _deps/nodes-test-*
+make
+```
+
 ## Companion projects
 
 ### DevOps
