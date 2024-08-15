@@ -181,7 +181,9 @@ void policyUsersMsg(zmq::socket_t &socket, const vector<string> &args) {
 
 void messageMsg(zmq::socket_t &socket, const vector<string> &args) {
 
-   if (args.size() != 3) {
+	BOOST_LOG_TRIVIAL(trace) << "message";
+
+  if (args.size() != 3) {
     BOOST_LOG_TRIVIAL(error) << "usage: message user stream text";
     return;
   }

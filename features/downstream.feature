@@ -2,7 +2,6 @@ Feature: Downstream
 
    Background:
       When there is default security
-
       And the server has id "2d105350-8598-4377-b045-238194e23bc5"
       And the server has privateKey "sM[0CH.io/U2[jvLMbB@UEU4Z]lTX@EDG2#DD7UK"
       And the server has pubKey "/9AxT<](&2X.HceOX#VoJ.zONJ#=*lgYu8hKgP*4"

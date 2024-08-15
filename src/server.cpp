@@ -63,8 +63,12 @@ void Server::run() {
   while (1) {
   
     // check connection events for upstream stuff.
-    _dataReq->check();
-    _msgSub->check();
+    if (_dataReq) {
+      _dataReq->check();
+    }
+    if (_msgSub) {
+      _msgSub->check();
+    }
 
 //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
     zmq::message_t message;

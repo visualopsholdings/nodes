@@ -22,7 +22,7 @@ void Server::siteMsg(json &j) {
 
   send({
     { "type", "site" },
-    { "site", doc.value().j() }
+    { "site", doc ? doc.value().j() : json{} }
   });
   
 }
