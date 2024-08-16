@@ -42,7 +42,7 @@ void Monitor::on_event_connected(const zmq_event_t& event, const char* addr) {
   _connected = true;
   
   if (_name == "dataReq") {
-    _server->goOnline();
+    _server->online();
   }
   
 }   

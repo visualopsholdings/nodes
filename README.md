@@ -173,7 +173,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Going online and getting a user.
+### Going online and getting a user from an upstream server.
 
 ## License
 
@@ -264,6 +264,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 13 Aug 2024
 - Implement upstream and going online to the upstream.
+
+### 16 Aug 2024
+- Implement upstream query of users and return.
 
 
 

@@ -46,7 +46,7 @@ public:
   
   void check();
   bool connected() { return _monitor->_connected; }
-  
+
 private:
   shared_ptr<Monitor> _monitor;
   

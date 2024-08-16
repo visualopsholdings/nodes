@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
   string certFile;
   string chainFile;
   bool test;
+  bool noupstream;
   int dataReqPort;
   int msgSubPort;
   
@@ -51,6 +52,7 @@ int main(int argc, char *argv[]) {
     ("certFile", po::value<string>(&certFile)->default_value(""), "Certificate file for SSL.")
     ("chainFile", po::value<string>(&chainFile)->default_value(""), "Certificate chain file for SSL.")
     ("test", po::bool_switch(&test), "We are testing so don't use VIDs.")
+    ("noupstream", po::bool_switch(&noupstream), "Ignore upstream settings.")
     ("help", "produce help message")
     ;
   po::positional_options_description p;
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]) {
   
   BOOST_LOG_TRIVIAL(info) << "Nodes 0.4, 29-Jul-2024.";
 
-  Server server(test, pubPort, repPort, dataReqPort, msgSubPort, dbConn, dbName, certFile, chainFile);
+  Server server(test, noupstream, pubPort, repPort, dataReqPort, msgSubPort, dbConn, dbName, certFile, chainFile);
   server.run();
   
 }

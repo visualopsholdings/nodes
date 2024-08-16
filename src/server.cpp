@@ -18,9 +18,12 @@
 
 #include <boost/log/trivial.hpp>
 
-Server::Server(bool test, int pub, int rep, int dataReq, int msgSub, 
+#define HEARTBEAT_INTERVAL 5 // in seconds
+
+Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, 
       const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
-    _test(test), _certFile(certFile), _chainFile(chainFile), _dataReqPort(dataReq), _msgSubPort(msgSub) {
+    _test(test), _certFile(certFile), _chainFile(chainFile), _dataReqPort(dataReq), _msgSubPort(msgSub),
+    _online(false), _lastHeartbeat(0), _noupstream(noupstream) {
 
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));
@@ -44,7 +47,12 @@ Server::Server(bool test, int pub, int rep, int dataReq, int msgSub,
   _messages["setinfo"] = bind(&Server::setinfoMsg, this, placeholders::_1);
   _messages["site"] = bind(&Server::siteMsg, this, placeholders::_1);
   _messages["setsite"] = bind(&Server::setsiteMsg, this, placeholders::_1);
+  _messages["query"] = bind(&Server::queryMsg, this, placeholders::_1);
 
+  _dataReqMessages["upstream"] =  bind(&Server::upstreamMsg, this, placeholders::_1);
+  _dataReqMessages["date"] =  bind(&Server::dateMsg, this, placeholders::_1);
+  _dataReqMessages["queryResult"] =  bind(&Server::sendOnMsg, this, placeholders::_1);
+  
   Storage::instance()->init(dbConn, dbName);
   
 }
@@ -54,61 +62,101 @@ Server::~Server() {
   
 void Server::run() {
 
-  connectUpstream();
+  if (_noupstream) {
+    BOOST_LOG_TRIVIAL(info) << "ignoring upstream.";
+  }
+  else {
+    connectUpstream();
+  }
   
-  zmq::pollitem_t items [] = {
-      { *_rep, 0, ZMQ_POLLIN, 0 }
-  };
-  const std::chrono::milliseconds timeout{500};
-  while (1) {
-  
-    // check connection events for upstream stuff.
-    if (_dataReq) {
+  if (_dataReq) {
+    zmq::pollitem_t items [] = {
+        { *_rep, 0, ZMQ_POLLIN, 0 },
+        { *_dataReq, 0, ZMQ_POLLIN, 0 }
+    };
+    const std::chrono::milliseconds timeout{500};
+    while (1) {
+    
+      // check connection events for upstream stuff.
       _dataReq->check();
-    }
-    if (_msgSub) {
-      _msgSub->check();
-    }
-
-//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
-    zmq::message_t message;
-    zmq::poll(&items[0], 1, timeout);
-  
-    if (items[0].revents & ZMQ_POLLIN) {
-      BOOST_LOG_TRIVIAL(trace) << "got rep message";
-      zmq::message_t reply;
-      try {
-#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-        _rep->recv(&reply);
-#else
-        auto res = _rep->recv(reply, zmq::recv_flags::none);
-#endif
-        // convert to JSON
-        string r((const char *)reply.data(), reply.size());
-        json doc = boost::json::parse(r);
-
-        BOOST_LOG_TRIVIAL(trace) << "got reply " << doc;
-
-        auto type = Json::getString(doc, "type");
-        if (!type) {
-          sendErr("no type");
-          continue;
-        }
-
-        BOOST_LOG_TRIVIAL(debug) << "handling " << type.value();
-        map<string, msgHandler>::iterator handler = _messages.find(type.value());
-        if (handler == _messages.end()) {
-          sendErr("unknown msg type " + type.value());
-          continue;
-        }
-        handler->second(doc);
+      if (_online) {
+        heartbeat();
       }
-      catch (zmq::error_t &e) {
-        BOOST_LOG_TRIVIAL(warning) << "got exc with rep recv" << e.what() << "(" << e.num() << ")";
+      if (_msgSub) {
+        _msgSub->check();
+      }
+  
+  //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+      zmq::message_t message;
+      zmq::poll(&items[0], 2, timeout);
+    
+      if (items[0].revents & ZMQ_POLLIN) {
+        if (!getMsg("rep", _rep, _messages)) {
+          sendErr("error in getting rep message");
+        }
+      }
+      if (items[1].revents & ZMQ_POLLIN) {
+        getMsg("dataReq", _dataReq, _dataReqMessages);
+      }
+    }
+  }
+  else {
+    zmq::pollitem_t items [] = {
+        { *_rep, 0, ZMQ_POLLIN, 0 }
+    };
+    const std::chrono::milliseconds timeout{500};
+    while (1) {
+    
+  //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+      zmq::message_t message;
+      zmq::poll(&items[0], 1, timeout);
+    
+      if (items[0].revents & ZMQ_POLLIN) {
+        if (!getMsg("rep", _rep, _messages)) {
+          sendErr("error in getting rep message");
+        }
       }
     }
   }
 
+}
+
+bool Server::getMsg(const string &name, shared_ptr<zmq::socket_t> socket, map<string, msgHandler> &handlers ) {
+
+  BOOST_LOG_TRIVIAL(trace) << "got " << name << " message";
+  zmq::message_t reply;
+  try {
+#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
+    socket->recv(&reply);
+#else
+    auto res = socket->recv(reply, zmq::recv_flags::none);
+#endif
+    // convert to JSON
+    string r((const char *)reply.data(), reply.size());
+    json doc = boost::json::parse(r);
+
+    BOOST_LOG_TRIVIAL(trace) << "got " << name << " reply "<< doc;
+
+    auto type = Json::getString(doc, "type");
+    if (!type) {
+      BOOST_LOG_TRIVIAL(error) << "no type for " << name << " reply";
+      return false;
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << "handling " << type.value();
+    map<string, msgHandler>::iterator handler = handlers.find(type.value());
+    if (handler == handlers.end()) {
+      BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();
+      return false;
+    }
+    handler->second(doc);
+  }
+  catch (zmq::error_t &e) {
+    BOOST_LOG_TRIVIAL(warning) << "got exc with " << name << " recv" << e.what() << "(" << e.num() << ")";
+  }
+
+  return true;
+  
 }
 
 void Server::sendTo(shared_ptr<zmq::socket_t> socket, const json &j, const string &type) {
@@ -224,10 +272,12 @@ void Server::connectUpstream() {
     upstreamPubKey.value(), privateKey.value(), _pubKey));
   _msgSub.reset(new Upstream(this, *_context, ZMQ_SUB, "msgSub", upstream.value(), _msgSubPort, 
     upstreamPubKey.value(), privateKey.value(), _pubKey));
-
+    
 }
 
-void Server::goOnline() {
+void Server::online() {
+
+  BOOST_LOG_TRIVIAL(trace) << "online";
 
   auto doc = Site().find({{}}, {}).value();
   if (!doc) {
@@ -235,7 +285,7 @@ void Server::goOnline() {
     return;
   }
   
-  json j = {
+	sendTo(_dataReq, {
     { "type", "online" },
     { "build", "28474" },
     { "headerTitle", doc.value().headerTitle() },
@@ -244,36 +294,22 @@ void Server::goOnline() {
     { "pubKey", _pubKey },
     { "src", _serverId },
 //    { "dest", _upstreamId }    
-  };
+  }, "req upstream");
+  
+}
 
-	sendTo(_dataReq, j, "req upstream");
-  j = receiveFrom(_dataReq);
-  
-  BOOST_LOG_TRIVIAL(trace) << j;
+void Server::heartbeat() {
 
-  auto msg = Json::getString(j, "msg");
-  if (msg) {
-    BOOST_LOG_TRIVIAL(error) << "online err " << msg.value();
+  // only every now and then.
+  time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  if (_lastHeartbeat > 0 && (now - _lastHeartbeat) < HEARTBEAT_INTERVAL) {
     return;
   }
+  _lastHeartbeat = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   
-  auto type = Json::getString(j, "type");
-  if (!type) {
-    BOOST_LOG_TRIVIAL(error) << "reply missing type";
-    return;
-  }
-  
-  if (type.value() == "upstream") {
-    auto id = Json::getString(j, "id");
-    if (!id) {
-      BOOST_LOG_TRIVIAL(error) << "got upstream with no id";
-      return;
-    }
-    _upstreamId = id.value();
-    BOOST_LOG_TRIVIAL(trace) << "uopstream " << _upstreamId;
-    return;
-  }
-  
-  BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();
-  
+	sendTo(_dataReq, {
+    { "type", "heartbeat" },
+    { "src", _serverId }
+  }, "req heartbeat");
+	
 }

@@ -30,13 +30,14 @@ typedef function<void (json &json)> msgHandler;
 class Server {
 
 public:
-  Server(bool test, int pub, int rep, int dataReq, int msgSub, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile);
+  Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile);
   ~Server();
   
   void run();
   bool resetServer();
   void connectUpstream();
-  void goOnline();
+  void online();
+  void heartbeat();
 
 private:
 
@@ -46,6 +47,7 @@ private:
   shared_ptr<Upstream> _dataReq;
   shared_ptr<Upstream> _msgSub;
   map<string, msgHandler> _messages;
+  map<string, msgHandler> _dataReqMessages;
   string _certFile;
   string _chainFile;
   int _dataReqPort;
@@ -54,6 +56,9 @@ private:
   string _pubKey;
   string _serverId;
   string _upstreamId;
+  bool _online;
+  time_t _lastHeartbeat;
+  bool _noupstream;
   
   void publish(const json &m) {
     sendTo(_pub, m, "publishing");
@@ -67,6 +72,7 @@ private:
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
   bool setInfo(const string &name, const string &text);
   optional<string> getInfo(const vector<InfoRow> &infos, const string &type) const;
+  bool getMsg(const string &name, shared_ptr<zmq::socket_t> socket, map<string, msgHandler> &handlers );
   
   // handlers
   void loginMsg(json &json);
@@ -82,6 +88,12 @@ private:
   void setinfoMsg(json &json);
   void siteMsg(json &json);
   void setsiteMsg(json &json);
+  void queryMsg(json &json);
+  
+  // dataReq handlers
+  void upstreamMsg(json &json);
+  void dateMsg(json &json);
+  void sendOnMsg(json &json);
   
 };
 

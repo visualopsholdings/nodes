@@ -84,6 +84,10 @@ set(MESSAGES
   src/msg/setinfo.cpp
   src/msg/site.cpp
   src/msg/setsite.cpp
+  src/msg/query.cpp
+  src/drmsg/upstream.cpp
+  src/drmsg/date.cpp
+  src/drmsg/sendOn.cpp
 )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
