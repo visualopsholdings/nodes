@@ -25,9 +25,11 @@ Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const str
   setsockopt(ZMQ_CURVE_SECRETKEY, privateKey.c_str(), privateKey.size());
   setsockopt(ZMQ_CURVE_PUBLICKEY, pubKey.c_str(), pubKey.size());
 #else
-  set(zmq::sockopt::curve_server, false);
+	BOOST_LOG_TRIVIAL(trace) << "setting upstreamPubKey";
   set(zmq::sockopt::curve_serverkey, upstreamPubKey);
+	BOOST_LOG_TRIVIAL(trace) << "setting privateKey";
   set(zmq::sockopt::curve_secretkey, privateKey);
+	BOOST_LOG_TRIVIAL(trace) << "setting pubKey";
   set(zmq::sockopt::curve_publickey, pubKey);
 #endif
 
