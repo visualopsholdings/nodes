@@ -223,6 +223,10 @@ optional<string> Server::getInfo(const vector<InfoRow> &infos, const string &typ
 
 void Server::connectUpstream() {
 
+  int major, minor, patch;
+  zmq_version(&major, &minor, &patch);
+  BOOST_LOG_TRIVIAL(info) << "zmq version " << major << "." << minor << "." << patch;
+  
   if (!zmq_has("curve")) {
     BOOST_LOG_TRIVIAL(info) << "no curve available";
     return;
