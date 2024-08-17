@@ -23,6 +23,7 @@ Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const str
   setsockopt(ZMQ_CURVE_SECRETKEY, privateKey.c_str(), privateKey.size());
   setsockopt(ZMQ_CURVE_PUBLICKEY, pubKey.c_str(), pubKey.size());
   string url = "tcp://" + upstream + ":" + to_string(port);
+	BOOST_LOG_TRIVIAL(trace) << "connecting to ZMQ " << url;
   connect(url);
 	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ " << name << " at "<< url;
 	
