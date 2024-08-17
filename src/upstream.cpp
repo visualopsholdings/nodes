@@ -27,9 +27,13 @@ Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const str
   _socket.setsockopt(ZMQ_CURVE_SECRETKEY, privateKey.c_str(), privateKey.size());
   _socket.setsockopt(ZMQ_CURVE_PUBLICKEY, pubKey.c_str(), pubKey.size());
 #else
+	BOOST_LOG_TRIVIAL(trace) << "setting curve server";
   _socket.set(zmq::sockopt::curve_server, curveServer);
+	BOOST_LOG_TRIVIAL(trace) << "setting curve upstreamPubKey";
   _socket.set(zmq::sockopt::curve_serverkey, upstreamPubKey);
+	BOOST_LOG_TRIVIAL(trace) << "setting curve privateKey";
   _socket.set(zmq::sockopt::curve_secretkey, privateKey);
+	BOOST_LOG_TRIVIAL(trace) << "setting curve pubKey";
   _socket.set(zmq::sockopt::curve_publickey, pubKey);
 #endif
 
