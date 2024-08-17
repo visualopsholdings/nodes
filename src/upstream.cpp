@@ -20,7 +20,7 @@ Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const str
       _socket(context, type) {
 
 	BOOST_LOG_TRIVIAL(trace) << "setting curve options";
-  static const int curveServer = 0;
+  int curveServer = 0;
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)  
   _socket.setsockopt(ZMQ_CURVE_SERVER, &curveServer, sizeof(curveServer));
   _socket.setsockopt(ZMQ_CURVE_SERVERKEY, upstreamPubKey.c_str(), upstreamPubKey.size());
