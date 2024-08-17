@@ -38,7 +38,7 @@ private:
   bool _connected;
 };
 
-class Upstream : public zmq::socket_t {
+class Upstream {
 
 public:
   Upstream(Server *_server, zmq::context_t &context, int type, const string &name, const string &upstream, int port, const string &upstreamPubKey, 
@@ -46,8 +46,10 @@ public:
   
   void check();
   bool connected() { return _monitor->_connected; }
-
+  zmq::socket_t &socket() { return _socket; }
+   
 private:
+  zmq::socket_t _socket;
   shared_ptr<Monitor> _monitor;
   
 };

@@ -61,18 +61,18 @@ private:
   bool _noupstream;
   
   void publish(const json &m) {
-    sendTo(_pub, m, "publishing");
+    sendTo(*_pub, m, "publishing");
   }
   void send(const json &m) {
-    sendTo(_rep, m, "sending");
+    sendTo(*_rep, m, "sending");
   }
   void sendErr(const string &msg);
   void sendAck();
-  void sendTo(shared_ptr<zmq::socket_t> socket, const json &j, const string &type);
+  void sendTo(zmq::socket_t &socket, const json &j, const string &type);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
   bool setInfo(const string &name, const string &text);
   optional<string> getInfo(const vector<InfoRow> &infos, const string &type) const;
-  bool getMsg(const string &name, shared_ptr<zmq::socket_t> socket, map<string, msgHandler> &handlers );
+  bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
   
   // handlers
   void loginMsg(json &json);

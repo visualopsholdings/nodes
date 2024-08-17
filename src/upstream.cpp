@@ -17,30 +17,29 @@
 
 Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const string &name, const string &upstream, int port, const string &upstreamPubKey, 
     const string &privateKey, const string &pubKey) : 
-      zmq::socket_t(context, type) {
+      _socket(context, type) {
 
 	BOOST_LOG_TRIVIAL(trace) << "setting curve options";
+  static const int curveServer = 0;
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)  
-  setsockopt(ZMQ_CURVE_SERVERKEY, upstreamPubKey.c_str(), upstreamPubKey.size());
-  setsockopt(ZMQ_CURVE_SECRETKEY, privateKey.c_str(), privateKey.size());
-  setsockopt(ZMQ_CURVE_PUBLICKEY, pubKey.c_str(), pubKey.size());
+  _socket.setsockopt(ZMQ_CURVE_SERVER, &curveServer, sizeof(curveServer));
+  _socket.setsockopt(ZMQ_CURVE_SERVERKEY, upstreamPubKey.c_str(), upstreamPubKey.size());
+  _socket.setsockopt(ZMQ_CURVE_SECRETKEY, privateKey.c_str(), privateKey.size());
+  _socket.setsockopt(ZMQ_CURVE_PUBLICKEY, pubKey.c_str(), pubKey.size());
 #else
-  set(zmq::sockopt::curve_server, false);
-	BOOST_LOG_TRIVIAL(trace) << "setting upstreamPubKey";
-  set(zmq::sockopt::curve_serverkey, upstreamPubKey);
-	BOOST_LOG_TRIVIAL(trace) << "setting privateKey";
-  set(zmq::sockopt::curve_secretkey, privateKey);
-	BOOST_LOG_TRIVIAL(trace) << "setting pubKey";
-  set(zmq::sockopt::curve_publickey, pubKey);
+  _socket.set(zmq::sockopt::curve_server, curveServer);
+  _socket.set(zmq::sockopt::curve_serverkey, upstreamPubKey);
+  _socket.set(zmq::sockopt::curve_secretkey, privateKey);
+  _socket.set(zmq::sockopt::curve_publickey, pubKey);
 #endif
 
   string url = "tcp://" + upstream + ":" + to_string(port);
 	BOOST_LOG_TRIVIAL(trace) << "connecting to ZMQ " << url;
-  connect(url);
+  _socket.connect(url);
 	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ " << name << " at "<< url;
 	
   _monitor.reset(new Monitor(_server, name));
-  _monitor->init(*this, "inproc://" + name, ZMQ_EVENT_CONNECTED + ZMQ_EVENT_DISCONNECTED);
+  _monitor->init(_socket, "inproc://" + name, ZMQ_EVENT_CONNECTED + ZMQ_EVENT_DISCONNECTED);
 
 }
 

@@ -72,7 +72,7 @@ void Server::run() {
   if (_dataReq) {
     zmq::pollitem_t items [] = {
         { *_rep, 0, ZMQ_POLLIN, 0 },
-        { *_dataReq, 0, ZMQ_POLLIN, 0 }
+        { _dataReq->socket(), 0, ZMQ_POLLIN, 0 }
     };
     const std::chrono::milliseconds timeout{500};
     while (1) {
@@ -91,12 +91,12 @@ void Server::run() {
       zmq::poll(&items[0], 2, timeout);
     
       if (items[0].revents & ZMQ_POLLIN) {
-        if (!getMsg("rep", _rep, _messages)) {
+        if (!getMsg("rep", *_rep, _messages)) {
           sendErr("error in getting rep message");
         }
       }
       if (items[1].revents & ZMQ_POLLIN) {
-        getMsg("dataReq", _dataReq, _dataReqMessages);
+        getMsg("dataReq", _dataReq->socket(), _dataReqMessages);
       }
     }
   }
@@ -112,7 +112,7 @@ void Server::run() {
       zmq::poll(&items[0], 1, timeout);
     
       if (items[0].revents & ZMQ_POLLIN) {
-        if (!getMsg("rep", _rep, _messages)) {
+        if (!getMsg("rep", *_rep, _messages)) {
           sendErr("error in getting rep message");
         }
       }
@@ -121,15 +121,15 @@ void Server::run() {
 
 }
 
-bool Server::getMsg(const string &name, shared_ptr<zmq::socket_t> socket, map<string, msgHandler> &handlers ) {
+bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers ) {
 
   BOOST_LOG_TRIVIAL(trace) << "got " << name << " message";
   zmq::message_t reply;
   try {
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-    socket->recv(&reply);
+    socket.recv(&reply);
 #else
-    auto res = socket->recv(reply, zmq::recv_flags::none);
+    auto res = socket.recv(reply, zmq::recv_flags::none);
 #endif
     // convert to JSON
     string r((const char *)reply.data(), reply.size());
@@ -159,7 +159,7 @@ bool Server::getMsg(const string &name, shared_ptr<zmq::socket_t> socket, map<st
   
 }
 
-void Server::sendTo(shared_ptr<zmq::socket_t> socket, const json &j, const string &type) {
+void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type) {
 
   stringstream ss;
   ss << j;
@@ -171,9 +171,9 @@ void Server::sendTo(shared_ptr<zmq::socket_t> socket, const json &j, const strin
 	memcpy(msg.data(), m.c_str(), m.length());
   try {
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-    socket->send(msg);
+    socket.send(msg);
 #else
-    socket->send(msg, zmq::send_flags::none);
+    socket.send(msg, zmq::send_flags::none);
 #endif
   }
   catch (zmq::error_t &e) {
@@ -224,11 +224,11 @@ optional<string> Server::getInfo(const vector<InfoRow> &infos, const string &typ
 void Server::connectUpstream() {
 
   if (_dataReq) {
-    _dataReq->close();
+    _dataReq->socket().close();
     _dataReq.reset();
   }
   if (_msgSub) {
-    _msgSub->close();
+    _msgSub->socket().close();
     _msgSub.reset();
   }
   
@@ -288,7 +288,7 @@ void Server::online() {
     return;
   }
   
-	sendTo(_dataReq, {
+	sendTo(_dataReq->socket(), {
     { "type", "online" },
     { "build", "28474" },
     { "headerTitle", doc.value().headerTitle() },
@@ -310,7 +310,7 @@ void Server::heartbeat() {
   }
   _lastHeartbeat = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   
-	sendTo(_dataReq, {
+	sendTo(_dataReq->socket(), {
     { "type", "heartbeat" },
     { "src", _serverId }
   }, "req heartbeat");

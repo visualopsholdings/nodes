@@ -44,7 +44,7 @@ void Server::queryMsg(json &j) {
   json user = {
     { "email", email.value() }
   };
-	sendTo(_dataReq, {
+	sendTo(_dataReq->socket(), {
     { "type", "query" },
     { "user", user },
     { "src", _serverId }
