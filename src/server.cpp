@@ -262,12 +262,15 @@ void Server::connectUpstream() {
     BOOST_LOG_TRIVIAL(error) << "upstream, but no pubKey";
     return;
   }
-	BOOST_LOG_TRIVIAL(trace) << "upstream: " << upstream.value();
-	BOOST_LOG_TRIVIAL(trace) << "upstreamPubKey: " << upstreamPubKey.value();
   
   _pubKey =  pubKey.value();
   _serverId = serverId.value();
   
+	BOOST_LOG_TRIVIAL(trace) << "upstream: " << upstream.value();
+	BOOST_LOG_TRIVIAL(trace) << "upstreamPubKey: " << upstreamPubKey.value();
+	BOOST_LOG_TRIVIAL(trace) << "privateKey: " << privateKey.value();
+	BOOST_LOG_TRIVIAL(trace) << "_pubKey: " << _pubKey;
+
   _dataReq.reset(new Upstream(this, *_context, ZMQ_REQ, "dataReq", upstream.value(), _dataReqPort, 
     upstreamPubKey.value(), privateKey.value(), _pubKey));
   _msgSub.reset(new Upstream(this, *_context, ZMQ_SUB, "msgSub", upstream.value(), _msgSubPort, 
