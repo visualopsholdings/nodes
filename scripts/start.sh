@@ -34,4 +34,5 @@ fi
   --logLevel=trace \
   --dbConn=mongodb://$DBNAME:$DBPASS@127.0.0.1:27017/?authSource=$DBNAME \
   --dbName=$DBNAME $CERTS \
+  --noupstream \
   > nodes.log 2>&1 &
