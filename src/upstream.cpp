@@ -19,6 +19,7 @@ Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const str
     const string &privateKey, const string &pubKey) : 
       zmq::socket_t(context, type) {
 
+	BOOST_LOG_TRIVIAL(trace) << "setting curve options";
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)  
   setsockopt(ZMQ_CURVE_SERVERKEY, upstreamPubKey.c_str(), upstreamPubKey.size());
   setsockopt(ZMQ_CURVE_SECRETKEY, privateKey.c_str(), privateKey.size());
