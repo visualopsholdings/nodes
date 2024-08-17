@@ -24,9 +24,9 @@ Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const str
   setsockopt(ZMQ_CURVE_SECRETKEY, privateKey.c_str(), privateKey.size());
   setsockopt(ZMQ_CURVE_PUBLICKEY, pubKey.c_str(), pubKey.size());
 #else
-  set(zmq::sockopt::curve_serverkey, upstreamPubKey.c_str(), upstreamPubKey.size());
-  set(zmq::sockopt::curve_secretkey, privateKey.c_str(), privateKey.size());
-  set(zmq::sockopt::curve_publickey, pubKey.c_str(), pubKey.size());
+  set(zmq::sockopt::curve_serverkey, upstreamPubKey.c_str());
+  set(zmq::sockopt::curve_secretkey, privateKey.c_str());
+  set(zmq::sockopt::curve_publickey, pubKey.c_str());
 #endif
 
   string url = "tcp://" + upstream + ":" + to_string(port);
