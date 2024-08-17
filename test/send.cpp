@@ -123,14 +123,22 @@ void send(zmq::socket_t &socket, const json &json) {
   string m = ss.str();
   zmq::message_t msg(m.length());
   memcpy(msg.data(), m.c_str(), m.length());
-  socket.send(msg);
+#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
+    socket.send(msg);
+#else
+    socket.send(msg, zmq::send_flags::none);
+#endif
 
 }
 
 json receive(zmq::socket_t &socket) {
 
   zmq::message_t reply;
+#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
   socket.recv(&reply);
+#else
+  auto res = socket.recv(reply, zmq::recv_flags::none);
+#endif
   string r((const char *)reply.data(), reply.size());
   return boost::json::parse(r);
 
