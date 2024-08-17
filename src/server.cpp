@@ -62,6 +62,11 @@ Server::~Server() {
   
 void Server::run() {
 
+  if (!zmq_has("curve")) {
+    BOOST_LOG_TRIVIAL(info) << "no curve available";
+    return;
+  }
+
   if (_noupstream) {
     BOOST_LOG_TRIVIAL(info) << "ignoring upstream.";
   }
