@@ -36,6 +36,12 @@ void Server::queryMsg(json &j) {
     return;
   }
 
+  auto socketid = Json::getString(j, "socketid");
+  if (!socketid) {
+    sendErr("require socketid for user query");
+    return;
+  }
+
   if (!_online) {
     sendErr("not online with upstream");
     return;
@@ -47,6 +53,7 @@ void Server::queryMsg(json &j) {
 	sendTo(_dataReq->socket(), {
     { "type", "query" },
     { "user", user },
+    { "socketid", socketid.value() },
     { "src", _serverId }
   }, "req query");
     
