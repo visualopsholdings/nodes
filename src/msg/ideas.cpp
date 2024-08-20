@@ -17,18 +17,20 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::ideasMsg(json &j) {
+namespace nodes {
+
+void ideasMsg(Server *server, json &j) {
 
   auto streamid = Json::getString(j, "stream");
   if (!streamid) {
-    sendErr("no stream");
+    server->sendErr("no stream");
     return;
   }
 
   auto docs = Idea().find(json{ { "stream", streamid.value() } }).values();
   if (!docs) {
     boost::json::array empty;
-    send({
+    server->send({
       { "type", "ideas" },
       { "stream", streamid.value() },
       { "ideas", empty }
@@ -41,10 +43,12 @@ void Server::ideasMsg(json &j) {
     s.push_back(i.j());
   }
 
-  send({
+  server->send({
     { "type", "ideas" },
     { "stream", streamid.value() },
     { "ideas", s }
   });
 
 }
+
+};

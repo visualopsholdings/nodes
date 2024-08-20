@@ -16,13 +16,17 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::siteMsg(json &j) {
+namespace nodes {
+
+void siteMsg(Server *server, json &j) {
 
   auto doc = Site().find(json{{}}, {}).value();
 
-  send({
+  server->send({
     { "type", "site" },
     { "site", doc ? doc.value().j() : json{} }
   });
   
 }
+
+};

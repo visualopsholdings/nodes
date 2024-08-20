@@ -13,12 +13,16 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::dateMsg(json &j) {
+namespace nodes {
+
+void dateMsg(Server *server, json &j) {
    
   BOOST_LOG_TRIVIAL(trace) << "date " << j;
      
-  if (!_online) {
-    online();
+  if (!server->_online) {
+    server->online();
   }
   
 }
+
+};

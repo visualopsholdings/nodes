@@ -16,23 +16,27 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::streamMsg(json &j) {
+namespace nodes {
+
+void streamMsg(Server *server, json &j) {
 
   auto streamid = Json::getString(j, "stream");
   if (!streamid) {
-    sendErr("no stream");
+    server->sendErr("no stream");
     return;
   }
 
   auto doc = Stream().find(json{ { "_id", { { "$oid", streamid.value() } } } }).value();
   if (!doc) {
-    sendErr("DB Error");
+    server->sendErr("DB Error");
     return;
   }
 
-  send({
+  server->send({
     { "type", "stream" },
     { "stream", doc.value().j() }
   });
 
 }
+
+};

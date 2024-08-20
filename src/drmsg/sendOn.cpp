@@ -13,8 +13,12 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::sendOnMsg(json &j) {
+namespace nodes {
+
+void sendOnMsg(Server *server, json &j) {
    
-  publish(j);
+  server->publish(j);
   
 }
+
+};

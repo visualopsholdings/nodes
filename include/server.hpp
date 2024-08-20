@@ -39,6 +39,23 @@ public:
   void online();
   void heartbeat();
 
+  void publish(const json &m) {
+    sendTo(*_pub, m, "publishing");
+  }
+  void send(const json &m) {
+    sendTo(*_rep, m, "sending");
+  }
+  void sendErr(const string &msg);
+  void sendAck();
+  void sendDataReq(const json &m);
+
+  string _certFile;
+  string _chainFile;
+  bool _test;
+  bool _online;
+  string _serverId;
+  string _upstreamId;
+
 private:
 
   shared_ptr<zmq::context_t> _context;
@@ -48,53 +65,18 @@ private:
   shared_ptr<Upstream> _msgSub;
   map<string, msgHandler> _messages;
   map<string, msgHandler> _dataReqMessages;
-  string _certFile;
-  string _chainFile;
   int _dataReqPort;
   int _msgSubPort;
-  bool _test;
   string _pubKey;
-  string _serverId;
-  string _upstreamId;
-  bool _online;
   time_t _lastHeartbeat;
   bool _noupstream;
   
-  void publish(const json &m) {
-    sendTo(*_pub, m, "publishing");
-  }
-  void send(const json &m) {
-    sendTo(*_rep, m, "sending");
-  }
-  void sendErr(const string &msg);
-  void sendAck();
   void sendTo(zmq::socket_t &socket, const json &j, const string &type);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
   bool setInfo(const string &name, const string &text);
   optional<string> getInfo(const vector<InfoRow> &infos, const string &type) const;
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
-  
-  // handlers
-  void loginMsg(json &json);
-  void policyUsersMsg(json &json);
-  void messageMsg(json &json);
-  void certsMsg(json &json);
-  void usersMsg(json &json);
-  void userMsg(json &json);
-  void streamsMsg(json &json);
-  void streamMsg(json &json);
-  void ideasMsg(json &json);
-  void infosMsg(json &json);
-  void setinfoMsg(json &json);
-  void siteMsg(json &json);
-  void setsiteMsg(json &json);
-  void queryMsg(json &json);
-  
-  // dataReq handlers
-  void upstreamMsg(json &json);
-  void dateMsg(json &json);
-  void sendOnMsg(json &json);
-  
+    
 };
 
 #endif // H_server

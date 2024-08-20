@@ -17,11 +17,13 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::infosMsg(json &j) {
+namespace nodes {
+
+void infosMsg(Server *server, json &j) {
 
   auto docs = Info().find(json{{}}, {"type", "text"}).values();
   if (!docs) {
-    sendErr("no infos");
+    server->sendErr("no infos");
     return;
   }
 
@@ -29,9 +31,11 @@ void Server::infosMsg(json &j) {
   for (auto i: docs.value()) {
     s.push_back(i.j());
   }
-  send({
+  server->send({
     { "type", "infos" },
     { "infos", s }
   });
 
 }
+
+};

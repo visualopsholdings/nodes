@@ -17,18 +17,20 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::streamsMsg(json &j) {
+namespace nodes {
+
+void streamsMsg(Server *server, json &j) {
 
   auto userid = Json::getString(j, "user");
   if (!userid) {
-    sendErr("no user");
+    server->sendErr("no user");
     return;
   }
 
   Stream streams;
   auto docs = Security::instance()->withView(streams, userid.value(), {{}}, { "id", "name", "policy" });
   if (!docs) {
-    sendErr("DB Error");
+    server->sendErr("DB Error");
     return;
   }
 //  BOOST_LOG_TRIVIAL(trace) << docs.value();
@@ -36,10 +38,12 @@ void Server::streamsMsg(json &j) {
   for (auto i: docs.value()) {
     s.push_back(i.j());
   }
-  send({
+  server->send({
     { "type", "streams" },
     { "user", userid.value() },
     { "streams", s }
   });
 
 }
+
+};

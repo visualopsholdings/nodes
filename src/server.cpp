@@ -17,8 +17,37 @@
 #include "upstream.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp> 
 
 #define HEARTBEAT_INTERVAL 5 // in seconds
+
+namespace nodes {
+
+// handlers
+void loginMsg(Server *server, json &json);
+void policyUsersMsg(Server *server, json &json);
+void messageMsg(Server *server, json &json);
+void certsMsg(Server *server, json &json);
+void usersMsg(Server *server, json &json);
+void userMsg(Server *server, json &json);
+void streamsMsg(Server *server, json &json);
+void streamMsg(Server *server, json &json);
+void ideasMsg(Server *server, json &json);
+void infosMsg(Server *server, json &json);
+void setinfoMsg(Server *server, json &json);
+void siteMsg(Server *server, json &json);
+void setsiteMsg(Server *server, json &json);
+void queryMsg(Server *server, json &json);
+void newUserMsg(Server *server, json &json);
+
+// dataReq handlers
+void upstreamMsg(Server *server, json &json);
+void dateMsg(Server *server, json &json);
+void sendOnMsg(Server *server, json &json);
+
+}
 
 Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, 
       const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
@@ -34,24 +63,25 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
 	BOOST_LOG_TRIVIAL(info) << "Bound to ZMQ as Local REP on " << rep;
 
-  _messages["certs"] = bind(&Server::certsMsg, this, placeholders::_1);
-  _messages["login"] = bind(&Server::loginMsg, this, placeholders::_1);
-  _messages["policyusers"] = bind(&Server::policyUsersMsg, this, placeholders::_1);
-  _messages["message"] = bind(&Server::messageMsg, this, placeholders::_1);
-  _messages["users"] = bind(&Server::usersMsg, this, placeholders::_1);
-  _messages["user"] = bind(&Server::userMsg, this, placeholders::_1);
-  _messages["streams"] = bind(&Server::streamsMsg, this, placeholders::_1);
-  _messages["stream"] = bind(&Server::streamMsg, this, placeholders::_1);
-  _messages["ideas"] = bind(&Server::ideasMsg, this, placeholders::_1);
-  _messages["infos"] = bind(&Server::infosMsg, this, placeholders::_1);
-  _messages["setinfo"] = bind(&Server::setinfoMsg, this, placeholders::_1);
-  _messages["site"] = bind(&Server::siteMsg, this, placeholders::_1);
-  _messages["setsite"] = bind(&Server::setsiteMsg, this, placeholders::_1);
-  _messages["query"] = bind(&Server::queryMsg, this, placeholders::_1);
+  _messages["certs"] = bind(&nodes::certsMsg, this, placeholders::_1);
+  _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
+  _messages["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
+  _messages["message"] = bind(&nodes::messageMsg, this, placeholders::_1);
+  _messages["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
+  _messages["user"] = bind(&nodes::userMsg, this, placeholders::_1);
+  _messages["streams"] = bind(&nodes::streamsMsg, this, placeholders::_1);
+  _messages["stream"] = bind(&nodes::streamMsg, this, placeholders::_1);
+  _messages["ideas"] = bind(&nodes::ideasMsg, this, placeholders::_1);
+  _messages["infos"] = bind(&nodes::infosMsg, this, placeholders::_1);
+  _messages["setinfo"] = bind(&nodes::setinfoMsg, this, placeholders::_1);
+  _messages["site"] = bind(&nodes::siteMsg, this, placeholders::_1);
+  _messages["setsite"] = bind(&nodes::setsiteMsg, this, placeholders::_1);
+  _messages["query"] = bind(&nodes::queryMsg, this, placeholders::_1);
+  _messages["newuser"] = bind(&nodes::newUserMsg, this, placeholders::_1);
 
-  _dataReqMessages["upstream"] =  bind(&Server::upstreamMsg, this, placeholders::_1);
-  _dataReqMessages["date"] =  bind(&Server::dateMsg, this, placeholders::_1);
-  _dataReqMessages["queryResult"] =  bind(&Server::sendOnMsg, this, placeholders::_1);
+  _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
+  _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
+  _dataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName);
   
@@ -196,11 +226,13 @@ json Server::receiveFrom(shared_ptr<zmq::socket_t> socket) {
 }
 
 void Server::sendErr(const string &msg) {
+
   BOOST_LOG_TRIVIAL(error) << msg;
   send({ 
     { "type", "err" }, 
     { "msg", msg } 
   });
+  
 }
 
 void Server::sendAck() {
@@ -208,6 +240,12 @@ void Server::sendAck() {
   send({ 
     { "type", "ack" } 
   });
+  
+}
+
+void Server::sendDataReq(const json &m) {
+
+  sendTo(_dataReq->socket(), m, "dataReq");
   
 }
 
@@ -324,4 +362,71 @@ void Server::heartbeat() {
     { "src", _serverId }
   }, "req heartbeat");
 	
+}
+
+bool Server::setInfo(const string &name, const string &text) {
+
+  auto doc = Info().find({{ "type", name }}, {"text"}).value();
+  if (doc) {
+    BOOST_LOG_TRIVIAL(trace) << "info old value " << doc.value().j();
+    auto result = Info().update({{ "type", name }}, {{ "$set", {{ "text", text }} }});
+    if (!result) {
+      BOOST_LOG_TRIVIAL(error) << "could not update info";
+      return false;
+    }
+    BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+    return true;
+  }
+
+  auto result = Info().insert({
+    { "type", name },
+    { "text", text }
+  });
+  if (!result) {
+    BOOST_LOG_TRIVIAL(error) << "could not insert info";
+    return false;
+  }
+  BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
+  return true;
+  
+}
+
+#define defaultUpstream "nodes.visualops.com"
+#define defaultUpstreamPubKey "K]<n72U1y#9PUS.j9BpC=XNxz6HCqhRfnGbSnajO"
+
+bool Server::resetServer() {
+  
+  char pubkey[41];
+  char seckey[41];
+  int rc = zmq_curve_keypair(pubkey, seckey);
+  if (rc != 0) {
+    BOOST_LOG_TRIVIAL(error) << "failed to generate key pair " << rc;
+    return false;
+  }
+  
+  if (!setInfo("privateKey", seckey)) {
+    return false;
+  }
+  if (!setInfo("pubKey", pubkey)) {
+    return false;
+  }
+  if (!setInfo("upstream", defaultUpstream)) {
+    return false;
+  }
+  if (!setInfo("upstreamPubKey", defaultUpstreamPubKey)) {
+    return false;
+  }
+  
+  // clear out all these flags.
+  Info().deleteMany({{ "type", { { "$in", {"serverId", "upstreamMirror", "hasInitialSync", "upstreamLastSeen"}}} }});
+  
+  // generate a new server ID.
+  boost::uuids::uuid uuid = boost::uuids::random_generator()();
+  stringstream ss;
+  ss << uuid;
+  if (!setInfo("serverId", ss.str())) {
+    return false;
+  }
+  
+  return true;
 }

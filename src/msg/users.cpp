@@ -15,7 +15,9 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::usersMsg(json &j) {
+namespace nodes {
+
+void usersMsg(Server *server, json &j) {
 
   auto docs = User().find(json{{}}, { "id", "modifyDate", "name", "fullname", "admin" }).values();
 
@@ -23,9 +25,11 @@ void Server::usersMsg(json &j) {
   for (auto i: docs.value()) {
     s.push_back(i.j());
   }
-  send({
+  server->send({
     { "type", "users" },
     { "users", s }
   });
   
 }
+
+};

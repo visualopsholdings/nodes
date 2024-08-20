@@ -18,24 +18,26 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::loginMsg(json &j) {
+namespace nodes {
+
+void loginMsg(Server *server, json &j) {
 
   auto session = Json::getString(j, "session");
   if (!session) {
-    sendErr("no session");
+    server->sendErr("no session");
     return;
   }
   auto password = Json::getString(j, "password");
   if (!password) {
-    sendErr("no password");
+    server->sendErr("no password");
     return;
   }
   
   optional<UserRow> user;
-  if (_test) {
+  if (server->_test) {
     user = User().find(json{ { "name", password.value() } }, {"name", "fullname", "admin"}).value();
     if (!user) {
-      sendErr("Username/Password incorrect");
+      server->sendErr("Username/Password incorrect");
       return;
     }
   }
@@ -43,24 +45,24 @@ void Server::loginMsg(json &j) {
     // use password.
     VID vid(password.value());
     if (!vid.valid()) {
-      sendErr("Invalid VID");
+      server->sendErr("Invalid VID");
       return;
     }
     user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin"}).value();
     if (!user) {
       BOOST_LOG_TRIVIAL(trace) << "couldn't find user";
-      sendErr("Username/Password incorrect");
+      server->sendErr("Username/Password incorrect");
       return;
     }
     if (!Security::instance()->valid(vid, user->salt(), user->hash())) {
       BOOST_LOG_TRIVIAL(trace) << "password incorrect salt(" << user->salt()  << ") hash(" << user->hash() << ")";
-      sendErr("Username/Password incorrect");
+      server->sendErr("Username/Password incorrect");
       return;
     }
   }
 //  BOOST_LOG_TRIVIAL(trace) << user.value().j();
   
-  send({
+  server->send({
     { "type", "user" },
     { "session", session.value() },
     { "id", user->id() },
@@ -70,3 +72,5 @@ void Server::loginMsg(json &j) {
   });
 
 }
+
+};

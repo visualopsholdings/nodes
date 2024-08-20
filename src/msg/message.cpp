@@ -16,27 +16,29 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::messageMsg(json &j) {
+namespace nodes {
+
+void messageMsg(Server *server, json &j) {
 
   auto userid = Json::getString(j, "user");
   if (!userid) {
-    sendErr("no user");
+    server->sendErr("no user");
     return;
   }
 
   if (!User().findById(userid.value(), { "id" }).value()) {
-    sendErr("User not found");
+    server->sendErr("User not found");
     return;
   }
   
   auto streamid = Json::getString(j, "stream");
   if (!streamid) {
-    sendErr("no stream");
+    server->sendErr("no stream");
     return;
   }
   
 //   if (!Stream().findById(streamid.value(), { "id" }).value()) {
-//     sendErr("Stream not found");
+//     server->sendErr("Stream not found");
 //     return;
 //   }
 
@@ -49,20 +51,20 @@ void Server::messageMsg(json &j) {
   else {
     auto doc = Stream().findById(streamid.value(), {"policy"}).value();
     if (!doc) {
-      sendErr("invalid stream");
+      server->sendErr("invalid stream");
       return;
     }
     policyid = doc->policy();
   }
 
 //   if (!Policy().findById(policyid.value(), { "id" }).value()) {
-//     sendErr("Policy not found");
+//     server->sendErr("Policy not found");
 //     return;
 //   }
 
   auto text = Json::getString(j, "text");
   if (!text) {
-    sendErr("no text");
+    server->sendErr("no text");
     return;
   }
   
@@ -77,14 +79,16 @@ void Server::messageMsg(json &j) {
   };
   auto result = Idea().insert(idea);
   if (!result) {
-    sendErr("DB Error");
+    server->sendErr("DB Error");
     return;
   }
   BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
     
   idea.as_object()["type"] = "idea";
-  publish(idea);
+  server->publish(idea);
 
-  sendAck();
+  server->sendAck();
 
 }
+
+};

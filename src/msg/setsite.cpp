@@ -17,11 +17,13 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::setsiteMsg(json &j) {
+namespace nodes {
+
+void setsiteMsg(Server *server, json &j) {
 
   auto id = Json::getString(j, "id");
   if (!id) {
-    sendErr("no id in site");
+    server->sendErr("no id in site");
     return;
   }  
   
@@ -32,11 +34,11 @@ void Server::setsiteMsg(json &j) {
     BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
     auto result = Site().updateById(id.value(), obj);
     if (!result) {
-      sendErr("could not update site");
+      server->sendErr("could not update site");
       return;
     }
     BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
-    sendAck();
+    server->sendAck();
     return;
   }
 
@@ -45,12 +47,13 @@ void Server::setsiteMsg(json &j) {
     { "streamBgColor", Json::getString(j, "streamBgColor").value() }
   });
   if (!result) {
-    sendErr("could not insert site");
+    server->sendErr("could not insert site");
     return;
   }
   
   BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
-  sendAck();
+  server->sendAck();
   
 }
 
+};

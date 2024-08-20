@@ -15,21 +15,25 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::certsMsg(json &j) {
+namespace nodes {
 
-  if (_certFile.empty()) {
-    send({
+void certsMsg(Server *server, json &j) {
+
+  if (server->_certFile.empty()) {
+    server->send({
       { "type", "certs" }, 
       { "ssl", false }
     });
   }
   else {
-    send({
+    server->send({
       { "type", "certs" }, 
       { "ssl", true },
-      { "certFile", _certFile }, 
-      { "chainFile", _chainFile }
+      { "certFile", server->_certFile }, 
+      { "chainFile", server->_chainFile }
     });
   }
 
 }
+
+};

@@ -15,7 +15,9 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::upstreamMsg(json &j) {
+namespace nodes {
+
+void upstreamMsg(Server *server, json &j) {
    
   auto msg = Json::getString(j, "msg");
   if (msg) {
@@ -35,11 +37,13 @@ void Server::upstreamMsg(json &j) {
       BOOST_LOG_TRIVIAL(error) << "got upstream with no id";
       return;
     }
-    _upstreamId = id.value();
-    _online = true;
-    BOOST_LOG_TRIVIAL(trace) << "upstream " << _upstreamId;
+    server->_upstreamId = id.value();
+    server->_online = true;
+    BOOST_LOG_TRIVIAL(trace) << "upstream " << server->_upstreamId;
     return;
   }
   BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();
      
 }
+
+};

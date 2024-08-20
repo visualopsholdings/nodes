@@ -17,46 +17,50 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::queryMsg(json &j) {
+namespace nodes {
+
+void queryMsg(Server *server, json &j) {
 
   auto objtype = Json::getString(j, "objtype");
   if (!objtype) {
-    sendErr("require objtype");
+    server->sendErr("require objtype");
     return;
   }
   
   if (objtype.value() != "user") {
-    sendErr("only user queries available");
+    server->sendErr("only user queries available");
     return;
   }
   
   auto email = Json::getString(j, "email");
   if (!email) {
-    sendErr("require email for user query");
+    server->sendErr("require email for user query");
     return;
   }
 
   auto socketid = Json::getString(j, "socketid");
   if (!socketid) {
-    sendErr("require socketid for user query");
+    server->sendErr("require socketid for user query");
     return;
   }
 
-  if (!_online) {
-    sendErr("not online with upstream");
+  if (!server->_online) {
+    server->sendErr("not online with upstream");
     return;
   }
  
   json user = {
     { "email", email.value() }
   };
-	sendTo(_dataReq->socket(), {
+	server->sendDataReq({
     { "type", "query" },
     { "user", user },
     { "socketid", socketid.value() },
-    { "src", _serverId }
-  }, "req query");
+    { "src", server->_serverId }
+  });
     
-  sendAck();
+  server->sendAck();
   
 }
+
+};

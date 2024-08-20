@@ -17,11 +17,13 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::policyUsersMsg(json &j) {
+namespace nodes {
+
+void policyUsersMsg(Server *server, json &j) {
 
   auto policyid = Json::getString(j, "policy");
   if (!policyid) {
-    sendErr("no policy");
+    server->sendErr("no policy");
     return;
   }
 
@@ -36,10 +38,12 @@ void Server::policyUsersMsg(json &j) {
     }
   }
 
-  send({
+  server->send({
     { "type", "policyusers" },
     { "id", policyid.value() },
     { "users", users }
   });
   
 }
+
+};

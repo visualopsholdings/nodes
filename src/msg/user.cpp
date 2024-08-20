@@ -16,19 +16,28 @@
 
 #include <boost/log/trivial.hpp>
 
-void Server::userMsg(json &j) {
+namespace nodes {
+
+void userMsg(Server *server, json &j) {
 
   auto userid = Json::getString(j, "user");
   if (!userid) {
-    sendErr("no userid");
+    server->sendErr("no userid");
     return;
   }
 
   auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, { "id", "name", "fullname", "admin" }).value();
 
-  send({
+  if (!doc) {
+    server->sendErr("can't find user " + userid.value());
+    return;
+  }
+  
+  server->send({
     { "type", "user" },
     { "user", doc.value().j() }
   });
   
 }
+
+};
