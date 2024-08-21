@@ -90,6 +90,8 @@ set(MESSAGES
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp
+  src/drmsg/discoverLocalResult.cpp
+  src/drmsg/discoverResult.cpp
 )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})

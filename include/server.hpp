@@ -38,6 +38,8 @@ public:
   void connectUpstream();
   void online();
   void heartbeat();
+  void discoverLocal();
+  void discover();
 
   void publish(const json &m) {
     sendTo(*_pub, m, "publishing");
@@ -77,6 +79,7 @@ private:
   bool setInfo(const string &name, const string &text);
   optional<string> getInfo(const vector<InfoRow> &infos, const string &type) const;
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
+  string get1Info(const string &type);
     
 };
 

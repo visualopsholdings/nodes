@@ -173,7 +173,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Going online and getting a user from an upstream server.
+### Synchronizing users with an upstream server.
 
 ## License
 

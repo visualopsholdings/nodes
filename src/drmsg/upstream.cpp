@@ -32,14 +32,29 @@ void upstreamMsg(Server *server, json &j) {
   }
   
   if (type.value() == "upstream") {
+  
     auto id = Json::getString(j, "id");
     if (!id) {
       BOOST_LOG_TRIVIAL(error) << "got upstream with no id";
       return;
     }
+    
+    if (server->_upstreamId == id.value()) {
+      BOOST_LOG_TRIVIAL(warning) << "ignoring second upstream with the same id";
+      return;
+    }
+
     server->_upstreamId = id.value();
     server->_online = true;
     BOOST_LOG_TRIVIAL(trace) << "upstream " << server->_upstreamId;
+    
+    auto valid = Json::getBool(j, "valid");
+    if (!valid || !valid.value()) {
+      BOOST_LOG_TRIVIAL(info) << "we are not a valid node. Don't sync.";
+      return;
+    }
+    
+    server->discoverLocal();
     return;
   }
   BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();

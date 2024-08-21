@@ -45,13 +45,11 @@ void newUserMsg(Server *server, json &j) {
   }
   
   // insert a new user
-  auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-   
   auto result = User().insert({
     { "_id", { { "$oid", userid.value() } } },
     { "fullname", "Waiting discovery" },
     { "upstream", true },
-    { "modifyDate", { { "$date", now } } }
+    { "modifyDate", { { "$date", 0 } } }
   });
   if (!result) {
     server->sendErr("could not insert user");

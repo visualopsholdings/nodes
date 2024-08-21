@@ -20,6 +20,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp> 
+#include <boost/algorithm/string.hpp>
 
 #define HEARTBEAT_INTERVAL 5 // in seconds
 
@@ -47,6 +48,8 @@ void reloadMsg(Server *server, json &json);
 void upstreamMsg(Server *server, json &json);
 void dateMsg(Server *server, json &json);
 void sendOnMsg(Server *server, json &json);
+void discoverLocalResultMsg(Server *server, json &json);
+void discoverResultMsg(Server *server, json &json);
 
 }
 
@@ -84,6 +87,8 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
   _dataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
+  _dataReqMessages["discoverLocalResult"] =  bind(&nodes::discoverLocalResultMsg, this, placeholders::_1);
+  _dataReqMessages["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName);
   
@@ -333,7 +338,7 @@ void Server::online() {
     return;
   }
   
-	sendTo(_dataReq->socket(), {
+  sendDataReq({
     { "type", "online" },
     { "build", "28474" },
     { "headerTitle", doc.value().headerTitle() },
@@ -342,7 +347,7 @@ void Server::online() {
     { "pubKey", _pubKey },
     { "src", _serverId },
 //    { "dest", _upstreamId }    
-  }, "req upstream");
+  });
   
 }
 
@@ -355,10 +360,10 @@ void Server::heartbeat() {
   }
   _lastHeartbeat = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   
-	sendTo(_dataReq->socket(), {
+	sendDataReq({
     { "type", "heartbeat" },
     { "src", _serverId }
-  }, "req heartbeat");
+  });
 	
 }
 
@@ -428,3 +433,60 @@ bool Server::resetServer() {
   
   return true;
 }
+
+string Server::get1Info(const string &type) {
+
+  auto docs = Info().find({{ "type", type }}).values();
+  if (!docs) {
+    return "";
+  }
+  auto info = getInfo(docs.value(), type);
+  if (!info) {
+    return "";
+  }
+  return info.value();
+
+}
+
+void Server::discoverLocal() {
+
+  auto hasInitialSync = get1Info("hasInitialSync");
+  if (hasInitialSync == "" || hasInitialSync == "false") {
+    BOOST_LOG_TRIVIAL(info) << "No initial sync, not trying local.";
+    boost::json::array empty;
+    sendDataReq({
+      { "type", "discoverLocal" },
+      { "data", empty },
+      { "src", _serverId }
+    });
+    return;
+  }
+
+  BOOST_LOG_TRIVIAL(error) << "TBD: get local objects and send on";
+
+}
+
+void Server::discover() {
+
+  auto hasInitialSync = get1Info("hasInitialSync");
+  auto upstreamLastSeen = get1Info("upstreamLastSeen");
+  auto users = User().find(json{{ "upstream", true }}, {{ "_id" }}).values();
+  if (!users) {
+    BOOST_LOG_TRIVIAL(error) << "no users";
+    return;
+  }
+  vector<string> ids;
+  transform(users.value().begin(), users.value().end(), back_inserter(ids), [](auto e){ return e.id(); });
+  
+  json zd = {{ "$date", 0 }};
+	sendDataReq({
+    { "type", "discover" },
+    { "lastUser", hasInitialSync == "true" ? upstreamLastSeen : Json::toISODate(zd) },
+    { "users", boost::json::value_from(ids) },
+    { "hasInitialSync", hasInitialSync == "true" },
+    { "src", _serverId }
+  });
+
+}
+
+
