@@ -34,6 +34,7 @@ void loginMsg(zmq::socket_t &socket, const vector<string> &args);
 void streamsMsg(zmq::socket_t &socket, const vector<string> &args);
 void policyUsersMsg(zmq::socket_t &socket, const vector<string> &args);
 void messageMsg(zmq::socket_t &socket, const vector<string> &args);
+void reloadMsg(zmq::socket_t &socket, const vector<string> &args);
 
 int main(int argc, char *argv[]) {
 
@@ -90,6 +91,7 @@ int main(int argc, char *argv[]) {
   handlers["streams"] = bind(&streamsMsg, placeholders::_1, placeholders::_2);
   handlers["policyusers"] = bind(&policyUsersMsg, placeholders::_1, placeholders::_2);
   handlers["message"] = bind(&messageMsg, placeholders::_1, placeholders::_2);
+  handlers["reload"] = bind(&reloadMsg, placeholders::_1, placeholders::_2);
 
   zmq::context_t context(1);
   zmq::socket_t req(context, ZMQ_REQ);
@@ -201,6 +203,16 @@ void messageMsg(zmq::socket_t &socket, const vector<string> &args) {
     { "user", args[0] },
     { "stream", args[1] },
     { "text", args[2] }
+  });
+
+}
+
+void reloadMsg(zmq::socket_t &socket, const vector<string> &args) {
+
+	BOOST_LOG_TRIVIAL(trace) << "reload";
+
+  send(socket, {
+    { "type", "reload" }
   });
 
 }

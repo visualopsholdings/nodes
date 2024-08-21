@@ -55,7 +55,8 @@ public:
   bool _online;
   string _serverId;
   string _upstreamId;
-
+  bool _reload;
+  
 private:
 
   shared_ptr<zmq::context_t> _context;

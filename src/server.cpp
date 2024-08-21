@@ -41,6 +41,7 @@ void siteMsg(Server *server, json &json);
 void setsiteMsg(Server *server, json &json);
 void queryMsg(Server *server, json &json);
 void newUserMsg(Server *server, json &json);
+void reloadMsg(Server *server, json &json);
 
 // dataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -52,7 +53,7 @@ void sendOnMsg(Server *server, json &json);
 Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, 
       const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
     _test(test), _certFile(certFile), _chainFile(chainFile), _dataReqPort(dataReq), _msgSubPort(msgSub),
-    _online(false), _lastHeartbeat(0), _noupstream(noupstream) {
+    _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false) {
 
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));
@@ -78,6 +79,7 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _messages["setsite"] = bind(&nodes::setsiteMsg, this, placeholders::_1);
   _messages["query"] = bind(&nodes::queryMsg, this, placeholders::_1);
   _messages["newuser"] = bind(&nodes::newUserMsg, this, placeholders::_1);
+  _messages["reload"] = bind(&nodes::reloadMsg, this, placeholders::_1);
 
   _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
@@ -92,61 +94,57 @@ Server::~Server() {
   
 void Server::run() {
 
-  if (_noupstream) {
-    BOOST_LOG_TRIVIAL(info) << "ignoring upstream.";
-  }
-  else {
-    connectUpstream();
-  }
-  
-  if (_dataReq) {
-    zmq::pollitem_t items [] = {
-        { *_rep, 0, ZMQ_POLLIN, 0 },
-        { _dataReq->socket(), 0, ZMQ_POLLIN, 0 }
-    };
-    const std::chrono::milliseconds timeout{500};
-    while (1) {
-    
-      // check connection events for upstream stuff.
-      _dataReq->check();
-      if (_online) {
-        heartbeat();
-      }
-      if (_msgSub) {
-        _msgSub->check();
-      }
-  
-  //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
-      zmq::message_t message;
-      zmq::poll(&items[0], 2, timeout);
-    
-      if (items[0].revents & ZMQ_POLLIN) {
-        if (!getMsg("rep", *_rep, _messages)) {
-          sendErr("error in getting rep message");
+  while (1) {
+    if (_dataReq) {
+      zmq::pollitem_t items [] = {
+          { *_rep, 0, ZMQ_POLLIN, 0 },
+          { _dataReq->socket(), 0, ZMQ_POLLIN, 0 }
+      };
+      const std::chrono::milliseconds timeout{500};
+      while (!_reload) {
+      
+        // check connection events for upstream stuff.
+        _dataReq->check();
+        if (_online) {
+          heartbeat();
         }
-      }
-      if (items[1].revents & ZMQ_POLLIN) {
-        getMsg("dataReq", _dataReq->socket(), _dataReqMessages);
-      }
-    }
-  }
-  else {
-    zmq::pollitem_t items [] = {
-        { *_rep, 0, ZMQ_POLLIN, 0 }
-    };
-    const std::chrono::milliseconds timeout{500};
-    while (1) {
+        if (_msgSub) {
+          _msgSub->check();
+        }
     
-  //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
-      zmq::message_t message;
-      zmq::poll(&items[0], 1, timeout);
-    
-      if (items[0].revents & ZMQ_POLLIN) {
-        if (!getMsg("rep", *_rep, _messages)) {
-          sendErr("error in getting rep message");
+    //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+        zmq::message_t message;
+        zmq::poll(&items[0], 2, timeout);
+      
+        if (items[0].revents & ZMQ_POLLIN) {
+          if (!getMsg("rep", *_rep, _messages)) {
+            sendErr("error in getting rep message");
+          }
+        }
+        if (items[1].revents & ZMQ_POLLIN) {
+          getMsg("dataReq", _dataReq->socket(), _dataReqMessages);
         }
       }
     }
+    else {
+      zmq::pollitem_t items [] = {
+          { *_rep, 0, ZMQ_POLLIN, 0 }
+      };
+      const std::chrono::milliseconds timeout{500};
+      while (!_reload) {
+      
+    //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+        zmq::message_t message;
+        zmq::poll(&items[0], 1, timeout);
+      
+        if (items[0].revents & ZMQ_POLLIN) {
+          if (!getMsg("rep", *_rep, _messages)) {
+            sendErr("error in getting rep message");
+          }
+        }
+      }
+    }
+    _reload = false;
   }
 
 }

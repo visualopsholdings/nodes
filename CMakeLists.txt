@@ -86,6 +86,7 @@ set(MESSAGES
   src/msg/setsite.cpp
   src/msg/query.cpp
   src/msg/newuser.cpp
+  src/msg/reload.cpp
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp
