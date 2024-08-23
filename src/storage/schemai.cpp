@@ -94,7 +94,7 @@ optional<string> SchemaImpl::insert(const json &doc) {
 
 }
 
-optional<string> SchemaImpl::update(const json &query, const json &doc) {
+optional<string> SchemaImpl::rawUpdate(const json &query, const json &doc) {
 
   BOOST_LOG_TRIVIAL(trace) << "update " << query << " in " << collName();
 
@@ -103,9 +103,34 @@ optional<string> SchemaImpl::update(const json &query, const json &doc) {
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
 
   ss.str("");
-  ss << json{
+  ss << doc;
+  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+  
+  auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
+  if (result) {
+    return "1";
+   }
+  
+  return nullopt;
+
+}
+
+optional<string> SchemaImpl::update(const json &query, const json &doc) {
+
+  return rawUpdate(query, {
     { "$set", doc }
-  };
+  });
+
+}
+
+optional<string> SchemaImpl::rawUpdateById(const string &id, const json &doc) {
+
+  BOOST_LOG_TRIVIAL(trace) << "update " << id << " in " << collName();
+
+  bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
+
+  stringstream ss;
+  ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
   
   auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
@@ -119,25 +144,11 @@ optional<string> SchemaImpl::update(const json &query, const json &doc) {
 
 optional<string> SchemaImpl::updateById(const string &id, const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "update " << id << " in " << collName();
-
-  bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
-
-  stringstream ss;
-  ss << json{
+  return rawUpdateById(id, {
     { "$set", doc }
-  };
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
-  
-  auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
-  if (result) {
-    return "1";
-   }
-  
-  return nullopt;
+  });
 
 }
-
 
 void SchemaImpl::aggregate(const string &filename) {
 

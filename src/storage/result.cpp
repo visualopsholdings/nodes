@@ -40,23 +40,50 @@ mongocxx::cursor ResultImpl::find() {
 
 }
 
-json ResultImpl::fixObjects(const json &j) {
+json ResultImpl::fixObject(const json &j) {
 
   boost::json::object o;
   for (auto i: j.as_object()) {
+  
     if (i.value().is_object()) {
-      if (i.key() == "_id" && i.value().is_object() && i.value().as_object().if_contains("$oid")) {
+      if (i.key() == "_id" && i.value().as_object().if_contains("$oid")) {
         o["id"] = i.value().at("$oid");
         continue;
       }
-      if (i.value().is_object() && i.value().as_object().if_contains("$date")) {
+      if (i.value().as_object().if_contains("$date")) {
         o[i.key()] = Json::toISODate(i.value());
         continue;
       }
+      // recurse into sub objects.
+      o[i.key()] = fixObject(i.value());
+      continue;
     }
+    
+    if (i.value().is_array()) {
+      boost::json::array newarray;
+      auto arr = i.value().as_array();
+      // copy array, recursing into sub objects.
+      transform(arr.begin(), arr.end(), back_inserter(newarray), [this](auto e) {
+        if (e.is_object()) {
+          return fixObject(e); 
+        }
+        return e;
+      });
+      o[i.key()] = newarray;
+      continue;
+    }
+    
     o[i.key()] = i.value();
   }
   return o;
+
+}
+
+json ResultImpl::fixObjects(const json &j) {
+
+  BOOST_LOG_TRIVIAL(trace) << "fixObjects " << j;
+
+  return fixObject(j);
 
 }
 

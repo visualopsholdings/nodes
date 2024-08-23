@@ -130,6 +130,19 @@ BOOST_AUTO_TEST_CASE( update )
 
 }
 
+BOOST_AUTO_TEST_CASE( rawUpdate )
+{
+  cout << "=== rawUpdate ===" << endl;
+  
+  dbSetup();
+
+  auto result = User().rawUpdateById(tracy, {
+    { "$set", { { "name", "tracy2" } } }
+  });
+  BOOST_CHECK(result);
+
+}
+
 BOOST_AUTO_TEST_CASE( bulkInsert )
 {
   cout << "=== bulkInsert ===" << endl;

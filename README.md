@@ -270,6 +270,7 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 23 Aug 2024
 - Implement end to end discovery of users.
+- implemented teams and adding a user to a team.
 
 
 

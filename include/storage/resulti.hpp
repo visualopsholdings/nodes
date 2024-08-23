@@ -32,15 +32,16 @@ public:
   optional<json> value();
   optional<boost::json::array> values();
   
-//private:
-//  friend class Result;
-  
   mongocxx::cursor find();
   
   vector<string> _f;
   mongocxx::collection _c;
   bsoncxx::document::view_or_value _q;
   
+private:
+
+  json fixObject(const json &j);
+
 };
 
 

@@ -43,6 +43,11 @@ void setsiteMsg(Server *server, json &json);
 void queryMsg(Server *server, json &json);
 void newUserMsg(Server *server, json &json);
 void reloadMsg(Server *server, json &json);
+void groupsMsg(Server *server, json &json);
+void groupMsg(Server *server, json &json);
+void membersMsg(Server *server, json &json);
+void searchUsersMsg(Server *server, json &json);
+void newMemberMsg(Server *server, json &json);
 
 // dataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -83,6 +88,11 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _messages["query"] = bind(&nodes::queryMsg, this, placeholders::_1);
   _messages["newuser"] = bind(&nodes::newUserMsg, this, placeholders::_1);
   _messages["reload"] = bind(&nodes::reloadMsg, this, placeholders::_1);
+  _messages["groups"] = bind(&nodes::groupsMsg, this, placeholders::_1);
+  _messages["group"] = bind(&nodes::groupMsg, this, placeholders::_1);
+  _messages["members"] = bind(&nodes::membersMsg, this, placeholders::_1);
+  _messages["searchusers"] = bind(&nodes::searchUsersMsg, this, placeholders::_1);
+  _messages["newmember"] = bind(&nodes::newMemberMsg, this, placeholders::_1);
 
   _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);

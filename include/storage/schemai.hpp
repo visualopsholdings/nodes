@@ -33,9 +33,15 @@ public:
     // insert a new document.
     
   optional<string> update(const json &query, const json &doc);
+    // update an existing document (inserts $set around the doc).
+    
+  optional<string> rawUpdate(const json &query, const json &doc);
     // update an existing document.
     
   optional<string> updateById(const string &id, const json &doc);
+    // update an existing document when you know the ID  (inserts $set around the doc).
+    
+  optional<string> rawUpdateById(const string &id, const json &doc);
     // update an existing document when you know the ID.
     
   void aggregate(const string &filename);
