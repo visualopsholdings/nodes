@@ -372,7 +372,7 @@ bool Server::setInfo(const string &name, const string &text) {
   auto doc = Info().find({{ "type", name }}, {"text"}).value();
   if (doc) {
     BOOST_LOG_TRIVIAL(trace) << "info old value " << doc.value().j();
-    auto result = Info().update({{ "type", name }}, {{ "$set", {{ "text", text }} }});
+    auto result = Info().update({{ "type", name }}, {{ "text", text }});
     if (!result) {
       BOOST_LOG_TRIVIAL(error) << "could not update info";
       return false;
@@ -448,22 +448,13 @@ string Server::get1Info(const string &type) {
 
 }
 
-void Server::discoverLocal() {
+void Server::systemStatus(const string &msg) {
 
-  auto hasInitialSync = get1Info("hasInitialSync");
-  if (hasInitialSync == "" || hasInitialSync == "false") {
-    BOOST_LOG_TRIVIAL(info) << "No initial sync, not trying local.";
-    boost::json::array empty;
-    sendDataReq({
-      { "type", "discoverLocal" },
-      { "data", empty },
-      { "src", _serverId }
-    });
-    return;
-  }
-
-  BOOST_LOG_TRIVIAL(error) << "TBD: get local objects and send on";
-
+  publish({
+    { "type", "status" },
+    { "text", msg }
+  });
+  
 }
 
 void Server::discover() {
@@ -488,5 +479,3 @@ void Server::discover() {
   });
 
 }
-
-

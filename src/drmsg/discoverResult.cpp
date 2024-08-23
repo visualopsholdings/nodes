@@ -12,6 +12,7 @@
 #include "server.hpp"
 
 #include "json.hpp"
+#include "storage.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -30,20 +31,32 @@ void discoverResultMsg(Server *server, json &j) {
       BOOST_LOG_TRIVIAL(error) << "msg missing type";
       continue;
     }
-    if (type.value() == "user") {
-      auto objs = Json::getArray(m, "objs");
-      if (!objs) {
-        BOOST_LOG_TRIVIAL(error) << "msg missing objs";
-        continue;
-      }
-      BOOST_LOG_TRIVIAL(trace) << "import users " << objs.value();
+    if (type.value() != "user") {
+      BOOST_LOG_TRIVIAL(info) << "only user msgs supported, ignoring";
+      continue;
     }
-    else {
-      BOOST_LOG_TRIVIAL(error) << "only user msgs supported";
+    
+    auto objs = Json::getArray(m, "objs");
+    if (!objs) {
+      BOOST_LOG_TRIVIAL(error) << "msg missing objs";
+      continue;
+    }
+    
+    Storage::instance()->bulkInsert(type.value() + "s", objs.value());
+
+    auto more = Json::getBool(m, "more");
+    if (more && more.value()) {
+      BOOST_LOG_TRIVIAL(info) << "ignoring more for " << type.value();
       continue;
     }
   }
    
+  server->setInfo("hasInitialSync", "true");
+  auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  json date = {{ "$date", now }};
+  server->setInfo("upstreamLastSeen", Json::toISODate(date));
+  server->systemStatus("Discovery complete");
+
 }
 
 };

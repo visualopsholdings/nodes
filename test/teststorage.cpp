@@ -18,19 +18,22 @@
 
 using namespace std;
 
+string tracy = "667d0baedfb1ed18430d8ed3";
+string leanne = "667d0baedfb1ed18430d8ed4";
+
 void dbSetup() {
 
   Storage::instance()->init("mongodb://127.0.0.1:27017", "dev");
 
   User().deleteMany({{}});
   BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", "667d0baedfb1ed18430d8ed3" } } },
+    { "_id", { { "$oid", tracy } } },
     { "name", "tracy" },
     { "admin", true },
     { "fullname", "Tracy" }
   }));
   BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", "667d0baedfb1ed18430d8ed4" } } },
+    { "_id", { { "$oid", leanne } } },
     { "name", "leanne" },
     { "admin", false },
     { "fullname", "Leanne" }
@@ -73,7 +76,7 @@ BOOST_AUTO_TEST_CASE( findById )
   
   dbSetup();
 
-  auto doc = User().findById("667d0baedfb1ed18430d8ed3", {"name"}).value();
+  auto doc = User().findById(tracy, {"name"}).value();
   BOOST_CHECK(doc);
 //  cout << doc.value().j() << endl;
   BOOST_CHECK_EQUAL(doc->name(), "tracy");
@@ -86,7 +89,7 @@ BOOST_AUTO_TEST_CASE( findByIds )
   
   dbSetup();
 
-  auto docs = User().findByIds({"667d0baedfb1ed18430d8ed3", "667d0baedfb1ed18430d8ed4"}, {"name"}).values();
+  auto docs = User().findByIds({tracy, leanne}, {"name"}).values();
   BOOST_CHECK(docs);
 //  cout << doc.value() << endl;
   BOOST_CHECK_EQUAL(docs.value().size(), 2);
@@ -97,3 +100,55 @@ BOOST_AUTO_TEST_CASE( findByIds )
     [](auto &e) { return e.name() == "xxx"; }) == docs.value().end());
   
 }
+
+BOOST_AUTO_TEST_CASE( insertExisting )
+{
+  cout << "=== insertExisting ===" << endl;
+  
+  dbSetup();
+
+  auto result = User().insert({
+    { "_id", { { "$oid", tracy } } },
+    { "name", "tracy2" }
+  });
+  BOOST_CHECK(result);
+  BOOST_CHECK_EQUAL(result.value(), "exists");
+
+}
+
+BOOST_AUTO_TEST_CASE( update )
+{
+  cout << "=== update ===" << endl;
+  
+  dbSetup();
+
+  auto result = User().updateById(tracy, {
+    { "name", "tracy2" },
+    { "fullname", "Tracy new" }
+  });
+  BOOST_CHECK(result);
+
+}
+
+BOOST_AUTO_TEST_CASE( bulkInsert )
+{
+  cout << "=== bulkInsert ===" << endl;
+  
+  dbSetup();
+
+  boost::json::array a =
+  {
+    {
+      { "_id", tracy },
+      { "name", "tracy2" }
+    },
+    {
+      { "_id", leanne },
+      { "name", "leanne2" }
+    }      
+  };
+  cout << a << endl;
+  BOOST_CHECK(Storage::instance()->bulkInsert("users", a));
+
+}
+

@@ -18,6 +18,8 @@
 
 namespace nodes {
 
+void discoverLocalResultMsg(Server *server, json &);
+
 void newUserMsg(Server *server, json &j) {
 
   auto userid = Json::getString(j, "id");
@@ -35,7 +37,7 @@ void newUserMsg(Server *server, json &j) {
   auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, {}).value();
   if (doc) {
     // set the upstream on doc.
-    auto result = User().updateById(userid.value(), {{ "$set", {{ "upstream", true }} }});
+    auto result = User().updateById(userid.value(), {{ "upstream", true }});
     if (!result) {
       server->sendErr("could not update user");
       return;
@@ -57,6 +59,9 @@ void newUserMsg(Server *server, json &j) {
   }
   
   server->sendAck();
+  
+  // run discovery.  
+  server->discover();
   
 }
 

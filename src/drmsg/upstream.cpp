@@ -54,7 +54,19 @@ void upstreamMsg(Server *server, json &j) {
       return;
     }
     
-    server->discoverLocal();
+    auto hasInitialSync = server->get1Info("hasInitialSync");
+    if (hasInitialSync == "" || hasInitialSync == "false") {
+      BOOST_LOG_TRIVIAL(info) << "No initial sync, not trying local.";
+      boost::json::array empty;
+      server->sendDataReq({
+        { "type", "discoverLocal" },
+        { "data", empty },
+        { "src", server->_serverId }
+      });
+      return;
+    }
+  
+    BOOST_LOG_TRIVIAL(error) << "TBD: get local objects and send on";
     return;
   }
   BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();

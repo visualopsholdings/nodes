@@ -40,6 +40,9 @@ public:
   
   shared_ptr<StorageImpl> _impl;
 
+  bool bulkInsert(const string &collName, boost::json::array &objs);
+    // Insert all of the objects into the collection with that name.
+
 private:
 
   // there can be only 1.

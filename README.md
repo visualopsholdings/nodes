@@ -268,6 +268,11 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 16 Aug 2024
 - Implement upstream query of users and return.
 
+### 23 Aug 2024
+- Implement end to end discovery of users.
+
+
+
 
 
 

@@ -38,7 +38,7 @@ public:
   void connectUpstream();
   void online();
   void heartbeat();
-  void discoverLocal();
+  void systemStatus(const string &msg);
   void discover();
 
   void publish(const json &m) {
@@ -50,6 +50,9 @@ public:
   void sendErr(const string &msg);
   void sendAck();
   void sendDataReq(const json &m);
+  bool setInfo(const string &name, const string &text);
+  optional<string> getInfo(const vector<InfoRow> &infos, const string &type) const;
+  string get1Info(const string &type);
 
   string _certFile;
   string _chainFile;
@@ -76,10 +79,7 @@ private:
   
   void sendTo(zmq::socket_t &socket, const json &j, const string &type);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
-  bool setInfo(const string &name, const string &text);
-  optional<string> getInfo(const vector<InfoRow> &infos, const string &type) const;
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
-  string get1Info(const string &type);
     
 };
 

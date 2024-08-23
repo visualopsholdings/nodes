@@ -44,3 +44,42 @@ CollectionImpl StorageImpl::coll(const string &name) {
   return CollectionImpl(_db[name]);
   
 }
+
+class GenericSchema: public Schema<DynamicRow> {
+
+public:
+  GenericSchema(const string &name): _name(name) {}
+  
+  virtual string collName() { return _name; };
+
+private:
+  string _name;
+  
+};
+
+bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
+
+  auto schema = GenericSchema(collName);
+  for (auto i: objs) {
+    json obj = i;
+    auto id = obj.as_object()["_id"].as_string();
+    obj.as_object()["_id"] = {
+      { "$oid", id }
+    };
+    auto result = schema.insert(obj);
+    if (!result) {
+      BOOST_LOG_TRIVIAL(error) << "insert failed";
+      return false;
+    }
+    if (result.value() == "exists") {
+      obj.as_object().erase("_id");
+      auto result = schema.updateById(id.c_str(), obj);
+      if (!result) {
+        BOOST_LOG_TRIVIAL(error) << "update failed";
+        return false;
+      }
+    }
+  }
+  return true;
+  
+}

@@ -77,10 +77,18 @@ optional<string> SchemaImpl::insert(const json &doc) {
   ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
   
-  auto result = Storage::instance()->_impl->coll(collName())._c.insert_one(d);
-  if (result) {
-    return result.value().inserted_id().get_oid().value.to_string();
-   }
+  try {
+    auto result = Storage::instance()->_impl->coll(collName())._c.insert_one(d);
+    if (result) {
+      return result.value().inserted_id().get_oid().value.to_string();
+    }
+  }
+  catch (system_error &ex) {
+    if (string(ex.code().category().name()) == "mongodb" && ex.code().value() == 11000) {
+      return "exists";
+    }
+    throw ex;
+  }
   
   return nullopt;
 
@@ -95,7 +103,9 @@ optional<string> SchemaImpl::update(const json &query, const json &doc) {
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
 
   ss.str("");
-  ss << doc;
+  ss << json{
+    { "$set", doc }
+  };
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
   
   auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
@@ -114,7 +124,9 @@ optional<string> SchemaImpl::updateById(const string &id, const json &doc) {
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
 
   stringstream ss;
-  ss << doc;
+  ss << json{
+    { "$set", doc }
+  };
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
   
   auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
@@ -182,4 +194,3 @@ void SchemaImpl::aggregate(const string &filename) {
     BOOST_LOG_TRIVIAL(info) << "aggregation had output";
   }
 }
-

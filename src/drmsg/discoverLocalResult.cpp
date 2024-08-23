@@ -11,14 +11,18 @@
 
 #include "server.hpp"
 
+#include "storage/schema.hpp"
+#include "json.hpp"
+
 #include <boost/log/trivial.hpp>
 
 namespace nodes {
 
-void discoverLocalResultMsg(Server *server, json &j) {
+void discoverLocalResultMsg(Server *server, json &) {
    
+  // the server has inserted all the local stuff, discover what's out there.
   server->discover();
-   
+
 }
 
 };
