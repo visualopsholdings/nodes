@@ -49,11 +49,13 @@ Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const str
 
 void Upstream::check() {
 
+//  BOOST_LOG_TRIVIAL(trace) << "checking events";
   _monitor->check_event(20);
 
 }
 
 void Monitor::on_event_connected(const zmq_event_t& event, const char* addr) {
+
   BOOST_LOG_TRIVIAL(info) << "connected to " << _name;
   _connected = true;
   

@@ -16,6 +16,8 @@
 
 #include "schemai.hpp"
 
+#include <set>
+
 template <typename RowType>
 class Schema: public SchemaImpl {
 
@@ -145,6 +147,13 @@ public:
   
   virtual string collName() { return "groups"; };
   
+  bool addMember(const string &group, const string &user);
+  bool removeMember(const string &group, const string &user);
+  
+private:
+  bool getMemberSet(const string &group, set<string> *mset);
+  bool saveMemberSet(const string &group, const set<string> &mset);
+
 };
 
 class InfoRow: public DynamicRow {

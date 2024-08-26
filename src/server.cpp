@@ -48,6 +48,7 @@ void groupMsg(Server *server, json &json);
 void membersMsg(Server *server, json &json);
 void searchUsersMsg(Server *server, json &json);
 void newMemberMsg(Server *server, json &json);
+void deleteMemberMsg(Server *server, json &json);
 
 // dataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -93,6 +94,7 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _messages["members"] = bind(&nodes::membersMsg, this, placeholders::_1);
   _messages["searchusers"] = bind(&nodes::searchUsersMsg, this, placeholders::_1);
   _messages["newmember"] = bind(&nodes::newMemberMsg, this, placeholders::_1);
+  _messages["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
 
   _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
@@ -111,6 +113,7 @@ void Server::run() {
 
   while (1) {
     if (_dataReq) {
+      BOOST_LOG_TRIVIAL(trace) << "running with upstream";
       zmq::pollitem_t items [] = {
           { *_rep, 0, ZMQ_POLLIN, 0 },
           { _dataReq->socket(), 0, ZMQ_POLLIN, 0 }
@@ -122,6 +125,9 @@ void Server::run() {
         _dataReq->check();
         if (_online) {
           heartbeat();
+        }
+        else {
+          BOOST_LOG_TRIVIAL(trace) << "not online yet";
         }
         if (_msgSub) {
           _msgSub->check();
@@ -142,6 +148,7 @@ void Server::run() {
       }
     }
     else {
+      BOOST_LOG_TRIVIAL(trace) << "running standalone";
       zmq::pollitem_t items [] = {
           { *_rep, 0, ZMQ_POLLIN, 0 }
       };

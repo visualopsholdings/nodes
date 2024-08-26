@@ -92,6 +92,7 @@ set(MESSAGES
   src/msg/members.cpp
   src/msg/searchusers.cpp
   src/msg/newmember.cpp
+  src/msg/deletemember.cpp
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp
@@ -107,6 +108,7 @@ add_library(StorageLib SHARED
   src/storage/result.cpp 
   src/storage/dynamicrow.cpp 
   src/storage/schema.cpp 
+  src/storage/group.cpp 
   src/json.cpp)
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 

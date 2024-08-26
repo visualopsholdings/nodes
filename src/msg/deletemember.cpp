@@ -1,8 +1,8 @@
 /*
-  newmember.cpp
+  deletemember.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
-  Date: 23-Aug-2024
+  Date: 26-Aug-2024
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
@@ -18,7 +18,7 @@
 
 namespace nodes {
 
-void newMemberMsg(Server *server, json &j) {
+void deleteMemberMsg(Server *server, json &j) {
 
   auto groupid = Json::getString(j, "group");
   if (!groupid) {
@@ -32,13 +32,13 @@ void newMemberMsg(Server *server, json &j) {
     return;
   }
 
-  if (Group().addMember(groupid.value(), id.value())) {
+  if (Group().removeMember(groupid.value(), id.value())) {
     server->sendAck();
     return;
   }
 
-  server->sendErr("could not add member");
-  
+  server->sendErr("could not remover member");
+
 }
 
 };

@@ -173,7 +173,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Synchronizing users with an upstream server.
+### Making users active/inactve and admin/admin
 
 ## License
 
@@ -272,7 +272,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Implement end to end discovery of users.
 - implemented teams and adding a user to a team.
 
-
+### 26 Aug 2024
+- Users can be added and removed from a team
 
 
 
