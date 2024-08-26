@@ -93,6 +93,7 @@ set(MESSAGES
   src/msg/searchusers.cpp
   src/msg/newmember.cpp
   src/msg/deletemember.cpp
+  src/msg/setuser.cpp
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp

@@ -19,7 +19,7 @@ namespace nodes {
 
 void usersMsg(Server *server, json &j) {
 
-  auto docs = User().find(json{{}}, { "id", "modifyDate", "name", "fullname", "admin" }).values();
+  auto docs = User().find(json{{}}, { "id", "modifyDate", "name", "fullname", "admin", "active" }).values();
 
   boost::json::array s;
   for (auto i: docs.value()) {

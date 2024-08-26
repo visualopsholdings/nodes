@@ -51,6 +51,7 @@ public:
   string salt() { return getString("salt"); }
   string hash() { return getString("hash"); }
   bool admin() { return getBool("admin"); }
+  bool active() { return getBool("active"); }
   
 };
 

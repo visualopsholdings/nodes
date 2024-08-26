@@ -173,7 +173,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Making users active/inactve and admin/admin
+### Instructions for hardening and building a server on the internet.
 
 ## License
 
@@ -274,7 +274,7 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 26 Aug 2024
 - Users can be added and removed from a team
-
+- A user can be have it's active and admin flags set.
 
 
 
