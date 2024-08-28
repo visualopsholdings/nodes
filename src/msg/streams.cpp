@@ -21,14 +21,8 @@ namespace nodes {
 
 void streamsMsg(Server *server, json &j) {
 
-  auto userid = Json::getString(j, "user");
-  if (!userid) {
-    server->sendErr("no user");
-    return;
-  }
-
-  Stream streams;
-  auto docs = Security::instance()->withView(streams, userid.value(), {{}}, { "id", "name", "policy" });
+  Stream stream;
+  auto docs = Security::instance()->withView(stream, Json::getString(j, "me"), {{}}, { "id", "name", "policy" }).values();
   if (!docs) {
     server->sendErr("DB Error");
     return;
@@ -40,7 +34,6 @@ void streamsMsg(Server *server, json &j) {
   }
   server->send({
     { "type", "streams" },
-    { "user", userid.value() },
     { "streams", s }
   });
 

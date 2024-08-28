@@ -48,9 +48,14 @@ void loginMsg(Server *server, json &j) {
       server->sendErr("Invalid VID");
       return;
     }
-    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin"}).value();
+    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin", "active"}).value();
     if (!user) {
       BOOST_LOG_TRIVIAL(trace) << "couldn't find user";
+      server->sendErr("Username/Password incorrect");
+      return;
+    }
+    if (!user->active()) {
+      BOOST_LOG_TRIVIAL(trace) << "user not acitve";
       server->sendErr("Username/Password incorrect");
       return;
     }

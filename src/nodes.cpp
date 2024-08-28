@@ -28,6 +28,8 @@ namespace po = boost::program_options;
 
 int main(int argc, char *argv[]) {
 
+  string version = "Nodes 0.6, 28-Aug-2024.";
+  
   int pubPort;
   int repPort;
   string logLevel;
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   
-  BOOST_LOG_TRIVIAL(info) << "Nodes 0.5, 17-Aug-2024.";
+  BOOST_LOG_TRIVIAL(info) << version;
 
   Server server(test, noupstream, pubPort, repPort, dataReqPort, msgSubPort, dbConn, dbName, certFile, chainFile);
   

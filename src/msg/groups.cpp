@@ -12,6 +12,8 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "json.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -19,7 +21,9 @@ namespace nodes {
 
 void groupsMsg(Server *server, json &j) {
 
-  auto docs = Group().find(json{{}}, { "id", "modifyDate", "name" }).values();
+  Group group;
+  auto docs = Security::instance()->withView(group, Json::getString(j, "me"), json{{}}, 
+    { "id", "modifyDate", "name" }).values();
 
   boost::json::array s;
   for (auto i: docs.value()) {

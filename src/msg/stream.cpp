@@ -12,6 +12,7 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "security.hpp"
 #include "json.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -26,7 +27,8 @@ void streamMsg(Server *server, json &j) {
     return;
   }
 
-  auto doc = Stream().find(json{ { "_id", { { "$oid", streamid.value() } } } }).value();
+  Stream stream;
+  auto doc = Security::instance()->withView(stream, Json::getString(j, "me"), {{ { "_id", { { "$oid", streamid.value() } } } }}).value();
   if (!doc) {
     server->sendErr("DB Error");
     return;

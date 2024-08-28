@@ -276,5 +276,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Users can be added and removed from a team
 - A user can be have it's active and admin flags set.
 
+### 28 Aug 2024
+- Implement security correctly (me) for various messages that need it.
+
+
 
 

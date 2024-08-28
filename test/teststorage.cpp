@@ -116,6 +116,20 @@ BOOST_AUTO_TEST_CASE( insertExisting )
 
 }
 
+BOOST_AUTO_TEST_CASE( insertNew )
+{
+  cout << "=== insertNew ===" << endl;
+  
+  dbSetup();
+
+  auto result = User().insert({
+    { "name", "bob" }
+  });
+  BOOST_CHECK(result);
+  BOOST_CHECK_EQUAL(result.value().size(), 24);
+
+}
+
 BOOST_AUTO_TEST_CASE( update )
 {
   cout << "=== update ===" << endl;

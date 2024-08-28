@@ -45,21 +45,42 @@ public:
   
   // execute a query ensuring that the user can view the results.
   template <typename RowType>
-  optional<vector<RowType> > withView(Schema<RowType> &schema, const string &userid, const json &query, const vector<string> &fields = {}) {
+  Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
   
-    GroupViewPermissions groupviews;
-    UserViewPermissions userviews;
-    return schema.find(withQuery(groupviews, userviews, userid, query), fields).values();
+    if (me) {
+      GroupViewPermissions groupviews;
+      UserViewPermissions userviews;
+      return schema.find(withQuery(groupviews, userviews, me.value(), query), fields);
+    }
+
+    return schema.find(query, fields);    
     
   }
 
-    // execute a query ensuring that the user can edit the results.
+  // execute a query ensuring that the user can edit the results.
   template <typename RowType>
-  optional<vector<RowType> > withEdit(Schema<RowType> &schema, const string &userid, const json &query, const vector<string> &fields = {}) {
+  Result<RowType> withEdit(Schema<RowType> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
   
-    GroupEditPermissions groupviews;
-    UserEditPermissions userviews;
-    return schema.find(withQuery(groupviews, userviews, userid, query), fields).values();
+    if (me) {
+      GroupEditPermissions groupedits;
+      UserEditPermissions useredits;
+      return schema.find(withQuery(groupedits, useredits, me.value(), query), fields);
+    }
+
+    return schema.find(query, fields);    
+    
+  }
+
+  template <typename RowType>
+  bool canEdit(Schema<RowType> &schema, optional<string> me, const string &id) {
+  
+    if (me) {
+      GroupEditPermissions groupedits;
+      UserEditPermissions useredits;
+      return schema.find(withQuery(groupedits, useredits, me.value(), json{ { "_id", { { "$oid", id } } } })).value() != nullopt;
+    }
+      
+    return true;
     
   }
     

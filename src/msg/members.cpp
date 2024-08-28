@@ -13,6 +13,7 @@
 
 #include "storage.hpp"
 #include "json.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -26,13 +27,14 @@ void membersMsg(Server *server, json &j) {
     return;
   }
 
-  auto doc = Group().find(json{ { "_id", { { "$oid", groupid.value() } } } }, { "members" }).value();
-
+  Group groups;
+  auto doc = Security::instance()->withView(groups, Json::getString(j, "me"), 
+    json{ { "_id", { { "$oid", groupid.value() } } } }, { "members" }).value();
   if (!doc) {
     server->sendErr("can't find group " + groupid.value());
     return;
   }
-  
+
   boost::json::array newmembers;
   auto members = doc.value().j().at("members").as_array();
   for (auto i: members) {

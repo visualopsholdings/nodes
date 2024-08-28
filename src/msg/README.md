@@ -36,7 +36,7 @@ When this is received:
 ```
 { 
   "type": "streams", 
-  "user": "user guid",
+  "me": "user guid"
 }
 ```
 
@@ -45,7 +45,6 @@ We process and return;
 ```
 { 
   "type": "streams", 
-  "user": "user guid",
   "streams": [
     {
       "name": "Conversation 1",
@@ -63,7 +62,8 @@ When this is received:
 ```
 { 
   "type": "stream", 
-  "stream": "stream guid"
+  "stream": "stream guid",
+  "me": "user guid"
 }
 ```
 
@@ -262,7 +262,8 @@ When this is received:
 
 ```
 { 
-  "type": "groups"
+  "type": "groups", 
+  "me": "user guid"
 }
 ```
 
@@ -291,7 +292,8 @@ When this is received:
 ```
 { 
   "type": "group",
-  "group": "group guid"
+  "group": "group guid", 
+  "me": "user guid"
 }
 ```
 

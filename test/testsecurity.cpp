@@ -186,32 +186,82 @@ BOOST_AUTO_TEST_CASE( with )
   Stream streams;
   {
     // tracy is in the team that can view.
-    auto doc = Security::instance()->withView(streams, tracy, {{ "name", "Conversation 1" }});
+    auto doc = Security::instance()->withView(streams, tracy, {{ "name", "Conversation 1" }}).value();
     BOOST_CHECK(doc);
-    BOOST_CHECK_EQUAL(doc.value().size(), 1);
-  }
-  {
-    // leanne can only edit.
-    auto doc = Security::instance()->withView(streams, leanne, {{ "name", "Conversation 1" }});
-    BOOST_CHECK(!doc);
-  }
-  {
-    // leanne is in the team that can edit.
-    auto doc = Security::instance()->withEdit(streams, leanne, {{ "name", "Conversation 1" }});
-    BOOST_CHECK(doc);
-    BOOST_CHECK_EQUAL(doc.value().size(), 1);
-  }
-  {
-    // tracy can only view.
-    auto doc = Security::instance()->withEdit(streams, tracy, {{ "name", "Conversation 1" }});
-    BOOST_CHECK(!doc);
-  }
-  {
-    // even tracy can't see a conversation not there.
-    auto doc = Security::instance()->withView(streams, tracy, {{ "name", "Conversation 2" }});
-    BOOST_CHECK(!doc);
   }
   
+  {
+    // leanne can only edit.
+    auto docs = Security::instance()->withView(streams, leanne, {{ "name", "Conversation 1" }}).values();
+    BOOST_CHECK(!docs);
+  }
+  
+  {
+    // leanne is in the team that can edit.
+    auto docs = Security::instance()->withEdit(streams, leanne, {{ "name", "Conversation 1" }}).values();
+    BOOST_CHECK(docs);
+    BOOST_CHECK_EQUAL(docs.value().size(), 1);
+  }
+  
+  {
+    // tracy can only view.
+    auto docs = Security::instance()->withEdit(streams, tracy, {{ "name", "Conversation 1" }}).values();
+    BOOST_CHECK(!docs);
+  }
+
+  {
+    // admin can see them all.
+    auto docs = Security::instance()->withView(streams, nullopt, {{ "name", "Conversation 1" }}).values();
+    BOOST_CHECK(docs);
+    BOOST_CHECK_EQUAL(docs.value().size(), 1);
+  }
+  
+  {
+    // even tracy can't see a conversation not there.
+    auto docs = Security::instance()->withView(streams, tracy, {{ "name", "Conversation 2" }}).values();
+    BOOST_CHECK(!docs);
+  }
+  
+}
+
+BOOST_AUTO_TEST_CASE( canEdit )
+{
+  cout << "=== canEdit ===" << endl;
+  
+  string tracy = "667d0baedfb1ed18430d8ed3";
+  string leanne = "667d0baedfb1ed18430d8ed4";
+  
+  dbSetup();
+  boost::json::array empty;
+  auto policy = Policy().insert({
+    { "accesses", {
+      { { "name", "view" }, 
+        { "groups", empty },
+        { "users", { tracy, leanne } }
+        },
+      { { "name", "edit" }, 
+        { "groups", empty },
+        { "users", { tracy } }
+        },
+      { { "name", "exec" }, 
+        { "groups", empty },
+        { "users", empty }
+        }
+      } 
+    }
+  });
+  auto stream = Stream().insert({
+    { "name", "Conversation 1" },
+    { "policy", policy.value() }
+  });
+  Policy().aggregate("../src/groupviewpermissions.json");
+  Policy().aggregate("../src/userviewpermissions.json");
+  Policy().aggregate("../src/groupeditpermissions.json");
+  Policy().aggregate("../src/usereditpermissions.json");
+  
+  Stream streams;
+  BOOST_CHECK(Security::instance()->canEdit(streams, tracy, stream.value()));
+  BOOST_CHECK(!Security::instance()->canEdit(streams, leanne, stream.value()));
 }
 
 

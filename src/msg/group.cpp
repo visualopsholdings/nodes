@@ -13,6 +13,7 @@
 
 #include "storage.hpp"
 #include "json.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -26,7 +27,10 @@ void groupMsg(Server *server, json &j) {
     return;
   }
 
-  auto doc = Group().find(json{ { "_id", { { "$oid", groupid.value() } } } }, { "id", "name" }).value();
+  Group group;
+  auto doc = Security::instance()->withView(group, Json::getString(j, "me"),  
+    json{ { "_id", { { "$oid", groupid.value() } } } }, 
+    { "id", "name" }).value();
 
   if (!doc) {
     server->sendErr("can't find group " + groupid.value());

@@ -12,6 +12,7 @@
 #include "server.hpp"
 
 #include "storage.hpp"
+#include "security.hpp"
 #include "json.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -26,13 +27,19 @@ void deleteMemberMsg(Server *server, json &j) {
     return;
   }
 
+  Group groups;
+  if (!Security::instance()->canEdit(groups, Json::getString(j, "me"), groupid.value())) {
+    server->sendErr("can't edit group " + groupid.value());
+    return;
+  }
+
   auto id = Json::getString(j, "id");
   if (!id) {
     server->sendErr("no id");
     return;
   }
 
-  if (Group().removeMember(groupid.value(), id.value())) {
+  if (groups.removeMember(groupid.value(), id.value())) {
     server->sendAck();
     return;
   }
