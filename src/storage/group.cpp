@@ -38,7 +38,7 @@ bool Group::saveMemberSet(const string &group, const set<string> &mset) {
 
   boost::json::array newmembers;
   for (auto i: mset) {
-    newmembers.push_back({
+    newmembers.push_back(json{
       { "user", i }
     });
   }
