@@ -30,7 +30,16 @@ void setsiteMsg(Server *server, json &j) {
   auto doc = Site().findById(id.value(), {}).value();
   if (doc) {
     BOOST_LOG_TRIVIAL(trace) << "site old value " << doc.value().j();
-    json obj = {{ "headerTitle", Json::getString(j, "headerTitle").value() }, { "streamBgColor", Json::getString(j, "streamBgColor").value() }};
+    
+    boost::json::object obj;
+    auto headerTitle = Json::getString(j, "headerTitle");
+    auto streamBgColor = Json::getString(j, "streamBgColor");
+    if (headerTitle) {
+      obj["headerTitle"] = headerTitle.value();
+    }
+    if (streamBgColor) {
+      obj["streamBgColor"] = streamBgColor.value();
+    }
     BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
     auto result = Site().updateById(id.value(), obj);
     if (!result) {
