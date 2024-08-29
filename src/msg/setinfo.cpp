@@ -25,18 +25,43 @@ void setinfoMsg(Server *server, json &j) {
   if (serverId) {
     if (serverId.value() == "none") {
       BOOST_LOG_TRIVIAL(trace) << "reset server";
-      if (server->resetServer()) {
-        server->sendAck();
-        server->connectUpstream();
-      }
-      else {
+      if (!server->resetServer()) {
         server->sendErr("could not reset server");
       }
+      server->sendAck();
+      server->systemStatus("Server reset");
       return;
     }
+    server->sendErr("can only set the serverId to none to reset it");
     return;
   }
 
+  auto upstream = Json::getString(j, "upstream");
+  if (upstream) {
+    auto upstreamPubKey = Json::getString(j, "upstreamPubKey");
+    if (!upstreamPubKey) {
+      server->sendErr("missing upstreamPubKey");
+      return;
+    }
+    if (upstream.value() == "none" && upstreamPubKey.value() == "none") {
+      server->clearUpstream();
+      server->sendAck();
+      return;
+    }
+    if (!server->setInfo("upstream", upstream.value())) {
+      server->sendErr("could not set upstream");
+      return;
+    }
+    if (!server->setInfo("upstreamPubKey", upstreamPubKey.value())) {
+      server->sendErr("could not set upstreamPubKey");
+      return;
+    }
+    server->systemStatus("Upstream set");
+    server->connectUpstream();
+    server->sendAck();
+    return;
+  }
+  
   stringstream ss;
   ss << "unknown " << j;
   server->sendErr(ss.str());

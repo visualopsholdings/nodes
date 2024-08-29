@@ -281,6 +281,29 @@ optional<string> Server::getInfo(const vector<InfoRow> &infos, const string &typ
   return (*i).text();
 }
 
+void Server::stopUpstream() {
+
+  if (_dataReq) {
+    _dataReq->socket().close();
+    _dataReq.reset();
+  }
+  if (_msgSub) {
+    _msgSub->socket().close();
+    _msgSub.reset();
+  }
+
+}
+
+void Server::clearUpstream() {
+
+  Info().deleteMany({{ "type", { { "$in", {"upstream", "upstreamPubKey", "hasInitialSync", "upstreamLastSeen"}}} }});
+
+  systemStatus("Server orphaned");
+  stopUpstream();
+  _reload = true;
+
+}
+
 void Server::connectUpstream() {
 
   int major, minor, patch;
@@ -292,14 +315,7 @@ void Server::connectUpstream() {
     return;
   }
 
-  if (_dataReq) {
-    _dataReq->socket().close();
-    _dataReq.reset();
-  }
-  if (_msgSub) {
-    _msgSub->socket().close();
-    _msgSub.reset();
-  }
+  stopUpstream();
   
   auto docs = Info().find({{ "type", { { "$in", {"serverId", "upstream", "upstreamPubKey", "privateKey", "pubKey"}}} }}, {"type", "text"}).values();
   if (!docs) {
@@ -413,9 +429,6 @@ bool Server::setInfo(const string &name, const string &text) {
   
 }
 
-#define defaultUpstream "nodes.visualops.com"
-#define defaultUpstreamPubKey "K]<n72U1y#9PUS.j9BpC=XNxz6HCqhRfnGbSnajO"
-
 bool Server::resetServer() {
   
   char pubkey[41];
@@ -432,15 +445,9 @@ bool Server::resetServer() {
   if (!setInfo("pubKey", pubkey)) {
     return false;
   }
-  if (!setInfo("upstream", defaultUpstream)) {
-    return false;
-  }
-  if (!setInfo("upstreamPubKey", defaultUpstreamPubKey)) {
-    return false;
-  }
   
   // clear out all these flags.
-  Info().deleteMany({{ "type", { { "$in", {"serverId", "upstreamMirror", "hasInitialSync", "upstreamLastSeen"}}} }});
+  Info().deleteMany({{ "type", { { "$in", {"serverId", "upstream", "upstreamPubKey", "upstreamMirror", "hasInitialSync", "upstreamLastSeen"}}} }});
   
   // generate a new server ID.
   boost::uuids::uuid uuid = boost::uuids::random_generator()();

@@ -36,6 +36,8 @@ public:
   void run();
   bool resetServer();
   void connectUpstream();
+  void clearUpstream();
+  void stopUpstream();
   void online();
   void heartbeat();
   void systemStatus(const string &msg);
