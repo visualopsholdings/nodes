@@ -25,7 +25,10 @@ void setinfoMsg(Server *server, json &j) {
   if (serverId) {
     if (serverId.value() == "none") {
       BOOST_LOG_TRIVIAL(trace) << "reset server";
-      if (!server->resetServer()) {
+      if (server->resetServer()) {
+        server->_reload = true;
+      }
+      else {
         server->sendErr("could not reset server");
       }
       server->sendAck();
@@ -45,6 +48,7 @@ void setinfoMsg(Server *server, json &j) {
     }
     if (upstream.value() == "none" && upstreamPubKey.value() == "none") {
       server->clearUpstream();
+      server->_reload = true;
       server->sendAck();
       return;
     }
@@ -58,6 +62,7 @@ void setinfoMsg(Server *server, json &j) {
     }
     server->systemStatus("Upstream set");
     server->connectUpstream();
+    server->_reload = true;
     server->sendAck();
     return;
   }

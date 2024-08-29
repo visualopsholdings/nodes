@@ -300,7 +300,6 @@ void Server::clearUpstream() {
 
   systemStatus("Server orphaned");
   stopUpstream();
-  _reload = true;
 
 }
 
