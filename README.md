@@ -44,7 +44,7 @@ on Ubuntu 24.04 on a Pi5 and in a TG4 in AWS):
 
 ```
 sudo apt-get update
-sudo apt-get -y install g++ gcc make cmake ruby-rubygems
+sudo apt-get -y install g++ gcc make cmake ruby-rubygems lib-ssldev
 ```
 
 ### Prerequisites
