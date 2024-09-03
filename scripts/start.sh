@@ -18,6 +18,13 @@ DBNAME=$1
 DBPASS=$2
 HOSTNAME=$3
 
+if [ "$#" -eq 4 ];
+then
+  MONGOS=$4
+else
+  MONGOS=127.0.0.1
+fi
+
 if [ -d /home/nodes/nodes-lib ];
 then
   export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib:/home/nodes/nodes/build:/home/nodes/nodes-lib:$LD_LIBRARY_PATH
@@ -32,6 +39,6 @@ fi
 
 ./nodes/build/nodes \
   --logLevel=trace \
-  --dbConn=mongodb://$DBNAME:$DBPASS@127.0.0.1:27017/?authSource=$DBNAME \
+  --dbConn=mongodb://$DBNAME:$DBPASS@$MONGOS:27017/?authSource=$DBNAME \
   --dbName=$DBNAME $CERTS \
   > nodes.log 2>&1 &
