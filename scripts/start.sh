@@ -18,11 +18,13 @@ DBNAME=$1
 DBPASS=$2
 HOSTNAME=$3
 
-if [ -d /home/nodes/nodes-lib ];
+if [ -d nodes-lib ];
 then
-  export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib:/home/nodes/nodes/build:/home/nodes/nodes-lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib:`pwd`/nodes/build:`pwd`/nodes-lib:$LD_LIBRARY_PATH
+  export DYLD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib:`pwd`/nodes/build:`pwd`/nodes-lib:$DYLD_LIBRARY_PATH
 else
   export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+  export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
 fi
 
 if [ "$#" -eq 3 ]; 
