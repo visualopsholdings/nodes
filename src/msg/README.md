@@ -399,6 +399,62 @@ We process and return;
 }
 ```
 
+#### Policy
+
+"Policy"s are attached to each object to let the system know if a user or group can see,
+edit or execute things against that object.
+
+When this is received:
+
+```
+{ 
+  "type": "policy",
+  "objtype": "stream",
+  "id": "object guid"
+}
+```
+
+We process and return;
+
+
+```
+{ 
+  "type": "policy", 
+  "policy": [
+    {
+      "path": "//accesses/0/groups/0",
+      "type": "view",
+      "context": "group",
+      "id": "5ef34b9a7264281391b4c72e",
+      "name": "Public"
+    },
+    {
+      "path": "//accesses/0/groups/1",
+      "type": "view",
+      "context": "group",
+      "id": "601aa304d7a55b33de48707a",
+      "name": "Everybody"
+    },
+    {
+      "path": "//accesses/1/groups/0",
+      "type": "edit",
+      "context": "group",
+      "id": "601aa304d7a55b33de48707a",
+      "name": "Everybody"
+    },
+    {
+      "path": "//accesses/2/groups/0",
+      "type": "exec",
+      "context": "group",
+      "id": "601aa304d7a55b33de48707a",
+      "name": "Everybody"
+    }
+  ]
+}
+```
+
+If you take a look at the GUI in nodes-web this format will make sense :-)
+
 #### Infos
 
 "Infos" are name=value pairs used to describe the status of a server. Infos that exist

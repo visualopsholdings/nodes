@@ -20,6 +20,7 @@
 #include <bsoncxx/oid.hpp>
 #include <boost/algorithm/string.hpp>
 #include <base64.hpp>
+#include <sstream>
 
 #define SHA1_LEN    128
 #define ITERATIONS  12000
@@ -133,5 +134,56 @@ json Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
   BOOST_LOG_TRIVIAL(trace) << q;
 
   return q;
+  
+}
+
+boost::json::object Security::makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index) {
+
+  // Lines have this simple format so they can be easily edited in a visual editor.
+
+  boost::json::object line;
+  
+  stringstream ss;
+  ss << "//accesses/" << access << "/" << type << "s/" << index;
+  line["path"] = ss.str();
+  line["type"] = name;
+  line["context"] = type;
+  BOOST_LOG_TRIVIAL(trace) << ids[index];
+  if (type == "user") {
+    auto user = User().findById(ids[index], { "fullname" }).value();
+    line["name"] = !user ? "???" : user.value().fullname();
+  }
+  else {
+    auto group = Group().findById(ids[index], { "name" }).value();
+    line["name"] = !group ? "???" : group.value().name();
+  }
+  return line;
+  
+}
+
+optional<json> Security::getPolicyLines(const string &id) {
+
+  auto policy = Policy().findById(id, { "accesses" }).value();
+  if (!policy) {
+    BOOST_LOG_TRIVIAL(error) << "policy missing";
+    return nullopt;
+  }
+  
+  boost::json::array lines;
+  auto accesses = policy.value().accesses();
+  for (int i=0; i<accesses.size(); i++) {
+  
+    auto users = accesses[i].users();
+    for (int j=0; j<users.size(); j++) {
+       lines.push_back(makeLine("user", i, accesses[i].name(), users, j));
+    }
+    
+    auto groups = accesses[i].groups();
+    for (int j=0; j<groups.size(); j++) {
+      lines.push_back(makeLine("group", i, accesses[i].name(), groups, j));
+    }
+  }
+  
+  return lines;
   
 }

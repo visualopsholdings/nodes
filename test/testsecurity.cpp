@@ -59,6 +59,11 @@ BOOST_AUTO_TEST_CASE( TracyVID )
   
 }
 
+string policy = "667bfee4b07cc40ec3dd6ee8";
+string tracy = "667d0baedfb1ed18430d8ed3";
+string leanne = "667d0baedfb1ed18430d8ed4";
+string team1 = "667d0bae39ae84d0890a2141";
+  
 BOOST_AUTO_TEST_CASE( getPolicyUsers )
 {
   cout << "=== getPolicyUsers ===" << endl;
@@ -67,7 +72,7 @@ BOOST_AUTO_TEST_CASE( getPolicyUsers )
   Policy().deleteMany({{}});
   boost::json::array empty;
   BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", "667bfee4b07cc40ec3dd6ee8" } } },
+    { "_id", { { "$oid", policy } } },
     { "accesses", {
       { { "name", "view" }, 
         { "groups", empty },
@@ -86,7 +91,7 @@ BOOST_AUTO_TEST_CASE( getPolicyUsers )
   }));
 
   vector<string> users;
-  Security::instance()->getPolicyUsers("667bfee4b07cc40ec3dd6ee8", &users);
+  Security::instance()->getPolicyUsers(policy, &users);
   BOOST_CHECK_EQUAL(users.size(), 2);
   
 }
@@ -99,28 +104,28 @@ BOOST_AUTO_TEST_CASE( getPolicyUsersInGroup )
   Policy().deleteMany({{}});
   Group().deleteMany({{}});
   BOOST_CHECK(Group().insert({
-    { "_id", { { "$oid", "667d0bae39ae84d0890a2141" } } },
+    { "_id", { { "$oid", team1 } } },
     { "name", "Team 1" },
     { "members", {
-      { { "user", "667d0baedfb1ed18430d8ed3" } }, // tracy
-      { { "user", "667d0baedfb1ed18430d8ed4" } }  // leanne
+      { { "user", tracy } }, // tracy
+      { { "user", leanne } }  // leanne
       } 
     }
   }));
   boost::json::array empty;
   BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", "667bfee4b07cc40ec3dd6ee8" } } },
+    { "_id", { { "$oid", policy } } },
     { "accesses", {
       { { "name", "view" }, 
-        { "groups", { "667d0bae39ae84d0890a2141" } },
+        { "groups", { team1 } },
         { "users", empty }
         },
       { { "name", "edit" }, 
-        { "groups", { "667d0bae39ae84d0890a2141" } },
+        { "groups", { team1 } },
         { "users", empty }
         },
       { { "name", "exec" }, 
-        { "groups", { "667d0bae39ae84d0890a2141" } },
+        { "groups", { team1 } },
         { "users", empty }
         }
       } 
@@ -128,7 +133,7 @@ BOOST_AUTO_TEST_CASE( getPolicyUsersInGroup )
   }));
   
   vector<string> users;
-  Security::instance()->getPolicyUsers("667bfee4b07cc40ec3dd6ee8", &users);
+  Security::instance()->getPolicyUsers(policy, &users);
   BOOST_CHECK_EQUAL(users.size(), 2);
   
 }
@@ -137,16 +142,12 @@ BOOST_AUTO_TEST_CASE( with )
 {
   cout << "=== with ===" << endl;
   
-  string team = "667d0bae39ae84d0890a2141";
-  string tracy = "667d0baedfb1ed18430d8ed3";
-  string leanne = "667d0baedfb1ed18430d8ed4";
-  
   dbSetup();
   Policy().deleteMany({{}});
   Group().deleteMany({{}});
   Stream().deleteMany({{}});
   BOOST_CHECK(Group().insert({
-    { "_id", { { "$oid", team } } },
+    { "_id", { { "$oid", team1 } } },
     { "name", "Team 1" },
     { "members", {
       { { "user", tracy } }, // tracy
@@ -155,10 +156,10 @@ BOOST_AUTO_TEST_CASE( with )
   }));
   boost::json::array empty;
   BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", "667bfee4b07cc40ec3dd6ee8" } } },
+    { "_id", { { "$oid", policy } } },
     { "accesses", {
       { { "name", "view" }, 
-        { "groups", { team } },
+        { "groups", { team1 } },
         { "users", empty }
         },
       { { "name", "edit" }, 
@@ -174,7 +175,7 @@ BOOST_AUTO_TEST_CASE( with )
   }));
   BOOST_CHECK(Stream().insert({
     { "name", "Conversation 1" },
-    { "policy", "667bfee4b07cc40ec3dd6ee8" }
+    { "policy", policy }
   }));
 
   Group().aggregate("../src/useringroups.json");
@@ -228,9 +229,6 @@ BOOST_AUTO_TEST_CASE( canEdit )
 {
   cout << "=== canEdit ===" << endl;
   
-  string tracy = "667d0baedfb1ed18430d8ed3";
-  string leanne = "667d0baedfb1ed18430d8ed4";
-  
   dbSetup();
   boost::json::array empty;
   auto policy = Policy().insert({
@@ -264,4 +262,68 @@ BOOST_AUTO_TEST_CASE( canEdit )
   BOOST_CHECK(!Security::instance()->canEdit(streams, leanne, stream.value()));
 }
 
+BOOST_AUTO_TEST_CASE( getPolicyLines )
+{
+  cout << "=== getPolicyLines ===" << endl;
+  
+  dbSetup();
+  Policy().deleteMany({{}});
+  boost::json::array empty;
+  BOOST_CHECK(User().insert({
+    { "_id", { { "$oid", tracy } } },
+    { "name", "tracy" },
+    { "admin", true },
+    { "fullname", "Tracy" }
+  }));
+  BOOST_CHECK(User().insert({
+    { "_id", { { "$oid", leanne } } },
+    { "name", "leanne" },
+    { "admin", false },
+    { "fullname", "Leanne" }
+  }));
+  BOOST_CHECK(Group().insert({
+    { "_id", { { "$oid", team1 } } },
+    { "name", "Team 1" },
+    { "members", {
+      { { "user", tracy } }, // tracy
+      } 
+    }
+  }));
+  BOOST_CHECK(Policy().insert({
+    { "_id", { { "$oid", policy } } },
+    { "accesses", {
+      { { "name", "view" }, 
+        { "groups", empty },
+        { "users", { tracy, leanne } }
+        },
+      { { "name", "edit" }, 
+        { "groups", { team1 } },
+        { "users",  empty }
+        },
+      { { "name", "exec" }, 
+        { "groups", empty },
+        { "users",  { tracy, leanne } }
+        }
+      } 
+    }
+  }));
 
+  auto lines =  Security::instance()->getPolicyLines(policy);
+  BOOST_CHECK(lines);
+//  cout << lines.value() << endl;
+  BOOST_CHECK(lines.value().is_array());
+  BOOST_CHECK_EQUAL(lines.value().as_array().size(), 5);
+
+  auto user = lines.value().as_array()[0];
+  BOOST_CHECK_EQUAL(user.at("path").as_string(), "//accesses/0/users/0");
+  BOOST_CHECK_EQUAL(user.at("type").as_string(), "view");
+  BOOST_CHECK_EQUAL(user.at("context").as_string(), "user");
+  BOOST_CHECK_EQUAL(user.at("name").as_string(), "Tracy");
+
+  auto group = lines.value().as_array()[2];
+  BOOST_CHECK_EQUAL(group.at("path").as_string(), "//accesses/1/groups/0");
+  BOOST_CHECK_EQUAL(group.at("type").as_string(), "edit");
+  BOOST_CHECK_EQUAL(group.at("context").as_string(), "group");
+  BOOST_CHECK_EQUAL(group.at("name").as_string(), "Team 1");
+  
+}

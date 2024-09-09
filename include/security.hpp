@@ -84,6 +84,9 @@ public:
     
   }
     
+  optional<json> getPolicyLines(const string &id);
+    // get a json array of policy lines.
+  
 private:
 
   // there can be only 1.
@@ -94,6 +97,7 @@ private:
   void queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids);
   boost::json::array createArray(const vector<string> &list);
   json withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const json &query);
+  boost::json::object makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
 
 };
 

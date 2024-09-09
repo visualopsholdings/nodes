@@ -68,6 +68,7 @@ class AccessRow: public DynamicRow {
 public:
   AccessRow(json json): DynamicRow(json) {}
   
+  string name() { return getString("name"); }
   vector<string> users() { return getStringArray("users"); }
   vector<string> groups() { return getStringArray("groups"); }
   
@@ -138,6 +139,8 @@ class GroupRow: public DynamicRow {
 public:
   GroupRow(json json): DynamicRow(json) {}
   
+  string name() { return getString("name"); }
+  string policy() { return getString("policy"); }
   vector<MemberRow> members();
   
 };
