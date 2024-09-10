@@ -69,6 +69,21 @@ void SchemaImpl::deleteMany(const json &doc) {
 
 }
   
+bool SchemaImpl::deleteById(const string &id) {
+
+  BOOST_LOG_TRIVIAL(trace) << "deleteById " << id << " in " << collName();
+
+  bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
+
+  auto result = Storage::instance()->_impl->coll(collName())._c.delete_one(q);
+  if (result) {
+    return result.value().deleted_count() == 1;
+  }
+
+  return false;
+    
+}
+  
 optional<string> SchemaImpl::insert(const json &doc) {
 
   BOOST_LOG_TRIVIAL(trace) << "insert " << doc << " in " << collName();

@@ -81,6 +81,21 @@ We process and return;
 }
 ```
 
+#### Set Stream
+
+When this is received:
+
+```
+{
+  "type": "setstream",
+  "id": "stream guid",
+  "name": "A new name",
+  "me": "userid guid"
+}
+```
+
+If the user can edit the stream the details are set and Ack is returned.
+
 #### Add Stream
 
 When this is received:
@@ -94,6 +109,20 @@ When this is received:
 ```
 
 We find a policy just for "me" and create a new stream with that policy and return Ack.
+
+#### Delete Stream
+
+When this is received:
+
+```
+{
+  "type": "deletestream",
+  "id": "stream guid",
+  "me": "userid guid"
+}
+```
+
+If the user is allowed to edit the stream they can delete it. If succesful we return "ack".
 
 #### Policy users
 
@@ -322,6 +351,49 @@ We process and return;
   }
 }
 ```
+
+#### Add Group
+
+When this is received:
+
+```
+{
+  "type": "addgroup",
+  "name": "My new team",
+  "me": "userid guid"
+}
+```
+
+We find a policy just for "me" and create a new group with that policy and return Ack.
+
+#### Set Group
+
+When this is received:
+
+```
+{
+  "type": "setgroup",
+  "id": "group guid",
+  "name": "A new name",
+  "me": "userid guid"
+}
+```
+
+If the user can edit the group the details are set and Ack is returned.
+
+#### Delete Group
+
+When this is received:
+
+```
+{
+  "type": "deletegroup",
+  "id": "group guid",
+  "me": "userid guid"
+}
+```
+
+If the user is allowed to edit the group they can delete it. If succesful we return "ack".
 
 #### Members
 
@@ -558,6 +630,7 @@ This is received on the REP socket when a bad request has happened
 ```
 { 
   "type": "err",
+  "level": "warning",
   "msg": "LOL what are you doing!"
 }
 ```

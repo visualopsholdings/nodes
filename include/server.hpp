@@ -50,6 +50,7 @@ public:
     sendTo(*_rep, m, "sending");
   }
   void sendErr(const string &msg);
+  void sendWarning(const string &msg);
   void sendAck();
   void sendDataReq(const json &m);
   bool setInfo(const string &name, const string &text);

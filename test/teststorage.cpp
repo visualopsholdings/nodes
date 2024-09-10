@@ -196,4 +196,16 @@ BOOST_AUTO_TEST_CASE( getNow )
 
 }
 
+BOOST_AUTO_TEST_CASE( deleteById )
+{
+  cout << "=== deleteById ===" << endl;
+
+  dbSetup();
+
+  BOOST_CHECK(User().deleteById(tracy));
+  BOOST_CHECK(!User().deleteById(tracy));
+  
+}
+
+
 

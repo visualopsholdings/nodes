@@ -29,6 +29,9 @@ public:
   void deleteMany(const json &doc);
     // delete all documents that match the query.
     
+  bool deleteById(const string &id);
+    // delete the document that has this id.
+    
   optional<string> insert(const json &doc);
     // insert a new document.
     

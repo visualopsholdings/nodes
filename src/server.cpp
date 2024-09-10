@@ -52,6 +52,11 @@ void deleteMemberMsg(Server *server, json &json);
 void setuserMsg(Server *server, json &json);
 void policyMsg(Server *server, json &json);
 void addStreamMsg(Server *server, json &json);
+void deleteStreamMsg(Server *server, json &json);
+void addGroupMsg(Server *server, json &json);
+void setGroupMsg(Server *server, json &json);
+void setStreamMsg(Server *server, json &json);
+void deleteGroupMsg(Server *server, json &json);
 
 // dataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -101,6 +106,11 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _messages["setuser"] = bind(&nodes::setuserMsg, this, placeholders::_1);
   _messages["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
   _messages["addstream"] = bind(&nodes::addStreamMsg, this, placeholders::_1);
+  _messages["deletestream"] = bind(&nodes::deleteStreamMsg, this, placeholders::_1);
+  _messages["addgroup"] = bind(&nodes::addGroupMsg, this, placeholders::_1);
+  _messages["setgroup"] = bind(&nodes::setGroupMsg, this, placeholders::_1);
+  _messages["setstream"] = bind(&nodes::setStreamMsg, this, placeholders::_1);
+  _messages["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
 
   _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
@@ -256,6 +266,18 @@ void Server::sendErr(const string &msg) {
   BOOST_LOG_TRIVIAL(error) << msg;
   send({ 
     { "type", "err" }, 
+    { "level", "fatal" }, 
+    { "msg", msg } 
+  });
+  
+}
+
+void Server::sendWarning(const string &msg) {
+
+  BOOST_LOG_TRIVIAL(error) << msg;
+  send({ 
+    { "type", "err" }, 
+    { "level", "warning" }, 
     { "msg", msg } 
   });
   

@@ -44,7 +44,7 @@ void deleteMemberMsg(Server *server, json &j) {
     return;
   }
 
-  server->sendErr("could not remover member");
+  server->sendErr("could not remove member");
 
 }
 

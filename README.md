@@ -279,6 +279,12 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 28 Aug 2024
 - Implement security correctly (me) for various messages that need it.
 
+### 10 Sep 2024
+- Add support for adding, deleting and editing team and streams.
+- Add support for editing security.
+
+
+
 
 
 
