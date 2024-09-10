@@ -43,6 +43,9 @@ public:
   bool bulkInsert(const string &collName, boost::json::array &objs);
     // Insert all of the objects into the collection with that name.
 
+  json getNow();
+    // return the correct JSON for a date that is now.
+    
 private:
 
   // there can be only 1.

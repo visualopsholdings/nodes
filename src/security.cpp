@@ -187,3 +187,48 @@ optional<json> Security::getPolicyLines(const string &id) {
   return lines;
   
 }
+
+optional<string> Security::findPolicyForUser(const string &id) {
+  
+  boost::json::array empty;
+  json q = { 
+    { "accesses.0.name", "view" },
+    { "accesses.0.groups", empty }, 
+    { "accesses.0.users",  { id } }, 
+    { "accesses.1.name", "edit" },
+    { "accesses.1.groups", empty }, 
+    { "accesses.1.users",  { id } }, 
+    { "accesses.2.name", "exec" },
+    { "accesses.2.groups", empty }, 
+    { "accesses.2.users",  { id } }
+	};
+  
+  auto policy = Policy().find(q).value();
+  if (!policy) {
+      auto newpolicy = Policy().insert({
+      { "accesses", {
+        { { "name", "view" }, 
+          { "groups", empty },
+          { "users", { id } }
+          },
+        { { "name", "edit" }, 
+          { "groups", empty },
+          { "users", { id } }
+          },
+        { { "name", "exec" }, 
+          { "groups", empty },
+          { "users", { id } }
+          }
+        } 
+      },
+      { "modifyDate", Storage::instance()->getNow() }
+    });
+    if (!newpolicy) {
+      BOOST_LOG_TRIVIAL(error) << "could not create new policy";
+    }
+    return newpolicy;
+  }
+  
+  return policy.value().id();
+  
+}

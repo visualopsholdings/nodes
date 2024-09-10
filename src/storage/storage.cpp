@@ -83,3 +83,9 @@ bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
   return true;
   
 }
+
+json Storage::getNow() {
+
+  return { { "$date", std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) * 1000 } };
+  
+}

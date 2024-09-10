@@ -72,7 +72,7 @@ We process and return;
 ```
 { 
   "type": "streams, 
-  "stream": ""stream guid",
+  "stream": "stream guid",
   "stream": {
     "name": "Conversation 1",
     "stream": "stream guid",
@@ -80,6 +80,20 @@ We process and return;
   }
 }
 ```
+
+#### Add Stream
+
+When this is received:
+
+```
+{
+  "type": "addstream",
+  "name": "My new stream",
+  "me": "userid guid"
+}
+```
+
+We find a policy just for "me" and create a new stream with that policy and return Ack.
 
 #### Policy users
 

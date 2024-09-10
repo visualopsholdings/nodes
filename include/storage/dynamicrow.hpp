@@ -25,6 +25,7 @@ public:
   DynamicRow(json j): _json(j) {}
   
   json j() { return _json; }
+  string id() { return getString("id"); }
 
 protected:
   string getString(const string &name) const;

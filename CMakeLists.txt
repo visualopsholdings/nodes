@@ -95,6 +95,7 @@ set(MESSAGES
   src/msg/deletemember.cpp
   src/msg/setuser.cpp
   src/msg/policy.cpp
+  src/msg/addstream.cpp
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp

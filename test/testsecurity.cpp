@@ -230,6 +230,8 @@ BOOST_AUTO_TEST_CASE( canEdit )
   cout << "=== canEdit ===" << endl;
   
   dbSetup();
+  Policy().deleteMany({{}});
+  Stream().deleteMany({{}});
   boost::json::array empty;
   auto policy = Policy().insert({
     { "accesses", {
@@ -267,6 +269,8 @@ BOOST_AUTO_TEST_CASE( getPolicyLines )
   cout << "=== getPolicyLines ===" << endl;
   
   dbSetup();
+  User().deleteMany({{}});
+  Group().deleteMany({{}});
   Policy().deleteMany({{}});
   boost::json::array empty;
   BOOST_CHECK(User().insert({
@@ -326,4 +330,62 @@ BOOST_AUTO_TEST_CASE( getPolicyLines )
   BOOST_CHECK_EQUAL(group.at("context").as_string(), "group");
   BOOST_CHECK_EQUAL(group.at("name").as_string(), "Team 1");
   
+}
+
+BOOST_AUTO_TEST_CASE( findMissingPolicyForUser )
+{
+  cout << "=== findMissingPolicyForUser ===" << endl;
+  
+  dbSetup();
+  User().deleteMany({{}});
+  Policy().deleteMany({{}});
+  auto user = User().insert({
+    { "name", "tracy" },
+    { "admin", true },
+    { "fullname", "Tracy" }
+  });
+  BOOST_CHECK(user);
+
+  auto foundpolicy =  Security::instance()->findPolicyForUser(user.value());
+  BOOST_CHECK(foundpolicy);
+
+}
+
+BOOST_AUTO_TEST_CASE( findPolicyForUser )
+{
+  cout << "=== findPolicyForUser ===" << endl;
+  
+  dbSetup();
+  User().deleteMany({{}});
+  Policy().deleteMany({{}});
+  auto user = User().insert({
+    { "name", "tracy" },
+    { "admin", true },
+    { "fullname", "Tracy" }
+  });
+  BOOST_CHECK(user);
+  boost::json::array empty;
+  auto policy = Policy().insert({
+    { "accesses", {
+      { { "name", "view" }, 
+        { "groups", empty },
+        { "users", { user.value() } }
+        },
+      { { "name", "edit" }, 
+        { "groups", empty },
+        { "users", { user.value() } }
+        },
+      { { "name", "exec" }, 
+        { "groups", empty },
+        { "users", { user.value() } }
+        }
+      } 
+    }
+  });
+  BOOST_CHECK(policy);
+
+  auto foundpolicy =  Security::instance()->findPolicyForUser(user.value());
+  BOOST_CHECK(foundpolicy);
+  BOOST_CHECK_EQUAL(foundpolicy.value(), policy.value());
+
 }

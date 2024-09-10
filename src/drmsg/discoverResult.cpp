@@ -52,8 +52,7 @@ void discoverResultMsg(Server *server, json &j) {
   }
    
   server->setInfo("hasInitialSync", "true");
-  auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  json date = {{ "$date", now }};
+  json date = Storage::instance()->getNow();
   server->setInfo("upstreamLastSeen", Json::toISODate(date));
   server->systemStatus("Discovery complete");
 

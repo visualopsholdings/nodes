@@ -87,6 +87,9 @@ public:
   optional<json> getPolicyLines(const string &id);
     // get a json array of policy lines.
   
+  optional<string> findPolicyForUser(const string &id);
+    // find the policy for this user, if it doesn't exist create it.
+    
 private:
 
   // there can be only 1.

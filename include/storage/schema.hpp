@@ -45,7 +45,6 @@ class UserRow: public DynamicRow {
 public:
   UserRow(json json): DynamicRow(json) {}
   
-  string id() { return getString("id"); }
   string name() { return getString("name"); }
   string fullname() { return getString("fullname"); }
   string salt() { return getString("salt"); }
@@ -96,7 +95,6 @@ class StreamRow: public DynamicRow {
 public:
   StreamRow(json json): DynamicRow(json) {}
 
-  string id() { return getString("id"); }
   string name() { return getString("name"); }
   string policy() { return getString("policy"); }
   

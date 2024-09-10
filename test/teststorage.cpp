@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "storage.hpp"
+#include "json.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -178,4 +179,21 @@ BOOST_AUTO_TEST_CASE( bulkInsert )
   BOOST_CHECK(Storage::instance()->bulkInsert("users", a));
 
 }
+
+BOOST_AUTO_TEST_CASE( getNow )
+{
+  cout << "=== getNow ===" << endl;
+
+  json date = Storage::instance()->getNow();
+  string dates = Json::toISODate(date);
+  
+  // get the year a different way and compare with the start.
+  std::time_t t = std::time(nullptr);
+  std::tm *const tm = std::localtime(&t);
+  stringstream ss;
+  ss << 1900 + tm->tm_year;
+  BOOST_CHECK_EQUAL(dates.substr(0, 4), ss.str());
+
+}
+
 

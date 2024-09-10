@@ -68,14 +68,12 @@ void messageMsg(Server *server, json &j) {
     return;
   }
   
-  auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-  
   json idea = {
     { "user", userid.value() },
     { "stream", streamid.value() },
     { "policy", policyid },
     { "text", text.value() },
-    { "modifyDate", { { "$date", now } } }
+    { "modifyDate", Storage::instance()->getNow() }
   };
   auto result = Idea().insert(idea);
   if (!result) {
