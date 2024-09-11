@@ -102,6 +102,7 @@ set(MESSAGES
   src/msg/setstream.cpp
   src/msg/deletegroup.cpp
   src/msg/setstreampolicy.cpp
+  src/msg/setgrouppolicy.cpp
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp
