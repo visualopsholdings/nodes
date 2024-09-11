@@ -81,7 +81,7 @@ json ResultImpl::fixObject(const json &j) {
 
 json ResultImpl::fixObjects(const json &j) {
 
-  BOOST_LOG_TRIVIAL(trace) << "fixObjects " << j;
+//  BOOST_LOG_TRIVIAL(trace) << "fixObjects " << j;
 
   return fixObject(j);
 

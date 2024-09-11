@@ -389,3 +389,71 @@ BOOST_AUTO_TEST_CASE( findPolicyForUser )
   BOOST_CHECK_EQUAL(foundpolicy.value(), policy.value());
 
 }
+
+BOOST_AUTO_TEST_CASE( modifyPolicy )
+{
+  cout << "=== modifyPolicy ===" << endl;
+  
+  dbSetup();
+  User().deleteMany({{}});
+  Policy().deleteMany({{}});
+  BOOST_CHECK(User().insert({
+    { "_id", { { "$oid", tracy } } },
+    { "name", "tracy" },
+    { "admin", true },
+    { "fullname", "Tracy" }
+  }));
+  BOOST_CHECK(User().insert({
+    { "_id", { { "$oid", leanne } } },
+    { "name", "leanne" },
+    { "admin", false },
+    { "fullname", "Leanne" }
+  }));
+  BOOST_CHECK(Group().insert({
+    { "_id", { { "$oid", team1 } } },
+    { "name", "Team 1" },
+    { "members", {
+      { { "user", tracy } }, // tracy
+      } 
+    }
+  }));
+  boost::json::array empty;
+  BOOST_CHECK(Policy().insert({
+    { "_id", { { "$oid", policy } } },
+    { "accesses", {
+      { { "name", "view" }, 
+        { "groups", empty },
+        { "users", { tracy } }
+        },
+      { { "name", "edit" }, 
+        { "groups", { team1 } },
+        { "users",  empty }
+        },
+      { { "name", "exec" }, 
+        { "groups", empty },
+        { "users",  { tracy, leanne } }
+        }
+      } 
+    }
+  }));
+
+  // add and remove a bunch of stuff.
+  vector<tuple<string, string, string > > add;
+  add.push_back({ "view", "user", leanne });
+  add.push_back({ "exec", "group", team1 });
+  vector<string> remove = { "//accesses/2/users/0" };
+  auto newpolicy =  Security::instance()->modifyPolicy(policy, add, remove);
+  BOOST_CHECK(newpolicy);
+  BOOST_CHECK(newpolicy.value() != policy);
+
+  auto policy = Policy().findById(newpolicy.value()).value();
+  BOOST_CHECK(policy);
+  BOOST_CHECK_EQUAL(policy.value().accesses().size(), 3);
+  BOOST_CHECK_EQUAL(policy.value().accesses()[0].users().size(), 2); // 1 added
+  BOOST_CHECK_EQUAL(policy.value().accesses()[0].groups().size(), 0); // didn't change
+  BOOST_CHECK_EQUAL(policy.value().accesses()[1].users().size(), 0); // didn't change
+  BOOST_CHECK_EQUAL(policy.value().accesses()[1].groups().size(), 1); // didn't change
+  BOOST_CHECK_EQUAL(policy.value().accesses()[2].users().size(), 1); // 1 removed
+  BOOST_CHECK_EQUAL(policy.value().accesses()[2].groups().size(), 1); // 1 added
+  
+}

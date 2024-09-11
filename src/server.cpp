@@ -57,6 +57,7 @@ void addGroupMsg(Server *server, json &json);
 void setGroupMsg(Server *server, json &json);
 void setStreamMsg(Server *server, json &json);
 void deleteGroupMsg(Server *server, json &json);
+void setStreamPolicyMsg(Server *server, json &json);
 
 // dataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -111,6 +112,7 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _messages["setgroup"] = bind(&nodes::setGroupMsg, this, placeholders::_1);
   _messages["setstream"] = bind(&nodes::setStreamMsg, this, placeholders::_1);
   _messages["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
+  _messages["setstreampolicy"] = bind(&nodes::setStreamPolicyMsg, this, placeholders::_1);
 
   _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);

@@ -283,6 +283,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Add support for adding, deleting and editing team and streams.
 - Add support for editing security.
 
+### 11 Sep 2024
+- Allow security policies to be edited.
+
 
 
 

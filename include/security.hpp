@@ -19,11 +19,17 @@
 #include <string>
 #include <boost/json.hpp>
 #include <memory>
+#include <tuple>
 
 using namespace std;
 using json = boost::json::value;
 
 class VID;
+
+typedef tuple<string, string, string> addTupleType;
+    // the add tuple is "type", "class" and "id"
+    // type: "view" | "edit" | "exec"
+    // context: "user" | "group"
 
 class Security {
 
@@ -87,7 +93,10 @@ public:
   optional<json> getPolicyLines(const string &id);
     // get a json array of policy lines.
   
-  optional<string> findPolicyForUser(const string &id);
+  optional<string> findPolicyForUser(const string &userid);
+    // find the policy for this user, if it doesn't exist create it.
+    
+  optional<string> modifyPolicy(const string &id, const vector<addTupleType> &add, const vector<string> &remove);
     // find the policy for this user, if it doesn't exist create it.
     
 private:
@@ -101,6 +110,9 @@ private:
   boost::json::array createArray(const vector<string> &list);
   json withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const json &query);
   boost::json::object makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
+  void removeAt(json *obj, const string &fullpath);
+  void addPolicy(json *obj, const string &type, const string &context, const string &id);
+  json policyToQuery(const json &obj);
 
 };
 

@@ -124,6 +124,31 @@ When this is received:
 
 If the user is allowed to edit the stream they can delete it. If succesful we return "ack".
 
+#### Set Stream Policy
+
+When this is received:
+
+```
+{
+  "type":"setstreampolicy",
+  "add": [
+    { "context":"user", "type":"edit", "id":"66e0246b62df890f877fc1d8" },
+    { "context":"user", "type":"view", "id":"66e0246b62df890f877fc1d8" },
+    { "context":"user", "type":"exec", "id":"66e0246b62df890f877fc1d8" }
+  ],
+  "remove": [
+    "//accesses/1/groups/0",
+    "//accesses/0/groups/0"
+  ]
+}
+```
+
+The remove is VERY similar to https://datatracker.ietf.org/doc/html/rfc6901
+except for the extra "/" at the start of each line.
+
+If the user can edit the stream the policy is modified, searched for and then 
+set and Ack is returned.
+
 #### Policy users
 
 Since the Nodes system is persistent, when you join a stream, you can query the 

@@ -1,5 +1,5 @@
 /*
-  setstream.cpp
+  setstreampolicy.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 10-Sep-2024
@@ -19,7 +19,7 @@
 
 namespace nodes {
 
-void setStreamMsg(Server *server, json &j) {
+void setStreamPolicyMsg(Server *server, json &j) {
 
   auto id = Json::getString(j, "id");
   if (!id) {
@@ -38,14 +38,29 @@ void setStreamMsg(Server *server, json &j) {
     server->sendErr("stream not found");
     return;
   }
+
+  // build our add and remove vectors.
+  vector<addTupleType> add;
+  auto arr = j.at("add").as_array();
+  transform(arr.begin(), arr.end(), back_inserter(add), [](auto e) { 
+    return addTupleType { e.at("type").as_string().c_str(), e.at("context").as_string().c_str(), e.at("_id").as_string().c_str() }; 
+  });
   
-  BOOST_LOG_TRIVIAL(trace) << "stream old value " << doc.value().j();
+  vector<string> remove;
+  arr = j.at("remove").as_array();
+  transform(arr.begin(), arr.end(), back_inserter(remove), [](auto e) { return e.as_string().c_str(); });
+  
+  auto policy = Security::instance()->modifyPolicy(doc.value().policy(), add, remove);
+  if (!policy) {
+    server->sendErr("could not modify policy");
+  }
+  if (policy.value() == doc.value().policy()) {
+    BOOST_LOG_TRIVIAL(info) << "policy didn't change for " << id.value();
+    server->sendAck();
+  }
   
   boost::json::object obj;
-  auto name = Json::getString(j, "name");
-  if (name) {
-    obj["name"] = name.value();
-  }
+  obj["policy"] = policy.value();
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
   auto result = streams.updateById(id.value(), obj);
   if (!result) {
