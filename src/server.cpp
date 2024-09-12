@@ -29,6 +29,7 @@ namespace nodes {
 // handlers
 void loginMsg(Server *server, json &json);
 void policyUsersMsg(Server *server, json &json);
+void policyGroupsMsg(Server *server, json &json);
 void messageMsg(Server *server, json &json);
 void certsMsg(Server *server, json &json);
 void usersMsg(Server *server, json &json);
@@ -59,6 +60,7 @@ void setStreamMsg(Server *server, json &json);
 void deleteGroupMsg(Server *server, json &json);
 void setStreamPolicyMsg(Server *server, json &json);
 void setGroupPolicyMsg(Server *server, json &json);
+void streamShareLinkMsg(Server *server, json &json);
 
 // dataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -86,6 +88,7 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _messages["certs"] = bind(&nodes::certsMsg, this, placeholders::_1);
   _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
   _messages["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
+  _messages["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
   _messages["message"] = bind(&nodes::messageMsg, this, placeholders::_1);
   _messages["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
   _messages["user"] = bind(&nodes::userMsg, this, placeholders::_1);
@@ -115,6 +118,7 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _messages["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
   _messages["setstreampolicy"] = bind(&nodes::setStreamPolicyMsg, this, placeholders::_1);
   _messages["setgrouppolicy"] = bind(&nodes::setGroupPolicyMsg, this, placeholders::_1);
+  _messages["streamsharelink"] = bind(&nodes::streamShareLinkMsg, this, placeholders::_1);
 
   _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);

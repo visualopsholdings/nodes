@@ -85,6 +85,22 @@ void Security::getPolicyUsers(const string &id, vector<string> *users) {
 
 }
 
+void Security::getPolicyGroups(const string &id, vector<string> *groups) {
+
+  auto policy = Policy().findById(id, { "accesses" }).value();
+  if (!policy) {
+    BOOST_LOG_TRIVIAL(error) << "policy missing";
+    return;
+  }
+
+  // collect the groups.
+  vector<string> grps;
+  for (auto a: policy.value().accesses()) {
+    for (auto g: a.groups()) addTo(groups, g);
+  }
+ 
+}
+
 boost::json::array Security::createArray(const vector<string> &list) {
 
   boost::json::array a;
@@ -439,4 +455,10 @@ void Security::regenerateGroups() {
 
   string home = getHome();
   Group().aggregate(home + "/scripts/useringroups.json");
+}
+
+optional<string> Security::generateShareLink(const string &stream, optional<string> group, optional<int> expires) {
+
+  return "http://www.google.com";
+  
 }

@@ -23,15 +23,12 @@ void streamsMsg(Server *server, json &j) {
 
   Stream stream;
   auto docs = Security::instance()->withView(stream, Json::getString(j, "me"), {{}}, { "id", "name", "policy" }).values();
-  if (!docs) {
-    server->sendErr("DB Error");
-    return;
-  }
-//  BOOST_LOG_TRIVIAL(trace) << docs.value();
+  
   boost::json::array s;
-  for (auto i: docs.value()) {
-    s.push_back(i.j());
+  if (docs) {
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
   }
+  
   server->send({
     { "type", "streams" },
     { "streams", s }

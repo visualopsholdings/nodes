@@ -26,9 +26,10 @@ void groupsMsg(Server *server, json &j) {
     { "id", "modifyDate", "name" }).values();
 
   boost::json::array s;
-  for (auto i: docs.value()) {
-    s.push_back(i.j());
+  if (docs) {
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
   }
+
   server->send({
     { "type", "groups" },
     { "groups", s }

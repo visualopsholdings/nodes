@@ -49,6 +49,9 @@ public:
   void getPolicyUsers(const string &id, vector<string> *users);
     // get a list of users that are in this policy.
   
+  void getPolicyGroups(const string &id, vector<string> *groups);
+    // get a list of groups that are in this policy.
+  
   // execute a query ensuring that the user can view the results.
   template <typename RowType>
   Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
@@ -104,6 +107,10 @@ public:
 
   void regenerateGroups();
     // run aggregator when group members change.
+ 
+  optional<string> generateShareLink(const string &stream, optional<string> group, optional<int> expires);
+    // generate a link that can be passed to somebody, putting them in a team and only
+    // for expires ours.
     
 private:
 

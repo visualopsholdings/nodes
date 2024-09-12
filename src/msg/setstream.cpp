@@ -43,8 +43,12 @@ void setStreamMsg(Server *server, json &j) {
   
   boost::json::object obj;
   auto name = Json::getString(j, "name");
+  auto streambits = Json::getNumber(j, "streambits");
   if (name) {
     obj["name"] = name.value();
+  }
+  if (streambits) {
+    obj["streambits"] = streambits.value();
   }
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
   auto result = streams.updateById(id.value(), obj);

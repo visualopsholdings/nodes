@@ -103,6 +103,8 @@ set(MESSAGES
   src/msg/deletegroup.cpp
   src/msg/setstreampolicy.cpp
   src/msg/setgrouppolicy.cpp
+  src/msg/policygroups.cpp
+  src/msg/streamsharelink.cpp
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp

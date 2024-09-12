@@ -24,7 +24,7 @@ void siteMsg(Server *server, json &j) {
 
   server->send({
     { "type", "site" },
-    { "site", doc ? doc.value().j() : json{} }
+    { "site", doc ? doc.value().j() : json{{}} }
   });
   
 }

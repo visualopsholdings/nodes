@@ -149,6 +149,31 @@ except for the extra "/" at the start of each line.
 If the user can edit the stream the policy is modified, searched for and then 
 set and Ack is returned.
 
+#### Stream Share Link
+
+Get a share link to a stream
+
+When this is received:
+
+```
+{ 
+  "type": "streamsharelink", 
+  "stream": "stream guid", 
+  "group": "group guid",
+  "expires": 4,
+  "me": "user guid"
+}
+```
+
+We process and return;
+
+```
+{ 
+  "type": "streamsharelink", 
+  "url": "http://www.google.com"
+}
+```
+
 #### Policy users
 
 Since the Nodes system is persistent, when you join a stream, you can query the 
@@ -159,7 +184,7 @@ When this is received:
 ```
 { 
   "type": "policyusers", 
-  "policy": "stream policy guid" 
+  "policy": "policy guid" 
 }
 ```
 
@@ -167,9 +192,7 @@ We process and return;
 
 ```
 { 
-  "type": "user", 
-  "name": "policyusers",
-  "id": "stream policy guid",
+  "type": "policyusers", 
   "users": [
     {
       "name": "tracy",
@@ -180,6 +203,38 @@ We process and return;
       "name": "leanne",
       "fullname": "Leanne",
       "id": "user guid"
+    }
+  ]
+}
+```
+
+#### Policy groups
+
+Since the Nodes system is persistent, when you join a stream, you can query the 
+groups in that stream by the stream policy and join those users too.
+
+When this is received:
+
+```
+{ 
+  "type": "policygroups", 
+  "policy": "policy guid" 
+}
+```
+
+We process and return;
+
+```
+{ 
+  "type": "policygroups", 
+  "groups": [
+    {
+      "name": "Team 1",
+      "id": "group guid"
+    },
+    {
+      "name": "Team 2",
+      "id": "group guid"
     }
   ]
 }

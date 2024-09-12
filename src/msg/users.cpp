@@ -22,9 +22,10 @@ void usersMsg(Server *server, json &j) {
   auto docs = User().find(json{{}}, { "id", "modifyDate", "name", "fullname", "admin", "active" }).values();
 
   boost::json::array s;
-  for (auto i: docs.value()) {
-    s.push_back(i.j());
+  if (docs) {
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
   }
+
   server->send({
     { "type", "users" },
     { "users", s }

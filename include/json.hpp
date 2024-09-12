@@ -29,6 +29,11 @@ public:
   static optional<boost::json::array> getArray(json &reply, const string &name);
   static optional<json> getObject(json &j, const string &name);
   static optional<bool> getBool(const json &j, const string &name);
+  static optional<int> getNumber(const json &j, const string &name);
+
+private:
+
+  static json getMember(const json &j, const string &name);
 
 };
 

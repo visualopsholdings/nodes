@@ -138,6 +138,48 @@ BOOST_AUTO_TEST_CASE( getPolicyUsersInGroup )
   
 }
 
+BOOST_AUTO_TEST_CASE( getPolicyGroups )
+{
+  cout << "=== getPolicyGroups ===" << endl;
+  
+  dbSetup();
+  Policy().deleteMany({{}});
+  Group().deleteMany({{}});
+  BOOST_CHECK(Group().insert({
+    { "_id", { { "$oid", team1 } } },
+    { "name", "Team 1" },
+    { "members", {
+      { { "user", tracy } }, // tracy
+      { { "user", leanne } }  // leanne
+      } 
+    }
+  }));
+  boost::json::array empty;
+  BOOST_CHECK(Policy().insert({
+    { "_id", { { "$oid", policy } } },
+    { "accesses", {
+      { { "name", "view" }, 
+        { "groups", { team1 } },
+        { "users", empty }
+        },
+      { { "name", "edit" }, 
+        { "groups", { team1 } },
+        { "users", empty }
+        },
+      { { "name", "exec" }, 
+        { "groups", { team1 } },
+        { "users", empty }
+        }
+      } 
+    }
+  }));
+  
+  vector<string> groups;
+  Security::instance()->getPolicyGroups(policy, &groups);
+  BOOST_CHECK_EQUAL(groups.size(), 1);
+  
+}
+
 BOOST_AUTO_TEST_CASE( with )
 {
   cout << "=== with ===" << endl;

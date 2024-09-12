@@ -286,6 +286,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 11 Sep 2024
 - Allow security policies to be edited.
 
+### 12 Sep 2024
+- First steps for creating share links.
+
 
 
 
