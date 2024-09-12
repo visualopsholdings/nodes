@@ -178,11 +178,8 @@ BOOST_AUTO_TEST_CASE( with )
     { "policy", policy }
   }));
 
-  Group().aggregate("../src/useringroups.json");
-  Policy().aggregate("../src/groupviewpermissions.json");
-  Policy().aggregate("../src/userviewpermissions.json");
-  Policy().aggregate("../src/groupeditpermissions.json");
-  Policy().aggregate("../src/usereditpermissions.json");
+  Security::instance()->regenerateGroups();
+  Security::instance()->regenerate();
 
   Stream streams;
   {
@@ -254,10 +251,7 @@ BOOST_AUTO_TEST_CASE( canEdit )
     { "name", "Conversation 1" },
     { "policy", policy.value() }
   });
-  Policy().aggregate("../src/groupviewpermissions.json");
-  Policy().aggregate("../src/userviewpermissions.json");
-  Policy().aggregate("../src/groupeditpermissions.json");
-  Policy().aggregate("../src/usereditpermissions.json");
+  Security::instance()->regenerate();
   
   Stream streams;
   BOOST_CHECK(Security::instance()->canEdit(streams, tracy, stream.value()));

@@ -99,6 +99,12 @@ public:
   optional<string> modifyPolicy(const string &id, const vector<addTupleType> &add, const vector<string> &remove);
     // find the policy for this user, if it doesn't exist create it.
     
+  void regenerate();
+    // run all the aggregators needed for security.
+
+  void regenerateGroups();
+    // run aggregator when group members change.
+    
 private:
 
   // there can be only 1.

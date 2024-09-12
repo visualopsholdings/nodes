@@ -40,6 +40,7 @@ void newMemberMsg(Server *server, json &j) {
   }
 
   if (groups.addMember(groupid.value(), id.value())) {
+    Security::instance()->regenerateGroups();
     server->sendAck();
     return;
   }

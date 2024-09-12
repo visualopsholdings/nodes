@@ -40,6 +40,7 @@ void deleteMemberMsg(Server *server, json &j) {
   }
 
   if (groups.removeMember(groupid.value(), id.value())) {
+    Security::instance()->regenerateGroups();
     server->sendAck();
     return;
   }

@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE( userInGroups )
     }
   }));
   
-  Group().aggregate("../src/useringroups.json");
+  Group().aggregate("../scripts/useringroups.json");
   
   auto doc = UserInGroups().find({{ "_id", "u2"}}, {"value"}).value();
   BOOST_CHECK(doc);

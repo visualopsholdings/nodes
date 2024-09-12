@@ -19,9 +19,11 @@
 #include <boost/log/trivial.hpp>
 #include <bsoncxx/oid.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 #include <base64.hpp>
 #include <sstream>
 #include <cstdlib>
+#include <wordexp.h>
 
 #define SHA1_LEN    128
 #define ITERATIONS  12000
@@ -387,9 +389,54 @@ optional<string> Security::modifyPolicy(const string &id, const vector<addTupleT
   // search for this query.
   auto existpolicy = Policy().find(policyToQuery(obj)).value();
   if (!existpolicy) {
-    return Policy().insert(obj);
+    auto result = Policy().insert(obj);
+    if (result) {
+      regenerate();
+    }
+    return result;
   }
 	
   return existpolicy.value().id();
   
+}
+  
+string expandVar(const string &name) {
+
+  wordexp_t p;
+  wordexp(name.c_str(), &p, 0);
+  stringstream ss;
+  char** w = p.we_wordv;
+  for (size_t i=0; i<p.we_wordc;i++ ) ss << w[i];
+  wordfree(&p);
+
+  return ss.str();
+}
+
+string getHome() {
+
+  // try $NODES_HOME
+  string home = expandVar("$NODES_HOME");
+  if (home.size() == 0) {
+    // use $HOME (like in production)
+    home = expandVar("$HOME") + "/nodes";
+  }
+  BOOST_LOG_TRIVIAL(trace) << "home=" << home;
+  
+  return home;
+  
+}
+
+void Security::regenerate() {
+
+  string home = getHome();
+  Policy().aggregate(home + "/scripts/groupeditpermissions.json");
+  Policy().aggregate(home + "/scripts/groupviewpermissions.json");
+  Policy().aggregate(home + "/scripts/usereditpermissions.json");
+  Policy().aggregate(home + "/scripts/userviewpermissions.json");
+}
+
+void Security::regenerateGroups() {
+
+  string home = getHome();
+  Group().aggregate(home + "/scripts/useringroups.json");
 }
