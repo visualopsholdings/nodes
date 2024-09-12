@@ -7,24 +7,24 @@
 	<key>BundleIdentifier</key>
 	<string>com.barebones.bbedit</string>
 	<key>HostIdentifier</key>
-	<string>862CC867-EF10-538A-9F52-830C18E2A46C</string>
+	<string>786540E8-56F0-5457-9352-70E2D4EF50E7</string>
 	<key>HostName</key>
-	<string>paul-m1</string>
+	<string>Paul’s Mac mini</string>
 	<key>LockDate</key>
-	<date>2024-09-12T07:40:35Z</date>
+	<date>2024-09-12T23:34:27Z</date>
 	<key>LockID</key>
-	<string>A2B069BC-0035-404B-A88D-5975F1B1A9BC</string>
+	<string>47A6AB1C-4222-46C4-8A4C-7AAE6D109741</string>
 	<key>MarketingVersion</key>
 	<string>15.1.2</string>
 	<key>NetworkVolume</key>
 	<false/>
 	<key>ProcessIdentifier</key>
-	<integer>98510</integer>
+	<integer>1976</integer>
 	<key>UserName</key>
 	<string>paul</string>
 	<key>Version</key>
 	<integer>3</integer>
 	<key>VolumeIdentifier</key>
-	<string>7908EA43-01BE-440A-AE98-9207BAC32BBC</string>
+	<string>2E91F751-92E8-46A5-8F8F-CEED2030F179</string>
 </dict>
 </plist>

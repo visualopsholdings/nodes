@@ -39,15 +39,39 @@ A REP/REQ socket on port tcp://127.0.0.1:3013.
 The development process for all of this code used a normal Linux environment with the BOOST
 libraries and a C++ compiler.
 
-So on your Linux (or mac using Homebrew etc), get all you need: (These steps have been tested
-on Ubuntu 24.04 on a Pi5 and in a TG4 in AWS):
+### Prerequisites
+
+The best way to get started is to take a look at:
+
+https://github.com/visualopsholdings/nodes-devops
+
+And then find your particular OS and run those steps to get a basic binary-only build running 
+for your platform. Once you have that you can come back in here and setup all the development
+tools you might need.
+
+Ok your back!!!!
+
+No this project can be found as the folder nodes-web in the thing you just setup. The next step
+is to remove that folder and pull the SOURCE from git with:
+
+```
+git clone https://github.com/visualopsholdings/nodes.git
+```
+
+Then depending on your platform, add in necessary development tools:
+
+On Ubuntu 24.04:
 
 ```
 sudo apt-get update
 sudo apt-get -y install g++ gcc make cmake ruby-rubygems libssl-dev
 ```
 
-### Prerequisites
+On the maxc OS:
+
+```
+brew install cmake
+```
 
 For convenience, do all these inside a folder you can remove, they take a lot of disk space
 but aren't used once installed.
@@ -73,29 +97,8 @@ all from source.
 
 #### MongoDB
 
+[Instructions](https://github.com/visualopsholdings/nodes-devops/blob/main/dev/MONGO.md)
 On OS X or Linux:
-
-```
-cd working
-curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r3.10.1/mongo-cxx-driver-r3.10.1.tar.gz
-tar xzf mongo-cxx-driver-r3.10.1.tar.gz
-cd mongo-cxx-driver-r3.10.1/build
-cmake ..                                            \
-    -DCMAKE_BUILD_TYPE=Release                      \
-    -DBSONCXX_POLY_USE_BOOST=1                      \
-    -DMONGOCXX_OVERRIDE_DEFAULT_INSTALL_PREFIX=OFF
-cmake --build . -j4
-sudo cmake --build . --target install
-cd ../../..
-```
-
-On a linux you might need:
-
-```
-export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-```
-
-So put that into your .bashrc.
 
 #### FLTK
 
