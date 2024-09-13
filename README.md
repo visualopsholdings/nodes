@@ -135,6 +135,12 @@ make && make test || cat Testing/Temporary/LastTest.log
 The end to end tests use cucumber (Ruby), to get that going:
 
 ```
+bundle install
+```
+
+You will only need to do that once to install the ruby stuff.
+
+```
 ./test.sh
 ```
 
