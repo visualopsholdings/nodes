@@ -63,6 +63,7 @@ string policy = "667bfee4b07cc40ec3dd6ee8";
 string tracy = "667d0baedfb1ed18430d8ed3";
 string leanne = "667d0baedfb1ed18430d8ed4";
 string team1 = "667d0bae39ae84d0890a2141";
+string stream1 = "6622129f207af2b4e65ab90f";
   
 BOOST_AUTO_TEST_CASE( getPolicyUsers )
 {
@@ -491,5 +492,65 @@ BOOST_AUTO_TEST_CASE( modifyPolicy )
   BOOST_CHECK_EQUAL(policy.value().accesses()[1].groups().size(), 1); // didn't change
   BOOST_CHECK_EQUAL(policy.value().accesses()[2].users().size(), 1); // 1 removed
   BOOST_CHECK_EQUAL(policy.value().accesses()[2].groups().size(), 1); // 1 added
+  
+}
+
+BOOST_AUTO_TEST_CASE( generateShareLink )
+{
+  cout << "=== generateShareLink ===" << endl;
+  
+  dbSetup();
+  User().deleteMany({{}});
+  Group().deleteMany({{}});
+  Stream().deleteMany({{}});
+  BOOST_CHECK(User().insert({
+    { "_id", { { "$oid", tracy } } },
+    { "name", "tracy" },
+    { "fullname", "Tracy" }
+  }));
+  BOOST_CHECK(Group().insert({
+    { "_id", { { "$oid", team1 } } },
+    { "name", "Team 1" },
+    { "members", {
+      { { "user", tracy } },
+      } 
+    }
+  }));
+  BOOST_CHECK(Stream().insert({
+    { "_id", { { "$oid", stream1 } } },
+    { "name", "Stream 1" },
+    { "streambits", 2048 }
+  }));
+  
+  auto link = Security::instance()->generateShareLink(tracy, "http://visualops.com", stream1, team1, 4);
+  BOOST_CHECK(link);
+  BOOST_CHECK_EQUAL(link.value().find("token="), 75);
+  
+}
+
+BOOST_AUTO_TEST_CASE( streamShareToken )
+{
+  cout << "=== streamShareToken ===" << endl;
+  
+  string options = "mustName";
+  string expires = "2024-09-13T11:56:24.0+00:00";
+  auto token = Security::instance()->createStreamShareToken(stream1, tracy, options, team1, expires);
+  BOOST_CHECK(token);
+  cout << token.value() << endl;
+  auto json = Security::instance()->expandStreamShareToken(token.value());
+  BOOST_CHECK(json);
+  cout << json.value() << endl;
+  BOOST_CHECK(json.value().is_object());
+  auto obj = json.value().as_object();
+  BOOST_CHECK(obj.if_contains("id"));
+  BOOST_CHECK_EQUAL(obj.at("id").as_string(), stream1);
+  BOOST_CHECK(obj.if_contains("user"));
+  BOOST_CHECK_EQUAL(obj.at("user").as_string(), tracy);
+  BOOST_CHECK(obj.if_contains("options"));
+  BOOST_CHECK_EQUAL(obj.at("options").as_string(), options);
+  BOOST_CHECK(obj.if_contains("team"));
+  BOOST_CHECK_EQUAL(obj.at("team").as_string(), team1);
+  BOOST_CHECK(obj.if_contains("expires"));
+  BOOST_CHECK_EQUAL(obj.at("expires").as_string(), expires);
   
 }

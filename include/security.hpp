@@ -108,10 +108,14 @@ public:
   void regenerateGroups();
     // run aggregator when group members change.
  
-  optional<string> generateShareLink(const string &stream, optional<string> group, optional<int> expires);
+  optional<string> generateShareLink(const string &me, const string &hostname, const string &streamid, const string &groupid, int expires);
     // generate a link that can be passed to somebody, putting them in a team and only
     // for expires ours.
     
+  optional<string> createStreamShareToken(const string &streamid, const string &me, const string &options, const string &groupid, const string &expires);
+  optional<json> expandStreamShareToken(const string &token);
+    // public for testing.
+  
 private:
 
   // there can be only 1.

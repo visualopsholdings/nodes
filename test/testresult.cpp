@@ -139,4 +139,24 @@ BOOST_AUTO_TEST_CASE( goodDate )
   
 }
 
+BOOST_AUTO_TEST_CASE( number )
+{
+  cout << "=== number ===" << endl;
+  
+  ResultImpl impl({}, {}, {});
+
+  auto doc = impl.fixObjects({
+    { "_id", {
+        { "$oid", "xxxx" }
+      }
+    },
+    { "name", "Stream 1" },
+    { "streambits", 2048 }
+  });
+//  cout << doc << endl;
+  BOOST_CHECK(doc.is_object());
+  
+}
+
+
 

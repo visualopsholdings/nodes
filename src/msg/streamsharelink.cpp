@@ -36,6 +36,11 @@ void streamShareLinkMsg(Server *server, json &j) {
     server->sendErr("no expires");
     return;
   }
+  auto me = Json::getString(j, "me");
+  if (!me) {
+    server->sendErr("no me");
+    return;
+  }
 
   Stream streams;
   auto doc = Security::instance()->withEdit(streams, Json::getString(j, "me"), {{ { "_id", { { "$oid", stream.value() } } } }}).value();
@@ -43,7 +48,7 @@ void streamShareLinkMsg(Server *server, json &j) {
     server->sendErr("DB Error");
     return;
   }
-  auto url = Security::instance()->generateShareLink(stream.value(), group, expires);
+  auto url = Security::instance()->generateShareLink(me.value(), "https://" + server->_hostName, stream.value(), group.value(), expires.value());
   if (!url) {
     server->sendErr("couldn't create share link");
     return;

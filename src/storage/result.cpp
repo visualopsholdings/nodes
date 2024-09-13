@@ -99,10 +99,12 @@ optional<json> ResultImpl::value() {
     return {};
   }
   auto first = cursor.begin();
-  if (first == cursor.end()) {
-    return {}; 
-  }
-  return fixObjects(boost::json::parse(bsoncxx::to_json(*first)));
+  auto jsons = bsoncxx::to_json(*first);
+//  BOOST_LOG_TRIVIAL(trace) << "raw json " << jsons;
+  auto json = boost::json::parse(jsons);
+//  BOOST_LOG_TRIVIAL(trace) << "parsed json " << json;
+  
+  return fixObjects(json);
   
 }
 
@@ -119,7 +121,11 @@ optional<boost::json::array> ResultImpl::values() {
   }
   boost::json::array val;
   for (auto i: cursor) {
-    val.push_back(fixObjects(boost::json::parse(bsoncxx::to_json(i))));
+    auto jsons = bsoncxx::to_json(i);
+//    BOOST_LOG_TRIVIAL(trace) << "raw json " << jsons;
+    auto json = boost::json::parse(jsons);
+//    BOOST_LOG_TRIVIAL(trace) << "parsed json " << json;
+    val.push_back(fixObjects(json));
   }
   return val;
   

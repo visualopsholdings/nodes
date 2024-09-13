@@ -13,6 +13,8 @@
 
 #include "vid.hpp"
 #include "storage.hpp"
+#include "json.hpp"
+#include "encrypter.hpp"
 
 #include <openssl/evp.h>
 #include <iostream>
@@ -24,6 +26,8 @@
 #include <sstream>
 #include <cstdlib>
 #include <wordexp.h>
+#include <ctime>
+#include <iomanip>
 
 #define SHA1_LEN    128
 #define ITERATIONS  12000
@@ -457,8 +461,70 @@ void Security::regenerateGroups() {
   Group().aggregate(home + "/scripts/useringroups.json");
 }
 
-optional<string> Security::generateShareLink(const string &stream, optional<string> group, optional<int> expires) {
+string getFutureTime(int expires) {
 
-  return "http://www.google.com";
+  int hours = expires * 60 * 60 * 1000;
+  time_t ts = (std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) * 1000) + hours;
+  time_t tnum = ts / 1000;
+  int secs = ts - (tnum * 1000);
+
+  tm tm = *gmtime(&tnum);
+  stringstream ss;
+  ss << put_time(&tm, "%FT%T.");
+  ss << secs;
+  ss << "+00:00";
+
+//  BOOST_LOG_TRIVIAL(trace) << ss.str();
+  
+  return ss.str();
   
 }
+
+optional<string> Security::generateShareLink(const string &me, const string &hostname, const string &streamid, const string &groupid, int expires) {
+
+  auto stream = Stream().findById(streamid).value();
+  if (!stream) {
+    BOOST_LOG_TRIVIAL(error) << "Could not find stream.";
+    return nullopt;
+  }
+  
+	auto url = hostname + "/apps/conversations/#/streams/" + stream.value().id();
+  if (stream.value().streambits() && shareWithNewUsers) {
+    auto token = createStreamShareToken(stream.value().id(), me, "mustName", groupid, getFutureTime(expires));
+    if (token) {
+      url += "?token=" + token.value();
+    }
+  }
+  
+  return url;
+  
+}
+
+optional<string> Security::createStreamShareToken(const string &streamid, const string &me, const string &options, const string &groupid, const string &expires) {
+
+  json keyd = {
+    { "id", streamid },
+		{ "user", me },
+		{ "options", options },
+		{ "team", groupid },
+		{ "expires", expires }
+	};
+  stringstream ss;
+  ss << keyd;
+  string data = ss.str();
+  Encrypter encrypter;
+  return encrypter.encryptText(data);
+  
+}
+
+optional<json> Security::expandStreamShareToken(const string &token) {
+
+  Encrypter encrypter;
+  auto dec = encrypter.decryptText(token);
+  if (dec) {
+    return boost::json::parse(dec.value());
+  }
+  return nullopt;
+  
+}
+

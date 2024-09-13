@@ -90,6 +90,13 @@ public:
 
 };
 
+enum StreamBits {
+  
+  none = 0,
+  shareWithNewUsers = (1 << 11)
+
+};
+
 class StreamRow: public DynamicRow {
 
 public:
@@ -97,6 +104,7 @@ public:
 
   string name() { return getString("name"); }
   string policy() { return getString("policy"); }
+  int streambits() { return getNumber("streambits"); }
   
 };
 

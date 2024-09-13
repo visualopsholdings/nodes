@@ -30,7 +30,8 @@ typedef function<void (json &json)> msgHandler;
 class Server {
 
 public:
-  Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, const string &dbConn, const string &dbName, const string &certFile, const string &chainFile);
+  Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, const string &dbConn, 
+    const string &dbName, const string &certFile, const string &chainFile, const string &hostName);
   ~Server();
   
   void run();
@@ -59,6 +60,7 @@ public:
 
   string _certFile;
   string _chainFile;
+  string _hostName;
   bool _test;
   bool _online;
   string _serverId;

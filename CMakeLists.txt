@@ -69,6 +69,7 @@ set(UTILS
   src/json.cpp
   src/security.cpp
   src/upstream.cpp
+  src/encrypter.cpp
 )
 set(MESSAGES 
   src/msg/certs.cpp
@@ -163,7 +164,7 @@ add_executable(TestVID test/testvid.cpp src/vid.cpp)
 
 add_test(TestVID TestVID)
 
-add_executable(TestSecurity test/testsecurity.cpp src/security.cpp src/vid.cpp)
+add_executable(TestSecurity test/testsecurity.cpp src/security.cpp src/vid.cpp src/encrypter.cpp)
   target_link_libraries(TestSecurity StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${OPENSSL_LIBRARIES} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_test(TestSecurity TestSecurity)
@@ -182,3 +183,8 @@ add_executable(TestJson test/testjson.cpp src/json.cpp)
   target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestJson TestJson)
+
+add_executable(TestEncrypter test/testencrypter.cpp src/encrypter.cpp)
+  target_link_libraries(TestEncrypter ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${OPENSSL_LIBRARIES})
+
+add_test(TestEncrypter TestEncrypter)

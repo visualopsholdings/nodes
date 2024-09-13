@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
   string logLevel;
   string dbName;
   string dbConn;
+  string hostName;
   string certFile;
   string chainFile;
   bool test;
@@ -51,6 +52,7 @@ int main(int argc, char *argv[]) {
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
     ("dbConn", po::value<string>(&dbConn)->default_value("mongodb://127.0.0.1:27017"), "DB Connection string.")
     ("dbName", po::value<string>(&dbName)->default_value("dev"), "DB name.")
+    ("hostName", po::value<string>(&hostName)->default_value("localhost"), "The hostname (for links).")
     ("certFile", po::value<string>(&certFile)->default_value(""), "Certificate file for SSL.")
     ("chainFile", po::value<string>(&chainFile)->default_value(""), "Certificate chain file for SSL.")
     ("test", po::bool_switch(&test), "We are testing so don't use VIDs.")
@@ -92,7 +94,7 @@ int main(int argc, char *argv[]) {
   
   BOOST_LOG_TRIVIAL(info) << version;
 
-  Server server(test, noupstream, pubPort, repPort, dataReqPort, msgSubPort, dbConn, dbName, certFile, chainFile);
+  Server server(test, noupstream, pubPort, repPort, dataReqPort, msgSubPort, dbConn, dbName, certFile, chainFile, hostName);
   
   if (noupstream) {
     BOOST_LOG_TRIVIAL(info) << "ignoring upstream.";

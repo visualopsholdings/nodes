@@ -64,4 +64,15 @@ bool DynamicRow::getBool(const string &name) const {
 
 }
 
+int DynamicRow::getNumber(const string &name) const {
+  
+  auto value = Json::getNumber(_json, name);
+  if (!value) {
+    return false;
+  }
+
+  return value.value();
+
+}
+
 

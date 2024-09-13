@@ -37,10 +37,11 @@ fi
 if [ "$#" -eq 3 ]; 
 then
   CERTS="--certFile=/etc/letsencrypt/live/$HOSTNAME/privkey.pem --chainFile=/etc/letsencrypt/live/$HOSTNAME/fullchain.pem"
+  HOST="--hostName=$HOSTNAME"
 fi
 
 ./nodes/build/nodes \
   --logLevel=trace \
   --dbConn=mongodb://$DBNAME:$DBPASS@$MONGOS:27017/?authSource=$DBNAME \
-  --dbName=$DBNAME $CERTS \
+  --dbName=$DBNAME $CERTS $HOST \
   > nodes.log 2>&1 &

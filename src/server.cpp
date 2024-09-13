@@ -72,9 +72,9 @@ void discoverResultMsg(Server *server, json &json);
 }
 
 Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, 
-      const string &dbConn, const string &dbName, const string &certFile, const string &chainFile) :
+      const string &dbConn, const string &dbName, const string &certFile, const string &chainFile, const string &hostName) :
     _test(test), _certFile(certFile), _chainFile(chainFile), _dataReqPort(dataReq), _msgSubPort(msgSub),
-    _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false) {
+    _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false), _hostName(hostName) {
 
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));

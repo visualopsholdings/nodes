@@ -298,6 +298,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 12 Sep 2024
 - First steps for creating share links.
 
+### 13 Sep 2024
+- Generate stream share tokens.
+
 
 
 
