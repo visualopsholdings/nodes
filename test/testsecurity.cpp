@@ -31,6 +31,8 @@ BOOST_AUTO_TEST_CASE( PiVID )
 {
   cout << "=== PiVID ===" << endl;
   
+  dbSetup();
+  
   // these would be stored with the User in the DB.
   string salt = "8BT0BEzcAQxE1ZtYcAIhHdN1L62xmSraWwwQdErnJgLb3iprl0yM1itsirteYRS5mnmTJT+qybk9PaLdIOJ7SQXv7+I0r6XzlM6o/G9HYw8tf9tRulECVQ0FvgfDHt1ZEzXEukeptsOJD/PfE7N2MPWDVgj55xkgb5kZ4F9eGkc=";
   string hash = "8zkMIA1llK50OpBLvXDIiDd1L2A8b1rMQZOnpn/ghHZNamhfR6pXLGWoEID6Kckw8nn6/uszpASZcKy2nuJGq3pe5J8WRpdNQ74D2m0wwT0VtXZzdox5JCM0xwCoZ4zlTCXqXqZn2MArieoAUNmMGPO31o8KZM49ICWbtTNhmcI=";
@@ -503,6 +505,15 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
   User().deleteMany({{}});
   Group().deleteMany({{}});
   Stream().deleteMany({{}});
+  Info().deleteMany({{}});
+  BOOST_CHECK(Info().insert({
+    { "type", "tokenKey" },
+    { "text", "90B21444AC1A2C9146FFA34C72BF787F76E7B0EDD236F0508571264153E58A787B82729268EF67DFCCC6B1F113721B0D752DA65DA6BC82BCA9A1C73E58DAAFF7" }
+  }));
+  BOOST_CHECK(Info().insert({
+    { "type", "tokenIV" },
+    { "text", "D764E7CAE16C361A4546873B" }
+  }));
   BOOST_CHECK(User().insert({
     { "_id", { { "$oid", tracy } } },
     { "name", "tracy" },
@@ -531,6 +542,17 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
 BOOST_AUTO_TEST_CASE( streamShareToken )
 {
   cout << "=== streamShareToken ===" << endl;
+  
+  dbSetup();
+  Info().deleteMany({{}});
+  BOOST_CHECK(Info().insert({
+    { "type", "tokenKey" },
+    { "text", "90B21444AC1A2C9146FFA34C72BF787F76E7B0EDD236F0508571264153E58A787B82729268EF67DFCCC6B1F113721B0D752DA65DA6BC82BCA9A1C73E58DAAFF7" }
+  }));
+  BOOST_CHECK(Info().insert({
+    { "type", "tokenIV" },
+    { "text", "D764E7CAE16C361A4546873B" }
+  }));
   
   string options = "mustName";
   string expires = "2024-09-13T11:56:24.0+00:00";

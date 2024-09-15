@@ -28,6 +28,10 @@ shared_ptr<ResultImpl> SchemaImpl::findResult(const json &query, const vector<st
 
   BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collName(); 
 
+  if (!testInit()) {
+    return 0;
+  }
+  
   stringstream ss;
   ss << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
@@ -39,6 +43,10 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdResult(const string &id, const vector
 
   BOOST_LOG_TRIVIAL(trace) << "find " << id << " in " << collName();
 
+  if (!testInit()) {
+    return 0;
+  }
+
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
   return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collName())._c, q, fields));
   
@@ -47,6 +55,10 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdResult(const string &id, const vector
 shared_ptr<ResultImpl> SchemaImpl::findByIdsResult(const vector<string> &ids, const vector<string> &fields) {
 
   BOOST_LOG_TRIVIAL(trace) << "find ids " << ids.size() << " in " << collName();
+
+  if (!testInit()) {
+    return 0;
+  }
 
   auto array = bsoncxx::builder::basic::array{};
   for (auto id: ids) {
@@ -61,6 +73,10 @@ void SchemaImpl::deleteMany(const json &doc) {
 
   BOOST_LOG_TRIVIAL(trace) << "deleteMany " << doc << " in " << collName();
 
+  if (!testInit()) {
+    return;
+  }
+
   stringstream ss;
   ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
@@ -69,10 +85,24 @@ void SchemaImpl::deleteMany(const json &doc) {
 
 }
   
+bool SchemaImpl::testInit() {
+
+  if (!Storage::instance()->_impl) {
+    BOOST_LOG_TRIVIAL(error) << "storage needs init";
+    return false;
+  }
+  
+  return true;
+}
+
 bool SchemaImpl::deleteById(const string &id) {
 
   BOOST_LOG_TRIVIAL(trace) << "deleteById " << id << " in " << collName();
 
+  if (!testInit()) {
+    return false;
+  }
+  
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
 
   auto result = Storage::instance()->_impl->coll(collName())._c.delete_one(q);
@@ -88,6 +118,10 @@ optional<string> SchemaImpl::insert(const json &doc) {
 
   BOOST_LOG_TRIVIAL(trace) << "insert " << doc << " in " << collName();
 
+  if (!testInit()) {
+    return nullopt;
+  }
+  
   stringstream ss;
   ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
@@ -112,6 +146,10 @@ optional<string> SchemaImpl::insert(const json &doc) {
 optional<string> SchemaImpl::rawUpdate(const json &query, const json &doc) {
 
   BOOST_LOG_TRIVIAL(trace) << "update " << query << " in " << collName();
+
+  if (!testInit()) {
+    return nullopt;
+  }
 
   stringstream ss;
   ss << query;
@@ -142,6 +180,10 @@ optional<string> SchemaImpl::rawUpdateById(const string &id, const json &doc) {
 
   BOOST_LOG_TRIVIAL(trace) << "update " << id << " in " << collName();
 
+  if (!testInit()) {
+    return nullopt;
+  }
+
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
 
   stringstream ss;
@@ -166,6 +208,10 @@ optional<string> SchemaImpl::updateById(const string &id, const json &doc) {
 }
 
 void SchemaImpl::aggregate(const string &filename) {
+
+  if (!testInit()) {
+    return;
+  }
 
   ifstream file(filename);
   if (!file) {

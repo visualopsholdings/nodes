@@ -24,14 +24,19 @@ using namespace std;
 class Encrypter {
 
 public:
-  Encrypter();
+  Encrypter(const string &key, const string &iv);
   ~Encrypter();
   
   optional<string> encryptText(const string &s);
   optional<string> decryptText(const string &s);
 
+  static string makeKey();
+  static string makeIV();
+  
 private:
   EVP_CIPHER_CTX *_ctx;
+  string _key;
+  string _iv;
 
 };
 

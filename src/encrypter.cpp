@@ -13,18 +13,18 @@
 
 #include <openssl/evp.h>
 #include <openssl/aes.h>
+#include <openssl/rand.h>
 #include <boost/log/trivial.hpp>
 #include <boost/algorithm/hex.hpp>
 
-#define APP_SALT "xh+96tl44/mhX0FvV2zwcITgAcc9+4NwANHIg2LnY6oHnW7EqDxbXGZkYxy+Bb2R6scglcG3JqaBZTjBfVH5EkVpsKzKoXS4leIvmVaqC551RPgBNStn5skSUipq/JvG/J4JUlulj+T+KqKPQF25jhYpcbnLqQhRu3Spy18z7T0="
-#define APP_IV ""
-
-Encrypter::Encrypter() {
+Encrypter::Encrypter(const string &key, const string &iv) {
 
   if (!(_ctx = EVP_CIPHER_CTX_new())) {
     BOOST_LOG_TRIVIAL(error) << "Could not create EVP_CIPHER_CTX";
   }
   
+  _key = boost::algorithm::unhex(key);
+  _iv = boost::algorithm::unhex(iv);
 }
 
 Encrypter::~Encrypter() {
@@ -39,7 +39,7 @@ optional<string> Encrypter::encryptText(const string &data) {
     return nullopt;
   }
   
-  if (EVP_EncryptInit_ex(_ctx, EVP_aes_256_cbc(), NULL, (unsigned char *)APP_SALT, (unsigned char *)APP_IV) != 1) {
+  if (EVP_EncryptInit_ex(_ctx, EVP_aes_256_cbc(), NULL, (unsigned char *)_key.c_str(), (unsigned char *)_iv.c_str()) != 1) {
     BOOST_LOG_TRIVIAL(error) << "Could not setup encryption";
     return nullopt;
   }
@@ -70,7 +70,7 @@ optional<string> Encrypter::decryptText(const string &data) {
   }
   string ciphertext = boost::algorithm::unhex(data); 
 
-  if (EVP_DecryptInit_ex(_ctx, EVP_aes_256_cbc(), NULL, (unsigned char *)APP_SALT, (unsigned char *)APP_IV) != 1) {
+  if (EVP_DecryptInit_ex(_ctx, EVP_aes_256_cbc(), NULL, (unsigned char *)_key.c_str(), (unsigned char *)_iv.c_str()) != 1) {
     BOOST_LOG_TRIVIAL(error) << "Could not setup decryption";
     return nullopt;
   }
@@ -92,4 +92,16 @@ optional<string> Encrypter::decryptText(const string &data) {
   
   return string((const char *)plaintext, plaintext_len);
 
+}
+
+string Encrypter::makeKey() {
+  unsigned char key[64];
+  RAND_bytes(key, sizeof(key));
+  return boost::algorithm::hex(string((const char *)key, sizeof(key)));
+}
+
+string Encrypter::makeIV() {
+  unsigned char iv[12];
+  RAND_bytes(iv, sizeof(iv));
+  return boost::algorithm::hex(string((const char *)iv, sizeof(iv)));
 }

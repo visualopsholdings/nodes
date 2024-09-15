@@ -34,6 +34,27 @@
 
 shared_ptr<Security> Security::_instance;
 
+Security::Security() {
+
+  auto infos = Info().find({{ "type", { { "$in", {"tokenKey", "tokenIV"}}} }}, {"type", "text"}).values();
+  if (!infos) {
+    BOOST_LOG_TRIVIAL(error) << "missing infos";
+    return;
+  }
+  auto key = Info::getInfo(infos.value(), "tokenKey");
+  if (!key) {
+    BOOST_LOG_TRIVIAL(error) << "missing key info";
+    return;
+  }
+  _key = key.value();
+  auto iv = Info::getInfo(infos.value(), "tokenIV");
+  if (!iv) {
+    BOOST_LOG_TRIVIAL(error) << "missing iv info";
+    return;
+  }
+  _iv = key.value();
+}
+
 bool Security::valid(const VID &vid, const string &salt, const string &hash) {
 
   string password = vid.password();
@@ -512,14 +533,14 @@ optional<string> Security::createStreamShareToken(const string &streamid, const 
   stringstream ss;
   ss << keyd;
   string data = ss.str();
-  Encrypter encrypter;
+  Encrypter encrypter(_key, _iv);
   return encrypter.encryptText(data);
   
 }
 
 optional<json> Security::expandStreamShareToken(const string &token) {
 
-  Encrypter encrypter;
+  Encrypter encrypter(_key, _iv);
   auto dec = encrypter.decryptText(token);
   if (dec) {
     return boost::json::parse(dec.value());

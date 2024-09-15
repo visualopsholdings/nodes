@@ -41,3 +41,14 @@ vector<string> IndexRow::values() {
   return values;
   
 }
+
+optional<string> Info::getInfo(const vector<InfoRow> &infos, const string &type) {
+
+  auto i = find_if(infos.begin(), infos.end(), 
+    [&type](auto &e) { return e.type() == type; });
+  if (i == infos.end()) {
+    return nullopt;
+  }
+  return (*i).text();
+}
+

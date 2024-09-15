@@ -56,6 +56,9 @@ public:
   shared_ptr<ResultImpl> findByIdResult(const string &id, const vector<string> &fields);
   shared_ptr<ResultImpl> findByIdsResult(const vector<string> &ids, const vector<string> &fields);
   
+private:
+  bool testInit();
+
 };
 
 #endif // H_schemai

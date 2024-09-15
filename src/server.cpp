@@ -15,6 +15,7 @@
 #include "json.hpp"
 #include "storage/schema.hpp"
 #include "upstream.hpp"
+#include "encrypter.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -305,16 +306,6 @@ void Server::sendDataReq(const json &m) {
   
 }
 
-optional<string> Server::getInfo(const vector<InfoRow> &infos, const string &type) const {
-
-  auto i = find_if(infos.begin(), infos.end(), 
-    [&type](auto &e) { return e.type() == type; });
-  if (i == infos.end()) {
-    return nullopt;
-  }
-  return (*i).text();
-}
-
 void Server::stopUpstream() {
 
   if (_dataReq) {
@@ -355,27 +346,27 @@ void Server::connectUpstream() {
     BOOST_LOG_TRIVIAL(info) << "no infos.";
     return;
   }
-  auto serverId = getInfo(docs.value(), "serverId");
+  auto serverId = Info::getInfo(docs.value(), "serverId");
   if (!serverId) {
     BOOST_LOG_TRIVIAL(info) << "no serverId.";
     return;
   }
-  auto upstream = getInfo(docs.value(), "upstream");
+  auto upstream = Info::getInfo(docs.value(), "upstream");
   if (!upstream) {
     BOOST_LOG_TRIVIAL(info) << "no upstream.";
     return;
   }
-  auto upstreamPubKey = getInfo(docs.value(), "upstreamPubKey");
+  auto upstreamPubKey = Info::getInfo(docs.value(), "upstreamPubKey");
   if (!upstreamPubKey) {
     BOOST_LOG_TRIVIAL(error) << "upstream, but no upstreamPubKey";
     return;
   }
-  auto privateKey = getInfo(docs.value(), "privateKey");
+  auto privateKey = Info::getInfo(docs.value(), "privateKey");
   if (!privateKey) {
     BOOST_LOG_TRIVIAL(error) << "upstream, but no privateKey";
     return;
   }
-  auto pubKey = getInfo(docs.value(), "pubKey");
+  auto pubKey = Info::getInfo(docs.value(), "pubKey");
   if (!pubKey) {
     BOOST_LOG_TRIVIAL(error) << "upstream, but no pubKey";
     return;
@@ -478,10 +469,12 @@ bool Server::resetServer() {
   if (!setInfo("pubKey", pubkey)) {
     return false;
   }
-  
-  // clear out all these flags.
-  Info().deleteMany({{ "type", { { "$in", {"serverId", "upstream", "upstreamPubKey", "upstreamMirror", "hasInitialSync", "upstreamLastSeen"}}} }});
-  
+  if (!setInfo("tokenKey", Encrypter::makeKey())) {
+    return false;
+  }
+  if (!setInfo("tokenIV", Encrypter::makeIV())) {
+    return false;
+  }
   // generate a new server ID.
   boost::uuids::uuid uuid = boost::uuids::random_generator()();
   stringstream ss;
@@ -489,6 +482,10 @@ bool Server::resetServer() {
   if (!setInfo("serverId", ss.str())) {
     return false;
   }
+    
+  // clear out all these flags.
+  Info().deleteMany({{ "type", { { "$in", {"upstream", "upstreamPubKey", "upstreamMirror", 
+    "hasInitialSync", "upstreamLastSeen" }}} }});
   
   return true;
 }
@@ -499,7 +496,7 @@ string Server::get1Info(const string &type) {
   if (!docs) {
     return "";
   }
-  auto info = getInfo(docs.value(), type);
+  auto info = Info::getInfo(docs.value(), type);
   if (!info) {
     return "";
   }

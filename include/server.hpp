@@ -55,7 +55,6 @@ public:
   void sendAck();
   void sendDataReq(const json &m);
   bool setInfo(const string &name, const string &text);
-  optional<string> getInfo(const vector<InfoRow> &infos, const string &type) const;
   string get1Info(const string &type);
 
   string _certFile;

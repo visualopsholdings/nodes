@@ -182,6 +182,8 @@ public:
   
   virtual string collName() { return "infos"; };
   
+  static optional<string> getInfo(const vector<InfoRow> &infos, const string &type);
+
 };
 
 class SiteRow: public DynamicRow {

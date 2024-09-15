@@ -119,9 +119,12 @@ public:
 private:
 
   // there can be only 1.
-  Security() {};
+  Security();
   static shared_ptr<Security> _instance;
   
+  string _key;
+  string _iv;
+
   void addTo(vector<string> *v, const string &val);
   void queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids);
   boost::json::array createArray(const vector<string> &list);

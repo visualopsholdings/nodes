@@ -301,6 +301,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 13 Sep 2024
 - Generate stream share tokens.
 
+### 15 Sep 2024
+- Remove all hard coded encryption keys. Generated when the server is reset.
+
+
 
 
 

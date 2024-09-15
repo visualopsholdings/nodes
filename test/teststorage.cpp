@@ -41,6 +41,15 @@ void dbSetup() {
   }));
 }
 
+BOOST_AUTO_TEST_CASE( notInit )
+{
+  cout << "=== notInit ===" << endl;
+
+  BOOST_CHECK(!User().deleteById(tracy));
+  
+}
+
+
 BOOST_AUTO_TEST_CASE( user )
 {
   cout << "=== user ===" << endl;
