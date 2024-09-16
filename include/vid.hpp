@@ -21,13 +21,15 @@ using namespace std;
 class VID {
 
 public:
+  VID();
   VID(const string &vid);
   
   bool valid();
   string uuid() const { return _uuid; }
   string password() const { return _password; }
   void describe();
- 
+  string value();
+  
 private:
   string _header;
   string _uuid;

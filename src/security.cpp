@@ -509,7 +509,7 @@ optional<string> Security::generateShareLink(const string &me, const string &hos
     return nullopt;
   }
   
-	auto url = hostname + "/apps/conversations/#/streams/" + stream.value().id();
+	auto url = hostname + "/apps/chat/#/streams/" + stream.value().id();
   if (stream.value().streambits() && shareWithNewUsers) {
     auto token = createStreamShareToken(stream.value().id(), me, "mustName", groupid, getFutureTime(expires));
     if (token) {
@@ -549,3 +549,10 @@ optional<json> Security::expandStreamShareToken(const string &token) {
   
 }
 
+optional<string> Security::newSalt() {
+  return nullopt;
+}
+    
+optional<string> Security::newHash(const VID &vid, const string &salt) {
+  return nullopt;
+}

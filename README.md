@@ -304,6 +304,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 15 Sep 2024
 - Remove all hard coded encryption keys. Generated when the server is reset.
 
+### 16 Sep 2024
+- Start in on creating new invited users.
+
+
 
 
 

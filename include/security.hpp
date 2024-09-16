@@ -116,6 +116,12 @@ public:
   optional<json> expandStreamShareToken(const string &token);
     // public for testing.
   
+  optional<string> newSalt();
+    // generate a new user salt value.
+    
+  optional<string> newHash(const VID &vid, const string &salt);
+    // generate a new user salt value.
+    
 private:
 
   // there can be only 1.

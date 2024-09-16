@@ -174,6 +174,30 @@ We process and return;
 }
 ```
 
+#### Can Register
+
+Test a registration token (from the share link)
+
+When this is received:
+
+```
+{ 
+  "type": "canreg", 
+  "token": "share link token"
+}
+```
+
+We process and return;
+
+```
+{ 
+  "type": "canreg",
+  "newVopsID": "a new VID",
+  "canRegister": true,
+  "requireFullname": true,
+}
+```
+
 #### Policy users
 
 Since the Nodes system is persistent, when you join a stream, you can query the 

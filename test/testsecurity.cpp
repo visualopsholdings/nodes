@@ -535,7 +535,7 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
   
   auto link = Security::instance()->generateShareLink(tracy, "http://visualops.com", stream1, team1, 4);
   BOOST_CHECK(link);
-  BOOST_CHECK_EQUAL(link.value().find("token="), 75);
+  BOOST_CHECK_EQUAL(link.value().find("token="), 66);
   
 }
 

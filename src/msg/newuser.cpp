@@ -13,6 +13,8 @@
 
 #include "storage.hpp"
 #include "json.hpp"
+#include "security.hpp"
+#include "vid.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -22,47 +24,125 @@ void discoverLocalResultMsg(Server *server, json &);
 
 void newUserMsg(Server *server, json &j) {
 
-  auto userid = Json::getString(j, "id");
-  if (!userid) {
-    server->sendErr("no userid");
-    return;
-  }
-
   auto upstream = Json::getBool(j, "upstream");
-  if (!upstream || !upstream.value()) {
-    server->sendErr("only upstream for now.");
-    return;
-  }
+  if (upstream && upstream.value()) {
 
-  auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, {}).value();
-  if (doc) {
-    // set the upstream on doc.
-    auto result = User().updateById(userid.value(), {{ "upstream", true }});
-    if (!result) {
-      server->sendErr("could not update user");
+    auto userid = Json::getString(j, "id");
+    if (!userid) {
+      server->sendErr("no userid");
       return;
     }
+  
+    auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, {}).value();
+    if (doc) {
+      // set the upstream on doc.
+      auto result = User().updateById(userid.value(), {{ "upstream", true }});
+      if (!result) {
+        server->sendErr("could not update user");
+        return;
+      }
+      server->sendAck();
+      return;
+    }
+    
+    // insert a new user
+    auto result = User().insert({
+      { "_id", { { "$oid", userid.value() } } },
+      { "fullname", "Waiting discovery" },
+      { "upstream", true },
+      { "modifyDate", { { "$date", 0 } } }
+    });
+    if (!result) {
+      server->sendErr("could not insert user");
+      return;
+    }
+    
     server->sendAck();
+    
+    // run discovery.  
+    server->discover();
     return;
   }
   
-  // insert a new user
-  auto result = User().insert({
-    { "_id", { { "$oid", userid.value() } } },
-    { "fullname", "Waiting discovery" },
-    { "upstream", true },
-    { "modifyDate", { { "$date", 0 } } }
-  });
+  auto vopsidtoken = Json::getString(j, "vopsidtoken");
+  if (!vopsidtoken) {
+    server->sendErr("only upstream or having a token.");
+    return;
+  }
+  auto fullname = Json::getString(j, "fullname");
+
+  auto token = Security::instance()->expandStreamShareToken(vopsidtoken.value());
+  if (!token) {
+    server->sendErr("Could not expand token");
+    return;
+  }
+  
+  auto expires = Json::getString(token.value(), "expires");
+  if (!expires) {
+    BOOST_LOG_TRIVIAL(error) << "Expires must be specified in token";
+    server->sendWarning("Invalid token.");
+    return;
+  }
+  
+  auto user = Json::getString(token.value(), "user");
+  if (!user) {
+    BOOST_LOG_TRIVIAL(error) << "User must be specified in token";
+    server->sendWarning("Invalid token.");
+    return;
+  }
+  // TBD: Test for expiry...
+  
+  boost::json::object obj = {
+    { "invitedBy", user.value() },
+  };
+
+  auto options = Json::getString(token.value(), "options");
+  if (options && options.value() == "mustName") {
+    if (!fullname || fullname.value().size() == 0) {
+      server->sendWarning("Must specify full name." );
+      return;
+    }
+    obj["fullname"] = fullname.value();
+  }
+  
+  auto team = Json::getString(token.value(), "team");
+  if (!team) {
+    BOOST_LOG_TRIVIAL(error) << "Security settings not supported";
+    server->sendWarning("Invalid token.");
+    return;
+  }
+  
+  auto salt = Security::instance()->newSalt();
+  if (!salt) {
+    server->sendErr("Cant create new Salt");
+    return;
+  }
+  
+  VID vid;
+  
+  auto hash = Security::instance()->newHash(vid, salt.value());
+  if (!salt) {
+    server->sendErr("Cant create new hash for user");
+    return;
+  }
+
+  obj["salt"] = salt.value();
+  obj["hash"] = hash.value();
+
+  auto result = User().insert(obj);
   if (!result) {
     server->sendErr("could not insert user");
     return;
   }
-  
-  server->sendAck();
-  
-  // run discovery.  
-  server->discover();
-  
+
+  // TBD: Add security.
+
+  server->send({
+    { "type", "newuser" },
+    { "vopsid", vid.value() },
+    { "fullname", fullname.value() }
+  });
+
 }
 
 };

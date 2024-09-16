@@ -48,7 +48,8 @@ void streamShareLinkMsg(Server *server, json &j) {
     server->sendErr("DB Error");
     return;
   }
-  auto url = Security::instance()->generateShareLink(me.value(), "https://" + server->_hostName, stream.value(), group.value(), expires.value());
+  auto hostname = (server->_test ? "http://" : "https://") + server->_hostName;
+  auto url = Security::instance()->generateShareLink(me.value(), hostname, stream.value(), group.value(), expires.value());
   if (!url) {
     server->sendErr("couldn't create share link");
     return;

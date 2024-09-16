@@ -106,6 +106,7 @@ set(MESSAGES
   src/msg/setgrouppolicy.cpp
   src/msg/policygroups.cpp
   src/msg/streamsharelink.cpp
+  src/msg/canregister.cpp
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp

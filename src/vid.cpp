@@ -21,6 +21,10 @@
 //. 564f 	UID 		00 | 01		token or password
 //  "564f" == "VO" as hex :=)
 
+VID::VID() {
+  // create a new VID.
+}
+
 VID::VID(const string &vid) {
 
   string dec;
@@ -50,6 +54,10 @@ VID::VID(const string &vid) {
     _password = token;
  }
 
+}
+
+string VID::value() {
+  return "vid";
 }
 
 bool VID::valid() {
