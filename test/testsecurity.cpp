@@ -27,6 +27,15 @@ void dbSetup() {
 
 }
 
+string pisalt = "8BT0BEzcAQxE1ZtYcAIhHdN1L62xmSraWwwQdErnJgLb3iprl0yM1itsirteYRS5mnmTJT+qybk9PaLdIOJ7SQXv7+I0r6XzlM6o/G9HYw8tf9tRulECVQ0FvgfDHt1ZEzXEukeptsOJD/PfE7N2MPWDVgj55xkgb5kZ4F9eGkc=";
+string vids = "Vk9WNIdltNaXa0eOG9cAdmlzdWFsb3Bz";
+string tracy = "667d0baedfb1ed18430d8ed3";
+string policy = "667bfee4b07cc40ec3dd6ee8";
+string leanne = "667d0baedfb1ed18430d8ed4";
+string team1 = "667d0bae39ae84d0890a2141";
+string stream1 = "6622129f207af2b4e65ab90f";
+
+
 BOOST_AUTO_TEST_CASE( PiVID )
 {
   cout << "=== PiVID ===" << endl;
@@ -34,14 +43,13 @@ BOOST_AUTO_TEST_CASE( PiVID )
   dbSetup();
   
   // these would be stored with the User in the DB.
-  string salt = "8BT0BEzcAQxE1ZtYcAIhHdN1L62xmSraWwwQdErnJgLb3iprl0yM1itsirteYRS5mnmTJT+qybk9PaLdIOJ7SQXv7+I0r6XzlM6o/G9HYw8tf9tRulECVQ0FvgfDHt1ZEzXEukeptsOJD/PfE7N2MPWDVgj55xkgb5kZ4F9eGkc=";
   string hash = "8zkMIA1llK50OpBLvXDIiDd1L2A8b1rMQZOnpn/ghHZNamhfR6pXLGWoEID6Kckw8nn6/uszpASZcKy2nuJGq3pe5J8WRpdNQ74D2m0wwT0VtXZzdox5JCM0xwCoZ4zlTCXqXqZn2MArieoAUNmMGPO31o8KZM49ICWbtTNhmcI=";
   
   // and this is passed in from the user.
-  VID vid("Vk9WNIdltNaXa0eOG9cAdmlzdWFsb3Bz");
+  VID vid(vids);
   vid.describe();
   
-  BOOST_CHECK(Security::instance()->valid(vid, salt, hash));
+  BOOST_CHECK(Security::instance()->valid(vid, pisalt, hash));
   
 }
 
@@ -61,11 +69,23 @@ BOOST_AUTO_TEST_CASE( TracyVID )
   
 }
 
-string policy = "667bfee4b07cc40ec3dd6ee8";
-string tracy = "667d0baedfb1ed18430d8ed3";
-string leanne = "667d0baedfb1ed18430d8ed4";
-string team1 = "667d0bae39ae84d0890a2141";
-string stream1 = "6622129f207af2b4e65ab90f";
+BOOST_AUTO_TEST_CASE( newVID )
+{
+  cout << "=== newVID ===" << endl;
+  
+  string password = Security::instance()->newPassword();
+  
+  VID vid;
+  vid.reset(tracy, password);
+  vid.describe();
+  cout << vid.value() << endl;
+  
+  VID vid2(vid.value());
+  vid2.describe();
+  BOOST_CHECK(vid == vid2);
+  
+}
+
   
 BOOST_AUTO_TEST_CASE( getPolicyUsers )
 {
@@ -574,5 +594,30 @@ BOOST_AUTO_TEST_CASE( streamShareToken )
   BOOST_CHECK_EQUAL(obj.at("team").as_string(), team1);
   BOOST_CHECK(obj.if_contains("expires"));
   BOOST_CHECK_EQUAL(obj.at("expires").as_string(), expires);
+  
+}
+
+BOOST_AUTO_TEST_CASE( newSalt )
+{
+  cout << "=== newSalt ===" << endl;
+  
+  dbSetup();
+  auto salt = Security::instance()->newSalt();
+  BOOST_CHECK(salt);
+//  cout << salt.value() << endl;
+  BOOST_CHECK_EQUAL(salt.value().size(), 172);
+  
+}
+
+BOOST_AUTO_TEST_CASE( newHash )
+{
+  cout << "=== newHash ===" << endl;
+  
+  dbSetup();
+  VID vid(vids);
+  auto hash = Security::instance()->newHash(vid.password(), pisalt);
+  BOOST_CHECK(hash);
+  cout << hash.value() << endl;
+  BOOST_CHECK_EQUAL(hash.value().size(), 4);
   
 }

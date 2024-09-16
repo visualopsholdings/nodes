@@ -17,10 +17,12 @@
 #include "encrypter.hpp"
 
 #include <openssl/evp.h>
+#include <openssl/rand.h>
 #include <iostream>
 #include <boost/log/trivial.hpp>
 #include <bsoncxx/oid.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 #include <base64.hpp>
 #include <sstream>
@@ -550,9 +552,26 @@ optional<json> Security::expandStreamShareToken(const string &token) {
 }
 
 optional<string> Security::newSalt() {
-  return nullopt;
+
+  unsigned char salt[SHA1_LEN];
+  RAND_bytes(salt, sizeof(salt));
+  return base64::to_base64(string((const char *)salt, sizeof(salt)));
+  
 }
     
-optional<string> Security::newHash(const VID &vid, const string &salt) {
-  return nullopt;
+optional<string> Security::newHash(const string &password, const string &salt) {
+
+  unsigned char out[SHA1_LEN+1];
+  int len = PKCS5_PBKDF2_HMAC_SHA1((const char *)password.c_str(), password.length(), (const unsigned char *)salt.c_str(), salt.length(), ITERATIONS, SHA1_LEN, out);
+  return base64::to_base64(string((const char *)out, len));
+
 }
+
+string Security::newPassword() {
+
+  unsigned char password[24];
+  RAND_bytes(password, sizeof(password));
+  return boost::algorithm::hex(string((const char *)password, sizeof(password)));
+
+}
+

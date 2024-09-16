@@ -24,11 +24,14 @@ public:
   VID();
   VID(const string &vid);
   
+  void reset(const string &uuid, const string &password);
   bool valid();
   string uuid() const { return _uuid; }
   string password() const { return _password; }
   void describe();
-  string value();
+  string value() const;
+  
+  bool operator == (const VID &vid);
   
 private:
   string _header;

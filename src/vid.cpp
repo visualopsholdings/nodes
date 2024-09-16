@@ -22,7 +22,22 @@
 //  "564f" == "VO" as hex :=)
 
 VID::VID() {
-  // create a new VID.
+
+  _header = "VO";
+  _uuid = "";
+  _password = "";
+  
+}
+
+void VID::reset(const string &uuid, const string &password) {
+
+  _uuid = uuid;
+  _password = password;
+  
+}
+
+bool VID::operator == (const VID &vid) {
+  return vid._uuid == _uuid && vid._password == _password;
 }
 
 VID::VID(const string &vid) {
@@ -46,18 +61,30 @@ VID::VID(const string &vid) {
   boost::algorithm::hex(uuid.begin(), uuid.end(), back_inserter(_uuid));
   transform(_uuid.begin(), _uuid.end(), _uuid.begin(), [](unsigned char c){ return tolower(c); });
   string token = dec.substr(15);
-  if (dec[14] != '\0') {
-    boost::algorithm::hex(token.begin(), token.end(), back_inserter(_password));
-    transform(_password.begin(), _password.end(), _password.begin(), [](unsigned char c){ return tolower(c); });
+  if (dec[14] == '\0') {
+    _password = token;
   }
   else {
-    _password = token;
+    BOOST_LOG_TRIVIAL(trace) << "token needs hex";
+    boost::algorithm::hex(token.begin(), token.end(), back_inserter(_password));
+    transform(_password.begin(), _password.end(), _password.begin(), [](unsigned char c){ return tolower(c); });
  }
 
 }
 
-string VID::value() {
-  return "vid";
+string VID::value() const {
+  
+  string hexuuid;
+  transform(_uuid.begin(), _uuid.end(), back_inserter(hexuuid), [](unsigned char c){ return toupper(c); });
+  BOOST_LOG_TRIVIAL(trace) << hexuuid;
+  string binuuid;
+  boost::algorithm::unhex(hexuuid.begin(), hexuuid.end(), back_inserter(binuuid));
+  BOOST_LOG_TRIVIAL(trace) << binuuid.size();
+
+  stringstream ss;
+  ss << _header << binuuid << '\0' << _password;
+  
+  return base64::to_base64(ss.str());
 }
 
 bool VID::valid() {

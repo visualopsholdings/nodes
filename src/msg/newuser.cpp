@@ -118,10 +118,10 @@ void newUserMsg(Server *server, json &j) {
     return;
   }
   
-  VID vid;
+  string password = Security::instance()->newPassword();
   
-  auto hash = Security::instance()->newHash(vid, salt.value());
-  if (!salt) {
+  auto hash = Security::instance()->newHash(password, salt.value());
+  if (!hash) {
     server->sendErr("Cant create new hash for user");
     return;
   }
@@ -135,6 +135,9 @@ void newUserMsg(Server *server, json &j) {
     return;
   }
 
+  VID vid;
+  vid.reset(result.value(), password);
+  
   // TBD: Add security.
 
   server->send({

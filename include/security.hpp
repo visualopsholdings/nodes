@@ -119,7 +119,10 @@ public:
   optional<string> newSalt();
     // generate a new user salt value.
     
-  optional<string> newHash(const VID &vid, const string &salt);
+  string newPassword();
+    // generate a new user password
+    
+  optional<string> newHash(const string &password, const string &salt);
     // generate a new user salt value.
     
 private:

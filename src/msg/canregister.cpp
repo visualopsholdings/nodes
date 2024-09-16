@@ -21,10 +21,25 @@ namespace nodes {
 
 void canRegisterMsg(Server *server, json &j) {
 
+  auto token = Json::getString(j, "token");
+  if (!token) {
+    server->sendErr("Missing token");
+    return;
+  }
+  
+  auto exptoken = Security::instance()->expandStreamShareToken(token.value());
+  if (!exptoken) {
+    server->sendErr("Could not expand token");
+    return;
+  }
+
+  auto id = Json::getString(exptoken.value(), "id");
+  auto options = Json::getString(exptoken.value(), "options");
+  
   server->send({
     { "type", "canreg" },
-    { "canRegister", true },
-    { "requireFullname", true }
+    { "canRegister", id && options && options.value() != "none" },
+    { "requireFullname", options && options.value() == "mustName" }
   });
 
 }
