@@ -116,14 +116,17 @@ public:
   optional<json> expandStreamShareToken(const string &token);
     // public for testing.
   
-  optional<string> newSalt();
+  string newSalt();
     // generate a new user salt value.
     
   string newPassword();
     // generate a new user password
     
-  optional<string> newHash(const string &password, const string &salt);
+  string newHash(const string &password, const string &salt);
     // generate a new user salt value.
+    
+  json policyToQuery(const json &obj);
+    // convert a policy to a query for that policy.
     
 private:
 
@@ -141,7 +144,6 @@ private:
   boost::json::object makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
   void removeAt(json *obj, const string &fullpath);
   void addPolicy(json *obj, const string &type, const string &context, const string &id);
-  json policyToQuery(const json &obj);
 
 };
 

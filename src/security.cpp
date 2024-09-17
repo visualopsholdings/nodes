@@ -551,7 +551,7 @@ optional<json> Security::expandStreamShareToken(const string &token) {
   
 }
 
-optional<string> Security::newSalt() {
+string Security::newSalt() {
 
   unsigned char salt[SHA1_LEN];
   RAND_bytes(salt, sizeof(salt));
@@ -559,11 +559,11 @@ optional<string> Security::newSalt() {
   
 }
     
-optional<string> Security::newHash(const string &password, const string &salt) {
+string Security::newHash(const string &password, const string &salt) {
 
   unsigned char out[SHA1_LEN+1];
   int len = PKCS5_PBKDF2_HMAC_SHA1((const char *)password.c_str(), password.length(), (const unsigned char *)salt.c_str(), salt.length(), ITERATIONS, SHA1_LEN, out);
-  return base64::to_base64(string((const char *)out, len));
+  return base64::to_base64(string((const char *)out, SHA1_LEN));
 
 }
 

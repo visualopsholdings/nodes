@@ -302,6 +302,16 @@ void Server::sendAck() {
   
 }
 
+void Server::sendSecurity() {
+
+  BOOST_LOG_TRIVIAL(error) << "security error";
+  send({ 
+    { "type", "err" }, 
+    { "level", "security" }
+  });
+  
+}
+
 void Server::sendDataReq(const json &m) {
 
   sendTo(_dataReq->socket(), m, "dataReq");

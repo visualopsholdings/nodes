@@ -77,6 +77,8 @@ void newUserMsg(Server *server, json &j) {
     return;
   }
   
+  BOOST_LOG_TRIVIAL(trace) << "token " << token.value();
+
   auto expires = Json::getString(token.value(), "expires");
   if (!expires) {
     BOOST_LOG_TRIVIAL(error) << "Expires must be specified in token";
@@ -84,16 +86,32 @@ void newUserMsg(Server *server, json &j) {
     return;
   }
   
+  // TBD: Test for expiry...
+  
   auto user = Json::getString(token.value(), "user");
   if (!user) {
     BOOST_LOG_TRIVIAL(error) << "User must be specified in token";
     server->sendWarning("Invalid token.");
     return;
   }
-  // TBD: Test for expiry...
-  
+
+  auto streamid = Json::getString(token.value(), "id");
+  if (!streamid) {
+    BOOST_LOG_TRIVIAL(error) << "Stream must be specified in token";
+    server->sendWarning("Invalid token.");
+    return;
+  }
+
+  auto stream = Stream().findById(streamid.value()).value();
+  if (!stream) {
+    server->sendErr("Stream in token doesn't exist");
+    return;
+  }
+
   boost::json::object obj = {
     { "invitedBy", user.value() },
+    { "active", true },
+    { "modifyDate", Storage::instance()->getNow() }
   };
 
   auto options = Json::getString(token.value(), "options");
@@ -112,22 +130,12 @@ void newUserMsg(Server *server, json &j) {
     return;
   }
   
-  auto salt = Security::instance()->newSalt();
-  if (!salt) {
-    server->sendErr("Cant create new Salt");
-    return;
-  }
-  
+  string salt = Security::instance()->newSalt();
   string password = Security::instance()->newPassword();
-  
-  auto hash = Security::instance()->newHash(password, salt.value());
-  if (!hash) {
-    server->sendErr("Cant create new hash for user");
-    return;
-  }
+  string hash = Security::instance()->newHash(password, salt);
 
-  obj["salt"] = salt.value();
-  obj["hash"] = hash.value();
+  obj["salt"] = salt;
+  obj["hash"] = hash;
 
   auto result = User().insert(obj);
   if (!result) {
@@ -138,11 +146,21 @@ void newUserMsg(Server *server, json &j) {
   VID vid;
   vid.reset(result.value(), password);
   
-  // TBD: Add security.
-
+  vector<tuple<string, string, string > > add;
+  add.push_back({ "view", "user", result.value() });
+  add.push_back({ "edit", "user", result.value() });
+  add.push_back({ "exec", "user", result.value() });
+  vector<string> remove;
+  auto newpolicy = Security::instance()->modifyPolicy(stream.value().policy(), add, remove);
+  if (newpolicy.value() != stream.value().policy()) {
+    BOOST_LOG_TRIVIAL(trace) << "new policy needed for stream" << newpolicy.value();
+    Stream().updateById(stream.value().id(), { { "policy", newpolicy.value() }});
+  }
+  
   server->send({
     { "type", "newuser" },
     { "vopsid", vid.value() },
+    { "id", result.value() },
     { "fullname", fullname.value() }
   });
 

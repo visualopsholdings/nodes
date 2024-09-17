@@ -30,7 +30,8 @@ void streamMsg(Server *server, json &j) {
   Stream stream;
   auto doc = Security::instance()->withView(stream, Json::getString(j, "me"), {{ { "_id", { { "$oid", streamid.value() } } } }}).value();
   if (!doc) {
-    server->sendErr("DB Error");
+    BOOST_LOG_TRIVIAL(error) << "no streams to view";
+    server->sendSecurity();
     return;
   }
 

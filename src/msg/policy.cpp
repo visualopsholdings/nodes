@@ -37,7 +37,7 @@ void policyMsg(Server *server, json &j) {
     Stream stream;
     auto doc = Security::instance()->withView(stream, Json::getString(j, "me"), {{ { "_id", { { "$oid", objid.value() } } } }}).value();
     if (!doc) {
-      server->sendErr("DB Error");
+      server->sendErr("DB Error (no stream for policy)");
       return;
     }
     policy = doc.value().policy();
@@ -46,7 +46,7 @@ void policyMsg(Server *server, json &j) {
     Group group;
     auto doc = Security::instance()->withView(group, Json::getString(j, "me"), {{ { "_id", { { "$oid", objid.value() } } } }}).value();
     if (!doc) {
-      server->sendErr("DB Error");
+      server->sendErr("DB Error (no group for policy)");
       return;
     }
     policy = doc.value().policy();

@@ -77,7 +77,7 @@ void messageMsg(Server *server, json &j) {
   };
   auto result = Idea().insert(idea);
   if (!result) {
-    server->sendErr("DB Error");
+    server->sendErr("DB Error (no idea)");
     return;
   }
   BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
