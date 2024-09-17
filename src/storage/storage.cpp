@@ -14,6 +14,7 @@
 #include "storage/storagei.hpp"
 #include "storage/collectioni.hpp"
 #include "storage/resulti.hpp"
+#include "date.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -86,6 +87,6 @@ bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
 
 json Storage::getNow() {
 
-  return { { "$date", std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) * 1000 } };
+  return { { "$date", Date::now() } };
   
 }

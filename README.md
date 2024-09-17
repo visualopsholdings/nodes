@@ -310,8 +310,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 17 Sep 2024
 - Invitations working except for testing expiry.
 
-
-
+### 18 Sep 2024
+- expiry test
 
 
 

@@ -64,9 +64,12 @@ endif()
 set(LIBS zmq)
 set(MONGOLIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
 set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
+set(CORE
+  src/json.cpp
+  src/date.cpp
+)
 set(UTILS
   src/vid.cpp 
-  src/json.cpp
   src/security.cpp
   src/upstream.cpp
   src/encrypter.cpp
@@ -123,7 +126,7 @@ add_library(StorageLib SHARED
   src/storage/dynamicrow.cpp 
   src/storage/schema.cpp 
   src/storage/group.cpp 
-  src/json.cpp)
+  ${CORE})
     target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
 
 add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
@@ -139,7 +142,7 @@ add_executable(nodesaggregate src/nodesaggregate.cpp)
 
 if (APPLE)
   find_package(FLTK REQUIRED)
-  add_executable(nodesadmin MACOSX_BUNDLE src/nodesadmin.cpp src/json.cpp)
+  add_executable(nodesadmin MACOSX_BUNDLE src/nodesadmin.cpp ${CORE})
   target_include_directories(nodesadmin PRIVATE ${FLTK_INCLUDE_DIR})
   # Workaround: fltk.framework does not exist, so we have to replace it by libfltk.dylib
   string(REPLACE "libfltk_images" "libfltk" FLTK_LIBRARY_NAME "${FLTK_IMAGES_LIBRARY_RELEASE}")
@@ -155,7 +158,7 @@ add_executable(TestStorage test/teststorage.cpp)
 
 add_test(TestStorage TestStorage)
 
-add_executable(TestResult test/testresult.cpp src/storage/result.cpp src/json.cpp)
+add_executable(TestResult test/testresult.cpp src/storage/result.cpp ${CORE})
   target_link_libraries(TestResult ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 add_test(TestResult TestResult)
@@ -175,12 +178,12 @@ add_executable(TestAggregate test/testaggregate.cpp)
 
 add_test(TestAggregate TestAggregate)
 
-add_executable(TestDate test/testdate.cpp src/json.cpp)
+add_executable(TestDate test/testdate.cpp src/date.cpp)
   target_link_libraries(TestDate ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestDate TestDate)
 
-add_executable(TestJson test/testjson.cpp src/json.cpp)
+add_executable(TestJson test/testjson.cpp src/json.cpp src/date.cpp)
   target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestJson TestJson)

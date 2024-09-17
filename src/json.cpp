@@ -11,9 +11,8 @@
 
 #include "json.hpp"
 
-#include <sstream>
-#include <ctime>
-#include <iomanip>
+#include "date.hpp"
+
 #include <boost/log/trivial.hpp>
 
 string Json::toISODate(json &date) {
@@ -26,18 +25,7 @@ string Json::toISODate(json &date) {
     return "bad_object";
   }
   
-  time_t ts = date.at("$date").as_int64();
-
-  time_t tnum = ts / 1000;
-  int secs = ts - (tnum * 1000);
-
-  tm tm = *gmtime(&tnum);
-  stringstream ss;
-  ss << put_time(&tm, "%FT%T.");
-  ss << secs;
-  ss << "+00:00";
-
-  return ss.str();
+  return Date::toISODate(date.at("$date").as_int64());
   
 }
 

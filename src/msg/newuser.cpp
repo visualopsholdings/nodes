@@ -15,6 +15,7 @@
 #include "json.hpp"
 #include "security.hpp"
 #include "vid.hpp"
+#include "date.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -86,7 +87,11 @@ void newUserMsg(Server *server, json &j) {
     return;
   }
   
-  // TBD: Test for expiry...
+  if (Date::fromISODate(expires.value()) < Date::now()) {
+    BOOST_LOG_TRIVIAL(error) << "Token expired";
+    server->sendWarning("Invalid token.");
+    return;
+  }
   
   auto user = Json::getString(token.value(), "user");
   if (!user) {

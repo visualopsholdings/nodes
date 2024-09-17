@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-#include "json.hpp"
+#include "date.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -19,26 +19,28 @@
 using namespace std;
 using json = boost::json::value;
 
-BOOST_AUTO_TEST_CASE( utc )
+BOOST_AUTO_TEST_CASE( toISODate )
 {
-  cout << "=== utc ===" << endl;
+  cout << "=== toISODate ===" << endl;
   
-  json date = {
-    { "$date", 1719816879599 }
-  };
-
-  BOOST_CHECK_EQUAL(Json::toISODate(date), "2024-07-01T06:54:39.599+00:00");
+  BOOST_CHECK_EQUAL(Date::toISODate(1721890479599), "2024-07-25T06:54:39.599+00:00");
   
 }
 
-BOOST_AUTO_TEST_CASE( badDate )
+BOOST_AUTO_TEST_CASE( fromISODate )
 {
-  cout << "=== badDate ===" << endl;
+  cout << "=== fromISODate ===" << endl;
   
-  json date = {
-    { "$xxx", 1719816879599 }
-  };
-
-  BOOST_CHECK_EQUAL(Json::toISODate(date), "bad_object");
+  BOOST_CHECK_EQUAL(Date::fromISODate("2024-07-25T06:54:39.599+00:00"), 1721890479599);
   
 }
+
+BOOST_AUTO_TEST_CASE( inPast )
+{
+  cout << "=== inPast ===" << endl;
+  
+  BOOST_CHECK(Date::fromISODate("2024-07-01T06:54:39.599+00:00") < Date::now());
+  BOOST_CHECK(Date::fromISODate("2027-07-01T06:54:39.599+00:00") > Date::now());
+  
+}
+
