@@ -307,6 +307,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 16 Sep 2024
 - Start in on creating new invited users.
 
+### 17 Sep 2024
+- Invitations working except for testing expiry.
+
+
 
 
 
