@@ -151,17 +151,24 @@ void newUserMsg(Server *server, json &j) {
   VID vid;
   vid.reset(result.value(), password);
   
-  vector<tuple<string, string, string > > add;
-  add.push_back({ "view", "user", result.value() });
-  add.push_back({ "edit", "user", result.value() });
-  add.push_back({ "exec", "user", result.value() });
-  vector<string> remove;
-  auto newpolicy = Security::instance()->modifyPolicy(stream.value().policy(), add, remove);
-  if (newpolicy.value() != stream.value().policy()) {
-    BOOST_LOG_TRIVIAL(trace) << "new policy needed for stream" << newpolicy.value();
-    Stream().updateById(stream.value().id(), { { "policy", newpolicy.value() }});
-  }
   
+//   vector<tuple<string, string, string > > add;
+//   add.push_back({ "view", "user", result.value() });
+//   add.push_back({ "edit", "user", result.value() });
+//   add.push_back({ "exec", "user", result.value() });
+//   vector<string> remove;
+//   auto newpolicy = Security::instance()->modifyPolicy(stream.value().policy(), add, remove);
+//   if (newpolicy.value() != stream.value().policy()) {
+//     BOOST_LOG_TRIVIAL(trace) << "new policy needed for stream" << newpolicy.value();
+//     Stream().updateById(stream.value().id(), { { "policy", newpolicy.value() }});
+//   }
+  
+  if (!Group().addMember(team.value(), result.value())) {
+     server->sendErr("could not add user to team");
+     return;
+  }
+  Security::instance()->regenerateGroups();
+
   server->send({
     { "type", "newuser" },
     { "vopsid", vid.value() },
