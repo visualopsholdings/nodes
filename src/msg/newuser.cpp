@@ -87,8 +87,12 @@ void newUserMsg(Server *server, json &j) {
     return;
   }
   
-  if (Date::fromISODate(expires.value()) < Date::now()) {
+  auto tnow = Date::now();
+  auto texpires = Date::fromISODate(expires.value());
+  if (texpires < tnow) {
     BOOST_LOG_TRIVIAL(error) << "Token expired";
+    BOOST_LOG_TRIVIAL(trace) << "stream token expires " << expires.value() << ": " << texpires;
+    BOOST_LOG_TRIVIAL(trace) << "now " << Date::toISODate(tnow) << ": " << tnow;
     server->sendWarning("Invalid token.");
     return;
   }
