@@ -55,6 +55,8 @@ Security::Security() {
     return;
   }
   _iv = key.value();
+  BOOST_LOG_TRIVIAL(trace) << "key " << _key.length();
+  BOOST_LOG_TRIVIAL(trace) << "iv " << _iv.length();
 }
 
 bool Security::valid(const VID &vid, const string &salt, const string &hash) {
