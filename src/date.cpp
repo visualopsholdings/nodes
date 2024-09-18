@@ -42,17 +42,27 @@ string Date::toISODate(long t) {
 long Date::fromISODate(const string &d) {
 
   auto dot = d.rfind(".");
+  if (dot == string::npos) {
+    BOOST_LOG_TRIVIAL(error) << "no dot in " << d;
+    return 0;
+  }
+  
   string start = d.substr(0, dot);
 //  BOOST_LOG_TRIVIAL(trace) << start;
   
-  int ms = atoi(d.substr(dot+1, 3).c_str());
-//  BOOST_LOG_TRIVIAL(trace) << ms;
+  string rem = d.substr(dot+1);
+//  BOOST_LOG_TRIVIAL(trace) << rem;
+  auto plus = rem.rfind("+");
+  if (plus == string::npos) {
+    BOOST_LOG_TRIVIAL(error) << "no plus in " << rem;
+    return 0;
+  }
 
   tm tm = {};
   istringstream ss(start);
   ss >> get_time(&tm, "%FT%T");
    
-  return (timegm(&tm) * 1000) + ms;
+  return (timegm(&tm) * 1000) + atoi(rem.substr(0, plus).c_str());
   
 }
 

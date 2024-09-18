@@ -27,11 +27,21 @@ BOOST_AUTO_TEST_CASE( toISODate )
   
 }
 
+
+
 BOOST_AUTO_TEST_CASE( fromISODate )
 {
   cout << "=== fromISODate ===" << endl;
   
   BOOST_CHECK_EQUAL(Date::fromISODate("2024-07-25T06:54:39.599+00:00"), 1721890479599);
+  
+}
+
+BOOST_AUTO_TEST_CASE( fromISODateShortMS )
+{
+  cout << "=== fromISODateShortMS ===" << endl;
+  
+  BOOST_CHECK_EQUAL(Date::fromISODate("2024-09-18T11:11:30.2+00:00"), 1726657890002);
   
 }
 
