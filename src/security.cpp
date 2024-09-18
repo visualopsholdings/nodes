@@ -15,6 +15,7 @@
 #include "storage.hpp"
 #include "json.hpp"
 #include "encrypter.hpp"
+#include "date.hpp"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
