@@ -64,6 +64,15 @@ long Date::fromISODate(const string &d) {
   istringstream ss(start);
   ss >> get_time(&tm, "%FT%T");
    
+  BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
+  BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
+  BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
+  BOOST_LOG_TRIVIAL(trace) << "tm_mon " << tm.tm_mon;
+  BOOST_LOG_TRIVIAL(trace) << "tm_year " << tm.tm_year;
+  BOOST_LOG_TRIVIAL(trace) << "tm_wday " << tm.tm_wday;
+  BOOST_LOG_TRIVIAL(trace) << "tm_yday " << tm.tm_yday;
+  BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
+
   auto t = timegm(&tm);
   BOOST_LOG_TRIVIAL(trace) << t;
   
