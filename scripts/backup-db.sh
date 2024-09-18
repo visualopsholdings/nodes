@@ -5,8 +5,8 @@
 FILENAME=vopsdb_`date "+%m%d%H%M%Y"`.tgz
 
 rm -rf dump
-mongodump -u nodes -p nodes -d nodes
-fi
+mongodump --username=nodes --password=nodes --db=nodes
+
 ERROR=$?
 if [ $ERROR -ne 0 ]
 then
