@@ -30,7 +30,8 @@ string Date::toISODate(long t) {
 
   tm tm = *gmtime(&tnum);
   stringstream ss;
-  ss << put_time(&tm, "%FT%T");
+  // 2024-07-01T06:54:39
+  ss << put_time(&tm, "%Y-%m-%dT%I:%M:%S");
   ss << ".";
   ss << ms;
   ss << "+00:00";
@@ -62,8 +63,10 @@ long Date::fromISODate(const string &d) {
 
   tm tm = {};
   istringstream ss(start);
-  ss >> get_time(&tm, "%FT%T");
+  // 2024-07-01T06:54:39
+  ss >> get_time(&tm, "%Y-%m-%dT%I:%M:%S");
    
+  BOOST_LOG_TRIVIAL(trace) << "tm_sec " << tm.tm_sec;
   BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
   BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
   BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
