@@ -64,7 +64,10 @@ long Date::fromISODate(const string &d) {
   istringstream ss(start);
   ss >> get_time(&tm, "%FT%T");
    
-  return (timegm(&tm) * 1000) + atoi(rem.substr(0, plus).c_str());
+  auto t = timegm(&tm);
+  BOOST_LOG_TRIVIAL(trace) << t;
+  
+  return (t * 1000) + atoi(rem.substr(0, plus).c_str());
   
 }
 
