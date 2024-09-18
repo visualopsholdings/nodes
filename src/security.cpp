@@ -527,6 +527,9 @@ optional<string> Security::generateShareLink(const string &me, const string &hos
 
 optional<string> Security::createStreamShareToken(const string &streamid, const string &me, const string &options, const string &groupid, const string &expires) {
 
+  BOOST_LOG_TRIVIAL(trace) << "stream token will expire " << expires;
+  BOOST_LOG_TRIVIAL(trace) << "now " << Date::toISODate(Date::now());
+
   json keyd = {
     { "id", streamid },
 		{ "user", me },
