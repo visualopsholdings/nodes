@@ -41,6 +41,8 @@ string Date::toISODate(long t) {
 
 long Date::fromISODate(const string &d) {
 
+  BOOST_LOG_TRIVIAL(trace) << d;
+
   auto dot = d.rfind(".");
   if (dot == string::npos) {
     BOOST_LOG_TRIVIAL(error) << "no dot in " << d;
