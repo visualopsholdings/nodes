@@ -13,6 +13,7 @@
 
 #include "storage.hpp"
 #include "json.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -20,23 +21,24 @@ namespace nodes {
 
 void messageMsg(Server *server, json &j) {
 
-  auto userid = Json::getString(j, "user");
-  if (!userid) {
+  auto me = Json::getString(j, "me");
+  if (!me) {
     server->sendErr("no user");
     return;
   }
 
-  if (!User().findById(userid.value(), { "id" }).value()) {
-    server->sendErr("User not found");
-    return;
-  }
-  
   auto streamid = Json::getString(j, "stream");
   if (!streamid) {
     server->sendErr("no stream");
     return;
   }
   
+  Stream streams;
+  if (!Security::instance()->canEdit(streams, me, streamid.value())) {
+    server->sendErr("can't edit stream " + streamid.value());
+    return;
+  }
+
 //   if (!Stream().findById(streamid.value(), { "id" }).value()) {
 //     server->sendErr("Stream not found");
 //     return;
@@ -49,7 +51,7 @@ void messageMsg(Server *server, json &j) {
     policyid = pid.value();
   }
   else {
-    auto doc = Stream().findById(streamid.value(), {"policy"}).value();
+    auto doc = streams.findById(streamid.value(), {"policy"}).value();
     if (!doc) {
       server->sendErr("invalid stream");
       return;
@@ -69,7 +71,7 @@ void messageMsg(Server *server, json &j) {
   }
   
   json idea = {
-    { "user", userid.value() },
+    { "user", me.value() },
     { "stream", streamid.value() },
     { "policy", policyid },
     { "text", text.value() },

@@ -200,7 +200,7 @@ void messageMsg(zmq::socket_t &socket, const vector<string> &args) {
   
   send(socket, {
     { "type", "message" },
-    { "user", args[0] },
+    { "me", args[0] },
     { "stream", args[1] },
     { "text", args[2] }
   });
