@@ -144,7 +144,9 @@ You will only need to do that once to install the ruby stuff.
 ./test.sh
 ```
 
-You will need a machine with a display for this, so don't try to run it headless (for now).
+You will need a machine with a display for this, so don't try to run it headless (for now). It
+also probably won't run in Windows with the WSL since you will need to run all of the tests
+from the Windows side and install Ruby etc there.
 
 For other projects you will need this in your .bashrc or equivalent
 
