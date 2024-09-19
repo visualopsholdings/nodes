@@ -36,12 +36,16 @@ class Security {
 public:
 
   static shared_ptr<Security> instance() {
-    if(!_instance) {
-      _instance.reset(new Security());
+    if (!_instance) {
+      rebuild();
     }
     return _instance;
   };
     
+  static void rebuild() {
+    _instance.reset(new Security());
+  }
+  
   bool valid(const VID &vid, const string &salt, const string &hash);
     // return true if the VID is valid. The salt is generated with the user, and the
     // hash is a premade hash of the password (we don't store the actual password)

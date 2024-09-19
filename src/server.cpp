@@ -16,6 +16,7 @@
 #include "storage/schema.hpp"
 #include "upstream.hpp"
 #include "encrypter.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -498,6 +499,9 @@ bool Server::resetServer() {
   // clear out all these flags.
   Info().deleteMany({{ "type", { { "$in", {"upstream", "upstreamPubKey", "upstreamMirror", 
     "hasInitialSync", "upstreamLastSeen" }}} }});
+  
+  // make sure to start security again.
+  Security::rebuild();
   
   return true;
 }
