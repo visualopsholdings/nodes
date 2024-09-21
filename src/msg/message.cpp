@@ -84,7 +84,15 @@ void messageMsg(Server *server, json &j) {
   }
   BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
     
+  idea.as_object()["id"] = result.value();
   idea.as_object()["type"] = "idea";
+  
+  auto socketid = Json::getString(j, "socketid");
+  if (socketid) {
+    BOOST_LOG_TRIVIAL(trace) << "had socket id";
+    idea.as_object()["socketid"] = socketid.value();
+  }
+  
   server->publish(idea);
 
   server->sendAck();
