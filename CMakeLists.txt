@@ -110,6 +110,7 @@ set(MESSAGES
   src/msg/policygroups.cpp
   src/msg/streamsharelink.cpp
   src/msg/canregister.cpp
+  src/msg/deleteuser.cpp
   src/drmsg/upstream.cpp
   src/drmsg/date.cpp
   src/drmsg/sendOn.cpp

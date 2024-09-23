@@ -315,7 +315,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 18 Sep 2024
 - expiry test
 
-
+### 23 Sep 2024
+- Add delete user.
 
 
 
