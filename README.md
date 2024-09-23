@@ -317,6 +317,7 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 23 Sep 2024
 - Add delete user.
+- Fix bug with mulitple ADD UPSTREAM USER requests.
 
 
 

@@ -42,9 +42,13 @@ mongocxx::cursor ResultImpl::find() {
 
 json ResultImpl::fixObject(const json &j) {
 
+//  BOOST_LOG_TRIVIAL(trace) << "fixing " << j;
+
   boost::json::object o;
   for (auto i: j.as_object()) {
   
+//    BOOST_LOG_TRIVIAL(trace) << "fixing " << i.key();
+    
     if (i.value().is_object()) {
       if (i.key() == "_id" && i.value().as_object().if_contains("$oid")) {
         o["id"] = i.value().at("$oid");

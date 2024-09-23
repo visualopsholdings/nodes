@@ -17,6 +17,7 @@
 #include "upstream.hpp"
 #include "encrypter.hpp"
 #include "security.hpp"
+#include "date.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -533,20 +534,31 @@ void Server::systemStatus(const string &msg) {
 
 void Server::discover() {
 
-  auto hasInitialSync = get1Info("hasInitialSync");
-  auto upstreamLastSeen = get1Info("upstreamLastSeen");
-  auto users = User().find(json{{ "upstream", true }}, {{ "_id" }}).values();
+  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen"}}} }}, {"type", "text"}).values();
+  string hasInitialSync = infos ? Info::getInfo(infos.value(), "hasInitialSync").value() : "false";
+  string upstreamLastSeen = infos ? Info::getInfo(infos.value(), "upstreamLastSeen").value() : "";
+  
+  auto users = User().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
   if (!users) {
     BOOST_LOG_TRIVIAL(error) << "no users";
     return;
   }
   vector<string> ids;
   transform(users.value().begin(), users.value().end(), back_inserter(ids), [](auto e){ return e.id(); });
+
+  // if any of the users are needing discovery, then set last user to be zero date
+//  BOOST_LOG_TRIVIAL(trace) << "finding null date";
+  string zd = Date::toISODate(0);
+  bool hasNullDate = find_if(users.value().begin(), users.value().end(), [zd](auto e) { 
+    return Json::getString(e.j(), "modifyDate") == zd;
+  }) != users.value().end();
+//  BOOST_LOG_TRIVIAL(trace) << "hasNullDate " << hasNullDate;
   
-  json zd = {{ "$date", 0 }};
+  string lastUser = (hasInitialSync == "true") ? (hasNullDate ? zd : upstreamLastSeen) : zd;
+  
 	sendDataReq({
     { "type", "discover" },
-    { "lastUser", hasInitialSync == "true" ? upstreamLastSeen : Json::toISODate(zd) },
+    { "lastUser", lastUser },
     { "users", boost::json::value_from(ids) },
     { "hasInitialSync", hasInitialSync == "true" },
     { "src", _serverId }

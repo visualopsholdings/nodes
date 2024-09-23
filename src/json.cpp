@@ -46,7 +46,7 @@ optional<string> Json::getString(const json &j, const string &name) {
 
   auto obj = getMember(j, name);
   if (!obj.is_string()) {
-    BOOST_LOG_TRIVIAL(error) << "obj is not string";
+    BOOST_LOG_TRIVIAL(error) << "obj is not string " << j << " " << name;
     return {};
   }
   return boost::json::value_to<string>(obj);
