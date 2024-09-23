@@ -37,7 +37,11 @@ void loginMsg(Server *server, json &j) {
   // even if the server is in test mode, if the password seems like
   // a VID then try that out.
   if (server->_test && password.value().rfind("Vk9", 0) == string::npos) {
-    user = User().find(json{ { "name", password.value() } }, {"name", "fullname", "admin"}).value();
+    json q = { { "$or", { 
+      { { "name", password.value() } },
+      { { "fullname", password.value() } }
+    } } };
+    user = User().find(q, {"name", "fullname", "admin"}).value();
     if (!user) {
       server->sendErr("Username/Password incorrect");
       return;
