@@ -275,7 +275,8 @@ SUB socket when a new message is received.
   "text": "Message text",
   "stream": "stream guid",
   "policy": "stream policy guid",
-  "me": "user guid"
+  "me": "user guid",
+  "corr": "a correlation id sent through and passed back"
 }
 ```
 
