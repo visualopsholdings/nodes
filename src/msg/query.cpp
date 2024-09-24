@@ -46,7 +46,7 @@ void queryMsg(Server *server, json &j) {
   json user = {
     { "email", email.value() }
   };
-	server->sendDataReq(Json::getString(j, "corr"), {
+	server->sendDataReq(Json::getString(j, "corr", true), {
     { "type", "query" },
     { "user", user }
   });

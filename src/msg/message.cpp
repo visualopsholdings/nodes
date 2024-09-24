@@ -85,7 +85,11 @@ void messageMsg(Server *server, json &j) {
   idea.as_object()["id"] = result.value();
   idea.as_object()["type"] = "idea";
   
-  server->publish(Json::getString(j, "corr"), idea);
+  if (!Json::has(j, "corr")) {
+    BOOST_LOG_TRIVIAL(warning) << "message missing correlation id";
+  }
+  
+  server->publish(Json::getString(j, "corr", true), idea);
 
   server->sendAck();
 

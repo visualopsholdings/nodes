@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
   zmq::context_t context(1);
   zmq::socket_t req(context, ZMQ_REQ);
   req.connect("tcp://127.0.0.1:" + to_string(reqPort));
-	BOOST_LOG_TRIVIAL(info) << "Connect to ZMQ as Local REQ on " << reqPort;
+	BOOST_LOG_TRIVIAL(trace) << "Connect to ZMQ as Local REQ on " << reqPort;
   
   vector<string> arglist;
   boost::split(arglist, args, boost::is_any_of(","));
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
   handler->second(req, arglist);
   
   json jr = receive(req);
-  BOOST_LOG_TRIVIAL(info) << "received " << jr;
+  BOOST_LOG_TRIVIAL(info) << "<- " << jr;
   stringstream ss;
   ss << jr;
   cout << ss.str();
@@ -119,6 +119,8 @@ int main(int argc, char *argv[]) {
 }
 
 void send(zmq::socket_t &socket, const json &json) {
+
+  BOOST_LOG_TRIVIAL(debug) << "-> " << json;
 
   stringstream ss;
   ss << json;
@@ -142,7 +144,11 @@ json receive(zmq::socket_t &socket) {
   auto res = socket.recv(reply, zmq::recv_flags::none);
 #endif
   string r((const char *)reply.data(), reply.size());
-  return boost::json::parse(r);
+
+  json j = boost::json::parse(r);
+  BOOST_LOG_TRIVIAL(debug) << "<- " << j;
+  
+  return j;
 
 }
 
@@ -202,7 +208,8 @@ void messageMsg(zmq::socket_t &socket, const vector<string> &args) {
     { "type", "message" },
     { "me", args[0] },
     { "stream", args[1] },
-    { "text", args[2] }
+    { "text", args[2] },
+    { "corr", "1" }
   });
 
 }

@@ -26,15 +26,15 @@ public:
 
   static string toISODate(json &date);
   static bool has(const json &j, const string &name);
-  static optional<string> getString(const json &j, const string &name);
-  static optional<boost::json::array> getArray(json &reply, const string &name);
-  static optional<json> getObject(json &j, const string &name);
-  static optional<bool> getBool(const json &j, const string &name);
-  static optional<int> getNumber(const json &j, const string &name);
+  static optional<string> getString(const json &j, const string &name, bool silent=false);
+  static optional<boost::json::array> getArray(json &reply, const string &name, bool silent=false);
+  static optional<json> getObject(json &j, const string &name, bool silent=false);
+  static optional<bool> getBool(const json &j, const string &name, bool silent=false);
+  static optional<int> getNumber(const json &j, const string &name, bool silent=false);
 
 private:
 
-  static json getMember(const json &j, const string &name);
+  static json getMember(const json &j, const string &name, bool silent);
 
 };
 

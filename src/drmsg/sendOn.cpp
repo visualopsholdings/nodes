@@ -22,7 +22,7 @@ void sendOnMsg(Server *server, json &j) {
   // old servers (NodeJS) still use socket id
   auto corr = Json::getString(j, "socketid");
   if (!corr) {
-    corr = Json::getString(j, "corr");
+    corr = Json::getString(j, "corr", true);
   }
   server->publish(corr, j);
   
