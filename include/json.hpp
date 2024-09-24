@@ -25,6 +25,7 @@ class Json {
 public:
 
   static string toISODate(json &date);
+  static bool has(const json &j, const string &name);
   static optional<string> getString(const json &j, const string &name);
   static optional<boost::json::array> getArray(json &reply, const string &name);
   static optional<json> getObject(json &j, const string &name);

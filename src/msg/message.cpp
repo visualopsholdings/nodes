@@ -45,10 +45,8 @@ void messageMsg(Server *server, json &j) {
 //   }
 
   string policyid;
-  
-  auto pid = Json::getString(j, "policy");
-  if (pid) {
-    policyid = pid.value();
+  if (Json::has(j, "policy")) {
+    policyid = Json::getString(j, "policy").value();
   }
   else {
     auto doc = streams.findById(streamid.value(), {"policy"}).value();
@@ -87,13 +85,7 @@ void messageMsg(Server *server, json &j) {
   idea.as_object()["id"] = result.value();
   idea.as_object()["type"] = "idea";
   
-  auto socketid = Json::getString(j, "socketid");
-  if (socketid) {
-    BOOST_LOG_TRIVIAL(trace) << "had socket id";
-    idea.as_object()["socketid"] = socketid.value();
-  }
-  
-  server->publish(idea);
+  server->publish(Json::getString(j, "corr"), idea);
 
   server->sendAck();
 

@@ -346,14 +346,14 @@ When this is received:
   "type": "query",
   "objtype": "user",
   "email": "xxxx",
-  "socketid": "a socketid sent through and passed back"
+  "corr": "a correlation id sent through and passed back"
 }
 ```
 
 We process and return Ack or an error.
 
 This will send a message to the upstream server, and when the result is available it will be 
-sent on the SUB port as a "queryResult". The socketid is passed through and is a value understood
+sent on the SUB port as a "queryResult". The correlation id is passed through and is a value understood
 by the system which might maintain a list of sockets (like websockets) to communicate back to 
 the relevant user.
 

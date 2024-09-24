@@ -55,10 +55,9 @@ void upstreamMsg(Server *server, json &j) {
     }
     
     boost::json::array empty;
-    server->sendDataReq({
+    server->sendDataReq(Json::getString(j, "corr"), {
       { "type", "discoverLocal" },
-      { "data", empty },
-      { "src", server->_serverId }
+      { "data", empty }
     });
     return;
 

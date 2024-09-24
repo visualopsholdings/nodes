@@ -11,13 +11,20 @@
 
 #include "server.hpp"
 
+#include "json.hpp"
+
 #include <boost/log/trivial.hpp>
 
 namespace nodes {
 
 void sendOnMsg(Server *server, json &j) {
    
-  server->publish(j);
+  // old servers (NodeJS) still use socket id
+  auto corr = Json::getString(j, "socketid");
+  if (!corr) {
+    corr = Json::getString(j, "corr");
+  }
+  server->publish(corr, j);
   
 }
 

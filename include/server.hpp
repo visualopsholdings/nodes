@@ -44,17 +44,17 @@ public:
   void systemStatus(const string &msg);
   void discover();
 
-  void publish(const json &m) {
-    sendTo(*_pub, m, "publishing");
+  void publish(optional<string> corr, const json &m) {
+    sendTo(*_pub, m, "*-> ", corr);
   }
   void send(const json &m) {
-    sendTo(*_rep, m, "sending");
+    sendTo(*_rep, m, "-> ", nullopt);
   }
   void sendErr(const string &msg);
   void sendWarning(const string &msg);
   void sendSecurity();
   void sendAck();
-  void sendDataReq(const json &m);
+  void sendDataReq(optional<string> corr, const json &m);
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
 
@@ -82,7 +82,7 @@ private:
   time_t _lastHeartbeat;
   bool _noupstream;
   
-  void sendTo(zmq::socket_t &socket, const json &j, const string &type);
+  void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
     

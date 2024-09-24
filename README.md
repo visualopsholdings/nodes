@@ -319,6 +319,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Add delete user.
 - Fix bug with mulitple ADD UPSTREAM USER requests.
 
+### 24 Sep 2024
+- Switch to use "corr" (correlation id) instead of "socketid".
 
 
 

@@ -169,12 +169,12 @@ void Server::run() {
         zmq::poll(&items[0], 2, timeout);
       
         if (items[0].revents & ZMQ_POLLIN) {
-          if (!getMsg("rep", *_rep, _messages)) {
+          if (!getMsg("<-", *_rep, _messages)) {
             sendErr("error in getting rep message");
           }
         }
         if (items[1].revents & ZMQ_POLLIN) {
-          getMsg("dataReq", _dataReq->socket(), _dataReqMessages);
+          getMsg("<-&", _dataReq->socket(), _dataReqMessages);
         }
       }
     }
@@ -191,7 +191,7 @@ void Server::run() {
         zmq::poll(&items[0], 1, timeout);
       
         if (items[0].revents & ZMQ_POLLIN) {
-          if (!getMsg("rep", *_rep, _messages)) {
+          if (!getMsg("<-", *_rep, _messages)) {
             sendErr("error in getting rep message");
           }
         }
@@ -216,7 +216,7 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
     string r((const char *)reply.data(), reply.size());
     json doc = boost::json::parse(r);
 
-    BOOST_LOG_TRIVIAL(trace) << "got " << name << " reply "<< doc;
+    BOOST_LOG_TRIVIAL(debug) << name << " " << doc;
 
     auto type = Json::getString(doc, "type");
     if (!type) {
@@ -224,7 +224,7 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
       return false;
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "handling " << type.value();
+    BOOST_LOG_TRIVIAL(trace) << "handling " << type.value();
     map<string, msgHandler>::iterator handler = handlers.find(type.value());
     if (handler == handlers.end()) {
       BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();
@@ -240,10 +240,20 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
   
 }
 
-void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type) {
+void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr) {
+
+  json j2 = j;
+  if (corr) {
+    BOOST_LOG_TRIVIAL(trace) << "had corr id " << corr.value();
+    if (type == "&->") {
+      // old servers (NodeJS) still use socket id
+      j2.as_object()["socketid"] = corr.value();
+    }
+    j2.as_object()["corr"] = corr.value();
+  }
 
   stringstream ss;
-  ss << j;
+  ss << j2;
   string m = ss.str();
   
   BOOST_LOG_TRIVIAL(debug) << type << " " << m;
@@ -316,9 +326,13 @@ void Server::sendSecurity() {
   
 }
 
-void Server::sendDataReq(const json &m) {
+void Server::sendDataReq(optional<string> corr, const json &m) {
 
-  sendTo(_dataReq->socket(), m, "dataReq");
+  // set the src of the message.
+  json m2 = m;
+  m2.as_object()["src"] = _serverId;
+
+  sendTo(_dataReq->socket(), m2, "&-> ", corr);
   
 }
 
@@ -413,14 +427,13 @@ void Server::online() {
     return;
   }
   
-  sendDataReq({
+  sendDataReq(nullopt, {
     { "type", "online" },
     { "build", "28474" },
     { "headerTitle", doc.value().headerTitle() },
     { "streamBgColor", doc.value().streamBgColor() },
     { "hasInitialSync", "true" },
     { "pubKey", _pubKey },
-    { "src", _serverId },
 //    { "dest", _upstreamId }    
   });
   
@@ -435,9 +448,8 @@ void Server::heartbeat() {
   }
   _lastHeartbeat = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   
-	sendDataReq({
-    { "type", "heartbeat" },
-    { "src", _serverId }
+	sendDataReq(nullopt, {
+    { "type", "heartbeat" }
   });
 	
 }
@@ -525,7 +537,7 @@ string Server::get1Info(const string &type) {
 
 void Server::systemStatus(const string &msg) {
 
-  publish({
+  publish(nullopt, {
     { "type", "status" },
     { "text", msg }
   });
@@ -556,12 +568,11 @@ void Server::discover() {
   
   string lastUser = (hasInitialSync == "true") ? (hasNullDate ? zd : upstreamLastSeen) : zd;
   
-	sendDataReq({
+	sendDataReq(nullopt, {
     { "type", "discover" },
     { "lastUser", lastUser },
     { "users", boost::json::value_from(ids) },
-    { "hasInitialSync", hasInitialSync == "true" },
-    { "src", _serverId }
+    { "hasInitialSync", hasInitialSync == "true" }
   });
 
 }
