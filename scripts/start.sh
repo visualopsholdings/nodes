@@ -41,7 +41,7 @@ then
 fi
 
 ./nodes/build/nodes \
-  --logLevel=trace \
+  --logLevel=debug \
   --dbConn=mongodb://$DBNAME:$DBPASS@$MONGOS:27017/?authSource=$DBNAME \
   --dbName=$DBNAME $CERTS $HOST \
   > nodes.log 2>&1 &
