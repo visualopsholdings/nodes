@@ -487,25 +487,6 @@ void Security::regenerateGroups() {
   Group().aggregate(home + "/scripts/useringroups.json");
 }
 
-string getFutureTime(int expires) {
-
-  int hours = expires * 60 * 60 * 1000;
-  time_t ts = (std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) * 1000) + hours;
-  time_t tnum = ts / 1000;
-  int secs = ts - (tnum * 1000);
-
-  tm tm = *gmtime(&tnum);
-  stringstream ss;
-  ss << put_time(&tm, "%FT%T.");
-  ss << secs;
-  ss << "+00:00";
-
-//  BOOST_LOG_TRIVIAL(trace) << ss.str();
-  
-  return ss.str();
-  
-}
-
 optional<string> Security::generateShareLink(const string &me, const string &hostname, const string &streamid, const string &groupid, int expires) {
 
   auto stream = Stream().findById(streamid).value();
@@ -516,7 +497,7 @@ optional<string> Security::generateShareLink(const string &me, const string &hos
   
 	auto url = hostname + "/apps/chat/#/streams/" + stream.value().id();
   if (stream.value().streambits() && shareWithNewUsers) {
-    auto token = createStreamShareToken(stream.value().id(), me, "mustName", groupid, getFutureTime(expires));
+    auto token = createStreamShareToken(stream.value().id(), me, "mustName", groupid, Date::getFutureTime(Date::now(), expires));
     if (token) {
       url += "?token=" + token.value();
     }

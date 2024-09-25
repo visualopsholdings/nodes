@@ -30,7 +30,7 @@ public:
   static optional<boost::json::array> getArray(json &reply, const string &name, bool silent=false);
   static optional<json> getObject(json &j, const string &name, bool silent=false);
   static optional<bool> getBool(const json &j, const string &name, bool silent=false);
-  static optional<int> getNumber(const json &j, const string &name, bool silent=false);
+  static optional<long> getNumber(const json &j, const string &name, bool silent=false);
 
 private:
 

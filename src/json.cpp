@@ -102,7 +102,7 @@ optional<bool> Json::getBool(const json &j, const string &name, bool silent) {
 
 }
 
-optional<int> Json::getNumber(const json &j, const string &name, bool silent) {
+optional<long> Json::getNumber(const json &j, const string &name, bool silent) {
 
   auto obj = getMember(j, name, silent);
   if (!obj.is_int64()) {
@@ -111,7 +111,7 @@ optional<int> Json::getNumber(const json &j, const string &name, bool silent) {
     }
     return {};
   }
-  return boost::json::value_to<int>(obj);
+  return boost::json::value_to<long>(obj);
 
 }
 

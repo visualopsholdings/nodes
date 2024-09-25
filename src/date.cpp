@@ -17,21 +17,51 @@
 #include <boost/log/trivial.hpp>
 #include <cstdlib>
 
+#define TIME_FORMAT "%Y-%m-%dT%H:%M:%S"
+
 long Date::now() {
 
-  return std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) * 1000;
+  return chrono::system_clock::to_time_t(chrono::system_clock::now()) * 1000;
+
+}
+
+string Date::getFutureTime(long now, int hours) {
+
+  time_t tnum = now / 1000;
+
+  auto tp = chrono::system_clock::from_time_t(tnum);
+  auto hrs = chrono::hours(hours);
+  long t = chrono::system_clock::to_time_t(tp + hrs);
+  
+  t *= 1000;
+
+  int ms = now - (tnum * 1000);
+  t += ms;
+  
+  return Date::toISODate(t);
 
 }
 
 string Date::toISODate(long t) {
 
   time_t tnum = t / 1000;
+  tm tm = *gmtime(&tnum);
+  
+//   BOOST_LOG_TRIVIAL(trace) << "tm_sec " << tm.tm_sec;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_mon " << tm.tm_mon;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_year " << tm.tm_year;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_wday " << tm.tm_wday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_yday " << tm.tm_yday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
+
   int ms = t - (tnum * 1000);
 
-  tm tm = *gmtime(&tnum);
   stringstream ss;
   // 2024-07-01T06:54:39
-  ss << put_time(&tm, "%Y-%m-%dT%I:%M:%S");
+  ss << put_time(&tm, TIME_FORMAT);
   ss << ".";
   ss << ms;
   ss << "+00:00";
@@ -64,17 +94,17 @@ long Date::fromISODate(const string &d) {
   tm tm = {};
   istringstream ss(start);
   // 2024-07-01T06:54:39
-  ss >> get_time(&tm, "%Y-%m-%dT%I:%M:%S");
+  ss >> get_time(&tm, TIME_FORMAT);
    
-  BOOST_LOG_TRIVIAL(trace) << "tm_sec " << tm.tm_sec;
-  BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
-  BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
-  BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
-  BOOST_LOG_TRIVIAL(trace) << "tm_mon " << tm.tm_mon;
-  BOOST_LOG_TRIVIAL(trace) << "tm_year " << tm.tm_year;
-  BOOST_LOG_TRIVIAL(trace) << "tm_wday " << tm.tm_wday;
-  BOOST_LOG_TRIVIAL(trace) << "tm_yday " << tm.tm_yday;
-  BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_sec " << tm.tm_sec;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_mon " << tm.tm_mon;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_year " << tm.tm_year;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_wday " << tm.tm_wday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_yday " << tm.tm_yday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
 
   auto t = timegm(&tm);
   BOOST_LOG_TRIVIAL(trace) << t;
