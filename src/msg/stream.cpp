@@ -28,10 +28,22 @@ void streamMsg(Server *server, json &j) {
   }
 
   Stream stream;
-  auto doc = Security::instance()->withView(stream, Json::getString(j, "me"), {{ { "_id", { { "$oid", streamid.value() } } } }}).value();
+  auto doc = Security::instance()->withView(stream, Json::getString(j, "me", true), 
+    {{ { "_id", { { "$oid", streamid.value() } } } }}).value();
   if (!doc) {
     BOOST_LOG_TRIVIAL(error) << "no streams to view";
     server->sendSecurity();
+    return;
+  }
+
+  if (server->testModifyDate(j, doc.value().j())) {
+    server->send({
+      { "type", "stream" },
+      { "test", {
+        { "latest", true }
+        }
+      }
+    });
     return;
   }
 

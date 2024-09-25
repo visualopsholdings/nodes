@@ -22,7 +22,7 @@ namespace nodes {
 void groupsMsg(Server *server, json &j) {
 
   Group group;
-  auto docs = Security::instance()->withView(group, Json::getString(j, "me"), json{{}}, 
+  auto docs = Security::instance()->withView(group, Json::getString(j, "me", true), json{{}}, 
     { "id", "modifyDate", "name" }).values();
 
   boost::json::array s;

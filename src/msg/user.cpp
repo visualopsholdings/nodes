@@ -13,6 +13,7 @@
 
 #include "storage.hpp"
 #include "json.hpp"
+#include "date.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -26,13 +27,23 @@ void userMsg(Server *server, json &j) {
     return;
   }
 
-  auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, { "id", "name", "fullname", "admin", "hash", "active" }).value();
+  auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).value();
 
   if (!doc) {
     server->sendErr("can't find user " + userid.value());
     return;
   }
   
+  if (server->testModifyDate(j, doc.value().j())) {
+    server->send({
+      { "type", "user" },
+      { "test", {
+        { "latest", true }
+        }
+      }
+    });
+    return;
+  }
   server->send({
     { "type", "user" },
     { "user", doc.value().j() }

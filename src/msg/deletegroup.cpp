@@ -28,7 +28,7 @@ void deleteGroupMsg(Server *server, json &j) {
   }
 
   Group groups;
-  auto doc = Security::instance()->withEdit(groups, Json::getString(j, "me"),  
+  auto doc = Security::instance()->withEdit(groups, Json::getString(j, "me", true),  
     json{ { "_id", { { "$oid", id.value() } } } }, 
     { "members" }).value();
   if (!doc) {

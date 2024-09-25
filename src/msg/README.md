@@ -63,15 +63,29 @@ When this is received:
 { 
   "type": "stream", 
   "stream": "stream guid",
-  "me": "user guid"
+  "me": "user guid",
+  "test": {
+    "time": "UTC time"
+  }
 }
 ```
 
-We process and return;
+If the time is earlier than the modifyDate of the stream then we return.
 
 ```
 { 
-  "type": "streams, 
+  "type": "stream", 
+  "test": {
+    "latest": true
+  }
+}
+```
+
+Otherwise we process and return;
+
+```
+{ 
+  "type": "stream", 
   "stream": "stream guid",
   "stream": {
     "name": "Conversation 1",
@@ -318,10 +332,24 @@ When this is received:
 { 
   "type": "user", 
   "user": "user guid"
+  "test": {
+    "time": "UTC time"
+  }
 }
 ```
 
-We process and return;
+If the time is earlier than the modifyDate of the user then we return:
+
+```
+{ 
+  "type": "user", 
+  "test": {
+    "latest": true
+  }
+}
+```
+
+Otherwise we process and return;
 
 ```
 { 
@@ -442,10 +470,24 @@ When this is received:
   "type": "group",
   "group": "group guid", 
   "me": "user guid"
+  "test": {
+    "time": "UTC time"
+  }
 }
 ```
 
-We process and return;
+If the time is earlier than the modifyDate of the group then we return.
+
+```
+{ 
+  "type": "group", 
+  "test": {
+    "latest": true
+  }
+}
+```
+
+Otherwise we process and return;
 
 ```
 { 

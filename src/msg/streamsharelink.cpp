@@ -43,7 +43,7 @@ void streamShareLinkMsg(Server *server, json &j) {
   }
 
   Stream streams;
-  auto doc = Security::instance()->withEdit(streams, Json::getString(j, "me"), {{ { "_id", { { "$oid", stream.value() } } } }}).value();
+  auto doc = Security::instance()->withEdit(streams, me, {{ { "_id", { { "$oid", stream.value() } } } }}).value();
   if (!doc) {
     server->sendErr("DB Error (no streams)");
     return;

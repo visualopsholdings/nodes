@@ -35,7 +35,7 @@ void policyMsg(Server *server, json &j) {
   string policy;
   if (objtype.value() == "stream") {
     Stream stream;
-    auto doc = Security::instance()->withView(stream, Json::getString(j, "me"), {{ { "_id", { { "$oid", objid.value() } } } }}).value();
+    auto doc = Security::instance()->withView(stream, Json::getString(j, "me", true), {{ { "_id", { { "$oid", objid.value() } } } }}).value();
     if (!doc) {
       server->sendErr("DB Error (no stream for policy)");
       return;
@@ -44,7 +44,7 @@ void policyMsg(Server *server, json &j) {
   }
   else if (objtype.value() == "group") {
     Group group;
-    auto doc = Security::instance()->withView(group, Json::getString(j, "me"), {{ { "_id", { { "$oid", objid.value() } } } }}).value();
+    auto doc = Security::instance()->withView(group, Json::getString(j, "me", true), {{ { "_id", { { "$oid", objid.value() } } } }}).value();
     if (!doc) {
       server->sendErr("DB Error (no group for policy)");
       return;

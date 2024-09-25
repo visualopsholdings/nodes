@@ -28,7 +28,7 @@ void newMemberMsg(Server *server, json &j) {
   }
 
   Group groups;
-  if (!Security::instance()->canEdit(groups, Json::getString(j, "me"), groupid.value())) {
+  if (!Security::instance()->canEdit(groups, Json::getString(j, "me", true), groupid.value())) {
     server->sendErr("can't editt group " + groupid.value());
     return;
   }

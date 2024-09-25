@@ -28,7 +28,7 @@ void membersMsg(Server *server, json &j) {
   }
 
   Group groups;
-  auto doc = Security::instance()->withView(groups, Json::getString(j, "me"), 
+  auto doc = Security::instance()->withView(groups, Json::getString(j, "me", true), 
     json{ { "_id", { { "$oid", groupid.value() } } } }, { "members" }).value();
   if (!doc) {
     server->sendErr("can't find group " + groupid.value());

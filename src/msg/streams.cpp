@@ -22,7 +22,7 @@ namespace nodes {
 void streamsMsg(Server *server, json &j) {
 
   Stream stream;
-  auto docs = Security::instance()->withView(stream, Json::getString(j, "me"), {{}}, { "id", "name", "policy" }).values();
+  auto docs = Security::instance()->withView(stream, Json::getString(j, "me", true), {{}}, { "id", "name", "policy" }).values();
   
   boost::json::array s;
   if (docs) {

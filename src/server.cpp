@@ -326,6 +326,20 @@ void Server::sendSecurity() {
   
 }
 
+bool Server::testModifyDate(json &j, const json &doc) {
+
+  auto test = Json::getObject(j, "test", true);
+  if (test) {
+    auto time = Json::getString(test.value(), "time", true);
+    if (time) {
+      if (Date::fromISODate(Json::getString(doc, "modifyDate").value()) <= Date::fromISODate(time.value())) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void Server::sendDataReq(optional<string> corr, const json &m) {
 
   // set the src of the message.

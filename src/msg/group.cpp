@@ -28,12 +28,22 @@ void groupMsg(Server *server, json &j) {
   }
 
   Group group;
-  auto doc = Security::instance()->withView(group, Json::getString(j, "me"),  
+  auto doc = Security::instance()->withView(group, Json::getString(j, "me", true),  
     json{ { "_id", { { "$oid", groupid.value() } } } }, 
-    { "id", "name" }).value();
-
+    { "id", "name", "modifyDate" }).value();
   if (!doc) {
     server->sendErr("can't find group " + groupid.value());
+    return;
+  }
+
+  if (server->testModifyDate(j, doc.value().j())) {
+    server->send({
+      { "type", "group" },
+      { "test", {
+        { "latest", true }
+        }
+      }
+    });
     return;
   }
   

@@ -72,7 +72,7 @@ string Date::toISODate(long t) {
 
 long Date::fromISODate(const string &d) {
 
-  BOOST_LOG_TRIVIAL(trace) << d;
+//  BOOST_LOG_TRIVIAL(trace) << d;
 
   auto dot = d.rfind(".");
   if (dot == string::npos) {
@@ -81,10 +81,10 @@ long Date::fromISODate(const string &d) {
   }
   
   string start = d.substr(0, dot);
-  BOOST_LOG_TRIVIAL(trace) << start;
+//  BOOST_LOG_TRIVIAL(trace) << start;
   
   string rem = d.substr(dot+1);
-  BOOST_LOG_TRIVIAL(trace) << rem;
+//  BOOST_LOG_TRIVIAL(trace) << rem;
   auto plus = rem.rfind("+");
   if (plus == string::npos) {
     BOOST_LOG_TRIVIAL(error) << "no plus in " << rem;

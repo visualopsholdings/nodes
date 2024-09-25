@@ -57,6 +57,7 @@ public:
   void sendDataReq(optional<string> corr, const json &m);
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
+  bool testModifyDate(json &j, const json &doc);
 
   string _certFile;
   string _chainFile;
