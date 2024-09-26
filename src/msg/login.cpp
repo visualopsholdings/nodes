@@ -41,7 +41,7 @@ void loginMsg(Server *server, json &j) {
       { { "name", password.value() } },
       { { "fullname", password.value() } }
     } } };
-    user = User().find(q, {"name", "fullname", "admin"}).value();
+    user = User().find(q, {"name", "fullname", "admin", "modifyDate"}).value();
     if (!user) {
       server->sendErr("Username/Password incorrect");
       return;
@@ -54,7 +54,7 @@ void loginMsg(Server *server, json &j) {
       server->sendErr("Invalid VID");
       return;
     }
-    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin", "active"}).value();
+    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin", "active", "modifyDate"}).value();
     if (!user) {
       BOOST_LOG_TRIVIAL(trace) << "couldn't find user";
       server->sendErr("Username/Password incorrect");
@@ -79,7 +79,8 @@ void loginMsg(Server *server, json &j) {
     { "id", user->id() },
     { "name", user->name() },
     { "fullname", user->fullname() },
-    { "admin", user->admin() }
+    { "admin", user->admin() },
+    { "modifyDate", user->modifyDate() }
   });
 
 }

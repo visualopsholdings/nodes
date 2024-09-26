@@ -22,6 +22,19 @@ void siteMsg(Server *server, json &j) {
 
   auto doc = Site().find(json{{}}, {}).value();
 
+  if (doc) {
+    if (server->testModifyDate(j, doc.value().j())) {
+      server->send({
+        { "type", "site" },
+        { "test", {
+          { "latest", true }
+          }
+        }
+      });
+      return;
+    }
+  }
+  
   server->send({
     { "type", "site" },
     { "site", doc ? doc.value().j() : json{{}} }
