@@ -166,7 +166,13 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Instructions for hardening and building a server on the internet.
+### Connecting and synchronizing with upstream servers. 
+
+For now you can only make a Visual Ops (closed source) server an upstream and you can only pull down users 
+from that server.
+
+All of teams, users, streams and policies should all be able to be synchronized, and Nodes (OSS)
+should be able to be an upstream server.
 
 ## License
 
