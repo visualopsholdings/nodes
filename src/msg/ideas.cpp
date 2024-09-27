@@ -27,28 +27,39 @@ void ideasMsg(Server *server, json &j) {
     return;
   }
 
-  auto docs = Idea().find(json{ { "stream", streamid.value() } }).values();
-  if (!docs) {
-    boost::json::array empty;
-    server->send({
-      { "type", "ideas" },
-      { "stream", streamid.value() },
-      { "ideas", empty }
-    });
-    return;
-  }
+  Idea ideas;
+  auto docs = Security::instance()->withView(ideas, Json::getString(j, "me", true), 
+    { { "stream", streamid.value() } }).values();
 
   boost::json::array s;
-  for (auto i: docs.value()) {
-    s.push_back(i.j());
+  if (docs) {
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
   }
+  
+  server->sendCollection(j, "ideas", s);
 
-  server->send({
-    { "type", "ideas" },
-    { "stream", streamid.value() },
-    { "ideas", s }
-  });
-
+//   auto docs = Idea().find(json{ { "stream", streamid.value() } }).values();
+//   if (!docs) {
+//     boost::json::array empty;
+//     server->send({
+//       { "type", "ideas" },
+//       { "stream", streamid.value() },
+//       { "ideas", empty }
+//     });
+//     return;
+//   }
+// 
+//   boost::json::array s;
+//   for (auto i: docs.value()) {
+//     s.push_back(i.j());
+//   }
+// 
+//   server->send({
+//     { "type", "ideas" },
+//     { "stream", streamid.value() },
+//     { "ideas", s }
+//   });
+// 
 }
 
 };
