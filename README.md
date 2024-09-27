@@ -1,30 +1,12 @@
 # Nodes
 
-A system for delivering JSON messages amongst a tree of servers using ZMQ.
+The core subsystem for deliverying the messages, synchronizing nodes etc.
 
-## Visual Ops
+The best way to get started is to take a look at:
 
-Visual Ops is a messaging system (and more) that exists on the edge. Visual Ops nodes are
-standalone servers which can be formed into a tree of servers delivering new messages to users
-using ZMQ message queues and (in the web) Web sockets.
+https://github.com/visualopsholdings/nodes-devops
 
-- There is a full featured Web App which can be configured as a standalone app on iOS and Android
-and any device that can run a browser.
-- Messages persist in a MongoDB database.
-- A security system allows subsets of users to View and Edit "Streams" which are analagous to Channels
-in IRC.
-- A system called "Nodes" correctly delivers missing messages when nodes "go away".
-- The system uses ZMQ message queues in a novel fashion which are the backbone for delivery
-and use EC (Eliptical Curve) Cryptography to ensure transport security.
-- Visual Ops is monolithic. Every server is completely standalone and require no more resources
-from the internet (Cloud).
-
-For these reasons, it would be the perfect backend for IRC Clients, or other messaging systems and solve many of the existing drawbacks
-and problems that plague IRC etc.
-
-This project implements an open source implementation of this in C++.
-
-### ZMQ API
+## ZMQ API
 
 You communicate with Nodes using the ZMQ message queues.
 
