@@ -38,28 +38,6 @@ void ideasMsg(Server *server, json &j) {
   
   server->sendCollection(j, "ideas", s);
 
-//   auto docs = Idea().find(json{ { "stream", streamid.value() } }).values();
-//   if (!docs) {
-//     boost::json::array empty;
-//     server->send({
-//       { "type", "ideas" },
-//       { "stream", streamid.value() },
-//       { "ideas", empty }
-//     });
-//     return;
-//   }
-// 
-//   boost::json::array s;
-//   for (auto i: docs.value()) {
-//     s.push_back(i.j());
-//   }
-// 
-//   server->send({
-//     { "type", "ideas" },
-//     { "stream", streamid.value() },
-//     { "ideas", s }
-//   });
-// 
 }
 
 };
