@@ -17,10 +17,11 @@ namespace nodes {
 
 void reloadMsg(Server *server, json &j) {
 
+  server->resetDB();
   server->connectUpstream();
   server->_reload = true;
   server->sendAck();
-  
+
 }
 
 };

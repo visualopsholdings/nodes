@@ -34,20 +34,7 @@ void userMsg(Server *server, json &j) {
     return;
   }
   
-  if (server->testModifyDate(j, doc.value().j())) {
-    server->send({
-      { "type", "user" },
-      { "test", {
-        { "latest", true }
-        }
-      }
-    });
-    return;
-  }
-  server->send({
-    { "type", "user" },
-    { "user", doc.value().j() }
-  });
+  server->sendObject(j, "user", doc.value().j());
   
 }
 

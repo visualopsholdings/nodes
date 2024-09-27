@@ -148,6 +148,7 @@ public:
   
   string name() { return getString("name"); }
   string policy() { return getString("policy"); }
+  string modifyDate() { return getString("modifyDate"); }
   vector<MemberRow> members();
   
 };

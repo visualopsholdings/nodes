@@ -29,12 +29,24 @@ void membersMsg(Server *server, json &j) {
 
   Group groups;
   auto doc = Security::instance()->withView(groups, Json::getString(j, "me", true), 
-    json{ { "_id", { { "$oid", groupid.value() } } } }, { "members" }).value();
+    json{ { "_id", { { "$oid", groupid.value() } } } }, 
+    { "members", "modifyDate" }).value();
   if (!doc) {
     server->sendErr("can't find group " + groupid.value());
     return;
   }
 
+  if (server->testModifyDate(j, doc.value().j())) {
+    server->send({
+      { "type", "members" },
+      { "test", {
+        { "latest", true }
+        }
+      }
+    });
+    return;
+  }
+  
   boost::json::array newmembers;
   auto members = doc.value().j().at("members").as_array();
   for (auto i: members) {
@@ -48,7 +60,11 @@ void membersMsg(Server *server, json &j) {
   
   server->send({
     { "type", "members" },
-    { "members", newmembers }
+    { "group", {
+      { "members", newmembers },
+      { "modifyDate", doc.value().modifyDate() }
+      }
+    }
   });
   
 }

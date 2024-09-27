@@ -29,10 +29,7 @@ void streamsMsg(Server *server, json &j) {
     transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
   }
   
-  server->send({
-    { "type", "streams" },
-    { "streams", s }
-  });
+  server->sendCollection(j, "streams", s);
 
 }
 

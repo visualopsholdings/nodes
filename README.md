@@ -325,5 +325,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 25 Sep 2024
 - Add modification date testing.
 
+### 27 Sep 2024
+- Add collection changed testing.
+
 
 

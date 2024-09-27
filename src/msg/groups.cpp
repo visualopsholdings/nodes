@@ -30,10 +30,7 @@ void groupsMsg(Server *server, json &j) {
     transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
   }
 
-  server->send({
-    { "type", "groups" },
-    { "groups", s }
-  });
+  server->sendCollection(j, "groups", s);
   
 }
 

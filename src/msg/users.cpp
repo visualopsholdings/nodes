@@ -26,10 +26,7 @@ void usersMsg(Server *server, json &j) {
     transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
   }
 
-  server->send({
-    { "type", "users" },
-    { "users", s }
-  });
+  server->sendCollection(j, "users", s);
   
 }
 

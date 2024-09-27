@@ -36,21 +36,7 @@ void groupMsg(Server *server, json &j) {
     return;
   }
 
-  if (server->testModifyDate(j, doc.value().j())) {
-    server->send({
-      { "type", "group" },
-      { "test", {
-        { "latest", true }
-        }
-      }
-    });
-    return;
-  }
-  
-  server->send({
-    { "type", "group" },
-    { "group", doc.value().j() }
-  });
+  server->sendObject(j, "group", doc.value().j());
   
 }
 

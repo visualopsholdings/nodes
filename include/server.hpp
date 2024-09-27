@@ -43,7 +43,8 @@ public:
   void heartbeat();
   void systemStatus(const string &msg);
   void discover();
-
+  void resetDB();
+  
   void publish(optional<string> corr, const json &m) {
     sendTo(*_pub, m, "*-> ", corr);
   }
@@ -55,10 +56,20 @@ public:
   void sendSecurity();
   void sendAck();
   void sendDataReq(optional<string> corr, const json &m);
+  
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
+    // dealing with the "infos"
+    
+  void sendCollection(json &j, const string &name, const boost::json::array &array);
+    //. send a collection back, taking care of the test for latest
+    
+  void sendObject(json &j, const string &name, const json &doc);
+    // send an object back, taking care of the test for latest
+    
   bool testModifyDate(json &j, const json &doc);
-
+    // test for the modifyDate to be the latest.
+    
   string _certFile;
   string _chainFile;
   string _hostName;
@@ -86,6 +97,7 @@ private:
   void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
+  bool testCollectionChanged(json &j, const string &name);
     
 };
 

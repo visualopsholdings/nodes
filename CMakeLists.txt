@@ -122,6 +122,7 @@ include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR}
 
 add_library(StorageLib SHARED 
   src/storage/storage.cpp 
+  src/storage/storagei.cpp 
   src/storage/schemai.cpp 
   src/storage/result.cpp 
   src/storage/dynamicrow.cpp 

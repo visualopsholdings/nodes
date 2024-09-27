@@ -46,12 +46,26 @@ public:
   json getNow();
     // return the correct JSON for a date that is now.
     
+  void collectionWasChanged(const string &name);
+    // return the last date a collection was changed.
+    
+  long collectionChanged(const string &name) {
+    return _changed[name];
+  }
+    // return the last date a collection was changed.
+    
+  void allCollectionsChanged();
+    // everything changed.
+    
 private:
 
   // there can be only 1.
   Storage() {};
   static shared_ptr<Storage> _instance;
   
+  map<string, long> _changed;
+    // a map of collection names, along with when they were last changed.
+    
 };
 
 #endif // H_storage

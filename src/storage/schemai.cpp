@@ -82,7 +82,8 @@ void SchemaImpl::deleteMany(const json &doc) {
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
 
   Storage::instance()->_impl->coll(collName())._c.delete_many(d);
-
+  Storage::instance()->collectionWasChanged(collName());
+  
 }
   
 bool SchemaImpl::testInit() {
@@ -107,6 +108,7 @@ bool SchemaImpl::deleteById(const string &id) {
 
   auto result = Storage::instance()->_impl->coll(collName())._c.delete_one(q);
   if (result) {
+    Storage::instance()->collectionWasChanged(collName());
     return result.value().deleted_count() == 1;
   }
 
@@ -129,6 +131,7 @@ optional<string> SchemaImpl::insert(const json &doc) {
   try {
     auto result = Storage::instance()->_impl->coll(collName())._c.insert_one(d);
     if (result) {
+      Storage::instance()->collectionWasChanged(collName());
       return result.value().inserted_id().get_oid().value.to_string();
     }
   }
@@ -161,8 +164,9 @@ optional<string> SchemaImpl::rawUpdate(const json &query, const json &doc) {
   
   auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
   if (result) {
+    Storage::instance()->collectionWasChanged(collName());
     return "1";
-   }
+  }
   
   return nullopt;
 
@@ -192,6 +196,7 @@ optional<string> SchemaImpl::rawUpdateById(const string &id, const json &doc) {
   
   auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
   if (result) {
+    Storage::instance()->collectionWasChanged(collName());
     return "1";
    }
   

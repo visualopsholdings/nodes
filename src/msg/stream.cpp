@@ -36,21 +36,7 @@ void streamMsg(Server *server, json &j) {
     return;
   }
 
-  if (server->testModifyDate(j, doc.value().j())) {
-    server->send({
-      { "type", "stream" },
-      { "test", {
-        { "latest", true }
-        }
-      }
-    });
-    return;
-  }
-
-  server->send({
-    { "type", "stream" },
-    { "stream", doc.value().j() }
-  });
+  server->sendObject(j, "stream", doc.value().j());
 
 }
 

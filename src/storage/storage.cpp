@@ -28,22 +28,26 @@ void Storage::init(const string &dbConn, const string &dbName) {
   }
   _impl.reset(new StorageImpl(dbConn, dbName));
 
-}
-
-StorageImpl::StorageImpl(const string &dbConn, const string &dbName) {
-
-  _instance.reset(new mongocxx::instance());
- 
-  mongocxx::uri uri(dbConn);
-  _client.reset(new mongocxx::client(uri));
-  _db = (*_client)[dbName];
-
-}
-
-CollectionImpl StorageImpl::coll(const string &name) {
-
-  return CollectionImpl(_db[name]);
+  allCollectionsChanged();
   
+}
+
+void Storage::allCollectionsChanged() {
+
+  // touch all the collections.
+  collectionWasChanged("users");
+  collectionWasChanged("policies");
+  collectionWasChanged("streams");
+  collectionWasChanged("ideas");
+  collectionWasChanged("groups");
+  collectionWasChanged("infos");
+  collectionWasChanged("sites");
+  collectionWasChanged("infos");
+
+}
+
+void Storage::collectionWasChanged(const string &name) {
+  _changed[name] = Date::now();
 }
 
 class GenericSchema: public Schema<DynamicRow> {

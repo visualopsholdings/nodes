@@ -36,15 +36,32 @@ When this is received:
 ```
 { 
   "type": "streams", 
-  "me": "user guid"
+  "me": "user guid",
+  "test": {
+    "time": 123456
+  }
 }
 ```
 
-We process and return;
+If the time is smaller than the internal time then we return that the collection was changed:
 
 ```
 { 
   "type": "streams", 
+  "test": {
+    "latest": true
+  }
+}
+```
+
+Otherwise we process and return;
+
+```
+{ 
+  "type": "streams",
+  "test": {
+    "time": 123456
+  },
   "streams": [
     {
       "name": "Conversation 1",
@@ -54,6 +71,12 @@ We process and return;
   ]
 }
 ```
+
+The idea for a platform using this is to remember "time" in some way and then turn
+it around in the requests and then if it is smaller than the internal time
+that the collection was changed they can use the cached version of the collection.
+
+This presents "micro hammering" of this service and only returns new data when a collection has changed.
 
 #### Stream
 
@@ -90,7 +113,8 @@ Otherwise we process and return;
   "stream": {
     "name": "Conversation 1",
     "stream": "stream guid",
-    "policy": "stream policy guid"
+    "policy": "stream policy guid",
+    "modifyDate": "UTC time"
   }
 }
 ```
@@ -300,15 +324,32 @@ When this is received:
 
 ```
 { 
-  "type": "users"
+  "type": "users",
+  "test": {
+    "time": 123456
+  }
 }
 ```
 
-We process and return;
+If the time is smaller than the internal time then we return that the collection was changed:
 
 ```
 { 
   "type": "users", 
+  "test": {
+    "latest": true
+  }
+}
+```
+
+Otherwise we process and return;
+
+```
+{ 
+  "type": "users", 
+  "test": {
+    "time": 123456
+  },
   "users": [
     {
       "name": "tracy",
@@ -323,6 +364,12 @@ We process and return;
   ]
 }
 ```
+
+The idea for a platform using this is to remember "time" in some way and then turn
+it around in the requests and then if it is smaller than the internal time
+that the collection was changed they can use the cached version of the collection.
+
+This presents "micro hammering" of this service and only returns new data when a collection has changed.
 
 #### User
 
@@ -358,7 +405,8 @@ Otherwise we process and return;
   "user": {
     "name": "tracy",
     "fullname": "Tracy",
-    "id": "user guid"
+    "id": "user guid",
+    "modifyDate": "UTC time"
   }
 }
 ```
@@ -439,15 +487,32 @@ When this is received:
 ```
 { 
   "type": "groups", 
-  "me": "user guid"
+  "me": "user guid",
+  "test": {
+    "time": 123456
+  }
 }
 ```
 
-We process and return;
+If the time is smaller than the internal time then we return that the collection was changed:
 
 ```
 { 
   "type": "groups", 
+  "test": {
+    "latest": true
+  }
+}
+```
+
+Otherwise we process and return;
+
+```
+{ 
+  "type": "groups", 
+  "test": {
+    "time": 123456
+  },
   "groups": [
     {
       "name": "Team 1",
@@ -461,6 +526,12 @@ We process and return;
 }
 ```
 
+The idea for a platform using this is to remember "time" in some way and then turn
+it around in the requests and then if it is smaller than the internal time
+that the collection was changed they can use the cached version of the collection.
+
+This presents "micro hammering" of this service and only returns new data when a collection has changed.
+
 #### Group
 
 When this is received:
@@ -469,7 +540,7 @@ When this is received:
 { 
   "type": "group",
   "group": "group guid", 
-  "me": "user guid"
+  "me": "user guid",
   "test": {
     "time": "UTC time"
   }
@@ -494,7 +565,8 @@ Otherwise we process and return;
   "type": "group", 
   "group": {
     "name": "Team 1",
-    "id": "group guid"
+    "id": "group guid",
+    "modifyDate": "UTC time"
   }
 }
 ```
@@ -552,21 +624,39 @@ When this is received:
 ```
 { 
   "type": "members",
-  "group": "group guid"
+  "group": "group guid",
+  "me": "user guid",
+  "test": {
+    "time": "UTC time"
+  }
 }
 ```
 
-We process and return;
+If the time is earlier than the modifyDate of the group then we return.
 
 ```
 { 
   "type": "members", 
-  "members": [
-    {
-      "user": "user guid"
-      "fullname": "The fuilname of the user"
-    }
-  ]
+  "test": {
+    "latest": true
+  }
+}
+```
+
+Otherwise we process and return;
+
+```
+{ 
+  "type": "members", 
+  "group": {
+    "members": [
+      {
+        "user": "user guid"
+        "fullname": "The fuilname of the user"
+      }
+    ],
+    "modifyDate": "UTC time"
+  }
 }
 ```
 
