@@ -334,8 +334,8 @@ bool Server::testModifyDate(json &j, const json &doc) {
     if (time) {
       long mod = Date::fromISODate(Json::getString(doc, "modifyDate").value());
       long t = Date::fromISODate(time.value());
-      if (mod < t) {
-        BOOST_LOG_TRIVIAL(trace) << "not changed " << mod << " < " << t;
+      if (mod <= t) {
+        BOOST_LOG_TRIVIAL(trace) << "not changed " << mod << " <= " << t;
         return true;
       }
     }
@@ -350,8 +350,8 @@ bool Server::testCollectionChanged(json &j, const string &name) {
     auto time = Json::getNumber(test.value(), "time", true);
     if (time) {
       long changed = Storage::instance()->collectionChanged(name);
-      if (changed < time.value()) {
-        BOOST_LOG_TRIVIAL(trace) << "not changed " << changed << " < " << time.value();
+      if (changed <= time.value()) {
+        BOOST_LOG_TRIVIAL(trace) << "not changed " << changed << " <= " << time.value();
         return true;
       }
     }
