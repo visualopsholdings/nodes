@@ -59,8 +59,11 @@ void setGroupPolicyMsg(Server *server, json &j) {
     server->sendAck();
   }
   
-  boost::json::object obj;
-  obj["policy"] = policy.value();
+  boost::json::object obj = {
+    { "modifyDate", Storage::instance()->getNow() },
+    { "policy", policy.value() }
+  };
+
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
   auto result = groups.updateById(id.value(), obj);
   if (!result) {

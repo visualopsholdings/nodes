@@ -41,7 +41,9 @@ void setGroupMsg(Server *server, json &j) {
   
   BOOST_LOG_TRIVIAL(trace) << "group old value " << doc.value().j();
   
-  boost::json::object obj;
+  boost::json::object obj = {
+    { "modifyDate", Storage::instance()->getNow() }
+  };
   auto name = Json::getString(j, "name");
   if (name) {
     obj["name"] = name.value();

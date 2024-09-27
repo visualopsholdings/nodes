@@ -11,6 +11,8 @@
 
 #include "storage/schema.hpp"
 
+#include "storage.hpp"
+
 #include <boost/log/trivial.hpp>
 
 bool Group::getMemberSet(const string &group, set<string> *mset) {
@@ -44,6 +46,7 @@ bool Group::saveMemberSet(const string &group, const set<string> &mset) {
   }
   
   auto result = Group().updateById(group, {
+    { "modifyDate", Storage::instance()->getNow() },
     { "members", newmembers }
   });
   if (!result) {

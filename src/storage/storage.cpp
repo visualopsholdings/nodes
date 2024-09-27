@@ -47,7 +47,9 @@ void Storage::allCollectionsChanged() {
 }
 
 void Storage::collectionWasChanged(const string &name) {
-  _changed[name] = Date::now();
+  long now = Date::now();
+//  BOOST_LOG_TRIVIAL(trace) << "collectionWasChanged " << name << " " << now;
+  _changed[name] = now;
 }
 
 class GenericSchema: public Schema<DynamicRow> {

@@ -31,7 +31,9 @@ void setsiteMsg(Server *server, json &j) {
   if (doc) {
     BOOST_LOG_TRIVIAL(trace) << "site old value " << doc.value().j();
     
-    boost::json::object obj;
+    boost::json::object obj = {
+      { "modifyDate", Storage::instance()->getNow() }
+    };
     auto headerTitle = Json::getString(j, "headerTitle");
     auto streamBgColor = Json::getString(j, "streamBgColor");
     if (headerTitle) {

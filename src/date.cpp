@@ -21,7 +21,14 @@
 
 long Date::now() {
 
-  return chrono::system_clock::to_time_t(chrono::system_clock::now()) * 1000;
+  auto now = chrono::system_clock::now();
+  auto duration = now.time_since_epoch();
+  auto milliseconds
+        = chrono::duration_cast<chrono::milliseconds>(
+              duration)
+              .count();
+
+  return milliseconds;
 
 }
 
@@ -107,9 +114,13 @@ long Date::fromISODate(const string &d) {
 //   BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
 
   auto t = timegm(&tm);
-  BOOST_LOG_TRIVIAL(trace) << t;
+//  BOOST_LOG_TRIVIAL(trace) << "t: " << t;
   
-  return (t * 1000) + atoi(rem.substr(0, plus).c_str());
+  rem = rem.substr(0, plus);
+  long ms = atol(rem.substr(0, plus).c_str());
+//  BOOST_LOG_TRIVIAL(trace) << "ms: " << ms;
+  
+  return (t * 1000) + ms;
   
 }
 

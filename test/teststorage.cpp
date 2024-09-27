@@ -148,6 +148,7 @@ BOOST_AUTO_TEST_CASE( update )
 
   auto result = User().updateById(tracy, {
     { "name", "tracy2" },
+    { "modifyDate", Storage::instance()->getNow() },
     { "fullname", "Tracy new" }
   });
   BOOST_CHECK(result);

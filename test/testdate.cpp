@@ -19,6 +19,14 @@
 using namespace std;
 using json = boost::json::value;
 
+BOOST_AUTO_TEST_CASE( now )
+{
+  cout << "=== now ===" << endl;
+  
+  cout << Date::now() << endl;
+  
+}
+
 BOOST_AUTO_TEST_CASE( toISODate )
 {
   cout << "=== toISODate ===" << endl;

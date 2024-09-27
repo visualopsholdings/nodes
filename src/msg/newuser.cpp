@@ -37,7 +37,10 @@ void newUserMsg(Server *server, json &j) {
     auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, {}).value();
     if (doc) {
       // set the upstream on doc.
-      auto result = User().updateById(userid.value(), {{ "upstream", true }});
+      auto result = User().updateById(userid.value(), { 
+        { "modifyDate", Storage::instance()->getNow() },
+        { "upstream", true } 
+      });
       if (!result) {
         server->sendErr("could not update user");
         return;
@@ -154,7 +157,6 @@ void newUserMsg(Server *server, json &j) {
 
   VID vid;
   vid.reset(result.value(), password);
-  
   
 //   vector<tuple<string, string, string > > add;
 //   add.push_back({ "view", "user", result.value() });

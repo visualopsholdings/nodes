@@ -36,7 +36,9 @@ void setuserMsg(Server *server, json &j) {
     auto admin = Json::getBool(j, "admin");
     auto active = Json::getBool(j, "active");
 
-    boost::json::object obj;
+    boost::json::object obj = {
+      { "modifyDate", Storage::instance()->getNow() },
+    };
     if (fullname) {
       obj["fullname"] = fullname.value();
     }    
