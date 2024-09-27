@@ -22,19 +22,13 @@ namespace nodes {
 void infosMsg(Server *server, json &j) {
 
   auto docs = Info().find(json{{}}, {"type", "text"}).values();
-  if (!docs) {
-    server->sendErr("no infos");
-    return;
-  }
 
   boost::json::array s;
-  for (auto i: docs.value()) {
-    s.push_back(i.j());
+  if (docs) {
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
   }
-  server->send({
-    { "type", "infos" },
-    { "infos", s }
-  });
+
+  server->sendCollection(j, "infos", s);
 
 }
 

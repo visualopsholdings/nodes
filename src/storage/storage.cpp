@@ -42,7 +42,6 @@ void Storage::allCollectionsChanged() {
   collectionWasChanged("groups");
   collectionWasChanged("infos");
   collectionWasChanged("sites");
-  collectionWasChanged("infos");
 
 }
 
