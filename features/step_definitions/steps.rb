@@ -31,3 +31,20 @@ end
 Then('she receives policyusers') do
    expect(lastResult["type"]).to eq("policyusers")
 end
+
+When('she sends policy for {string} named {string}') do |objtype, name |
+   id = ""
+   if objtype == "stream"
+      id = Stream.where(name: name).first._id.to_s
+   elsif objtype == "group"
+      id = Group.where(name: name).first._id.to_s
+   else
+      puts "bad objtype"
+   end 
+   j = JSON.generate({ "type": "policy", "objtype": objtype,  "id": id })
+   lastResult = JSON.parse(`build/Send --logLevel=debug '#{j}'`)
+end
+
+Then('she receives policy {string}') do |string|
+   expect(lastResult["type"]).to eq("policy")
+end

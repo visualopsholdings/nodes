@@ -56,6 +56,9 @@ public:
   void getPolicyGroups(const string &id, vector<string> *groups);
     // get a list of groups that are in this policy.
   
+  Result<DynamicRow> withView(const string &collection, optional<string> me, const json &query, const vector<string> &fields = {});
+    // execute a query ensuring that the user can view the results, using the name of the collection.
+
   // execute a query ensuring that the user can view the results.
   template <typename RowType>
   Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {

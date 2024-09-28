@@ -24,9 +24,9 @@
 
 using namespace bsoncxx::builder::basic;
 
-shared_ptr<ResultImpl> SchemaImpl::findResult(const json &query, const vector<string> &fields) {
+shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const json &query, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collName(); 
+  BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collection; 
 
   if (!testInit()) {
     return 0;
@@ -35,26 +35,26 @@ shared_ptr<ResultImpl> SchemaImpl::findResult(const json &query, const vector<st
   stringstream ss;
   ss << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collName())._c, q, fields));
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, q, fields));
   
 }
 
-shared_ptr<ResultImpl> SchemaImpl::findByIdResult(const string &id, const vector<string> &fields) {
+shared_ptr<ResultImpl> SchemaImpl::findByIdGeneral(const string &collection, const string &id, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find " << id << " in " << collName();
+  BOOST_LOG_TRIVIAL(trace) << "find " << id << " in " << collection;
 
   if (!testInit()) {
     return 0;
   }
 
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collName())._c, q, fields));
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, q, fields));
   
 }
 
-shared_ptr<ResultImpl> SchemaImpl::findByIdsResult(const vector<string> &ids, const vector<string> &fields) {
+shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find ids " << ids.size() << " in " << collName();
+  BOOST_LOG_TRIVIAL(trace) << "find ids " << ids.size() << " in " << collection;
 
   if (!testInit()) {
     return 0;
@@ -65,7 +65,7 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsResult(const vector<string> &ids, co
     array.append(bsoncxx::oid(id));
   }
   bsoncxx::document::view_or_value q = make_document(kvp("_id", make_document(kvp("$in", array))));
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collName())._c, q, fields));
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, q, fields));
   
 }
 

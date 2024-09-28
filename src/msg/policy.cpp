@@ -32,29 +32,17 @@ void policyMsg(Server *server, json &j) {
     return;
   }
 
-  string policy;
-  if (objtype.value() == "stream") {
-    Stream stream;
-    auto doc = Security::instance()->withView(stream, Json::getString(j, "me", true), {{ { "_id", { { "$oid", objid.value() } } } }}).value();
-    if (!doc) {
-      server->sendErr("DB Error (no stream for policy)");
-      return;
-    }
-    policy = doc.value().policy();
-  }
-  else if (objtype.value() == "group") {
-    Group group;
-    auto doc = Security::instance()->withView(group, Json::getString(j, "me", true), {{ { "_id", { { "$oid", objid.value() } } } }}).value();
-    if (!doc) {
-      server->sendErr("DB Error (no group for policy)");
-      return;
-    }
-    policy = doc.value().policy();
-  }
-  else {
-    server->sendErr("unknown objtype " + objtype.value());
+  // the collection names are pluralised object types.
+  string collname = objtype.value() + "s";
+  auto doc = Security::instance()->withView(collname, Json::getString(j, "me", true), 
+    {{ { "_id", { { "$oid", objid.value() } } } }}, { "policy" }).value();
+  if (!doc) {
+    server->sendErr("DB Error (no policy)");
     return;
   }
+  
+  // get the policy out of the JSON.
+  string policy = boost::json::value_to<string>(doc.value().j().at("policy"));
 
   auto lines = Security::instance()->getPolicyLines(policy);
   if (!lines) {

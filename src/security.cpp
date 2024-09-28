@@ -87,6 +87,18 @@ void Security::addTo(vector<string> *v, const string &val) {
 
 }
 
+Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const json &query, const vector<string> &fields) {
+
+  if (me) {
+    GroupViewPermissions groupviews;
+    UserViewPermissions userviews;
+    return SchemaImpl::findGeneral(collection, withQuery(groupviews, userviews, me.value(), query), fields);
+  }
+
+  return  SchemaImpl::findGeneral(collection, query, fields);
+  
+}
+
 void Security::getPolicyUsers(const string &id, vector<string> *users) {
 
   // This is so much simpler than the Visual Ops version which determines the role of
@@ -356,7 +368,7 @@ void Security::addPolicy(json *obj, const string &type, const string &context, c
   auto accnode = obj->at("accesses").as_array()[acc];
 //    BOOST_LOG_TRIVIAL(trace) << "access node " << accnode;
   
-  // get the arrar
+  // get the array
   boost::json::array arr;
   if (context == "group") {
     arr = accnode.at("groups").as_array();
