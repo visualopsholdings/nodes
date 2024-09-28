@@ -27,33 +27,26 @@ namespace po = boost::program_options;
 using namespace std;
 using json = boost::json::value;
 
-typedef function<void (zmq::socket_t &socket, const vector<string> &args)> msgHandler;
 void send(zmq::socket_t &socket, const json &json);
 json receive(zmq::socket_t &socket);
-void loginMsg(zmq::socket_t &socket, const vector<string> &args);
-void streamsMsg(zmq::socket_t &socket, const vector<string> &args);
-void policyUsersMsg(zmq::socket_t &socket, const vector<string> &args);
-void messageMsg(zmq::socket_t &socket, const vector<string> &args);
-void reloadMsg(zmq::socket_t &socket, const vector<string> &args);
 
 int main(int argc, char *argv[]) {
 
   int subPort;
   int reqPort;
   string logLevel;
-  string cmd;
-  string args;
+  string jsonstr;
   
   po::options_description desc("Allowed options");
   desc.add_options()
     ("subPort", po::value<int>(&subPort)->default_value(3012), "ZMQ Sub port.")
     ("reqPort", po::value<int>(&reqPort)->default_value(3013), "ZMQ Req port.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
-    ("cmd", po::value<string>(&cmd)->required(), "The command to send")
-    ("args", po::value<string>(&args)->default_value(""), "The argument for the command")
+    ("json", po::value<string>(&jsonstr)->required(), "The JSON to send")
     ("help", "produce help message")
     ;
   po::positional_options_description p;
+  p.add("json", -1);
 
   po::variables_map vm;
   po::store(po::command_line_parser(argc, argv).
@@ -86,28 +79,13 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   
-  map<string, msgHandler> handlers;
-  handlers["login"] = bind(&loginMsg, placeholders::_1, placeholders::_2);
-  handlers["streams"] = bind(&streamsMsg, placeholders::_1, placeholders::_2);
-  handlers["policyusers"] = bind(&policyUsersMsg, placeholders::_1, placeholders::_2);
-  handlers["message"] = bind(&messageMsg, placeholders::_1, placeholders::_2);
-  handlers["reload"] = bind(&reloadMsg, placeholders::_1, placeholders::_2);
-
   zmq::context_t context(1);
   zmq::socket_t req(context, ZMQ_REQ);
   req.connect("tcp://127.0.0.1:" + to_string(reqPort));
 	BOOST_LOG_TRIVIAL(trace) << "Connect to ZMQ as Local REQ on " << reqPort;
   
-  vector<string> arglist;
-  boost::split(arglist, args, boost::is_any_of(","));
-  
-  map<string, msgHandler>::iterator handler = handlers.find(cmd);
-  if (handler == handlers.end()) {
-    BOOST_LOG_TRIVIAL(error) << "unknown cmd " << cmd;
-    return 1;
-  }
-  handler->second(req, arglist);
-  
+  json j = boost::json::parse(jsonstr);
+  send(req, j);
   json jr = receive(req);
   BOOST_LOG_TRIVIAL(info) << "<- " << jr;
   stringstream ss;
@@ -149,77 +127,5 @@ json receive(zmq::socket_t &socket) {
   BOOST_LOG_TRIVIAL(debug) << "<- " << j;
   
   return j;
-
-}
-
-void loginMsg(zmq::socket_t &socket, const vector<string> &args) {
-
-  if (args.size() != 1) {
-    BOOST_LOG_TRIVIAL(error) << "usage: login password";
-    return;
-  }
-  
-  send(socket, {
-    { "type", "login" },
-    { "session", "1" },
-    { "password", args[0] }
-  });
-
-}
-
-void streamsMsg(zmq::socket_t &socket, const vector<string> &args) {
-
-  if (args.size() != 1) {
-    BOOST_LOG_TRIVIAL(error) << "usage: streams pasusersword";
-    return;
-  }
-  
-  send(socket, {
-    { "type", "streams" },
-    { "user", args[0] }
-  });
-
-}
-
-void policyUsersMsg(zmq::socket_t &socket, const vector<string> &args) {
-
-  if (args.size() != 1) {
-    BOOST_LOG_TRIVIAL(error) << "usage: policyusers policy";
-    return;
-  }
-  
-  send(socket, {
-    { "type", "policyusers" },
-    { "policy", args[0] }
-  });
-
-}
-
-void messageMsg(zmq::socket_t &socket, const vector<string> &args) {
-
-	BOOST_LOG_TRIVIAL(trace) << "message";
-
-  if (args.size() != 3) {
-    BOOST_LOG_TRIVIAL(error) << "usage: message user stream text";
-    return;
-  }
-  
-  send(socket, {
-    { "type", "message" },
-    { "me", args[0] },
-    { "stream", args[1] },
-    { "text", args[2] },
-    { "corr", "1" }
-  });
-
-}
-
-void reloadMsg(zmq::socket_t &socket, const vector<string> &args) {
-
-	BOOST_LOG_TRIVIAL(trace) << "reload";
-
-  send(socket, {
-    { "type", "reload" }
-  });
 
 }

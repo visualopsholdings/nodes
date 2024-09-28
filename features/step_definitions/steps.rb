@@ -3,7 +3,8 @@ require 'json'
 lastResult = nil
 
 When('she sends login as {string}') do |username|
-   lastResult = JSON.parse(`build/Send --cmd=login --args="#{username}"`)
+   j = JSON.generate({ "type": "login" , "session": "1",  "password": username })
+   lastResult = JSON.parse(`build/Send '#{j}'`)
 end
 
 Then('she receives user') do
@@ -13,7 +14,8 @@ end
 When('she sends message {string} as {string} to {string}') do |text, user, stream|
    u = User.where(name: user).first._id.to_s
    s = Stream.where(name: stream).first._id.to_s
-   lastResult = JSON.parse(`build/Send --cmd=message --args="#{u},#{s},#{text}"`)
+   j = JSON.generate({ "type": "message" , "me": u,  "stream": s, "text": text, "corr": "1" })
+   lastResult = JSON.parse(`build/Send --logLevel=debug '#{j}'`)
 end
 
 Then('she receives ack') do
@@ -22,7 +24,8 @@ end
 
 When('she sends policy users as {string}') do |id|
    policy = Policy.where(name: id).first._id.to_s
-   lastResult = JSON.parse(`build/Send --cmd=policyusers --args="#{policy}"`)
+   j = JSON.generate({ "type": "policyusers" , "policy": policy })
+   lastResult = JSON.parse(`build/Send '#{j}'`)
 end
 
 Then('she receives policyusers') do
@@ -31,7 +34,8 @@ end
 
 When('she sends streams as {string}') do |user|
    u = User.where(name: user).first._id.to_s
-   lastResult = JSON.parse(`build/Send --cmd=streams --args="#{u}"`)
+   j = JSON.generate({ "type": "streams" , "me": u })
+   lastResult = JSON.parse(`build/Send '#{j}'`)
 end
 
 Then('she receives streams') do
