@@ -31,13 +31,3 @@ end
 Then('she receives policyusers') do
    expect(lastResult["type"]).to eq("policyusers")
 end
-
-When('she sends streams as {string}') do |user|
-   u = User.where(name: user).first._id.to_s
-   j = JSON.generate({ "type": "streams" , "me": u })
-   lastResult = JSON.parse(`build/Send '#{j}'`)
-end
-
-Then('she receives streams') do
-   expect(lastResult["type"]).to eq("streams")
-end

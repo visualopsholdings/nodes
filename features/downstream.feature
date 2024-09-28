@@ -19,4 +19,4 @@ Feature: Downstream
 
 	Scenario: Make sure the server has an upstream
 	   When she sends streams as "tracy"
-      Then she receives streams
+      Then she receives 2 streams
