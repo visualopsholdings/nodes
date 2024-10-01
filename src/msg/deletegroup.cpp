@@ -32,7 +32,8 @@ void deleteGroupMsg(Server *server, json &j) {
     json{ { "_id", { { "$oid", id.value() } } } }, 
     { "members" }).value();
   if (!doc) {
-    server->sendErr("can't edit group " + id.value());
+    BOOST_LOG_TRIVIAL(error) << "no edit for group " << id.value();
+    server->sendSecurity();
     return;
   }
 

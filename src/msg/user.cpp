@@ -30,7 +30,7 @@ void userMsg(Server *server, json &j) {
   auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).value();
 
   if (!doc) {
-    server->sendErr("can't find user " + userid.value());
+    server->sendErr("no user " + userid.value());
     return;
   }
   

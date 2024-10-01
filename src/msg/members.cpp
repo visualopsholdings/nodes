@@ -32,7 +32,8 @@ void membersMsg(Server *server, json &j) {
     json{ { "_id", { { "$oid", groupid.value() } } } }, 
     { "members", "modifyDate" }).value();
   if (!doc) {
-    server->sendErr("can't find group " + groupid.value());
+    BOOST_LOG_TRIVIAL(error) << "no group " + groupid.value();
+    server->sendSecurity();
     return;
   }
 

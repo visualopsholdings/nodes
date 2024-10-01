@@ -29,7 +29,7 @@ void deleteMemberMsg(Server *server, json &j) {
 
   Group groups;
   if (!Security::instance()->canEdit(groups, Json::getString(j, "me", true), groupid.value())) {
-    server->sendErr("can't edit group " + groupid.value());
+    server->sendErr("no edit for group " + groupid.value());
     return;
   }
 

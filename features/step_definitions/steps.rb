@@ -1,32 +1,42 @@
 require 'json'
 
-lastResult = nil
+$lastResult = nil
+
+Then('she receives error {string}') do |msg|
+   expect($lastResult["type"]).to eq("err")
+   expect($lastResult["msg"]).to match(msg)
+end
+
+Then('she receives security error') do
+   expect($lastResult["type"]).to eq("err")
+   expect($lastResult["level"]).to eq("security")
+end
 
 When('she sends login as {string}') do |username|
-   lastResult = Send({ "type": "login" , "session": "1", "password": username })
+   $lastResult = Send({ "type": "login" , "session": "1", "password": username })
 end
 
 Then('she receives user') do
-   expect(lastResult["type"]).to eq("user")
+   expect($lastResult["type"]).to eq("user")
 end
 
 When('she sends message {string} as {string} to {string}') do |text, user, stream|
    u = User.where(name: user).first._id.to_s
    s = Stream.where(name: stream).first._id.to_s
-   lastResult = Send({ "type": "message" , "me": u,  "stream": s, "text": text, "corr": "1" })
+   $lastResult = Send({ "type": "message" , "me": u,  "stream": s, "text": text, "corr": "1" })
 end
 
 Then('she receives ack') do
-   expect(lastResult["type"]).to eq("ack")
+   expect($lastResult["type"]).to eq("ack")
 end
 
 When('she sends policy users as {string}') do |id|
    policy = Policy.where(name: id).first._id.to_s
-   lastResult = Send({ "type": "policyusers" , "policy": policy })
+   $lastResult = Send({ "type": "policyusers" , "policy": policy })
 end
 
 Then('she receives policyusers') do
-   expect(lastResult["type"]).to eq("policyusers")
+   expect($lastResult["type"]).to eq("policyusers")
 end
 
 When('she sends policy for {string} named {string}') do |objtype, name |
@@ -38,9 +48,9 @@ When('she sends policy for {string} named {string}') do |objtype, name |
    else
       puts "bad objtype"
    end 
-   lastResult = Send({ "type": "policy", "objtype": objtype,  "id": id })
+   $lastResult = Send({ "type": "policy", "objtype": objtype,  "id": id })
 end
 
 Then('she receives policy {string}') do |string|
-   expect(lastResult["type"]).to eq("policy")
+   expect($lastResult["type"]).to eq("policy")
 end

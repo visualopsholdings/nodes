@@ -29,7 +29,7 @@ void setStreamPolicyMsg(Server *server, json &j) {
   
   Stream streams;
   if (!Security::instance()->canEdit(streams, Json::getString(j, "me", true), id.value())) {
-    server->sendErr("can't edit streams " + id.value());
+    server->sendErr("no edit for streams " + id.value());
     return;
   }
 

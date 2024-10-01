@@ -29,7 +29,7 @@ void setGroupPolicyMsg(Server *server, json &j) {
   
   Group groups;
   if (!Security::instance()->canEdit(groups, Json::getString(j, "me", true), id.value())) {
-    server->sendErr("can't edit groups " + id.value());
+    server->sendErr("no edit for groups " + id.value());
     return;
   }
 

@@ -35,7 +35,7 @@ void messageMsg(Server *server, json &j) {
   
   Stream streams;
   if (!Security::instance()->canEdit(streams, me, streamid.value())) {
-    server->sendErr("can't edit stream " + streamid.value());
+    server->sendErr("no edit for stream " + streamid.value());
     return;
   }
 

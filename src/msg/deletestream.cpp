@@ -29,7 +29,8 @@ void deleteStreamMsg(Server *server, json &j) {
 
   Stream streams;
   if (!Security::instance()->canEdit(streams, Json::getString(j, "me", true), id.value())) {
-    server->sendErr("can't edit stream " + id.value());
+    BOOST_LOG_TRIVIAL(error) << "no edit for stream " << id.value();
+    server->sendSecurity();
     return;
   }
 
