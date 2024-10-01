@@ -480,6 +480,20 @@ We process and return;
   ]
 }
 ```
+
+#### Delete User
+
+When this is received:
+
+```
+{
+  "type": "deleteuser",
+  "id": "user guid"
+}
+```
+
+If succesful we return "ack".
+
 #### Groups
 
 When this is received:

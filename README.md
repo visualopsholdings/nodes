@@ -316,5 +316,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 27 Sep 2024
 - Add collection changed testing.
 
+### 1 Oct 2024
+- Lot's and lot's of end to end tests.
+
 
 

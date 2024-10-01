@@ -275,7 +275,10 @@ optional<string> Security::findPolicyForUser(const string &userid) {
   auto policy = Policy().find(policyToQuery(obj)).value();
   if (!policy) {
     auto newpolicy = Policy().insert(obj);
-    if (!newpolicy) {
+    if (newpolicy) {
+      regenerate();
+    }
+    else {
       BOOST_LOG_TRIVIAL(error) << "could not create new policy";
     }
     return newpolicy;

@@ -41,12 +41,13 @@ void deleteGroupMsg(Server *server, json &j) {
     return;
   }
   
-  if (groups.deleteById(id.value())) {
-    server->sendAck();
+  if (!groups.deleteById(id.value())) {
+    server->sendErr("could not remove group");
     return;
   }
 
-  server->sendErr("could not remove group");
+  Security::instance()->regenerateGroups();
+  server->sendAck();
 
 }
 

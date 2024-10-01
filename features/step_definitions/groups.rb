@@ -4,8 +4,7 @@ lastResult = nil
 
 When('she sends groups as {string}') do |user|
    u = User.where(name: user).first._id.to_s
-   j = JSON.generate({ "type": "groups" , "me": u })
-   lastResult = JSON.parse(`build/Send '#{j}'`)
+   lastResult = Send({ "type": "groups" , "me": u })
 end
 
 Then('she receives {int} groups') do |count|
@@ -16,8 +15,7 @@ end
 When('she sends group {string} as {string}') do |name, user|
    u = User.where(name: user).first._id.to_s
    g = Group.where(name: name).first._id.to_s
-   j = JSON.generate({ "type": "group" , "me": u, "group": g })
-   lastResult = JSON.parse(`build/Send '#{j}'`)
+   lastResult = Send({ "type": "group" , "me": u, "group": g })
 end
 
 Then('she receives group {string}') do |name|
@@ -28,11 +26,27 @@ end
 When('she sends members {string} as {string}') do |name, user|
    u = User.where(name: user).first._id.to_s
    g = Group.where(name: name).first._id.to_s
-   j = JSON.generate({ "type": "members" , "me": u, "group": g })
-   lastResult = JSON.parse(`build/Send '#{j}'`)
+   lastResult = Send({ "type": "members" , "me": u, "group": g })
 end
 
 Then('she receives {int} members') do |count|
    expect(lastResult["type"]).to eq("members")
    expect(lastResult["group"]["members"].length).to eq(count)
+end
+
+When('she sends add group {string} as {string}') do |name, user|
+   u = User.where(name: user).first._id.to_s
+   lastResult = Send({ "type": "addgroup" , "me": u, "name": name })
+end
+
+When('she sends delete group {string} as {string}') do |name, user|
+   u = User.where(name: user).first._id.to_s
+   g = Group.where(name: name).first._id.to_s
+   lastResult = Send({ "type": "deletegroup" , "me": u, "id": g })
+end
+
+When('she sends set group name of {string} to {string} as {string}') do |name, newname, user|
+   u = User.where(name: user).first._id.to_s
+   g = Group.where(name: name).first._id.to_s
+   lastResult = Send({ "type": "setgroup" , "me": u, "id": g, "name": newname })
 end

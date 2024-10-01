@@ -49,6 +49,8 @@ void addGroupMsg(Server *server, json &j) {
     return;
   }
   
+  Security::instance()->regenerateGroups();
+
   server->sendAck();
 
 }

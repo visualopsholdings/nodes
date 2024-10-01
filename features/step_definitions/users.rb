@@ -22,3 +22,8 @@ Then('she receives user {string}') do |name|
    expect(lastResult["type"]).to eq("user")
    expect(lastResult["user"]["fullname"]).to eq(name)
 end
+
+Then('she sends delete user {string}') do |fullname|
+   u = User.where(fullname: fullname).first._id.to_s
+   lastResult = Send({ "type": "deleteuser", "id": u })
+end
