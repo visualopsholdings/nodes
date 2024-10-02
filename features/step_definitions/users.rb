@@ -23,3 +23,7 @@ Then('she sends delete user {string}') do |fullname|
    u = User.where(fullname: fullname).first._id.to_s
    $lastResult = Send({ "type": "deleteuser", "id": u })
 end
+
+When('she sends add user from upstream with {string}') do |id|
+   $lastResult = Send({ "type": "newuser" , "upstream": true, "id": id })
+end

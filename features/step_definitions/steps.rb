@@ -54,3 +54,8 @@ end
 Then('she receives policy {string}') do |string|
    expect($lastResult["type"]).to eq("policy")
 end
+
+When('the node service is started') do
+   ServiceManager.start
+end
+

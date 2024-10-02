@@ -145,6 +145,7 @@ void Server::run() {
   while (1) {
     if (_dataReq) {
       BOOST_LOG_TRIVIAL(trace) << "running with upstream";
+      BOOST_LOG_TRIVIAL(info) << "init nodes";
       zmq::pollitem_t items [] = {
           { *_rep, 0, ZMQ_POLLIN, 0 },
           { _dataReq->socket(), 0, ZMQ_POLLIN, 0 }
@@ -180,6 +181,7 @@ void Server::run() {
     }
     else {
       BOOST_LOG_TRIVIAL(trace) << "running standalone";
+      BOOST_LOG_TRIVIAL(info) << "init nodes";
       zmq::pollitem_t items [] = {
           { *_rep, 0, ZMQ_POLLIN, 0 }
       };
