@@ -885,3 +885,98 @@ This is received on the REP socket when a bad request has happened
   "msg": "LOL what are you doing!"
 }
 ```
+
+## Inter server communication
+
+#### Online
+
+Server sends to upstream:
+
+```
+{
+  "type":"online",
+  "build":"28474",
+  "headerTitle":"Downstream 1",
+  "streamBgColor":"lightgreen",
+  "hasInitialSync":"true",
+  "pubKey":"/9AxT<](&2X.HceOX#VoJ.zONJ#=*lgYu8hKgP*4",
+  "src":"server id"
+} 
+```
+
+Upstream sends back "upstream".
+
+### Upstream
+
+```
+{
+  "type":"upstream",
+  "id":"4ecaf2b6-42f2-49fe-b0ef-123758a3a4db",
+  "valid":true,
+  "dest":"server id"
+}
+```
+
+Downstream sends "discoverLocal".
+
+### Discover Local
+
+```
+{
+  "type":"discoverLocal",
+  "data":[],
+  "src":"server id"
+}
+```
+
+Upstream sends back "discoverLocalResult".
+
+### Discover local result
+
+```
+{
+  "type":"discoverLocalResult"
+}
+```
+
+Downstream sends "discover".
+
+### Discover
+
+```
+{
+  "type":"discover",
+  "lastUser":"1970-01-01T00:00:00.0+00:00",
+  "users":["user id"],
+  "hasInitialSync":false,
+  "src":"server id"
+}
+```
+
+Upstream sends back "discoverResult".
+
+### Discover result
+
+```
+{
+  "type":"discoverResult",
+  "msgs":[
+    {
+      "type":"user",
+      "objs":[
+        {
+          "id":"user id",
+          "modifyDate":"2022-01-01T13:00:00.0+00:00",
+          ... all the fields of a user
+        }
+      ]
+    }
+  ]
+}
+```
+
+Downstream discovery is complete.
+
+
+
+
