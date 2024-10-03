@@ -25,5 +25,5 @@ Then('she sends delete user {string}') do |fullname|
 end
 
 When('she sends add user from upstream with {string}') do |id|
-   $lastResult = Send({ "type": "newuser" , "upstream": true, "id": id })
+   $lastResult = Send({ "type": "newuser", "upstream": true, "id": id })
 end

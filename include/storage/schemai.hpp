@@ -53,6 +53,7 @@ public:
   virtual string collName() = 0;
   
   static shared_ptr<ResultImpl> findGeneral(const string &collection, const json &query, const vector<string> &fields);
+  static shared_ptr<ResultImpl> findGeneral(const string &collection, bsoncxx::document::view_or_value query, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
     
@@ -66,6 +67,8 @@ public:
     return findByIdsGeneral(collName(), ids, fields);
   }
   
+  static bsoncxx::document::view_or_value idRangeAfterDateQuery(const boost::json::array &ids, const string &date);
+
 private:
   static bool testInit();
 

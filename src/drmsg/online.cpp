@@ -24,13 +24,13 @@ void onlineMsg(Server *server, json &j) {
        
   auto src = Json::getString(j, "src");
   if (!src) {
-    server->sendErrDown("msg missing src");
+    server->sendErrDown("online missing src");
     return;
   }
   
   auto pubKey = Json::getString(j, "pubKey");
   if (!pubKey) {
-    server->sendErrDown("msg missing pubKey");
+    server->sendErrDown("online missing pubKey");
     return;
   }
   
@@ -50,7 +50,7 @@ void onlineMsg(Server *server, json &j) {
       { "pubKey", pubKey.value() }
     });
     if (!result) {
-      server->sendErrDown("couldnt create node");
+      server->sendErrDown("online couldnt create node");
       return;
     }
   }

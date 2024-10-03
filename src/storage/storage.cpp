@@ -65,13 +65,28 @@ private:
 
 bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
 
+  BOOST_LOG_TRIVIAL(trace) << "bulkInsert to " << collName;
+ 
   auto schema = GenericSchema(collName);
   for (auto i: objs) {
     json obj = i;
-    auto id = obj.as_object()["_id"].as_string();
+    
+    string id;
+    if (obj.as_object().if_contains("_id")) {
+      id = obj.as_object()["_id"].as_string();
+    }
+    else if (obj.as_object().if_contains("id")) {
+      id = obj.as_object()["id"].as_string();
+    }
+    else {
+      BOOST_LOG_TRIVIAL(error) << "no id or _id";
+      return false;
+    }
+    
     obj.as_object()["_id"] = {
       { "$oid", id }
     };
+    
     auto result = schema.insert(obj);
     if (!result) {
       BOOST_LOG_TRIVIAL(error) << "insert failed";

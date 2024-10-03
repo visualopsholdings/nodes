@@ -119,6 +119,8 @@ set(MESSAGES
   src/rdrmsg/discoverResult.cpp
   src/drmsg/online.cpp
   src/drmsg/discoverLocal.cpp
+  src/drmsg/heartbeat.cpp
+  src/drmsg/discover.cpp
 )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})

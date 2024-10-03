@@ -44,7 +44,7 @@ void discoverResultMsg(Server *server, json &j) {
     
     Storage::instance()->bulkInsert(type.value() + "s", objs.value());
 
-    auto more = Json::getBool(m, "more");
+    auto more = Json::getBool(m, "more", true);
     if (more && more.value()) {
       BOOST_LOG_TRIVIAL(info) << "ignoring more for " << type.value();
       continue;

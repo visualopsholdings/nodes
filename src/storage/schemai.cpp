@@ -15,6 +15,7 @@
 #include "storage/storagei.hpp"
 #include "storage/collectioni.hpp"
 #include "storage/resulti.hpp"
+#include "date.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <sstream>
@@ -24,18 +25,24 @@
 
 using namespace bsoncxx::builder::basic;
 
-shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const json &query, const vector<string> &fields) {
-
-  BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collection; 
+shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx::document::view_or_value query, const vector<string> &fields) {
 
   if (!testInit()) {
     return 0;
   }
-  
+
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields));
+
+}
+
+shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const json &query, const vector<string> &fields) {
+
+  BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collection; 
+
   stringstream ss;
   ss << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, q, fields));
+  return findGeneral(collection, q, fields);
   
 }
 
@@ -43,29 +50,22 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdGeneral(const string &collection, con
 
   BOOST_LOG_TRIVIAL(trace) << "find " << id << " in " << collection;
 
-  if (!testInit()) {
-    return 0;
-  }
-
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, q, fields));
+  return findGeneral(collection, q, fields);
   
 }
 
 shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields) {
 
   BOOST_LOG_TRIVIAL(trace) << "find ids " << ids.size() << " in " << collection;
-
-  if (!testInit()) {
-    return 0;
-  }
-
+  
   auto array = bsoncxx::builder::basic::array{};
   for (auto id: ids) {
     array.append(bsoncxx::oid(id));
   }
+
   bsoncxx::document::view_or_value q = make_document(kvp("_id", make_document(kvp("$in", array))));
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, q, fields));
+  return findGeneral(collection, q, fields);
   
 }
 
@@ -270,4 +270,26 @@ void SchemaImpl::aggregate(const string &filename) {
   if (cursor.begin() != cursor.end()) {
     BOOST_LOG_TRIVIAL(info) << "aggregation had output";
   }
+}
+
+bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::json::array &ids, const string &date) {
+
+  auto qs = bsoncxx::builder::basic::array{};
+  
+  // convert all the user ids to oids.
+  auto oids = bsoncxx::builder::basic::array{};
+  for (auto u: ids) {
+    oids.append(bsoncxx::oid(u.as_string().c_str()));
+  }
+  auto idrange = make_document(kvp("$in", oids));
+  qs.append(make_document(kvp("_id", idrange)));
+  
+  // make a query with modify date.
+  auto t = Date::fromISODate(date);
+  auto d = bsoncxx::types::b_date(chrono::milliseconds(t));
+  qs.append(make_document(kvp("modifyDate", make_document(kvp("$gt", d)))));
+  
+  // make the overall query.
+  return make_document(kvp("$and", qs));
+
 }

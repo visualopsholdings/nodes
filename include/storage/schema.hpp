@@ -213,7 +213,8 @@ public:
   
   string serverId() const { return getString("serverId"); }
   string pubKey() const { return getString("pubKey"); }
-
+  bool valid() const { return getBool("valid"); }
+  
 };
 
 class Node: public Schema<NodeRow> {

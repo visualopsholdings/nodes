@@ -59,3 +59,7 @@ When('the node service is started') do
    ServiceManager.start
 end
 
+When("she waits {int} seconds") do |n|
+  sleep(n.to_i)
+end
+

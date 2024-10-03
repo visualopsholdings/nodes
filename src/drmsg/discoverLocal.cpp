@@ -21,7 +21,23 @@ namespace nodes {
 void discoverLocalMsg(Server *server, json &j) {
    
   BOOST_LOG_TRIVIAL(trace) << "discoverLocal " << j;
-         
+ 
+  auto data = Json::getArray(j, "data");
+  if (!data) {
+    server->sendErrDown("discoverLocal missing data");
+    return;
+  }
+  
+  if (data.value().size() > 0) {
+    // here is where you would import all the things that this
+    // node had discovered locally that had changed.
+    BOOST_LOG_TRIVIAL(warning) << "discoverLocal data not implemented";
+  }  
+ 	    
+ 	server->sendDown({ 
+ 	  { "type", "discoverLocalResult" } 
+ 	});
+ 	
 }
 
 };

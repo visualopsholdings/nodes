@@ -13,11 +13,13 @@
 
 #include "storage.hpp"
 #include "json.hpp"
+#include "date.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
+using namespace bsoncxx::builder::basic;
 
 string tracy = "667d0baedfb1ed18430d8ed3";
 string leanne = "667d0baedfb1ed18430d8ed4";
@@ -31,13 +33,17 @@ void dbSetup() {
     { "_id", { { "$oid", tracy } } },
     { "name", "tracy" },
     { "admin", true },
-    { "fullname", "Tracy" }
+    { "fullname", "Tracy" },
+    // 2024-07-25T06:54:39.599+00:00
+    { "modifyDate", { { "$date", 1721890479599 } } }
   }));
   BOOST_CHECK(User().insert({
     { "_id", { { "$oid", leanne } } },
     { "name", "leanne" },
     { "admin", false },
-    { "fullname", "Leanne" }
+    { "fullname", "Leanne" },
+    // 2024-09-18T11:11:30.2+00:00
+    { "modifyDate", { { "$date", 1726657890002 } } }
   }));
 }
 
@@ -216,6 +222,26 @@ BOOST_AUTO_TEST_CASE( deleteById )
   BOOST_CHECK(!User().deleteById(tracy));
   
 }
+
+BOOST_AUTO_TEST_CASE( findByIdRangeBeforeDate )
+{
+  cout << "=== findByIdRangeBeforeDate ===" << endl;
+
+  dbSetup();
+
+  auto t = Date::fromISODate("2024-07-26T00:00:00.0+00:00");
+//  cout << t << endl;
+  auto q = SchemaImpl::idRangeAfterDateQuery({ tracy }, "2024-07-24T00:00:00.0+00:00");
+
+  auto results = SchemaImpl::findGeneral("users", q, {});
+  BOOST_CHECK(results);
+  auto users = results->values();
+  BOOST_CHECK(users);
+  BOOST_CHECK_EQUAL(users.value().size(), 1);
+  
+}
+
+
 
 
 

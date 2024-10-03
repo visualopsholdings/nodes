@@ -78,6 +78,8 @@ void discoverResultMsg(Server *server, json &json);
 // dataRep handles
 void onlineMsg(Server *server, json &json);
 void discoverLocalMsg(Server *server, json &json);
+void heartbeatMsg(Server *server, json &json);
+void discoverMsg(Server *server, json &json);
 
 }
 
@@ -144,6 +146,8 @@ Server::Server(bool test, bool noupstream,
 
   _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
   _dataRepMessages["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
+  _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
+  _dataRepMessages["discover"] =  bind(&nodes::discoverMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName);
   
@@ -769,19 +773,19 @@ void Server::discover() {
   string upstreamLastSeen = infos ? Info::getInfo(infos.value(), "upstreamLastSeen").value() : "";
   
   auto users = User().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
-  if (!users) {
-    BOOST_LOG_TRIVIAL(error) << "no users";
-    return;
-  }
+  
+  // if we have users to discover.
   vector<string> ids;
-  transform(users.value().begin(), users.value().end(), back_inserter(ids), [](auto e){ return e.id(); });
+  if (users) {
+    transform(users.value().begin(), users.value().end(), back_inserter(ids), [](auto e){ return e.id(); });
+  }
 
   // if any of the users are needing discovery, then set last user to be zero date
 //  BOOST_LOG_TRIVIAL(trace) << "finding null date";
   string zd = Date::toISODate(0);
-  bool hasNullDate = find_if(users.value().begin(), users.value().end(), [zd](auto e) { 
+  bool hasNullDate = users ? find_if(users.value().begin(), users.value().end(), [zd](auto e) { 
     return Json::getString(e.j(), "modifyDate") == zd;
-  }) != users.value().end();
+  }) != users.value().end() : false;
 //  BOOST_LOG_TRIVIAL(trace) << "hasNullDate " << hasNullDate;
   
   string lastUser = (hasInitialSync == "true") ? (hasNullDate ? zd : upstreamLastSeen) : zd;
