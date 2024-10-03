@@ -206,6 +206,24 @@ public:
   
 };
 
+class NodeRow: public DynamicRow {
+
+public:
+  NodeRow(json json): DynamicRow(json) {}
+  
+  string serverId() const { return getString("serverId"); }
+  string pubKey() const { return getString("pubKey"); }
+
+};
+
+class Node: public Schema<NodeRow> {
+
+public:
+  
+  virtual string collName() { return "nodes"; };
+  
+};
+
 class IndexRow: public DynamicRow {
 
 public:

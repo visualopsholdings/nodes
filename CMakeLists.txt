@@ -72,6 +72,7 @@ set(UTILS
   src/vid.cpp 
   src/security.cpp
   src/upstream.cpp
+  src/downstream.cpp
   src/encrypter.cpp
 )
 set(MESSAGES 
@@ -111,11 +112,13 @@ set(MESSAGES
   src/msg/streamsharelink.cpp
   src/msg/canregister.cpp
   src/msg/deleteuser.cpp
-  src/drmsg/upstream.cpp
-  src/drmsg/date.cpp
-  src/drmsg/sendOn.cpp
-  src/drmsg/discoverLocalResult.cpp
-  src/drmsg/discoverResult.cpp
+  src/rdrmsg/upstream.cpp
+  src/rdrmsg/date.cpp
+  src/rdrmsg/sendOn.cpp
+  src/rdrmsg/discoverLocalResult.cpp
+  src/rdrmsg/discoverResult.cpp
+  src/drmsg/online.cpp
+  src/drmsg/discoverLocal.cpp
 )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})

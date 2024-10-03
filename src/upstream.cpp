@@ -59,7 +59,7 @@ void Monitor::on_event_connected(const zmq_event_t& event, const char* addr) {
   BOOST_LOG_TRIVIAL(info) << "connected to " << _name;
   _connected = true;
   
-  if (_name == "dataReq") {
+  if (_name == "remoteDataReq") {
     _server->online();
   }
   

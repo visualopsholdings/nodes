@@ -49,10 +49,10 @@ int main(int argc, char *argv[]) {
   desc.add_options()
     ("pubPort", po::value<int>(&pubPort)->default_value(3012), "ZMQ Pub port.")
     ("repPort", po::value<int>(&repPort)->default_value(3013), "ZMQ Rep port.")
-    ("dataReqPort", po::value<int>(&dataReqPort)->default_value(8810), "ZMQ Data Req port.")
-    ("msgSubPort", po::value<int>(&msgSubPort)->default_value(8811), "ZMQ Msg Sub port.")
-    ("remoteDataReqPort", po::value<int>(&remoteDataReqPort)->default_value(0), "ZMQ remote Data Req port.")
-    ("remoteMsgSubPort", po::value<int>(&remoteMsgSubPort)->default_value(0), "ZMQ Remote Msg Sub port.")
+    ("dataReqPort", po::value<int>(&dataReqPort)->default_value(0), "ZMQ Data Req port.")
+    ("msgSubPort", po::value<int>(&msgSubPort)->default_value(0), "ZMQ Msg Sub port.")
+    ("remoteDataReqPort", po::value<int>(&remoteDataReqPort)->default_value(8810), "ZMQ remote Data Req port.")
+    ("remoteMsgSubPort", po::value<int>(&remoteMsgSubPort)->default_value(8811), "ZMQ Remote Msg Sub port.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
     ("dbConn", po::value<string>(&dbConn)->default_value("mongodb://127.0.0.1:27017"), "DB Connection string.")
     ("dbName", po::value<string>(&dbName)->default_value("dev"), "DB name.")
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
   
   BOOST_LOG_TRIVIAL(info) << version;
 
-  Server server(test, noupstream, pubPort, repPort, dataReqPort, msgSubPort, dbConn, dbName, certFile, chainFile, hostName);
+  Server server(test, noupstream, pubPort, repPort, dataReqPort, msgSubPort, remoteDataReqPort, remoteMsgSubPort, dbConn, dbName, certFile, chainFile, hostName);
   
   if (noupstream) {
     BOOST_LOG_TRIVIAL(info) << "ignoring upstream.";

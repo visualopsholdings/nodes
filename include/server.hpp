@@ -24,14 +24,17 @@ using json = boost::json::value;
 class DynamicRow;
 class InfoRow;
 class Upstream;
+class Downstream;
 
 typedef function<void (json &json)> msgHandler;
 
 class Server {
 
 public:
-  Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, const string &dbConn, 
-    const string &dbName, const string &certFile, const string &chainFile, const string &hostName);
+  Server(bool test, bool noupstream, 
+    int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
+    const string &dbConn, const string &dbName, 
+    const string &certFile, const string &chainFile, const string &hostName);
   ~Server();
   
   void run();
@@ -40,6 +43,7 @@ public:
   void clearUpstream();
   void stopUpstream();
   void online();
+  void serveOnline();
   void heartbeat();
   void systemStatus(const string &msg);
   void discover();
@@ -51,10 +55,13 @@ public:
   void send(const json &m) {
     sendTo(*_rep, m, "-> ", nullopt);
   }
+  void sendDown(const json &m);
   void sendErr(const string &msg);
+  void sendErrDown(const string &msg);
   void sendWarning(const string &msg);
   void sendSecurity();
   void sendAck();
+  void sendAckDown();
   void sendDataReq(optional<string> corr, const json &m);
   
   bool setInfo(const string &name, const string &text);
@@ -84,12 +91,17 @@ private:
   shared_ptr<zmq::context_t> _context;
   shared_ptr<zmq::socket_t> _pub;
   shared_ptr<zmq::socket_t> _rep;
-  shared_ptr<Upstream> _dataReq;
-  shared_ptr<Upstream> _msgSub;
+  shared_ptr<Upstream> _remoteDataReq;
+  shared_ptr<Upstream> _remoteMsgSub;
+  shared_ptr<Downstream> _dataRep;
+  shared_ptr<Downstream> _msgPub;
   map<string, msgHandler> _messages;
-  map<string, msgHandler> _dataReqMessages;
-  int _dataReqPort;
-  int _msgSubPort;
+  map<string, msgHandler> _remoteDataReqMessages;
+  map<string, msgHandler> _dataRepMessages;
+  int _remoteDataReqPort;
+  int _remoteMsgSubPort;
+  int _dataRepPort;
+  int _msgPubPort;
   string _pubKey;
   time_t _lastHeartbeat;
   bool _noupstream;
@@ -98,6 +110,10 @@ private:
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
   bool testCollectionChanged(json &j, const string &name);
+  void runUpstreamOnly();
+  void runStandalone();
+  void runUpstreamDownstream();
+  void runDownstreamOnly();
     
 };
 

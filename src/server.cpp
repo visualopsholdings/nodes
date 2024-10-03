@@ -15,6 +15,7 @@
 #include "json.hpp"
 #include "storage/schema.hpp"
 #include "upstream.hpp"
+#include "downstream.hpp"
 #include "encrypter.hpp"
 #include "security.hpp"
 #include "date.hpp"
@@ -67,18 +68,26 @@ void streamShareLinkMsg(Server *server, json &json);
 void canRegisterMsg(Server *server, json &json);
 void deleteUserMsg(Server *server, json &json);
 
-// dataReq handlers
+// remoteDataReq handlers
 void upstreamMsg(Server *server, json &json);
 void dateMsg(Server *server, json &json);
 void sendOnMsg(Server *server, json &json);
 void discoverLocalResultMsg(Server *server, json &json);
 void discoverResultMsg(Server *server, json &json);
 
+// dataRep handles
+void onlineMsg(Server *server, json &json);
+void discoverLocalMsg(Server *server, json &json);
+
 }
 
-Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int msgSub, 
-      const string &dbConn, const string &dbName, const string &certFile, const string &chainFile, const string &hostName) :
-    _test(test), _certFile(certFile), _chainFile(chainFile), _dataReqPort(dataReq), _msgSubPort(msgSub),
+Server::Server(bool test, bool noupstream, 
+    int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
+    const string &dbConn, const string &dbName, 
+    const string &certFile, const string &chainFile, const string &hostName) :
+    _test(test), _certFile(certFile), _chainFile(chainFile),
+    _dataRepPort(dataRep), _msgPubPort(msgPub),
+    _remoteDataReqPort(remoteDataReq), _remoteMsgSubPort(remoteMsgSub),
     _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false), _hostName(hostName) {
 
   _context.reset(new zmq::context_t(1));
@@ -127,11 +136,14 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
   _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
 
-  _dataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
-  _dataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
-  _dataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
-  _dataReqMessages["discoverLocalResult"] =  bind(&nodes::discoverLocalResultMsg, this, placeholders::_1);
-  _dataReqMessages["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
+  _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
+  _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
+  _remoteDataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
+  _remoteDataReqMessages["discoverLocalResult"] =  bind(&nodes::discoverLocalResultMsg, this, placeholders::_1);
+  _remoteDataReqMessages["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
+
+  _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
+  _dataRepMessages["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName);
   
@@ -140,63 +152,157 @@ Server::Server(bool test, bool noupstream, int pub, int rep, int dataReq, int ms
 Server::~Server() {
 }
   
+void Server::runUpstreamOnly() {
+
+  BOOST_LOG_TRIVIAL(trace) << "running with upstream only";
+  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  zmq::pollitem_t items [] = {
+      { *_rep, 0, ZMQ_POLLIN, 0 },
+      { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 }
+  };
+  const std::chrono::milliseconds timeout{500};
+  while (!_reload) {
+  
+    // check connection events for upstream stuff.
+    _remoteDataReq->check();
+    if (_online) {
+      heartbeat();
+    }
+    else {
+      BOOST_LOG_TRIVIAL(trace) << "not online yet";
+    }
+    if (_remoteMsgSub) {
+      _remoteMsgSub->check();
+    }
+
+//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+    zmq::message_t message;
+    zmq::poll(&items[0], 2, timeout);
+  
+    if (items[0].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-", *_rep, _messages)) {
+        sendErr("error in getting rep message");
+      }
+    }
+    if (items[1].revents & ZMQ_POLLIN) {
+      getMsg("<-&", _remoteDataReq->socket(), _remoteDataReqMessages);
+    }
+  }
+}
+
+void Server::runUpstreamDownstream() {
+
+  BOOST_LOG_TRIVIAL(trace) << "running with upstream and downstream";
+  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  zmq::pollitem_t items [] = {
+      { *_rep, 0, ZMQ_POLLIN, 0 },
+      { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
+      { _dataRep->socket(), 0, ZMQ_POLLIN, 0 }
+  };
+  const std::chrono::milliseconds timeout{500};
+  while (!_reload) {
+  
+    // check connection events for upstream stuff.
+    _remoteDataReq->check();
+    if (_online) {
+      heartbeat();
+    }
+    else {
+      BOOST_LOG_TRIVIAL(trace) << "not online yet";
+    }
+    if (_remoteMsgSub) {
+      _remoteMsgSub->check();
+    }
+
+//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+    zmq::message_t message;
+    zmq::poll(&items[0], 3, timeout);
+  
+    if (items[0].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-", *_rep, _messages)) {
+        sendErr("error in getting rep message");
+      }
+    }
+    if (items[1].revents & ZMQ_POLLIN) {
+      getMsg("<-&", _remoteDataReq->socket(), _remoteDataReqMessages);
+    }
+    if (items[2].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-$", _dataRep->socket(), _dataRepMessages)) {
+        sendErr("error in getting upstream rep message");
+      }
+    }
+  }
+}
+
+void Server::runStandalone() {
+
+  BOOST_LOG_TRIVIAL(trace) << "running standalone";
+  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  zmq::pollitem_t items [] = {
+      { *_rep, 0, ZMQ_POLLIN, 0 }
+  };
+  const std::chrono::milliseconds timeout{500};
+  while (!_reload) {
+  
+//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+    zmq::message_t message;
+    zmq::poll(&items[0], 1, timeout);
+  
+    if (items[0].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-", *_rep, _messages)) {
+        sendErr("error in getting rep message");
+      }
+    }
+  }
+  
+}
+
+void Server::runDownstreamOnly() {
+
+  BOOST_LOG_TRIVIAL(trace) << "running downstream only";
+  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  zmq::pollitem_t items [] = {
+      { *_rep, 0, ZMQ_POLLIN, 0 },
+      { _dataRep->socket(), 0, ZMQ_POLLIN, 0 }
+  };
+  const std::chrono::milliseconds timeout{500};
+  while (!_reload) {
+  
+//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+    zmq::message_t message;
+    zmq::poll(&items[0], 2, timeout);
+  
+    if (items[0].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-", *_rep, _messages)) {
+        sendErr("error in getting rep message");
+      }
+    }
+    if (items[1].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-$", _dataRep->socket(), _dataRepMessages)) {
+        sendErr("error in getting upstream rep message");
+      }
+    }
+  }
+  
+}
+
 void Server::run() {
 
   while (1) {
-    if (_dataReq) {
-      BOOST_LOG_TRIVIAL(trace) << "running with upstream";
-      BOOST_LOG_TRIVIAL(info) << "init nodes";
-      zmq::pollitem_t items [] = {
-          { *_rep, 0, ZMQ_POLLIN, 0 },
-          { _dataReq->socket(), 0, ZMQ_POLLIN, 0 }
-      };
-      const std::chrono::milliseconds timeout{500};
-      while (!_reload) {
-      
-        // check connection events for upstream stuff.
-        _dataReq->check();
-        if (_online) {
-          heartbeat();
-        }
-        else {
-          BOOST_LOG_TRIVIAL(trace) << "not online yet";
-        }
-        if (_msgSub) {
-          _msgSub->check();
-        }
-    
-    //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
-        zmq::message_t message;
-        zmq::poll(&items[0], 2, timeout);
-      
-        if (items[0].revents & ZMQ_POLLIN) {
-          if (!getMsg("<-", *_rep, _messages)) {
-            sendErr("error in getting rep message");
-          }
-        }
-        if (items[1].revents & ZMQ_POLLIN) {
-          getMsg("<-&", _dataReq->socket(), _dataReqMessages);
-        }
+    if (_remoteDataReq) {
+      if (_dataRep) {
+        runUpstreamDownstream();
+      }
+      else {
+        runUpstreamOnly();
       }
     }
     else {
-      BOOST_LOG_TRIVIAL(trace) << "running standalone";
-      BOOST_LOG_TRIVIAL(info) << "init nodes";
-      zmq::pollitem_t items [] = {
-          { *_rep, 0, ZMQ_POLLIN, 0 }
-      };
-      const std::chrono::milliseconds timeout{500};
-      while (!_reload) {
-      
-    //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
-        zmq::message_t message;
-        zmq::poll(&items[0], 1, timeout);
-      
-        if (items[0].revents & ZMQ_POLLIN) {
-          if (!getMsg("<-", *_rep, _messages)) {
-            sendErr("error in getting rep message");
-          }
-        }
+      if (_dataRep) {
+        runDownstreamOnly();
+      }
+      else {
+        runStandalone();
       }
     }
     _reload = false;
@@ -288,10 +394,27 @@ json Server::receiveFrom(shared_ptr<zmq::socket_t> socket) {
 
 }
 
+void Server::sendDown(const json &m) {
+
+  sendTo(_dataRep->socket(), m, "$-> ", nullopt);
+  
+}
+
 void Server::sendErr(const string &msg) {
 
   BOOST_LOG_TRIVIAL(error) << msg;
   send({ 
+    { "type", "err" }, 
+    { "level", "fatal" }, 
+    { "msg", msg } 
+  });
+  
+}
+
+void Server::sendErrDown(const string &msg) {
+
+  BOOST_LOG_TRIVIAL(error) << msg;
+  sendDown({ 
     { "type", "err" }, 
     { "level", "fatal" }, 
     { "msg", msg } 
@@ -313,6 +436,14 @@ void Server::sendWarning(const string &msg) {
 void Server::sendAck() {
 
   send({ 
+    { "type", "ack" } 
+  });
+  
+}
+
+void Server::sendAckDown() {
+
+  sendDown({ 
     { "type", "ack" } 
   });
   
@@ -411,19 +542,19 @@ void Server::sendDataReq(optional<string> corr, const json &m) {
   json m2 = m;
   m2.as_object()["src"] = _serverId;
 
-  sendTo(_dataReq->socket(), m2, "&-> ", corr);
+  sendTo(_remoteDataReq->socket(), m2, "&-> ", corr);
   
 }
 
 void Server::stopUpstream() {
 
-  if (_dataReq) {
-    _dataReq->socket().close();
-    _dataReq.reset();
+  if (_remoteDataReq) {
+    _remoteDataReq->socket().close();
+    _remoteDataReq.reset();
   }
-  if (_msgSub) {
-    _msgSub->socket().close();
-    _msgSub.reset();
+  if (_remoteMsgSub) {
+    _remoteMsgSub->socket().close();
+    _remoteMsgSub.reset();
   }
 
 }
@@ -455,11 +586,25 @@ void Server::connectUpstream() {
     BOOST_LOG_TRIVIAL(info) << "no infos.";
     return;
   }
+  
+  auto privateKey = Info::getInfo(docs.value(), "privateKey");
+  if (!privateKey) {
+    BOOST_LOG_TRIVIAL(error) << "upstream, but no privateKey";
+    return;
+  }
+
+  if (_dataRepPort && _msgPubPort) {
+    _msgPub.reset(new Downstream(this, *_context, ZMQ_PUB, "msgPub", _msgPubPort, privateKey.value()));
+    _dataRep.reset(new Downstream(this, *_context, ZMQ_REP, "dataRep", _dataRepPort, privateKey.value()));
+  }
+
   auto serverId = Info::getInfo(docs.value(), "serverId");
   if (!serverId) {
     BOOST_LOG_TRIVIAL(info) << "no serverId.";
     return;
   }
+  _serverId = serverId.value();
+
   auto upstream = Info::getInfo(docs.value(), "upstream");
   if (!upstream) {
     BOOST_LOG_TRIVIAL(info) << "no upstream.";
@@ -470,11 +615,6 @@ void Server::connectUpstream() {
     BOOST_LOG_TRIVIAL(error) << "upstream, but no upstreamPubKey";
     return;
   }
-  auto privateKey = Info::getInfo(docs.value(), "privateKey");
-  if (!privateKey) {
-    BOOST_LOG_TRIVIAL(error) << "upstream, but no privateKey";
-    return;
-  }
   auto pubKey = Info::getInfo(docs.value(), "pubKey");
   if (!pubKey) {
     BOOST_LOG_TRIVIAL(error) << "upstream, but no pubKey";
@@ -482,16 +622,15 @@ void Server::connectUpstream() {
   }
   
   _pubKey =  pubKey.value();
-  _serverId = serverId.value();
   
 	BOOST_LOG_TRIVIAL(trace) << "upstream: " << upstream.value();
 	BOOST_LOG_TRIVIAL(trace) << "upstreamPubKey: " << upstreamPubKey.value();
 	BOOST_LOG_TRIVIAL(trace) << "privateKey: " << privateKey.value();
 	BOOST_LOG_TRIVIAL(trace) << "_pubKey: " << _pubKey;
 
-  _dataReq.reset(new Upstream(this, *_context, ZMQ_REQ, "dataReq", upstream.value(), _dataReqPort, 
+  _remoteDataReq.reset(new Upstream(this, *_context, ZMQ_REQ, "remoteDataReq", upstream.value(), _remoteDataReqPort, 
     upstreamPubKey.value(), privateKey.value(), _pubKey));
-  _msgSub.reset(new Upstream(this, *_context, ZMQ_SUB, "msgSub", upstream.value(), _msgSubPort, 
+  _remoteMsgSub.reset(new Upstream(this, *_context, ZMQ_SUB, "remoteMsgSub", upstream.value(), _remoteMsgSubPort, 
     upstreamPubKey.value(), privateKey.value(), _pubKey));
     
 }
