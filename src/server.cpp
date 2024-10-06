@@ -80,6 +80,7 @@ void onlineMsg(Server *server, json &json);
 void discoverLocalMsg(Server *server, json &json);
 void heartbeatMsg(Server *server, json &json);
 void discoverMsg(Server *server, json &json);
+void queryDrMsg(Server *server, json &json);
 
 }
 
@@ -148,6 +149,7 @@ Server::Server(bool test, bool noupstream,
   _dataRepMessages["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
   _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
   _dataRepMessages["discover"] =  bind(&nodes::discoverMsg, this, placeholders::_1);
+  _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName);
   

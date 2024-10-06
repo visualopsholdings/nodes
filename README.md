@@ -322,6 +322,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 3 Oct 2024
 - First test for being an upstream working.
 
+### 6 Oct 2024
+- Implement user query message.
+
+
 
 
 

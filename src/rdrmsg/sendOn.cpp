@@ -20,7 +20,7 @@ namespace nodes {
 void sendOnMsg(Server *server, json &j) {
    
   // old servers (NodeJS) still use socket id
-  auto corr = Json::getString(j, "socketid");
+  auto corr = Json::getString(j, "socketid", true);
   if (!corr) {
     corr = Json::getString(j, "corr", true);
   }
