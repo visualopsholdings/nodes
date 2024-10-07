@@ -34,7 +34,7 @@ public:
   Server(bool test, bool noupstream, 
     int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
     const string &dbConn, const string &dbName, 
-    const string &certFile, const string &chainFile, const string &hostName);
+    const string &certFile, const string &chainFile, const string &hostName, const string &bindAddress);
   ~Server();
   
   void run();
@@ -85,6 +85,7 @@ public:
   string _serverId;
   string _upstreamId;
   bool _reload;
+  string _bindAddress;
   
 private:
 

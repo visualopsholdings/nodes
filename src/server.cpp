@@ -91,11 +91,13 @@ void queryDrMsg(Server *server, json &json);
 Server::Server(bool test, bool noupstream, 
     int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
     const string &dbConn, const string &dbName, 
-    const string &certFile, const string &chainFile, const string &hostName) :
+    const string &certFile, const string &chainFile, 
+    const string &hostName, const string &bindAddress) :
     _test(test), _certFile(certFile), _chainFile(chainFile),
     _dataRepPort(dataRep), _msgPubPort(msgPub),
     _remoteDataReqPort(remoteDataReq), _remoteMsgSubPort(remoteMsgSub),
-    _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false), _hostName(hostName) {
+    _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false), 
+    _hostName(hostName), _bindAddress(bindAddress) {
 
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));

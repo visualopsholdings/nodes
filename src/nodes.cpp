@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
   int msgSubPort;
   int remoteDataReqPort;
   int remoteMsgSubPort;
+  string bindAddress;
   
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -51,6 +52,7 @@ int main(int argc, char *argv[]) {
     ("repPort", po::value<int>(&repPort)->default_value(3013), "ZMQ Rep port.")
     ("dataReqPort", po::value<int>(&dataReqPort)->default_value(0), "ZMQ Data Req port.")
     ("msgSubPort", po::value<int>(&msgSubPort)->default_value(0), "ZMQ Msg Sub port.")
+    ("bindAddress", po::value<string>(&bindAddress)->default_value("127.0.0.1"), "The address to bind to for external access.")    
     ("remoteDataReqPort", po::value<int>(&remoteDataReqPort)->default_value(8810), "ZMQ remote Data Req port.")
     ("remoteMsgSubPort", po::value<int>(&remoteMsgSubPort)->default_value(8811), "ZMQ Remote Msg Sub port.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
@@ -98,7 +100,9 @@ int main(int argc, char *argv[]) {
   
   BOOST_LOG_TRIVIAL(info) << version;
 
-  Server server(test, noupstream, pubPort, repPort, dataReqPort, msgSubPort, remoteDataReqPort, remoteMsgSubPort, dbConn, dbName, certFile, chainFile, hostName);
+  Server server(test, noupstream, 
+    pubPort, repPort, dataReqPort, msgSubPort, remoteDataReqPort, remoteMsgSubPort, 
+    dbConn, dbName, certFile, chainFile, hostName, bindAddress);
   
   if (noupstream) {
     BOOST_LOG_TRIVIAL(info) << "ignoring upstream.";

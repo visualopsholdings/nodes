@@ -16,14 +16,6 @@ fi
 
 DBNAME=$1
 DBPASS=$2
-HOSTNAME=$3
-
-if [ "$#" -eq 4 ];
-then
-  MONGOS=$4
-else
-  MONGOS=127.0.0.1
-fi
 
 if [ -d nodes-lib ];
 then
@@ -34,15 +26,26 @@ else
   export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
 fi
 
-if [ "$#" -eq 3 ]; 
+if [ "$#" -gt 2 ]; 
 then
-  CERTS="--certFile=/etc/letsencrypt/live/$HOSTNAME/privkey.pem --chainFile=/etc/letsencrypt/live/$HOSTNAME/fullchain.pem"
-  HOST="--hostName=$HOSTNAME"
+  CERTS="--certFile=/etc/letsencrypt/live/$3/privkey.pem --chainFile=/etc/letsencrypt/live/$3/fullchain.pem"
+  HOST="--hostName=$3"
+  if [ "$#" -eq 4 ]; 
+  then
+    BIND="--bindAddress=$4"
+  fi
+fi
+
+if [ "$#" -eq 5 ];
+then
+  MONGOS=$5
+else
+  MONGOS=127.0.0.1
 fi
 
 ./nodes/build/nodes \
   --logLevel=trace \
   --dbConn=mongodb://$DBNAME:$DBPASS@$MONGOS:27017/?authSource=$DBNAME \
-  --dbName=$DBNAME $CERTS $HOST \
+  --dbName=$DBNAME $CERTS $HOST $BIND \
   --dataReqPort=8810 --msgSubPort=8811 \
   > nodes.log 2>&1 &
