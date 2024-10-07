@@ -15,7 +15,7 @@
 
 #include <boost/log/trivial.hpp>
 
-Downstream::Downstream(Server *_server, zmq::context_t &context, int type, const string &name, int port, 
+Downstream::Downstream(Server *server, zmq::context_t &context, int type, const string &name, int port, 
     const string &privateKey) : 
       _socket(context, type) {
 
@@ -32,7 +32,7 @@ Downstream::Downstream(Server *_server, zmq::context_t &context, int type, const
 #endif
 
   // probably need to bind to external interface
-  string url = "tcp://127.0.0.1:" + to_string(port);
+  string url = "tcp://" + server->_hostName + ":" + to_string(port);
 	BOOST_LOG_TRIVIAL(trace) << "Binding to ZMQ " << url;
   _socket.bind(url);
 	BOOST_LOG_TRIVIAL(info) << "Bind to ZMQ " << name << " at "<< url;

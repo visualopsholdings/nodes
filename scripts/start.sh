@@ -44,4 +44,5 @@ fi
   --logLevel=trace \
   --dbConn=mongodb://$DBNAME:$DBPASS@$MONGOS:27017/?authSource=$DBNAME \
   --dbName=$DBNAME $CERTS $HOST \
+  --dataReqPort=8810 --msgSubPort=8811 \
   > nodes.log 2>&1 &
