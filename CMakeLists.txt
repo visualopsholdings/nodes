@@ -112,6 +112,7 @@ set(MESSAGES
   src/msg/streamsharelink.cpp
   src/msg/canregister.cpp
   src/msg/deleteuser.cpp
+  src/msg/nodes.cpp
   src/rdrmsg/upstream.cpp
   src/rdrmsg/date.cpp
   src/rdrmsg/sendOn.cpp

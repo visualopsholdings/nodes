@@ -67,6 +67,7 @@ void setGroupPolicyMsg(Server *server, json &json);
 void streamShareLinkMsg(Server *server, json &json);
 void canRegisterMsg(Server *server, json &json);
 void deleteUserMsg(Server *server, json &json);
+void nodesMsg(Server *server, json &json);
 
 // remoteDataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -138,6 +139,7 @@ Server::Server(bool test, bool noupstream,
   _messages["streamsharelink"] = bind(&nodes::streamShareLinkMsg, this, placeholders::_1);
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
   _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
+  _messages["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
 
   _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
