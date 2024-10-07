@@ -1,5 +1,5 @@
 /*
-  nodesmsg.cpp
+  deletenode.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 7-Oct-2024
@@ -19,16 +19,20 @@
 
 namespace nodes {
 
-void nodesMsg(Server *server, json &j) {
+void deleteNodeMsg(Server *server, json &j) {
 
-  auto docs = Node().find({{}}).values();
-  
-  boost::json::array s;
-  if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
+  auto id = Json::getString(j, "id");
+  if (!id) {
+    server->sendErr("no id");
+    return;
   }
-  
-  server->sendCollection(j, "nodes", s);
+
+  if (Node().deleteById(id.value())) {
+    server->sendAck();
+    return;
+  }
+
+  server->sendErr("could not remove node");
 
 }
 

@@ -113,6 +113,9 @@ set(MESSAGES
   src/msg/canregister.cpp
   src/msg/deleteuser.cpp
   src/msg/nodes.cpp
+  src/msg/node.cpp
+  src/msg/addnode.cpp
+  src/msg/deletenode.cpp
   src/rdrmsg/upstream.cpp
   src/rdrmsg/date.cpp
   src/rdrmsg/sendOn.cpp

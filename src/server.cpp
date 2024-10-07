@@ -68,6 +68,9 @@ void streamShareLinkMsg(Server *server, json &json);
 void canRegisterMsg(Server *server, json &json);
 void deleteUserMsg(Server *server, json &json);
 void nodesMsg(Server *server, json &json);
+void nodeMsg(Server *server, json &json);
+void addNodeMsg(Server *server, json &json);
+void deleteNodeMsg(Server *server, json &json);
 
 // remoteDataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -140,6 +143,9 @@ Server::Server(bool test, bool noupstream,
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
   _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
   _messages["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
+  _messages["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
+  _messages["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
+  _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
 
   _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);

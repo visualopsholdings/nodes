@@ -836,6 +836,84 @@ When this is received:
 We allocate a NEW server id, and then set the upstream and keys to an upstream server that is
 valid and return Ack.
 
+#### Nodes
+
+When this is received:
+
+```
+{ 
+  "type": "nodes"
+}
+```
+
+Otherwise we process and return;
+
+```
+{ 
+  "type": "nodes",
+  "nodes": [
+    {
+      "serverId": "Server 1",
+      "pubKey": "servers public key",
+      "headerTitle": "servers header title",
+      "bgColor": "servers background color"
+    }
+  ]
+}
+```
+
+#### Node
+
+When this is received:
+
+```
+{ 
+  "type": "node",
+  "node": "node guid"
+}
+```
+
+Otherwise we process and return;
+
+```
+{ 
+  "type": "node",
+  "node": {
+    "serverId": "Server 1",
+    "pubKey": "servers public key",
+    "headerTitle": "servers header title",
+    "bgColor": "servers background color"
+  }
+}
+```
+
+#### Add Node
+
+When this is received:
+
+```
+{ 
+  "type": "addnode",
+  "serverId": "Server 1",
+  "pubKey": "servers public key"
+}
+```
+
+We add the node and return Ack.
+
+#### Delete Node
+
+When this is received:
+
+```
+{ 
+  "type": "deletenode",
+  "id": "node guid"
+}
+```
+
+We delete the node and return Ack.
+
 #### Certs
 
 ```

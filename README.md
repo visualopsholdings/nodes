@@ -325,6 +325,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 6 Oct 2024
 - Implement user query message.
 
+### 7 Oct 2024
+- Nodes can be retrieved, added and deleted.
+
 
 
 
