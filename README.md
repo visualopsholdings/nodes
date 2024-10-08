@@ -136,6 +136,15 @@ For other projects you will need this in your .bashrc or equivalent
 export NODES_HOME=/where/nodes/went
 ```
 
+## More complicated tests
+
+You can run tests that build multiple servers and run tests between then with.
+
+```
+cd ci
+/allnodetests1.sh
+```
+
 ## Testing dependencies
 
 Testing relies on the external project:

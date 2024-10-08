@@ -11,6 +11,8 @@
 
 #include "server.hpp"
 
+#include "json.hpp"
+
 #include <boost/log/trivial.hpp>
 
 namespace nodes {
@@ -23,6 +25,15 @@ void dateMsg(Server *server, json &j) {
     server->online();
   }
   
+  auto date = Json::getString(j, "date");
+  if (date) {
+    server->publish(nullopt, {
+      { "type", "nodeSeen" },
+      { "serverId", server->_upstreamId },
+      { "upstreamLastSeen", date.value() }
+    });
+  }
+
 }
 
 };

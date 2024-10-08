@@ -28,7 +28,7 @@ namespace po = boost::program_options;
 
 int main(int argc, char *argv[]) {
 
-  string version = "Nodes v0.4.1, 7-Oct-2024.";
+  string version = "Nodes v0.4.2, 8-Oct-2024.";
   
   int pubPort;
   int repPort;

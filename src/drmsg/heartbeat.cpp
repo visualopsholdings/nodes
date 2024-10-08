@@ -43,7 +43,7 @@ void heartbeatMsg(Server *server, json &j) {
   server->publish(nullopt, {
     { "type", "nodeSeen" },
     { "serverId", src.value() },
-    { "now", date }
+    { "lastSeen", date }
   });
     
   server->sendDown({
