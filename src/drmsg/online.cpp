@@ -34,21 +34,33 @@ void onlineMsg(Server *server, json &j) {
     return;
   }
   
+  boost::json::object obj;
+  
+  auto headerTitle = Json::getString(j, "headerTitle", true);
+  if (headerTitle) {
+    obj["headerTitle"] = headerTitle.value();
+  }
+  auto streamBgColor = Json::getString(j, "streamBgColor", true);
+  if (streamBgColor) {
+    obj["streamBgColor"] = streamBgColor.value();
+  }
+
   // is the node valid?
   bool valid = false;
   auto node = Node().find(json{ { "serverId", src.value() } }, {}).value();
   if (node) {
     if (node.value().pubKey() == pubKey.value()) {
-      Node().updateById(node.value().id(), { { "valid", true } });
+      obj["valid"] = true;
+      Node().updateById(node.value().id(), obj);
       valid = true;
     }
   }
   else {
+    obj["serverId"] = src.value();
+    obj["pubKey"] = pubKey.value();
+    
     // create a new node.
-    auto result = Node().insert({
-      { "serverId", src.value() },
-      { "pubKey", pubKey.value() }
-    });
+    auto result = Node().insert(obj);
     if (!result) {
       server->sendErrDown("online couldnt create node");
       return;
