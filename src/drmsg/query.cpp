@@ -35,32 +35,60 @@ void queryDrMsg(Server *server, json &j) {
   }
   
   auto userq = Json::getObject(j, "user", true);
-  if (!userq) {
-    server->sendErrDown("query only handles user queries");
-    return;
-  }
-
-  auto email = Json::getString(userq.value(), "email");
-  if (!email) {
-    server->sendErrDown("user query didnt have email");
+  if (userq) {
+    auto email = Json::getString(userq.value(), "email");
+    if (!email) {
+      server->sendErrDown("user query didnt have email");
+      return;
+    }
+    
+    auto docs = User().find(json{ { "fullname", { { "$regex", email.value() }, { "$options", "i" } } } }, { "fullname" }).values();
+  
+    boost::json::array s;
+    if (docs) {
+      for (auto i: docs.value()) {
+        s.push_back(i.j());
+      }
+    }
+    server->sendDown({
+      { "type", "queryResult" },
+      { "queryType", "user" },
+      { "result", s },
+      { "corr", corr.value() },
+      { "dest", src.value() }   
+    });
     return;
   }
   
-  auto docs = User().find(json{ { "fullname", { { "$regex", email.value() }, { "$options", "i" } } } }, { "fullname" }).values();
-
-  boost::json::array s;
-  if (docs) {
-    for (auto i: docs.value()) {
-      s.push_back(i.j());
+  
+  auto groupq = Json::getObject(j, "group", true);
+  if (groupq) {
+    auto name = Json::getString(groupq.value(), "name");
+    if (!name) {
+      server->sendErrDown("group query didnt have name");
+      return;
     }
+    
+    auto docs = Group().find(json{ { "name", { { "$regex", name.value() }, { "$options", "i" } } } }, { "name" }).values();
+  
+    boost::json::array s;
+    if (docs) {
+      for (auto i: docs.value()) {
+        s.push_back(i.j());
+      }
+    }
+    server->sendDown({
+      { "type", "queryResult" },
+      { "queryType", "group" },
+      { "result", s },
+      { "corr", corr.value() },
+      { "dest", src.value() }   
+    });
+    return;
   }
-  server->sendDown({
-    { "type", "queryResult" },
-    { "queryType", "user" },
-    { "result", s },
-    { "corr", corr.value() },
-    { "dest", src.value() }   
-  });
+  
+  server->sendErrDown("query only handles user and group queries");
+
   
 }
 

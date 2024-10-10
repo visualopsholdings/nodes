@@ -185,7 +185,7 @@ void Server::runUpstreamOnly() {
       heartbeat();
     }
     else {
-      BOOST_LOG_TRIVIAL(trace) << "not online yet";
+//      BOOST_LOG_TRIVIAL(trace) << "not online yet";
     }
     if (_remoteMsgSub) {
       _remoteMsgSub->check();
@@ -224,7 +224,7 @@ void Server::runUpstreamDownstream() {
       heartbeat();
     }
     else {
-      BOOST_LOG_TRIVIAL(trace) << "not online yet";
+//      BOOST_LOG_TRIVIAL(trace) << "not online yet";
     }
     if (_remoteMsgSub) {
       _remoteMsgSub->check();

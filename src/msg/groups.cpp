@@ -23,7 +23,7 @@ void groupsMsg(Server *server, json &j) {
 
   Group group;
   auto docs = Security::instance()->withView(group, Json::getString(j, "me", true), json{{}}, 
-    { "id", "modifyDate", "name" }).values();
+    { "id", "modifyDate", "name", "upstream" }).values();
 
   boost::json::array s;
   if (docs) {
