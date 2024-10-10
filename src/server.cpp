@@ -778,6 +778,24 @@ void Server::systemStatus(const string &msg) {
   
 }
 
+template <typename RowType>
+string Server::getLastDate(optional<vector<RowType > > rows, const string &hasInitialSync, const string &upstreamLastSeen) {
+
+  string zd = Date::toISODate(0);
+  
+  if (rows) {
+    // does any of the rows have a null date?
+    bool hasNullDate = find_if(rows.value().begin(), rows.value().end(), [zd](auto e) { 
+      return Json::getString(e.j(), "modifyDate") == zd;
+    }) != rows.value().end();
+    return (hasInitialSync == "true") ? (hasNullDate ? zd : upstreamLastSeen) : zd;
+  }
+  
+  // no rows
+  return (hasInitialSync == "true") ? upstreamLastSeen : zd;
+  
+}
+
 void Server::discover() {
 
   auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen"}}} }}, {"type", "text"}).values();
@@ -787,25 +805,25 @@ void Server::discover() {
   auto users = User().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
   
   // if we have users to discover.
-  vector<string> ids;
+  vector<string> userids;
   if (users) {
-    transform(users.value().begin(), users.value().end(), back_inserter(ids), [](auto e){ return e.id(); });
+    transform(users.value().begin(), users.value().end(), back_inserter(userids), [](auto e){ return e.id(); });
   }
 
-  // if any of the users are needing discovery, then set last user to be zero date
-//  BOOST_LOG_TRIVIAL(trace) << "finding null date";
-  string zd = Date::toISODate(0);
-  bool hasNullDate = users ? find_if(users.value().begin(), users.value().end(), [zd](auto e) { 
-    return Json::getString(e.j(), "modifyDate") == zd;
-  }) != users.value().end() : false;
-//  BOOST_LOG_TRIVIAL(trace) << "hasNullDate " << hasNullDate;
+  auto groups = Group().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
   
-  string lastUser = (hasInitialSync == "true") ? (hasNullDate ? zd : upstreamLastSeen) : zd;
-  
+  // if we have groups to discover.
+  vector<string> groupids;
+  if (groups) {
+    transform(groups.value().begin(), groups.value().end(), back_inserter(groupids), [](auto e){ return e.id(); });
+  }
+
 	sendDataReq(nullopt, {
     { "type", "discover" },
-    { "lastUser", lastUser },
-    { "users", boost::json::value_from(ids) },
+    { "lastUser", getLastDate(users, hasInitialSync, upstreamLastSeen) },
+    { "lastGroup", getLastDate(groups, hasInitialSync, upstreamLastSeen) },
+    { "users", boost::json::value_from(userids) },
+    { "groups", boost::json::value_from(groupids) },
     { "hasInitialSync", hasInitialSync == "true" }
   });
 

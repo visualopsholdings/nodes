@@ -25,7 +25,7 @@ void discoverLocalResultMsg(Server *server, json &);
 
 void newUserMsg(Server *server, json &j) {
 
-  auto upstream = Json::getBool(j, "upstream");
+  auto upstream = Json::getBool(j, "upstream", true);
   if (upstream && upstream.value()) {
 
     auto userid = Json::getString(j, "id");
@@ -34,7 +34,7 @@ void newUserMsg(Server *server, json &j) {
       return;
     }
   
-    auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, {}).value();
+    auto doc = User().findById(userid.value()).value();
     if (doc) {
       // set the upstream on doc.
       auto result = User().updateById(userid.value(), { 

@@ -41,9 +41,9 @@ ci/run.sh upstream
 ci/nodestest.sh "An existing user can be pulled from upstream"
 [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "An existing team can be pulled from upstream"
-# [ "$?" != "0" ] && fail
-# 
+ci/nodestest.sh "An existing group can be pulled from upstream"
+[ "$?" != "0" ] && fail
+
 # ci/nodestest.sh "An existing sequence can be pulled from upstream"
 # [ "$?" != "0" ] && fail
 # 

@@ -31,8 +31,8 @@ void discoverResultMsg(Server *server, json &j) {
       BOOST_LOG_TRIVIAL(error) << "msg missing type";
       continue;
     }
-    if (type.value() != "user") {
-      BOOST_LOG_TRIVIAL(info) << "only user msgs supported, ignoring";
+    if (type.value() != "user" && type.value() != "group") {
+      BOOST_LOG_TRIVIAL(info) << "only user and group msgs supported, ignoring";
       continue;
     }
     

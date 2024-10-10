@@ -51,11 +51,20 @@ void discoverMsg(Server *server, json &j) {
   if (users) {
     obj["users"] = users.value();
   }
+  auto lastGroup = Json::getString(j, "lastGroup", true);
+  auto groups = Json::getArray(j, "groups", true);
+  if (lastGroup) {
+    obj["lastGroup"] = lastGroup.value();
+  }
+  if (groups) {
+    obj["groups"] = groups.value();
+  }
   Node().updateById(node.value().id(), obj);
   		
   // here is where we would send on everything
   boost::json::array msgs;
   boost::json::array sendusers;
+  boost::json::array sendgroups;
 
   if (lastUser && users && users.value().size() > 0) {
   
@@ -72,9 +81,28 @@ void discoverMsg(Server *server, json &j) {
     }
   }
   
+  if (lastGroup && groups && groups.value().size() > 0) {
+  
+    auto q = SchemaImpl::idRangeAfterDateQuery(groups.value(), lastGroup.value());
+  
+    auto results = SchemaImpl::findGeneral("groups", q, {});
+    if (results) {
+      auto groups = results->values();
+      if (groups) {
+        for (auto u: groups.value()) {
+          sendgroups.push_back(u);
+        }
+      }
+    }
+  }
+  
   msgs.push_back({
     { "type", "user" },
     { "objs", sendusers }
+  });
+  msgs.push_back({
+    { "type", "group" },
+    { "objs", sendgroups }
   });
   
   server->sendDown({

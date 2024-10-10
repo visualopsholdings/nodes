@@ -48,3 +48,7 @@ When('she sends set group name of {string} to {string} as {string}') do |name, n
    g = Group.where(name: name).first._id.to_s
    $lastResult = Send({ "type": "setgroup" , "me": u, "id": g, "name": newname })
 end
+
+When('she sends add group from upstream with {string}') do |id|
+   $lastResult = Send({ "type": "addgroup", "upstream": true, "id": id })
+end

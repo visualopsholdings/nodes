@@ -16,4 +16,5 @@ pushd nodes/build
 git pull
 cmake ..
 make -j4
+make test
 popd

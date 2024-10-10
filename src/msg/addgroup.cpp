@@ -21,6 +21,49 @@ namespace nodes {
 
 void addGroupMsg(Server *server, json &j) {
 
+  auto upstream = Json::getBool(j, "upstream", true);
+  if (upstream && upstream.value()) {
+
+    auto groupid = Json::getString(j, "id");
+    if (!groupid) {
+      server->sendErr("no groupid");
+      return;
+    }
+  
+    auto doc = Group().findById(groupid.value()).value();
+    if (doc) {
+      // set the upstream on doc.
+      auto result = Group().updateById(groupid.value(), { 
+        { "modifyDate", Storage::instance()->getNow() },
+        { "upstream", true } 
+      });
+      if (!result) {
+        server->sendErr("could not update group");
+        return;
+      }
+      server->sendAck();
+      return;
+    }
+    
+    // insert a new group
+    auto result = Group().insert({
+      { "_id", { { "$oid", groupid.value() } } },
+      { "name", "Waiting discovery" },
+      { "upstream", true },
+      { "modifyDate", { { "$date", 0 } } }
+    });
+    if (!result) {
+      server->sendErr("could not insert groupid");
+      return;
+    }
+    
+    server->sendAck();
+    
+    // run discovery.  
+    server->discover();
+    return;
+  }
+  
   auto me = Json::getString(j, "me");
   if (!me) {
     server->sendErr("no me");

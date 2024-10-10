@@ -58,3 +58,9 @@ Feature: Downstream Test
 	   When she sends add user from upstream with "6142d258ddf5aa5644057d35"
       And she receives ack
       And eventually the user fullname "Leanne" with salt and hash appears in the DB
+
+   @javascript
+   Scenario: An existing group can be pulled from upstream
+	   When she sends add group from upstream with "61fb4fdcddf5aa9052809bd7"
+      And she receives ack
+      And eventually the group "Team 2" with 1 member appears in the DB

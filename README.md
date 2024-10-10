@@ -337,6 +337,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 7 Oct 2024
 - Nodes can be retrieved, added and deleted.
 
+### 10 Oct 2024
+- Groups can be upstream.
+
 
 
 

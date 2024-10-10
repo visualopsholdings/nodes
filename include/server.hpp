@@ -115,6 +115,9 @@ private:
   void runStandalone();
   void runUpstreamDownstream();
   void runDownstreamOnly();
+  
+  template <typename RowType>
+  string getLastDate(optional<vector<RowType > > rows, const string &hasInitialSync, const string &upstreamLastSeen);
     
 };
 
