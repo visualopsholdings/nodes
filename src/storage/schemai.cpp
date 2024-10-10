@@ -35,6 +35,20 @@ shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx
 
 }
 
+int SchemaImpl::countGeneral(const string &collection, const json &query) {
+
+  if (!testInit()) {
+    return 0;
+  }
+
+  stringstream ss;
+  ss << query;
+  bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
+
+  return Storage::instance()->_impl->coll(collection)._c.count_documents(q);
+  
+}
+
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const json &query, const vector<string> &fields) {
 
   BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collection; 

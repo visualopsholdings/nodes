@@ -64,3 +64,41 @@ Feature: Downstream Test
 	   When she sends add group from upstream with "61fb4fdcddf5aa9052809bd7"
       And she receives ack
       And eventually the group "Team 2" with 1 member appears in the DB
+
+   @javascript
+   Scenario: Downstreams have synced
+	   When she sends streams as "tracy"
+      Then she receives 2 streams
+	   When she sends ideas for "Stream 1" as "tracy"
+      Then she receives 30 ideas
+#       When "tracy" log into app "conversations"
+# 	   And eventually there are 2 streams
+#  	   And eventually there are 30 ideas in the DB
+# # 	   And eventually there are 10005 ideas in the DB
+#  	   And she clicks "Stream 1"
+#  	   Then eventually the page contains "1 – 20 of 20"
+# # 	   Then eventually the page contains "1 – 30 of 10000"
+# 
+#       #downstream2
+#       When "tracy" log into other2 app "conversations"
+# 	   And eventually there are 3 streams
+#  	   And she clicks "Shared Stream"
+#  	   Then eventually the page contains "1 – 10 of 10"
+# 
+#       #downstream3
+#       When "tracy" log into other3 app "conversations"
+# 	   And eventually there are 2 streams
+#  	   And she clicks "Shared Stream"
+#  	   Then eventually the page contains "1 – 10 of 10"
+# 
+#       #downstream4
+#       When "tracy" log into other4 app "conversations"
+# 	   And eventually there are 4 streams
+#  	   And she clicks "Stream 1"
+# # 	   Then before the end of time the page contains "1 – 30 of 1000"
+#  	   Then before the end of time the page contains "1 – 20 of 20"
+#  	   And she clicks "Stream 2"
+#  	   Then before the end of time the page contains "1 – 1 of 1"
+# #  	   And she clicks "Shared Stream"
+# #  	   Then before the end of time the page contains "1 – 5 of 5"
+

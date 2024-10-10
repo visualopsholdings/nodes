@@ -147,6 +147,9 @@ add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
 add_executable(Send test/send.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
+add_executable(Counts test/counts.cpp)
+  target_link_libraries(Counts StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${MONGOLIBS})
+
 add_executable(nodesaggregate src/nodesaggregate.cpp)
   target_link_libraries(nodesaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 

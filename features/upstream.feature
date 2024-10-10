@@ -80,11 +80,11 @@ Feature: Upstream Test
 #          | name            | modifyDate   | policy | stream    | sequence  | user   |
 #          | Count 1         | Sep 2 2021   | p1     | Stream 2  | Count     | tracy  |
 
-# #      And there are 5 generated messages in stream "Stream 1" from "tracy" with policy "p1"
-# #      And there are 1000 generated messages in stream "Stream 1" from "tracy" with policy "p1"
-#       And there are 20 generated messages in stream "Stream 1" from "tracy" with policy "p1"
-# #      And there are 10000 generated messages in stream "Stream 1" from "tracy" with policy "p1"
-#       And there are 5 generated owned ideas in stream "Shared Stream" from "tracy" with policy "p1"
+#      And there are 5 generated messages in stream "Stream 1" from "tracy" with policy "p1"
+#      And there are 1000 generated messages in stream "Stream 1" from "tracy" with policy "p1"
+      And there are 20 generated messages in stream "Stream 1" from "tracy" with policy "p1"
+#      And there are 10000 generated messages in stream "Stream 1" from "tracy" with policy "p1"
+#      And there are 5 generated owned ideas in stream "Shared Stream" from "tracy" with policy "p1"
 
       And the server has id "4ecaf2b6-42f2-49fe-b0ef-123758a3a4db"
       And the server has privateKey "t5R[&?W.8-mjIc]cs#<T(5AW7sCJYHo^<2k-]!2!"

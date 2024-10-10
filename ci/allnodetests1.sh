@@ -15,9 +15,9 @@ date "+%H:%M:%S"
 
 finish() {
 	ci/kill.sh upstream
-# 	ci/kill.sh downstream2
-# 	ci/kill.sh downstream3
-# 	ci/kill.sh downstream4
+	ci/kill.sh downstream2
+	ci/kill.sh downstream3
+#	ci/kill.sh downstream4
 # 	ci/kill.sh downstream5
 }
 
@@ -50,18 +50,18 @@ ci/nodestest.sh "An existing group can be pulled from upstream"
 # ci/nodestest.sh "An existing media can be pulled from upstream"
 # [ "$?" != "0" ] && fail
 # 
-# ci/run.sh downstream2
-# [ "$?" != "0" ] && fail
-# 
-# ci/run.sh downstream3
-# [ "$?" != "0" ] && fail
-# 
+ci/run.sh downstream2
+[ "$?" != "0" ] && fail
+
+ci/run.sh downstream3
+[ "$?" != "0" ] && fail
+
 # ci/run.sh downstream4
 # [ "$?" != "0" ] && fail
-# 
+
 # ci/nodestest.sh "Downstreams have synced"
 # [ "$?" != "0" ] && fail
-# 
+
 # ci/nodestest.sh "Change to a user is reflected in the downstream servers"
 # [ "$?" != "0" ] && fail
 # 

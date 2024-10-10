@@ -33,7 +33,7 @@ do
 	  echo "tests failed"
 	  exit 1
 	fi
-	cat $1.log | grep "all files discovered"
+	cat $1.log | grep "Discovery complete"
 	if [ "$?" == "0" ]; then
 		ci/$1post.sh
     [ "$?" != "0" ] && exit 1

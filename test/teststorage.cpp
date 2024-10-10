@@ -241,6 +241,16 @@ BOOST_AUTO_TEST_CASE( findByIdRangeBeforeDate )
   
 }
 
+BOOST_AUTO_TEST_CASE( countGeneral )
+{
+  cout << "=== countGeneral ===" << endl;
+
+  dbSetup();
+
+  BOOST_CHECK_EQUAL(SchemaImpl::countGeneral("users", {{}}), 2);
+  
+}
+
 
 
 

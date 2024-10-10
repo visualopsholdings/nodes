@@ -12,8 +12,9 @@ then
   ci/upstreamdb.sh test
   [ "$?" != "0" ] && exit 1
 
-#   node counts.js --users=4 --groups=2 --streams=4 --ideas=31 --sequences=6 --media=2 --formats=2 --policies=4
-#   [ "$?" != "0" ] && exit 1
+  build/Counts --dbName=test --users=4 --groups=2 --streams=4 --ideas=20 --policies=4
+  [ "$?" != "0" ] && exit 1
+  
 fi
 
 export NODES_DATA_PORT=8810

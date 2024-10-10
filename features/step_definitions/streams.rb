@@ -37,3 +37,38 @@ When('she sends set stream name of {string} to {string} as {string}') do |name, 
    s = Stream.where(name: name).first._id.to_s
    $lastResult = Send({ "type": "setstream" , "me": u, "id": s, "name": newname })
 end
+
+When("there are {int} generated messages in stream {string} from {string} with policy {string}") do |count, s, u, p|
+
+   stream = Stream.where(name: s).first._id.to_s
+   user = User.where(name: u).first._id.to_s
+   policy = Policy.where(name: p).first._id.to_s
+   date = Date.today.at_beginning_of_month
+   
+   for i in 1..count do
+      date = date + 5.minutes
+      message = FactoryBot.build(:idea)     
+      message.user = user
+#      message.date = date
+      message.text = "Message " + i.to_s
+      message.policy = policy
+#      message.sortDate = date
+      message.stream = stream
+      message.modifyDate = date
+      message.save
+   end
+   
+end
+
+When('she sends ideas for {string} as {string}') do |name, user|
+   u = User.where(name: user).first._id.to_s
+   s = Stream.where(name: name).first._id.to_s
+   $lastResult = Send({ "type": "ideass" , "me": u, "strean": s })
+end
+
+Then('she receives {int} ideas') do |count|
+   expect($lastResult["type"]).to eq("ideas")
+   expect($lastResult["ideas"].length).to eq(count)
+end
+
+

@@ -56,6 +56,7 @@ public:
   static shared_ptr<ResultImpl> findGeneral(const string &collection, bsoncxx::document::view_or_value query, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
+  static int countGeneral(const string &collection, const json &query);
     
   shared_ptr<ResultImpl> findResult(const json &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);
