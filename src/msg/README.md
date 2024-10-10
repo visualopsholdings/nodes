@@ -434,7 +434,7 @@ sent on the SUB port as a "queryResult". The correlation id is passed through an
 by the system which might maintain a list of sockets (like websockets) to communicate back to 
 the relevant user.
 
-#### New User
+#### Add User
 
 You can add a new user to the system from an upstream server by using this message.
 
@@ -442,7 +442,7 @@ When this is received:
 
 ```
 { 
-  "type": "newuser",
+  "type": "adduser",
   "id": "user guid",
   "upstream": true
 }
@@ -674,7 +674,7 @@ Otherwise we process and return;
 }
 ```
 
-#### New Member
+#### Add Member
 
 Use this message to add a new member to a group.
 
@@ -682,7 +682,7 @@ When this is received:
 
 ```
 { 
-  "type": "newmember",
+  "type": "addmember",
   "group": "group guid",
   "id": "user guid"
 }

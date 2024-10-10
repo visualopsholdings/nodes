@@ -90,13 +90,13 @@ set(MESSAGES
   src/msg/site.cpp
   src/msg/setsite.cpp
   src/msg/query.cpp
-  src/msg/newuser.cpp
+  src/msg/adduser.cpp
   src/msg/reload.cpp
   src/msg/groups.cpp
   src/msg/group.cpp
   src/msg/members.cpp
   src/msg/searchusers.cpp
-  src/msg/newmember.cpp
+  src/msg/addmember.cpp
   src/msg/deletemember.cpp
   src/msg/setuser.cpp
   src/msg/policy.cpp

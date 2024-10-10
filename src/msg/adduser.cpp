@@ -1,5 +1,5 @@
 /*
-  newuser.cpp
+  adduser.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 20-Aug-2024
@@ -23,7 +23,7 @@ namespace nodes {
 
 void discoverLocalResultMsg(Server *server, json &);
 
-void newUserMsg(Server *server, json &j) {
+void addUserMsg(Server *server, json &j) {
 
   auto upstream = Json::getBool(j, "upstream", true);
   if (upstream && upstream.value()) {
@@ -176,7 +176,7 @@ void newUserMsg(Server *server, json &j) {
   Security::instance()->regenerateGroups();
 
   server->send({
-    { "type", "newuser" },
+    { "type", "adduser" },
     { "vopsid", vid.value() },
     { "id", result.value() },
     { "fullname", fullname.value() }

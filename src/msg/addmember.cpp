@@ -1,5 +1,5 @@
 /*
-  newmember.cpp
+  addmember.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
   Date: 23-Aug-2024
@@ -19,7 +19,7 @@
 
 namespace nodes {
 
-void newMemberMsg(Server *server, json &j) {
+void addMemberMsg(Server *server, json &j) {
 
   auto groupid = Json::getString(j, "group");
   if (!groupid) {
