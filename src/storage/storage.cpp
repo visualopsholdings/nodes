@@ -88,6 +88,13 @@ bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
       { "$oid", id }
     };
     
+    if (obj.as_object().if_contains("modifyDate") && obj.at("modifyDate").is_string()) {
+      BOOST_LOG_TRIVIAL(trace) << "converting string modify date";
+      obj.as_object()["modifyDate"] = {
+        { "$date", Date::fromISODate(obj.at("modifyDate").as_string().c_str()) }
+      };
+    }
+    
     auto result = schema.insert(obj);
     if (!result) {
       BOOST_LOG_TRIVIAL(error) << "insert failed";

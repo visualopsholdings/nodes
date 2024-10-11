@@ -59,8 +59,8 @@ ci/run.sh downstream3
 # ci/run.sh downstream4
 # [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "Downstreams have synced"
-# [ "$?" != "0" ] && fail
+ci/nodestest.sh "Downstreams have synced"
+[ "$?" != "0" ] && fail
 
 # ci/nodestest.sh "Change to a user is reflected in the downstream servers"
 # [ "$?" != "0" ] && fail

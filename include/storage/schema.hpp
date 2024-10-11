@@ -185,6 +185,7 @@ public:
   virtual string collName() { return "infos"; };
   
   static optional<string> getInfo(const vector<InfoRow> &infos, const string &type);
+  static string getInfoSafe(optional<vector<InfoRow> > infos, const string &type, const string &def);
 
 };
 

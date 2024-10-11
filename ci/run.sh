@@ -28,6 +28,11 @@ do
 	  echo "failed with error"
 	  exit 1
 	fi
+	cat $1.log | grep "terminating"
+	if [ "$?" == "0" ]; then
+	  echo "failed with terminate"
+	  exit 1
+	fi
 	cat $1.log | grep "Failing Scenarios:"
 	if [ "$?" == "0" ]; then
 	  echo "tests failed"

@@ -47,7 +47,7 @@ Feature: Downstream 3 Test
       And the server has upstream "localhost"
       And the server has upstreamPubKey "Oz-z+wnZOA{T^aVV{i7HHuCc0Bk}N/1G)*IApiP?"
       And the server has hasInitialSync
-      And the server has upstreamLastSeen "1 Jan 2022"
+      And the server has upstreamLastSeen "25 Dec 2022"
 
       And there are sites:
          | name      | headerTitle     | streamBgColor   |

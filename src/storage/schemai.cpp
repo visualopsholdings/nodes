@@ -300,6 +300,24 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::
   
   // make a query with modify date.
   auto t = Date::fromISODate(date);
+//  BOOST_LOG_TRIVIAL(trace) << t;
+  auto d = bsoncxx::types::b_date(chrono::milliseconds(t));
+//  BOOST_LOG_TRIVIAL(trace) << d;
+  qs.append(make_document(kvp("modifyDate", make_document(kvp("$gt", d)))));
+  
+  // make the overall query.
+  return make_document(kvp("$and", qs));
+
+}
+
+bsoncxx::document::view_or_value SchemaImpl::streamAfterDateQuery(const string &stream, const string &date) {
+
+  auto qs = bsoncxx::builder::basic::array{};
+  
+  qs.append(make_document(kvp("stream", stream)));
+  
+  // make a query with modify date.
+  auto t = Date::fromISODate(date);
   auto d = bsoncxx::types::b_date(chrono::milliseconds(t));
   qs.append(make_document(kvp("modifyDate", make_document(kvp("$gt", d)))));
   
@@ -307,3 +325,20 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::
   return make_document(kvp("$and", qs));
 
 }
+
+bsoncxx::document::view_or_value SchemaImpl::upstreamAfterDateQuery(const string &date) {
+
+  auto qs = bsoncxx::builder::basic::array{};
+  
+  qs.append(make_document(kvp("upstream", true)));
+  
+  // make a query with modify date.
+  auto t = Date::fromISODate(date);
+  auto d = bsoncxx::types::b_date(chrono::milliseconds(t));
+  qs.append(make_document(kvp("modifyDate", make_document(kvp("$gt", d)))));
+  
+  // make the overall query.
+  return make_document(kvp("$and", qs));
+
+}
+

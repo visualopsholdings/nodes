@@ -799,8 +799,8 @@ string Server::getLastDate(optional<vector<RowType > > rows, const string &hasIn
 void Server::discover() {
 
   auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen"}}} }}, {"type", "text"}).values();
-  string hasInitialSync = infos ? Info::getInfo(infos.value(), "hasInitialSync").value() : "false";
-  string upstreamLastSeen = infos ? Info::getInfo(infos.value(), "upstreamLastSeen").value() : "";
+  string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
+  string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
   
   auto users = User().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
   
@@ -818,13 +818,82 @@ void Server::discover() {
     transform(groups.value().begin(), groups.value().end(), back_inserter(groupids), [](auto e){ return e.id(); });
   }
 
+  auto streams = Stream().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
+  
+  // if we have streams to discover.
+  vector<string> streamids;
+  if (streams) {
+    transform(streams.value().begin(), streams.value().end(), back_inserter(streamids), [](auto e){ return e.id(); });
+  }
+
 	sendDataReq(nullopt, {
     { "type", "discover" },
     { "lastUser", getLastDate(users, hasInitialSync, upstreamLastSeen) },
     { "lastGroup", getLastDate(groups, hasInitialSync, upstreamLastSeen) },
+    { "lastStream", getLastDate(streams, hasInitialSync, upstreamLastSeen) },
     { "users", boost::json::value_from(userids) },
     { "groups", boost::json::value_from(groupids) },
+    { "streams", boost::json::value_from(streamids) },
     { "hasInitialSync", hasInitialSync == "true" }
+  });
+
+}
+
+void collectObjs(const string &name, bsoncxx::document::view_or_value q, boost::json::array *data) {
+
+  auto result = SchemaImpl::findGeneral(name + "s", q, {});
+  if (result) {
+    boost::json::array objs;
+    auto vals = result->values();
+    if (vals) {
+      json obj = {
+        { "type", name },
+        { "objs", vals.value() }
+      };
+      data->push_back(obj);
+    }
+  }
+
+}
+
+void Server::discoverLocal(optional<string> corr) {
+
+  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen"}}} }}, {"type", "text"}).values();
+  string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
+  string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
+  
+  if (hasInitialSync != "true") {
+    BOOST_LOG_TRIVIAL(trace) << "no initial sync, nothing to discover locally.";
+    boost::json::array empty;
+    sendDataReq(corr, {
+      { "type", "discoverLocal" },
+      { "data", empty }
+    });
+    return;
+  }
+  if (upstreamLastSeen == "") {
+    BOOST_LOG_TRIVIAL(error) << "initial sync, but no upstreamLastSeen?";
+    return;
+  }
+  
+  BOOST_LOG_TRIVIAL(trace) << "upstream since " << upstreamLastSeen;
+  auto q = SchemaImpl::upstreamAfterDateQuery(upstreamLastSeen);
+  boost::json::array data;
+  collectObjs("user", q, &data);
+  collectObjs("team", q, &data);
+  collectObjs("stream", q, &data);
+
+  auto upstreams = Stream().find(json{ { "upstream", true } }, { "_id" }).values();
+  if (upstreams) {
+    for (auto s: upstreams.value()) {
+      auto q = SchemaImpl::streamAfterDateQuery(s.id(), upstreamLastSeen);
+      collectObjs("idea", q, &data);
+    }
+  }
+  
+  sendDataReq(corr, {
+    { "type", "discoverLocal" },
+    { "data", data }
   });
 
 }
@@ -834,4 +903,35 @@ void Server::resetDB() {
   BOOST_LOG_TRIVIAL(info) << "DB reset";
   Storage::instance()->allCollectionsChanged();
    
+}
+
+void Server::importObjs(boost::json::array &msgs) {
+
+  for (auto m: msgs) {
+    auto type = Json::getString(m, "type");
+    if (!type) {
+      BOOST_LOG_TRIVIAL(error) << "msg missing type";
+      continue;
+    }
+    vector<string> valid{ "user", "group", "stream", "idea" };
+    if (find(valid.begin(), valid.end(), type.value()) == valid.end()) {
+      BOOST_LOG_TRIVIAL(warning) << "message type " << type.value() << " not supported.";
+      continue;
+    }
+    
+    auto objs = Json::getArray(m, "objs");
+    if (!objs) {
+      BOOST_LOG_TRIVIAL(error) << "msg missing objs";
+      continue;
+    }
+    
+    Storage::instance()->bulkInsert(type.value() + "s", objs.value());
+
+    auto more = Json::getBool(m, "more", true);
+    if (more && more.value()) {
+      BOOST_LOG_TRIVIAL(info) << "ignoring more for " << type.value();
+      continue;
+    }
+  }
+
 }

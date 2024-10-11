@@ -12,7 +12,7 @@
 #include "server.hpp"
 
 #include "json.hpp"
-#include "storage/schema.hpp"
+#include "storage.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -28,11 +28,8 @@ void discoverLocalMsg(Server *server, json &j) {
     return;
   }
   
-  if (data.value().size() > 0) {
-    // here is where you would import all the things that this
-    // node had discovered locally that had changed.
-    BOOST_LOG_TRIVIAL(warning) << "discoverLocal data not implemented";
-  }  
+  // import everything.
+  server->importObjs(data.value());
  	    
  	server->sendDown({ 
  	  { "type", "discoverLocalResult" } 

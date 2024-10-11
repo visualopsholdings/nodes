@@ -15,6 +15,7 @@
 #include "storage.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <algorithm>
 
 namespace nodes {
 
@@ -25,31 +26,9 @@ void discoverResultMsg(Server *server, json &j) {
     BOOST_LOG_TRIVIAL(error) << "discoverResult missing msgs";
     return;
   }
-  for (auto m: msgs.value()) {
-    auto type = Json::getString(m, "type");
-    if (!type) {
-      BOOST_LOG_TRIVIAL(error) << "msg missing type";
-      continue;
-    }
-    if (type.value() != "user" && type.value() != "group") {
-      BOOST_LOG_TRIVIAL(info) << "only user and group msgs supported, ignoring";
-      continue;
-    }
-    
-    auto objs = Json::getArray(m, "objs");
-    if (!objs) {
-      BOOST_LOG_TRIVIAL(error) << "msg missing objs";
-      continue;
-    }
-    
-    Storage::instance()->bulkInsert(type.value() + "s", objs.value());
-
-    auto more = Json::getBool(m, "more", true);
-    if (more && more.value()) {
-      BOOST_LOG_TRIVIAL(info) << "ignoring more for " << type.value();
-      continue;
-    }
-  }
+  
+  // import everything.
+  server->importObjs(msgs.value());
    
   server->setInfo("hasInitialSync", "true");
   json date = Storage::instance()->getNow();

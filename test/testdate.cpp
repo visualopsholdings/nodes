@@ -82,10 +82,20 @@ BOOST_AUTO_TEST_CASE( getFutureTimeEndOfMonth )
 {
   cout << "=== getFutureTimeEndOfMonth ===" << endl;
   
-  cout << Date::fromISODate("2024-09-30T22:11:30.2+00:00") << endl;
+//  cout << Date::fromISODate("2024-09-30T22:11:30.2+00:00") << endl;
   
   // 2024-09-30T22:11:30.2+00:00
   BOOST_CHECK_EQUAL(Date::getFutureTime(1727734290002, 4), "2024-10-01T02:11:30.2+00:00");
+  
+}
+
+BOOST_AUTO_TEST_CASE( rubyDate )
+{
+  cout << "=== rubyDate ===" << endl;
+  
+  // 2022-01-01 00:00:00 +1100
+  BOOST_CHECK_EQUAL(Date::toISODate(Date::fromISODate("2022-01-01 01:20:32 +1100")), "2022-01-01T12:20:32.0+00:00");
+  BOOST_CHECK_EQUAL(Date::toISODate(Date::fromISODate("2022-01-01 01:20:32 +0000")), "2022-01-01T01:20:32.0+00:00");
   
 }
 

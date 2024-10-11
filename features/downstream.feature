@@ -67,30 +67,21 @@ Feature: Downstream Test
 
    @javascript
    Scenario: Downstreams have synced
-	   When she sends streams as "tracy"
+	   When she sends streams
+      Then she receives 3 streams
+	   When she sends ideas for "Stream 1"
+      Then she receives 20 ideas
+
+      When she sends streams to downstream2
+      Then she receives 3 streams
+	   When she sends ideas for "Shared Stream" to downstream2
+      Then she receives 15 ideas
+      
+      When she sends streams to downstream3
       Then she receives 2 streams
-	   When she sends ideas for "Stream 1" as "tracy"
-      Then she receives 30 ideas
-#       When "tracy" log into app "conversations"
-# 	   And eventually there are 2 streams
-#  	   And eventually there are 30 ideas in the DB
-# # 	   And eventually there are 10005 ideas in the DB
-#  	   And she clicks "Stream 1"
-#  	   Then eventually the page contains "1 – 20 of 20"
-# # 	   Then eventually the page contains "1 – 30 of 10000"
-# 
-#       #downstream2
-#       When "tracy" log into other2 app "conversations"
-# 	   And eventually there are 3 streams
-#  	   And she clicks "Shared Stream"
-#  	   Then eventually the page contains "1 – 10 of 10"
-# 
-#       #downstream3
-#       When "tracy" log into other3 app "conversations"
-# 	   And eventually there are 2 streams
-#  	   And she clicks "Shared Stream"
-#  	   Then eventually the page contains "1 – 10 of 10"
-# 
+	   When she sends ideas for "Shared Stream" to downstream3
+      Then she receives 15 ideas
+
 #       #downstream4
 #       When "tracy" log into other4 app "conversations"
 # 	   And eventually there are 4 streams

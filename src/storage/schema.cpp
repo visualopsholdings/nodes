@@ -52,3 +52,15 @@ optional<string> Info::getInfo(const vector<InfoRow> &infos, const string &type)
   return (*i).text();
 }
 
+string Info::getInfoSafe(optional<vector<InfoRow> > infos, const string &type, const string &def) {
+
+  if (!infos) {
+    return def;
+  }
+  auto v = getInfo(infos.value(), type);
+  if (v) {
+    return v.value();
+  }
+  return def;
+  
+}

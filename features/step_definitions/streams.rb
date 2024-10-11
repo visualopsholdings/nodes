@@ -2,7 +2,11 @@ require 'json'
 
 When('she sends streams as {string}') do |user|
    u = User.where(name: user).first._id.to_s
-   $lastResult = Send({ "type": "streams" , "me": u })
+   $lastResult = Send({ "type": "streams", "me": u })
+end
+
+When('she sends streams') do
+   $lastResult = Send({ "type": "streams" })
 end
 
 Then('she receives {int} streams') do |count|
@@ -60,10 +64,9 @@ When("there are {int} generated messages in stream {string} from {string} with p
    
 end
 
-When('she sends ideas for {string} as {string}') do |name, user|
-   u = User.where(name: user).first._id.to_s
+When('she sends ideas for {string}') do |name|
    s = Stream.where(name: name).first._id.to_s
-   $lastResult = Send({ "type": "ideass" , "me": u, "strean": s })
+   $lastResult = Send({ "type": "ideas", "stream": s })
 end
 
 Then('she receives {int} ideas') do |count|
@@ -71,4 +74,20 @@ Then('she receives {int} ideas') do |count|
    expect($lastResult["ideas"].length).to eq(count)
 end
 
+When('she sends streams to downstream2') do
+   $lastResult = SendTo({ "type": "streams" }, 3023, 3022)
+end
 
+When('she sends ideas for {string} to downstream2') do |name|
+   s = Stream.where(name: name).first._id.to_s
+   $lastResult = SendTo({ "type": "ideas", "stream": s }, 3023, 3022)
+end
+
+When('she sends streams to downstream3') do
+   $lastResult = SendTo({ "type": "streams" }, 3033, 3032)
+end
+
+When('she sends ideas for {string} to downstream3') do |name|
+   s = Stream.where(name: name).first._id.to_s
+   $lastResult = SendTo({ "type": "ideas", "stream": s }, 3033, 3032)
+end

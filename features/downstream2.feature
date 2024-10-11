@@ -39,7 +39,7 @@ Feature: Downstream 2 Test
       And the server has upstream "localhost"
       And the server has upstreamPubKey "31r]#CW@p}=]xYRwvg+P>NrDffBG}wXL0%t:[j6("
       And the server has hasInitialSync
-      And the server has upstreamLastSeen "3 Jan 2022"
+      And the server has upstreamLastSeen "1 Jan 2022"
 
 #       And there are media:
 #          | name               | policy    |

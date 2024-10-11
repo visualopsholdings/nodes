@@ -32,6 +32,7 @@ public:
   static long fromISODate(const string &d);
   static long now();
   static string getFutureTime(long now, int hours);
+  static long fromRubyDate(const string &d);
 
 };
 

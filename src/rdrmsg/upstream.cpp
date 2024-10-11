@@ -54,14 +54,7 @@ void upstreamMsg(Server *server, json &j) {
       return;
     }
     
-    // here is where you would gather up all of the things that were changed
-    // locally and send them on.
-    BOOST_LOG_TRIVIAL(warning) << "discoverLocal needs to find changed local content";
-    boost::json::array empty;
-    server->sendDataReq(Json::getString(j, "corr", true), {
-      { "type", "discoverLocal" },
-      { "data", empty }
-    });
+    server->discoverLocal(Json::getString(j, "corr", true));
     return;
 
   }

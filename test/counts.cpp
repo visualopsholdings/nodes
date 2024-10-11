@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
       if (success) {
         success = false;
       }
-      cerr << type.value() << " got " << count << " expected " << expected.value() << endl;
+      cerr << "error: " << type.value() << " got " << count << " expected " << expected.value() << endl;
     }
   }
   

@@ -18,6 +18,7 @@
 #include <cstdlib>
 
 #define TIME_FORMAT "%Y-%m-%dT%H:%M:%S"
+#define RUBY_TIME_FORMAT "%Y-%m-%d %H:%M:%S"
 
 long Date::now() {
 
@@ -81,6 +82,10 @@ long Date::fromISODate(const string &d) {
 
 //  BOOST_LOG_TRIVIAL(trace) << d;
 
+  if (d.rfind("T") == string::npos) {
+    return fromRubyDate(d);
+  }
+  
   auto dot = d.rfind(".");
   if (dot == string::npos) {
     BOOST_LOG_TRIVIAL(error) << "no dot in " << d;
@@ -121,6 +126,55 @@ long Date::fromISODate(const string &d) {
 //  BOOST_LOG_TRIVIAL(trace) << "ms: " << ms;
   
   return (t * 1000) + ms;
+  
+}
+
+long Date::fromRubyDate(const string &d) {
+
+  auto spc = d.rfind(" ");
+  if (spc == string::npos) {
+    BOOST_LOG_TRIVIAL(error) << "no space in " << d;
+    return 0;
+  }
+  
+  string start = d.substr(0, spc);
+//  BOOST_LOG_TRIVIAL(trace) << start;
+  
+  tm tm = {};
+  istringstream ss(start);
+  // 2024-07-01 06:54:39
+  ss >> get_time(&tm, RUBY_TIME_FORMAT);
+   
+//   BOOST_LOG_TRIVIAL(trace) << "tm_sec " << tm.tm_sec;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_mon " << tm.tm_mon;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_year " << tm.tm_year;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_wday " << tm.tm_wday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_yday " << tm.tm_yday;
+//   BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
+
+  auto t = timegm(&tm);
+//  BOOST_LOG_TRIVIAL(trace) << "t: " << t;
+  
+  string rem = d.substr(spc+1);
+//  BOOST_LOG_TRIVIAL(trace) << rem;
+  auto plus = rem.rfind("+");
+  if (plus == string::npos) {
+    BOOST_LOG_TRIVIAL(error) << "no plus in " << rem;
+    return 0;
+  }
+
+  long hrs = atol(rem.substr(1).c_str()) / 100;
+//  BOOST_LOG_TRIVIAL(trace) << hrs;
+  long offs = hrs * 60 * 60;
+  if (rem[0] == '-') {
+    offs *= -1;
+  }
+//  BOOST_LOG_TRIVIAL(trace) << offs;
+
+  return (t + offs) * 1000;
   
 }
 

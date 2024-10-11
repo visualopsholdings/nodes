@@ -59,12 +59,22 @@ void discoverMsg(Server *server, json &j) {
   if (groups) {
     obj["groups"] = groups.value();
   }
+  auto lastStream = Json::getString(j, "lastStream", true);
+  auto streams = Json::getArray(j, "streams", true);
+  if (lastStream) {
+    obj["lastStream"] = lastStream.value();
+  }
+  if (streams) {
+    obj["streams"] = streams.value();
+  }
   Node().updateById(node.value().id(), obj);
   		
   // here is where we would send on everything
   boost::json::array msgs;
   boost::json::array sendusers;
   boost::json::array sendgroups;
+  boost::json::array sendstreams;
+  boost::json::array sendideas;
 
   if (lastUser && users && users.value().size() > 0) {
   
@@ -96,6 +106,38 @@ void discoverMsg(Server *server, json &j) {
     }
   }
   
+  if (lastStream && streams && streams.value().size() > 0) {
+  
+    auto q = SchemaImpl::idRangeAfterDateQuery(streams.value(), lastStream.value());
+  
+    // find all the streams that are newer.
+    auto results = SchemaImpl::findGeneral("streams", q, {});
+    if (results) {
+      auto streams = results->values();
+      if (streams) {
+        for (auto s: streams.value()) {
+          sendstreams.push_back(s);
+        }
+      }
+    }
+    
+    // find all ideas for the streams that are newer.
+    for (auto s: streams.value()) {
+      BOOST_LOG_TRIVIAL(trace) << "ideas for " << s;
+      BOOST_LOG_TRIVIAL(trace) << "after " << lastStream.value();
+      auto iq = SchemaImpl::streamAfterDateQuery(s.as_string().c_str(), lastStream.value());
+      auto idear = SchemaImpl::findGeneral("ideas", iq, {});
+      if (idear) {
+        auto ideas = idear->values();
+        if (ideas) {
+          for (auto i: ideas.value()) {
+            sendideas.push_back(i);
+          }
+        }
+      }
+    }
+  }
+  
   msgs.push_back({
     { "type", "user" },
     { "objs", sendusers }
@@ -103,6 +145,14 @@ void discoverMsg(Server *server, json &j) {
   msgs.push_back({
     { "type", "group" },
     { "objs", sendgroups }
+  });
+  msgs.push_back({
+    { "type", "stream" },
+    { "objs", sendstreams }
+  });
+  msgs.push_back({
+    { "type", "idea" },
+    { "objs", sendideas }
   });
   
   server->sendDown({

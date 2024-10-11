@@ -47,6 +47,7 @@ public:
   void heartbeat();
   void systemStatus(const string &msg);
   void discover();
+  void discoverLocal(optional<string> corr);
   void resetDB();
   
   void publish(optional<string> corr, const json &m) {
@@ -77,6 +78,8 @@ public:
   bool testModifyDate(json &j, const json &doc);
     // test for the modifyDate to be the latest.
     
+  void importObjs(boost::json::array &msgs);
+  
   string _certFile;
   string _chainFile;
   string _hostName;
