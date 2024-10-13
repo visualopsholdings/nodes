@@ -839,11 +839,10 @@ void Server::discover() {
 
 }
 
-void collectObjs(const string &name, bsoncxx::document::view_or_value q, boost::json::array *data) {
+void Server::collectObjs(const string &name, bsoncxx::document::view_or_value q, boost::json::array *data) {
 
   auto result = SchemaImpl::findGeneral(name + "s", q, {});
   if (result) {
-    boost::json::array objs;
     auto vals = result->values();
     if (vals) {
       json obj = {
@@ -877,7 +876,7 @@ void Server::discoverLocal(optional<string> corr) {
   }
   
   BOOST_LOG_TRIVIAL(trace) << "upstream since " << upstreamLastSeen;
-  auto q = SchemaImpl::upstreamAfterDateQuery(upstreamLastSeen);
+  auto q = SchemaImpl::boolFieldEqualAfterDateQuery("upstream", true, upstreamLastSeen);
   boost::json::array data;
   collectObjs("user", q, &data);
   collectObjs("team", q, &data);
@@ -886,8 +885,7 @@ void Server::discoverLocal(optional<string> corr) {
   auto upstreams = Stream().find(json{ { "upstream", true } }, { "_id" }).values();
   if (upstreams) {
     for (auto s: upstreams.value()) {
-      auto q = SchemaImpl::streamAfterDateQuery(s.id(), upstreamLastSeen);
-      collectObjs("idea", q, &data);
+      collectObjs("idea", SchemaImpl::stringFieldEqualAfterDateQuery("stream", s.id(), upstreamLastSeen), &data);
     }
   }
   
@@ -913,12 +911,6 @@ void Server::importObjs(boost::json::array &msgs) {
       BOOST_LOG_TRIVIAL(error) << "msg missing type";
       continue;
     }
-    vector<string> valid{ "user", "group", "stream", "idea" };
-    if (find(valid.begin(), valid.end(), type.value()) == valid.end()) {
-      BOOST_LOG_TRIVIAL(warning) << "message type " << type.value() << " not supported.";
-      continue;
-    }
-    
     auto objs = Json::getArray(m, "objs");
     if (!objs) {
       BOOST_LOG_TRIVIAL(error) << "msg missing objs";

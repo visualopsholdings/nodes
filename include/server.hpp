@@ -17,6 +17,7 @@
 #include <zmq.hpp>
 #include <boost/json.hpp>
 #include <map>
+#include <mongocxx/collection.hpp>
 
 using namespace std;
 using json = boost::json::value;
@@ -79,7 +80,12 @@ public:
     // test for the modifyDate to be the latest.
     
   void importObjs(boost::json::array &msgs);
-  
+    // given msgs in the format of { "type": "user", "objs": [obj, obj] }
+    // import them.
+    
+  void collectObjs(const string &name, bsoncxx::document::view_or_value q, boost::json::array *data);
+    // query locally for the name of the object and fill out an array of the above format.
+    
   string _certFile;
   string _chainFile;
   string _hostName;

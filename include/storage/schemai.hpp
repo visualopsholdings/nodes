@@ -69,8 +69,8 @@ public:
   }
   
   static bsoncxx::document::view_or_value idRangeAfterDateQuery(const boost::json::array &ids, const string &date);
-  static bsoncxx::document::view_or_value streamAfterDateQuery(const string &stream, const string &date);
-  static bsoncxx::document::view_or_value upstreamAfterDateQuery(const string &date);
+  static bsoncxx::document::view_or_value stringFieldEqualAfterDateQuery(const string &field, const string &id, const string &date);
+  static bsoncxx::document::view_or_value boolFieldEqualAfterDateQuery(const string &field, bool value, const string &date);
 
 private:
   static bool testInit();

@@ -310,11 +310,11 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::
 
 }
 
-bsoncxx::document::view_or_value SchemaImpl::streamAfterDateQuery(const string &stream, const string &date) {
+bsoncxx::document::view_or_value SchemaImpl::stringFieldEqualAfterDateQuery(const string &field, const string &id, const string &date) {
 
   auto qs = bsoncxx::builder::basic::array{};
   
-  qs.append(make_document(kvp("stream", stream)));
+  qs.append(make_document(kvp(field, id)));
   
   // make a query with modify date.
   auto t = Date::fromISODate(date);
@@ -326,11 +326,11 @@ bsoncxx::document::view_or_value SchemaImpl::streamAfterDateQuery(const string &
 
 }
 
-bsoncxx::document::view_or_value SchemaImpl::upstreamAfterDateQuery(const string &date) {
+bsoncxx::document::view_or_value SchemaImpl::boolFieldEqualAfterDateQuery(const string &field, bool value, const string &date) {
 
   auto qs = bsoncxx::builder::basic::array{};
   
-  qs.append(make_document(kvp("upstream", true)));
+  qs.append(make_document(kvp(field, value)));
   
   // make a query with modify date.
   auto t = Date::fromISODate(date);
