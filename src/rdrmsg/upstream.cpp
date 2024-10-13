@@ -54,7 +54,7 @@ void upstreamMsg(Server *server, json &j) {
       return;
     }
     
-    server->discoverLocal(Json::getString(j, "corr", true));
+    server->sendUpDiscoverLocal(Json::getString(j, "corr", true));
     return;
 
   }

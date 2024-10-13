@@ -1,0 +1,15 @@
+[
+  {
+    "type": "user"
+  },
+  {
+    "type": "group"
+  },
+  {
+    "type": "stream",
+    "subobj": {
+      "type": "idea",
+      "field": "stream"
+    }
+  }
+]

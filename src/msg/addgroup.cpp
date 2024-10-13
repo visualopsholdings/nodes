@@ -60,7 +60,7 @@ void addGroupMsg(Server *server, json &j) {
     server->sendAck();
     
     // run discovery.  
-    server->discover();
+    server->sendUpDiscover();
     return;
   }
   

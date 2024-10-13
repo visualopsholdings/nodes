@@ -22,7 +22,7 @@ void dateMsg(Server *server, json &j) {
   BOOST_LOG_TRIVIAL(trace) << "date " << j;
      
   if (!server->_online) {
-    server->online();
+    server->sendUpOnline();
   }
   
   auto date = Json::getString(j, "date");

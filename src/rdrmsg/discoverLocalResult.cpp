@@ -21,7 +21,7 @@ namespace nodes {
 void discoverLocalResultMsg(Server *server, json &) {
    
   // the server has inserted all the local stuff, discover what's out there.
-  server->discover();
+  server->sendUpDiscover();
 
 }
 

@@ -43,12 +43,13 @@ public:
   void connectUpstream();
   void clearUpstream();
   void stopUpstream();
-  void online();
+  void sendUpOnline();
   void serveOnline();
-  void heartbeat();
+  void sendUpHeartbeat();
   void systemStatus(const string &msg);
-  void discover();
-  void discoverLocal(optional<string> corr);
+  void sendUpDiscover();
+  void sendUpDiscoverLocal(optional<string> corr);
+  void sendDownDiscoverResult(json &j);
   void resetDB();
   
   void publish(optional<string> corr, const json &m) {
@@ -115,6 +116,7 @@ private:
   string _pubKey;
   time_t _lastHeartbeat;
   bool _noupstream;
+  json _schema;
   
   void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);

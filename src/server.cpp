@@ -25,6 +25,8 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp> 
 #include <boost/algorithm/string.hpp>
+#include <fstream>
+#include <cctype>
 
 #define HEARTBEAT_INTERVAL 5 // in seconds
 
@@ -87,6 +89,8 @@ void discoverMsg(Server *server, json &json);
 void queryDrMsg(Server *server, json &json);
 
 }
+
+string getHome();
 
 Server::Server(bool test, bool noupstream, 
     int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
@@ -163,6 +167,18 @@ Server::Server(bool test, bool noupstream,
   
   Storage::instance()->init(dbConn, dbName);
   
+  ifstream file(getHome() + "/scripts/schema.json");
+  if (file) {
+    string input(istreambuf_iterator<char>(file), {});
+    _schema = boost::json::parse(input);
+    if (!_schema.is_array()) {
+      BOOST_LOG_TRIVIAL(error) << "file does not contain array";
+    }
+  }
+  else {
+    BOOST_LOG_TRIVIAL(error) << "schema file not found";
+  }
+  
 }
   
 Server::~Server() {
@@ -182,7 +198,7 @@ void Server::runUpstreamOnly() {
     // check connection events for upstream stuff.
     _remoteDataReq->check();
     if (_online) {
-      heartbeat();
+      sendUpHeartbeat();
     }
     else {
 //      BOOST_LOG_TRIVIAL(trace) << "not online yet";
@@ -221,7 +237,7 @@ void Server::runUpstreamDownstream() {
     // check connection events for upstream stuff.
     _remoteDataReq->check();
     if (_online) {
-      heartbeat();
+      sendUpHeartbeat();
     }
     else {
 //      BOOST_LOG_TRIVIAL(trace) << "not online yet";
@@ -651,7 +667,7 @@ void Server::connectUpstream() {
     
 }
 
-void Server::online() {
+void Server::sendUpOnline() {
 
   BOOST_LOG_TRIVIAL(trace) << "online";
 
@@ -673,7 +689,7 @@ void Server::online() {
   
 }
 
-void Server::heartbeat() {
+void Server::sendUpHeartbeat() {
 
   // only every now and then.
   time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -796,7 +812,7 @@ string Server::getLastDate(optional<vector<RowType > > rows, const string &hasIn
   
 }
 
-void Server::discover() {
+void Server::sendUpDiscover() {
 
   auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen"}}} }}, {"type", "text"}).values();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
@@ -855,7 +871,7 @@ void Server::collectObjs(const string &name, bsoncxx::document::view_or_value q,
 
 }
 
-void Server::discoverLocal(optional<string> corr) {
+void Server::sendUpDiscoverLocal(optional<string> corr) {
 
   auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen"}}} }}, {"type", "text"}).values();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
@@ -875,23 +891,126 @@ void Server::discoverLocal(optional<string> corr) {
     return;
   }
   
+  // use the schema to 
   BOOST_LOG_TRIVIAL(trace) << "upstream since " << upstreamLastSeen;
   auto q = SchemaImpl::boolFieldEqualAfterDateQuery("upstream", true, upstreamLastSeen);
-  boost::json::array data;
-  collectObjs("user", q, &data);
-  collectObjs("team", q, &data);
-  collectObjs("stream", q, &data);
 
-  auto upstreams = Stream().find(json{ { "upstream", true } }, { "_id" }).values();
-  if (upstreams) {
-    for (auto s: upstreams.value()) {
-      collectObjs("idea", SchemaImpl::stringFieldEqualAfterDateQuery("stream", s.id(), upstreamLastSeen), &data);
+  boost::json::array data;
+  for (auto o: _schema.as_array()) {
+    auto type = Json::getString(o, "type");
+    if (!type) {
+      BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
+      return;
+    }
+    collectObjs(type.value(), q, &data);
+    
+    auto subobj = Json::getObject(o, "subobj", true);
+    if (subobj) {
+      auto subtype = Json::getString(subobj.value(), "type");
+      if (!subtype) {
+        BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+        return;
+      }
+      auto field = Json::getString(subobj.value(), "field");
+      if (!field) {
+        BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
+        return;
+      }
+      auto result = SchemaImpl::findGeneral(type.value() + "s", json{ { "upstream", true } }, { "_id" });
+      if (result) {
+        auto upstreams = result->values();
+        if (upstreams) {
+          for (auto o: upstreams.value()) {
+            auto id = Json::getString(o, "id");
+            collectObjs(subtype.value(), SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data);
+          }
+        }
+      }
     }
   }
   
   sendDataReq(corr, {
     { "type", "discoverLocal" },
     { "data", data }
+  });
+
+}
+
+void Server::sendDownDiscoverResult(json &j) {
+
+  auto src = Json::getString(j, "src");
+  if (!src) {
+    sendErrDown("discover missing src");
+    return;
+  }
+
+  auto node = Node().find(json{ { "serverId", src.value() } }, {}).value();
+  if (!node) {
+    sendErrDown("discover no node");
+    return;
+  }
+  
+  if (!node.value().valid()) {
+    sendErrDown("discover node invalid");
+    return;
+  }
+
+  boost::json::array msgs;
+  boost::json::object obj;
+  for (auto o: _schema.as_array()) {
+    auto type = Json::getString(o, "type");
+    if (!type) {
+      BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
+      return;
+    }
+    
+    string lastname = type.value();
+    lastname[0] = toupper(lastname[0]);
+    lastname = "last" + lastname;
+    BOOST_LOG_TRIVIAL(trace) << lastname;
+    
+    auto objsname = type.value() + "s";
+    BOOST_LOG_TRIVIAL(trace) << objsname;
+
+    auto last = Json::getString(j, lastname, true);
+    auto objs = Json::getArray(j, objsname, true);
+    if (last) {
+      obj[lastname] = last.value();
+    }
+    if (objs) {
+      obj[objsname] = objs.value();
+    }
+    if (last && objs && objs.value().size() > 0) {
+      collectObjs(type.value(), SchemaImpl::idRangeAfterDateQuery(objs.value(), last.value()), &msgs);
+      
+      auto subobj = Json::getObject(o, "subobj", true);
+      if (subobj) {
+        auto subtype = Json::getString(subobj.value(), "type");
+        if (!subtype) {
+          BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+          return;
+        }
+        auto field = Json::getString(subobj.value(), "field");
+        if (!field) {
+          BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
+          return;
+        }
+        for (auto s: objs.value()) {
+          collectObjs(subtype.value(), SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), s.as_string().c_str(), last.value()), &msgs);
+        }
+      }
+    }
+  
+  }
+
+  // update the node where we are.  
+  Node().updateById(node.value().id(), obj);
+
+  // and send the result on.
+  sendDown({
+    { "type", "discoverResult" },
+    { "msgs", msgs },
+    
   });
 
 }
