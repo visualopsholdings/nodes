@@ -100,7 +100,7 @@ Feature: Downstream Test
       And she receives user "Joan"
       
       And she sends set user fullname of "6121bdfaec9e5a059715739c" to "Sue" to upstream
-      And she waits 2 seconds
+      And she waits 1 seconds
       
       And she sends user with id "6121bdfaec9e5a059715739c"
       And she receives user "Sue"
@@ -114,3 +114,48 @@ Feature: Downstream Test
       And she sends user "6121bdfaec9e5a059715739c" to downstream4
       And she receives user "Sue"
 
+ 	@javascript
+   Scenario: Change to a group is reflected in the downstream servers
+   
+      When she sends set group name of "Team 1" to "New Group"
+      
+      And she sends group "613d8641ec9e5a6c4785d6d2" to upstream
+      And she receives group "New Group"
+
+      And she sends set group name of "613d8641ec9e5a6c4785d6d2" to "Another Group" to upstream
+      And she waits 1 seconds
+
+      And she sends group with id "613d8641ec9e5a6c4785d6d2"
+      And she receives group "Another Group"
+
+      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream2
+      And she receives group "Another Group"
+      
+      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream3
+      And she receives group "Another Group"
+      
+      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream4
+      And she receives group "Another Group"
+ 
+  	@javascript
+   Scenario: Change to a stream is reflected in the downstream servers
+   
+      When she sends set stream name of "Shared Stream" to "Stream x"
+
+      And she sends stream "61a0b4de98499a20f0768351" to upstream
+      And she receives stream "Stream x"
+
+      And she sends set stream name of "61a0b4de98499a20f0768351" to "Stream y" to upstream
+      And she waits 1 seconds
+
+      And she sends stream with id "61a0b4de98499a20f0768351"
+      And she receives stream "Stream y"
+
+      And she sends stream "61a0b4de98499a20f0768351" to downstream2
+      And she receives stream "Stream y"
+      
+      And she sends stream "61a0b4de98499a20f0768351" to downstream3
+      And she receives stream "Stream y"
+      
+      And she sends stream "61a0b4de98499a20f0768351" to downstream4
+      And she receives stream "Stream y"

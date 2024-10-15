@@ -20,6 +20,10 @@ When('she sends stream {string} as {string}') do |name, user|
    $lastResult = Send({ "type": "stream" , "me": u, "stream": s })
 end
 
+When('she sends stream with id {string}') do |id|
+   $lastResult = Send({ "type": "stream", "stream": id })
+end
+
 Then('she receives stream {string}') do |name|
    expect($lastResult["type"]).to eq("stream")
    expect($lastResult["stream"]["name"]).to eq(name)
@@ -96,4 +100,29 @@ end
 
 When('she sends ideas for {string} to downstream4') do |id|
    $lastResult = SendTo({ "type": "ideas", "stream": id }, 3043, 3042)
+end
+
+When('she sends set stream name of {string} to {string}') do |name, newname|
+   s = Stream.where(name: name).first._id.to_s
+   $lastResult = Send({ "type": "setstream", "id": s, "name": newname })
+end
+
+When('she sends stream {string} to upstream') do |id|
+   $lastResult = SendTo({ "type": "stream", "stream": id }, 3013, 3012)
+end
+
+When('she sends stream {string} to downstream2') do |id|
+   $lastResult = SendTo({ "type": "stream", "stream": id }, 3023, 3022)
+end
+
+When('she sends stream {string} to downstream3') do |id|
+   $lastResult = SendTo({ "type": "stream", "stream": id }, 3033, 3032)
+end
+
+When('she sends stream {string} to downstream4') do |id|
+   $lastResult = SendTo({ "type": "stream", "stream": id }, 3043, 3042)
+end
+
+When('she sends set stream name of {string} to {string} to upstream') do |id, newname|
+   $lastResult = SendTo({ "type": "setstream", "id": id, "name": newname }, 3013, 3012)
 end

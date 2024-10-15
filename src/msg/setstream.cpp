@@ -53,6 +53,15 @@ void setStreamMsg(Server *server, json &j) {
   if (streambits) {
     obj["streambits"] = streambits.value();
   }
+
+  // send to other nodes.
+  boost::json::object obj2 = obj;
+  if (doc.value().upstream()) {
+    obj2["upstream"] = true;
+  }
+  server->sendUpd("stream", id.value(), obj2, "");
+    
+  // update locally
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
   auto result = streams.updateById(id.value(), obj);
   if (!result) {

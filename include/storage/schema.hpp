@@ -107,6 +107,7 @@ public:
   string name() { return getString("name"); }
   string policy() { return getString("policy"); }
   int streambits() { return getNumber("streambits"); }
+  bool upstream() { return getBool("upstream"); }
   
 };
 
@@ -151,6 +152,7 @@ public:
   string policy() { return getString("policy"); }
   string modifyDate() { return getString("modifyDate"); }
   vector<MemberRow> members();
+  bool upstream() { return getBool("upstream"); }
   
 };
 

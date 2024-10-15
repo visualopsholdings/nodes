@@ -45,10 +45,19 @@ void setGroupMsg(Server *server, json &j) {
   boost::json::object obj = {
     { "modifyDate", Storage::instance()->getNow() }
   };
-  auto name = Json::getString(j, "name");
+  auto name = Json::getString(j, "name", true);
   if (name) {
     obj["name"] = name.value();
   }
+  
+  // send to other nodes.
+  boost::json::object obj2 = obj;
+  if (doc.value().upstream()) {
+    obj2["upstream"] = true;
+  }
+  server->sendUpd("group", id.value(), obj2, "");
+    
+  // update locally
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
   auto result = groups.updateById(id.value(), obj);
   if (!result) {
