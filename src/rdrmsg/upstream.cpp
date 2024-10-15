@@ -19,7 +19,7 @@ namespace nodes {
 
 void upstreamMsg(Server *server, json &j) {
    
-  auto msg = Json::getString(j, "msg");
+  auto msg = Json::getString(j, "msg", true);
   if (msg) {
     BOOST_LOG_TRIVIAL(error) << "online err " << msg.value();
     return;

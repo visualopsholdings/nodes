@@ -84,9 +84,6 @@ public:
     // given msgs in the format of { "type": "user", "objs": [obj, obj] }
     // import them.
     
-  void collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data);
-    // query locally for the name of the object and fill out an array of the above format.
-    
   string _certFile;
   string _chainFile;
   string _hostName;
@@ -116,7 +113,7 @@ private:
   string _pubKey;
   time_t _lastHeartbeat;
   bool _noupstream;
-  json _schema;
+  boost::json::array _schema;
   
   void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
@@ -127,8 +124,11 @@ private:
   void runUpstreamDownstream();
   void runDownstreamOnly();
   string getLastDate(optional<boost::json::array> objs, const string &hasInitialSync, const string &upstreamLastSeen);
-  string collName(const string &type, optional<bool> noplural);
-    
+  string collName(const string &type, optional<string> coll);
+  void sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr);
+  void sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr);
+  void collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies);
+  void collectPolicies(const vector<string> &policies, boost::json::array *data);
 };
 
 #endif // H_server

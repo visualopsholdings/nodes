@@ -17,10 +17,15 @@
   },
   {
     "type": "media",
-    "noplural": true,
+    "coll": "media",
     "subobj": {
       "type": "format",
       "field": "media"
     }
+  },
+  {
+    "type": "policy",
+    "coll": "policies",
+    "nosync": true
   }
 ]

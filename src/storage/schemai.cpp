@@ -21,6 +21,7 @@
 #include <sstream>
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/oid.hpp>
+#include <bsoncxx/exception/exception.hpp>
 #include <fstream>
 
 using namespace bsoncxx::builder::basic;
@@ -291,12 +292,21 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::
   auto qs = bsoncxx::builder::basic::array{};
   
   // convert all the user ids to oids.
-  auto oids = bsoncxx::builder::basic::array{};
-  for (auto u: ids) {
-    oids.append(bsoncxx::oid(u.as_string().c_str()));
+  if (ids.size() == 1 && ids[0] == "*") {
+    // don't include in the query, it's everything.
   }
-  auto idrange = make_document(kvp("$in", oids));
-  qs.append(make_document(kvp("_id", idrange)));
+  else {
+    auto oids = bsoncxx::builder::basic::array{};
+    for (auto u: ids) {
+      try {
+        oids.append(bsoncxx::oid(u.as_string().c_str()));
+      }
+      catch (bsoncxx::exception &exc) {
+        BOOST_LOG_TRIVIAL(error) << "idRangeAfterDateQuery " << exc.what();
+      }
+    }
+    qs.append(make_document(kvp("_id", make_document(kvp("$in", oids)))));
+  }
   
   // make a query with modify date.
   auto t = Date::fromISODate(date);
@@ -307,6 +317,22 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::
   
   // make the overall query.
   return make_document(kvp("$and", qs));
+
+}
+
+bsoncxx::document::view_or_value SchemaImpl::idRangeQuery(const vector<string> &ids) {
+
+  auto oids = bsoncxx::builder::basic::array{};
+  for (auto u: ids) {
+    try {
+      oids.append(bsoncxx::oid(u));
+    }
+    catch (bsoncxx::exception &exc) {
+      BOOST_LOG_TRIVIAL(error) << "idRangeQuery " << exc.what();
+    }
+  }
+  
+  return make_document(kvp("_id", make_document(kvp("$in", oids))));
 
 }
 
@@ -341,4 +367,16 @@ bsoncxx::document::view_or_value SchemaImpl::boolFieldEqualAfterDateQuery(const 
   return make_document(kvp("$and", qs));
 
 }
+
+bsoncxx::document::view_or_value SchemaImpl::afterDateQuery(const string &date) {
+
+  // make a query with modify date.
+  auto t = Date::fromISODate(date);
+  auto d = bsoncxx::types::b_date(chrono::milliseconds(t));
+  
+  // make the overall query.
+  return make_document(kvp("modifyDate", make_document(kvp("$gt", d))));
+
+}
+
 

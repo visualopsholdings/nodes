@@ -78,16 +78,22 @@ When('she sends streams to downstream2') do
    $lastResult = SendTo({ "type": "streams" }, 3023, 3022)
 end
 
-When('she sends ideas for {string} to downstream2') do |name|
-   s = Stream.where(name: name).first._id.to_s
-   $lastResult = SendTo({ "type": "ideas", "stream": s }, 3023, 3022)
+When('she sends ideas for {string} to downstream2') do |id|
+   $lastResult = SendTo({ "type": "ideas", "stream": id }, 3023, 3022)
 end
 
 When('she sends streams to downstream3') do
    $lastResult = SendTo({ "type": "streams" }, 3033, 3032)
 end
 
-When('she sends ideas for {string} to downstream3') do |name|
-   s = Stream.where(name: name).first._id.to_s
-   $lastResult = SendTo({ "type": "ideas", "stream": s }, 3033, 3032)
+When('she sends ideas for {string} to downstream3') do |id|
+   $lastResult = SendTo({ "type": "ideas", "stream": id }, 3033, 3032)
+end
+
+When('she sends streams to downstream4') do
+   $lastResult = SendTo({ "type": "streams" }, 3043, 3042)
+end
+
+When('she sends ideas for {string} to downstream4') do |id|
+   $lastResult = SendTo({ "type": "ideas", "stream": id }, 3043, 3042)
 end

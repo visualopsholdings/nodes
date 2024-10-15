@@ -170,10 +170,11 @@ Server::Server(bool test, bool noupstream,
   ifstream file(getHome() + "/scripts/schema.json");
   if (file) {
     string input(istreambuf_iterator<char>(file), {});
-    _schema = boost::json::parse(input);
-    if (!_schema.is_array()) {
+    auto json = boost::json::parse(input);
+    if (!json.is_array()) {
       BOOST_LOG_TRIVIAL(error) << "file does not contain array";
     }
+    _schema = json.as_array();
   }
   else {
     BOOST_LOG_TRIVIAL(error) << "schema file not found";
@@ -677,7 +678,7 @@ void Server::sendUpOnline() {
     return;
   }
   
-  sendDataReq(nullopt, {
+  boost::json::object msg = {
     { "type", "online" },
     { "build", "28474" },
     { "headerTitle", doc.value().headerTitle() },
@@ -685,7 +686,14 @@ void Server::sendUpOnline() {
     { "hasInitialSync", "true" },
     { "pubKey", _pubKey },
 //    { "dest", _upstreamId }    
-  });
+  };
+  
+  string mirror = get1Info("upstreamMirror");
+  if (mirror == "true") {
+    msg["mirror"] = true;
+  }
+  
+  sendDataReq(nullopt, msg);
   
 }
 
@@ -813,33 +821,43 @@ string Server::getLastDate(optional<boost::json::array> rows, const string &hasI
 
 void Server::sendUpDiscover() {
 
-  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen"}}} }}, {"type", "text"}).values();
+  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).values();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
   string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
+  string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "");
   
   boost::json::object msg = {
     { "type", "discover" },
     { "hasInitialSync", hasInitialSync == "true" }
   };
 
-  for (auto o: _schema.as_array()) {
+  for (auto o: _schema) {
     auto type = Json::getString(o, "type");
     if (!type) {
       BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
       return;
     }
-    string collname = collName(type.value(), Json::getBool(o, "noplural", true));
-    auto objs = SchemaImpl::findGeneral(collname, json{{ "upstream", true }}, { "_id", "modifyDate" })->values();
-    vector<string> ids;
-    if (objs) {
-      transform(objs.value().begin(), objs.value().end(), back_inserter(ids), [](auto e) {
-        return e.as_object().at("id").as_string().c_str(); 
-      });
-    }
+    
+    string collname = collName(type.value(), Json::getString(o, "coll", true));
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
-    msg[lastname] = getLastDate(objs, hasInitialSync, upstreamLastSeen);
+
+    vector<string> ids;
+    if (upstreamMirror == "true") {
+      // "*" means ALL objects.
+      ids.push_back("*");
+      msg[lastname] = getLastDate(nullopt, hasInitialSync, upstreamLastSeen);
+    }
+    else {
+      auto objs = SchemaImpl::findGeneral(collname, json{{ "upstream", true }}, { "_id", "modifyDate" })->values();
+      if (objs) {
+        transform(objs.value().begin(), objs.value().end(), back_inserter(ids), [](auto e) {
+          return e.as_object().at("id").as_string().c_str(); 
+        });
+      }
+      msg[lastname] = getLastDate(objs, hasInitialSync, upstreamLastSeen);
+    }
     msg[collname] =  boost::json::value_from(ids);
   }
   
@@ -847,7 +865,7 @@ void Server::sendUpDiscover() {
 
 }
 
-void Server::collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data) {
+void Server::collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies) {
 
   auto result = SchemaImpl::findGeneral(collname, q, {});
   if (result) {
@@ -858,56 +876,66 @@ void Server::collectObjs(const string &type, const string &collname, bsoncxx::do
         { "objs", vals.value() }
       };
       data->push_back(obj);
+      
+      // collect all the policies of the objects
+      for (auto i: vals.value()) {
+        auto p = Json::getString(i, "policy", true);
+        if (p) {
+          if (find(policies->begin(), policies->end(), p.value()) == policies->end()) {
+            policies->push_back(p.value());
+          }
+        }
+      }
     }
   }
 
 }
 
-string Server::collName(const string &type, optional<bool> noplural) {
+void Server::collectPolicies(const vector<string> &policies, boost::json::array *data) {
 
-  string collname = type;
-  if (!noplural || !noplural.value()) {
-    collname += "s";
+  auto q = SchemaImpl::idRangeQuery(policies);
+  auto result = SchemaImpl::findGeneral("policies", q, {});
+  if (result) {
+    auto vals = result->values();
+    if (vals) {
+      json obj = {
+        { "type", "policy" },
+        { "objs", vals.value() }
+      };
+      data->push_back(obj);
+    }
   }
-  return collname;
+
+}
+
+string Server::collName(const string &type, optional<string> coll) {
+
+  return coll ? coll.value() : (type + "s");
   
 }
 
-void Server::sendUpDiscoverLocal(optional<string> corr) {
-
-  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen"}}} }}, {"type", "text"}).values();
-  string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
-  string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
-  
-  if (hasInitialSync != "true") {
-    BOOST_LOG_TRIVIAL(trace) << "no initial sync, nothing to discover locally.";
-    boost::json::array empty;
-    sendDataReq(corr, {
-      { "type", "discoverLocal" },
-      { "data", empty }
-    });
-    return;
-  }
-  if (upstreamLastSeen == "") {
-    BOOST_LOG_TRIVIAL(error) << "initial sync, but no upstreamLastSeen?";
-    return;
-  }
-  
-  // use the schema to 
-  BOOST_LOG_TRIVIAL(trace) << "upstream since " << upstreamLastSeen;
+void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr) {
+    
   auto q = SchemaImpl::boolFieldEqualAfterDateQuery("upstream", true, upstreamLastSeen);
 
   boost::json::array data;
-  for (auto o: _schema.as_array()) {
+  vector<string> policies;
+  for (auto o: _schema) {
+  
+    auto nosync = Json::getBool(o, "nosync", true);
+    if (nosync && nosync.value()) {
+      continue;
+    }
+    
     auto type = Json::getString(o, "type");
     if (!type) {
       BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
       return;
     }
     
-    string collname = collName(type.value(), Json::getBool(o, "noplural", true));
+    string collname = collName(type.value(), Json::getString(o, "coll", true));
     
-    collectObjs(type.value(), collname, q, &data);
+    collectObjs(type.value(), collname, q, &data, &policies);
     
     auto subobj = Json::getObject(o, "subobj", true);
     if (subobj) {
@@ -925,21 +953,114 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
       if (result) {
         auto upstreams = result->values();
         if (upstreams) {
-          string subcollname = collName(subtype.value(), Json::getBool(subobj.value(), "noplural", true));
+          string subcollname = collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
           for (auto o: upstreams.value()) {
             auto id = Json::getString(o, "id");
-            collectObjs(subtype.value(), subcollname, SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data);
+            collectObjs(subtype.value(), subcollname, SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data, &policies);
           }
         }
       }
     }
   }
   
+  // we don't send policies upstream.
+  // that's why the policies array is ignored.
+  
+  sendDataReq(corr, {
+    { "type", "discoverLocal" },
+    { "data", data }
+  });
+  
+}
+
+void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr) {
+    
+  auto q = SchemaImpl::afterDateQuery(upstreamLastSeen);
+
+  boost::json::array data;
+  vector<string> policies;
+  for (auto o: _schema) {
+  
+    auto nosync = Json::getBool(o, "nosync", true);
+    if (nosync && nosync.value()) {
+      continue;
+    }
+    
+    auto type = Json::getString(o, "type");
+    if (!type) {
+      BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
+      return;
+    }
+    
+    string collname = collName(type.value(), Json::getString(o, "coll", true));
+    
+    collectObjs(type.value(), collname, q, &data, &policies);
+    
+    auto subobj = Json::getObject(o, "subobj", true);
+    if (subobj) {
+      auto subtype = Json::getString(subobj.value(), "type");
+      if (!subtype) {
+        BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+        return;
+      }
+      auto field = Json::getString(subobj.value(), "field");
+      if (!field) {
+        BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
+        return;
+      }
+      auto result = SchemaImpl::findGeneral(collname, json{{}}, { "_id" });
+      if (result) {
+        auto upstreams = result->values();
+        if (upstreams) {
+          string subcollname = collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+          for (auto o: upstreams.value()) {
+            auto id = Json::getString(o, "id");
+            collectObjs(subtype.value(), subcollname, SchemaImpl::afterDateQuery(upstreamLastSeen), &data, &policies);
+          }
+        }
+      }
+    }
+  }
+  
+  collectPolicies(policies, &data);
+
   sendDataReq(corr, {
     { "type", "discoverLocal" },
     { "data", data }
   });
 
+}
+
+void Server::sendUpDiscoverLocal(optional<string> corr) {
+
+  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).values();
+  string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
+  string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
+  string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "");
+  
+  if (hasInitialSync != "true") {
+    BOOST_LOG_TRIVIAL(trace) << "no initial sync, nothing to discover locally.";
+    boost::json::array empty;
+    sendDataReq(corr, {
+      { "type", "discoverLocal" },
+      { "data", empty }
+    });
+    return;
+  }
+  if (upstreamLastSeen == "") {
+    BOOST_LOG_TRIVIAL(error) << "initial sync, but no upstreamLastSeen?";
+    return;
+  }
+
+  // use the schema to 
+  BOOST_LOG_TRIVIAL(trace) << "upstream since " << upstreamLastSeen;
+  
+  if (upstreamMirror == "true") {
+    sendUpDiscoverLocalMirror(upstreamLastSeen, corr);
+  }
+  else {
+    sendUpDiscoverLocalUpstream(upstreamLastSeen, corr);
+  }
 }
 
 void Server::sendDownDiscoverResult(json &j) {
@@ -963,15 +1084,21 @@ void Server::sendDownDiscoverResult(json &j) {
 
   boost::json::array msgs;
   boost::json::object obj;
-  for (auto o: _schema.as_array()) {
+  vector<string> policies;
+  for (auto o: _schema) {
   
+    auto nosync = Json::getBool(o, "nosync", true);
+    if (nosync && nosync.value()) {
+      continue;
+    }
+    
     auto type = Json::getString(o, "type");
     if (!type) {
       BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
       return;
     }
     
-    string collname = collName(type.value(), Json::getBool(o, "noplural", true));
+    string collname = collName(type.value(), Json::getString(o, "coll", true));
 
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
@@ -989,8 +1116,9 @@ void Server::sendDownDiscoverResult(json &j) {
     if (objs) {
       obj[objsname] = objs.value();
     }
+    
     if (last && objs && objs.value().size() > 0) {
-      collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(objs.value(), last.value()), &msgs);
+      collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(objs.value(), last.value()), &msgs, &policies);
       
       auto subobj = Json::getObject(o, "subobj", true);
       if (subobj) {
@@ -1004,15 +1132,28 @@ void Server::sendDownDiscoverResult(json &j) {
           BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
           return;
         }
-        string subcollname = collName(subtype.value(), Json::getBool(subobj.value(), "noplural", true));
-        for (auto s: objs.value()) {
-          collectObjs(subtype.value(), subcollname, SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), s.as_string().c_str(), last.value()), &msgs);
+        string subcollname = collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+        if (objs.value().size() == 1 && objs.value()[0] == "*") {
+          // collect ALL sub objects after the date.
+          auto objs = SchemaImpl::findGeneral(collname, json{{}}, { "_id" })->values();
+          for (auto o: objs.value()) {
+            collectObjs(subtype.value(), subcollname, 
+              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), Json::getString(o, "id").value(), last.value()), &msgs, &policies);
+          }
+        }
+        else {
+          for (auto s: objs.value()) {
+            collectObjs(subtype.value(), subcollname, 
+              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), s.as_string().c_str(), last.value()), &msgs, &policies);
+          }
         }
       }
     }
   
   }
 
+  collectPolicies(policies, &msgs);
+  
   // update the node where we are.  
   Node().updateById(node.value().id(), obj);
 
@@ -1046,11 +1187,20 @@ void Server::importObjs(boost::json::array &msgs) {
       continue;
     }
     
-    // TBD: lookup pluralise.
-    string collname = type.value();
-    if (collname != "media") {
-      collname += "s";
+    // work out how to pluralise.
+    auto scheme = find_if(_schema.begin(), _schema.end(), [&type](auto e) {
+      auto t = Json::getString(e, "type");
+      return t && t.value() == type;
+    });
+    string collname;
+    if (scheme == _schema.end()) {
+      collname = type.value() + "s";
     }
+    else {
+      auto coll = Json::getString(*scheme, "coll", true);
+        collname = coll ? coll.value() : (type.value() + "s");
+    }
+ 
     Storage::instance()->bulkInsert(collname, objs.value());
 
     auto more = Json::getBool(m, "more", true);

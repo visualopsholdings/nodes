@@ -74,22 +74,19 @@ Feature: Downstream Test
 
       When she sends streams to downstream2
       Then she receives 3 streams
-	   When she sends ideas for "Shared Stream" to downstream2
+	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream2
       Then she receives 15 ideas
       
       When she sends streams to downstream3
       Then she receives 2 streams
-	   When she sends ideas for "Shared Stream" to downstream3
+	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream3
       Then she receives 15 ideas
 
-#       #downstream4
-#       When "tracy" log into other4 app "conversations"
-# 	   And eventually there are 4 streams
-#  	   And she clicks "Stream 1"
-# # 	   Then before the end of time the page contains "1 – 30 of 1000"
-#  	   Then before the end of time the page contains "1 – 20 of 20"
-#  	   And she clicks "Stream 2"
-#  	   Then before the end of time the page contains "1 – 1 of 1"
-# #  	   And she clicks "Shared Stream"
-# #  	   Then before the end of time the page contains "1 – 5 of 5"
-
+      When she sends streams to downstream4
+      Then she receives 5 streams
+	   When she sends ideas for "613ee472ec9e5aafc85e1301" to downstream4
+      Then she receives 20 ideas
+	   When she sends ideas for "61444c6addf5aaa6a02e05b7" to downstream4
+      Then she receives 1 ideas
+	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream4
+      Then she receives 10 ideas

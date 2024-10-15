@@ -17,7 +17,7 @@ finish() {
 	ci/kill.sh upstream
 	ci/kill.sh downstream2
 	ci/kill.sh downstream3
-#	ci/kill.sh downstream4
+  ci/kill.sh downstream4
 # 	ci/kill.sh downstream5
 }
 
@@ -37,27 +37,27 @@ ci/run.sh upstream
 
 # ci/nodestest.sh "A build can be downloaded"
 # [ "$?" != "0" ] && fail
-# 
+
 ci/nodestest.sh "An existing user can be pulled from upstream"
 [ "$?" != "0" ] && fail
 
 ci/nodestest.sh "An existing group can be pulled from upstream"
 [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "An existing sequence can be pulled from upstream"
+# ci/nodestest.sh "An existing doc can be pulled from upstream"
 # [ "$?" != "0" ] && fail
 # 
 # ci/nodestest.sh "An existing media can be pulled from upstream"
 # [ "$?" != "0" ] && fail
-# 
+
 ci/run.sh downstream2
 [ "$?" != "0" ] && fail
 
 ci/run.sh downstream3
 [ "$?" != "0" ] && fail
 
-# ci/run.sh downstream4
-# [ "$?" != "0" ] && fail
+ci/run.sh downstream4
+[ "$?" != "0" ] && fail
 
 ci/nodestest.sh "Downstreams have synced"
 [ "$?" != "0" ] && fail
