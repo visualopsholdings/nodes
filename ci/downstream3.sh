@@ -13,8 +13,7 @@ then
   [ "$?" != "0" ] && exit 1
 
   echo "downstream3 pre count"
-#  node counts.js --users=2 --groups=2 --streams=2 --ideas=5 --sequences=2 --media=0 --formats=0 --policies=1
-  build/Counts --dbName=test3 --users=2 --groups=2 --streams=2 --ideas=5 --policies=1
+  build/Counts --dbName=test3 --users=2 --groups=2 --streams=2 --ideas=5 --docs=1 --media=0 --formats=0 --policies=1
   [ "$?" != "0" ] && exit 1
 fi
 

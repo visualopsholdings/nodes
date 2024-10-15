@@ -84,7 +84,7 @@ public:
     // given msgs in the format of { "type": "user", "objs": [obj, obj] }
     // import them.
     
-  void collectObjs(const string &name, bsoncxx::document::view_or_value q, boost::json::array *data);
+  void collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data);
     // query locally for the name of the object and fill out an array of the above format.
     
   string _certFile;
@@ -126,9 +126,8 @@ private:
   void runStandalone();
   void runUpstreamDownstream();
   void runDownstreamOnly();
-  
-  template <typename RowType>
-  string getLastDate(optional<vector<RowType > > rows, const string &hasInitialSync, const string &upstreamLastSeen);
+  string getLastDate(optional<boost::json::array> objs, const string &hasInitialSync, const string &upstreamLastSeen);
+  string collName(const string &type, optional<bool> noplural);
     
 };
 

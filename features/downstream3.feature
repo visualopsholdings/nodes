@@ -35,10 +35,10 @@ Feature: Downstream 3 Test
          | Shared Stream      | 61a0b4de98499a20f0768351    | true      | 1 Jan 2022   | p1     |
          | Stream 4           | 637aa99202e727169a58282f    | true      | 4 Jan 2022   | p1     |
 
-#       And there are sequences:
-#          | name               | id                       | data                     | upstream  | modifyDate   | policy |
-#          | Count Y            | 6134e711a6041562149f4ef2 | testdata/seq/count.json  | true      | 4 Jan 2022   | p1     |
-# 
+      And there are docs:
+         | name               | id                       | data                     | upstream  | modifyDate   | policy |
+         | Count Y            | 6134e711a6041562149f4ef2 | testdata/doc/count.json  | true      | 4 Jan 2022   | p1     |
+
       And there are 5 generated messages in stream "Shared Stream" from "fred" with policy "p1"
 
       And the server has id "e4448086-8a22-4db0-9dcf-c95a56418d77"

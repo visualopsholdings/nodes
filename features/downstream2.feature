@@ -29,10 +29,10 @@ Feature: Downstream 2 Test
          | Shared 2 Stream    | 63c0c08e337cce14a54e0517    | true      | 2 Jan 2022   | p1     |
          | Stream 4           | 637aa99202e727169a58282f    |           | 2 Jan 2022   | p1     |
 
-#       And there are sequences:
-#          | name               | id                       | data                     | upstream  | modifyDate   | policy |
-#          | Count              | 6134e711a6041562149f4ef2 | testdata/seq/count.json  | true      | 2 Jan 2022   | p1     |
-# 
+      And there are docs:
+         | name               | id                       | data                     | upstream  | modifyDate   | policy |
+         | Count              | 6134e711a6041562149f4ef2 | testdata/doc/count.json  | true      | 2 Jan 2022   | p1     |
+
       And the server has id "14ee64a1-d68f-4f6f-862a-d1ea23210010"
       And the server has privateKey "ul(R&i4F6yjAI8+iZD&8*/2p4Uk7VESxs9NnwdLB"
       And the server has pubKey "Oz-z+wnZOA{T^aVV{i7HHuCc0Bk}N/1G)*IApiP?"
@@ -41,18 +41,18 @@ Feature: Downstream 2 Test
       And the server has hasInitialSync
       And the server has upstreamLastSeen "1 Jan 2022"
 
-#       And there are media:
-#          | name               | policy    |
-#          | Mum                | p1        |
-#          
-#       And there are media:
-#          | name               | id                          | upstream  | modifyDate   |
-#          | Waiting discovery  | 643d0523ddf5aa60877582f7    | true      | 1 Jan 1970   |
-#          
-#       And there are formats for media "Mum":
-#          | name         | uuid                        | type  |
-#          | thumbnail    | llllllll-mmmm-nnnn-oooooooo | image |
-# 
+      And there are media:
+         | name               | policy    |
+         | Mum                | p1        |
+         
+      And there are media:
+         | name               | id                          | upstream  | modifyDate   |
+         | Waiting discovery  | 643d0523ddf5aa60877582f7    | true      | 1 Jan 1970   |
+         
+      And there are formats for media "Mum":
+         | name         | uuid                        | type  |
+         | thumbnail    | llllllll-mmmm-nnnn-oooooooo | image |
+
       And there are sites:
          | name      | headerTitle     | streamBgColor   | headerImage           |
          | main      | Downstream 2    | lightred        | Mum                   |

@@ -1,0 +1,61 @@
+{
+  "name": "Image",
+  "action": true,
+  "description": "Upload and display an image",
+  "version": 13,
+  "__v": 1,
+  "nameless": false,
+  "image": "64a404f6cb093c0bbf40cf4d",
+  "upstream": false,
+  "tables": [],
+  "handlers": [],
+  "props": [],
+  "scenarios": [],
+  "integrations": [],
+  "library": [],
+  "variables": [],
+  "states": [
+    {
+      "name": "Entry",
+      "next": {},
+      "display": {
+        "displayEditableByCreator": {}
+      },
+      "execute": {},
+      "tests": [],
+      "elements": [
+        {
+          "temporary": false,
+          "text": "Image",
+          "disabled": false,
+          "var": "image",
+          "open": false,
+          "styles": {
+            "maxWidthOrHeight": 256
+          },
+          "type": "image",
+          "last": false
+        }
+      ]
+    }
+  ],
+  "refs": [],
+  "keywords": [],
+  "imports": [
+    "5e6980d0958ea618c4d34fe2"
+  ],
+  "sketch": {
+    "palettes": {
+      "el": {
+        "op": true
+      },
+      "at": {
+        "op": true
+      },
+      "co": {
+        "op": true
+      }
+    }
+  },
+  "deleted": false
+}

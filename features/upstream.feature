@@ -31,20 +31,20 @@ Feature: Upstream Test
          | p3     | tracy              |           | tracy              |           | tracy              |           | 64365effddf5aa03b2c092a3 |
          | p4     | leanne             |           | leanne             |           | leanne             |           |                          |
          
-#      And the security indexes are generated
+     And the security indexes are generated
          
-#       And there are media:
-#          | name               | policy    | id |
-#          | SevenFortySeven    | p1        | 643d0523ddf5aa60877582f6 |
-#          | MumAndI            | p3        | 643d0523ddf5aa60877582f7 |
-#          
-#       And there are formats for media "SevenFortySeven":
-#          | name         | uuid                        | type  |
-#          | thumbnail    | eeeeeee-ffff-gggg-hhhhhhhh  | image |
-# 
-#       And there are formats for media "MumAndI":
-#          | name         | uuid                        | type  |
-#          | thumbnail    | aaaaaaaa-bbbb-cccc-dddddddd | image |
+      And there are media:
+         | name               | policy    | id |
+         | SevenFortySeven    | p1        | 643d0523ddf5aa60877582f6 |
+         | MumAndI            | p3        | 643d0523ddf5aa60877582f7 |
+         
+      And there are formats for media "SevenFortySeven":
+         | name         | uuid                        | type  |
+         | thumbnail    | eeeeeee-ffff-gggg-hhhhhhhh  | image |
+
+      And there are formats for media "MumAndI":
+         | name         | uuid                        | type  |
+         | thumbnail    | aaaaaaaa-bbbb-cccc-dddddddd | image |
 
       And groups have policies:
          | name         | policy |
@@ -58,27 +58,25 @@ Feature: Upstream Test
          | Shared Stream   | p1     | 61a0b4de98499a20f0768351 | 2 Jan 2022   |
          | Shared 2 Stream | p1     | 63c0c08e337cce14a54e0517 | 2 Jan 2022   |
 
-#       And user "tracy" has image "SevenFortySeven"
-#       And user "leanne" has image "MumAndI"
-#       And group "Team 1" has image "SevenFortySeven"
-#       And stream "Stream 1" has image "SevenFortySeven"
-#       And stream "Stream 2" has image "MumAndI"
+      And user "tracy" has image "SevenFortySeven"
+      And user "leanne" has image "MumAndI"
+      And group "Team 1" has image "SevenFortySeven"
+      And stream "Stream 1" has image "SevenFortySeven"
+      And stream "Stream 2" has image "MumAndI"
       
-#       And there are sequences:
-#          | name               | data                                 | policy | id                       | modifyDate   |
-#          | Count              | testdata/seq/count.json              | p1     | 6134e711a6041562149f4ef2 | 2 Jan 2022   |
-#          | Event              | testdata/seq/prod/Event.json         | p1     | 601a551b7471d32c67caed44 | 2 Jan 2022   |
-#          | Eggs               | testdata/seq/prod/Eggs.json          | p4     |                          | 2 Jan 2022   |
-#          | Image              | testdata/seq/prod/Image.json         | p1     | 59ca44ef404b132e9b3ce06b | 2 Jan 2022   |
-#          | Core library       | testdata/seq/prod/Core-library.json  | p1     | 5e6980d0958ea618c4d34fe2 | 2 Jan 2022   |
-#          
-#       And the sequence "Image" imports sequences:
-#          | name               |
-#          | Core library       |
-#                  
-#       And there are the tasks:
-#          | name            | modifyDate   | policy | stream    | sequence  | user   |
-#          | Count 1         | Sep 2 2021   | p1     | Stream 2  | Count     | tracy  |
+      And there are docs:
+         | name               | data                        | policy | id                       | modifyDate   |
+         | Count              | testdata/doc/count.json     | p1     | 6134e711a6041562149f4ef2 | 2 Jan 2022   |
+         | Image              | testdata/doc/image.json     | p1     | 59ca44ef404b132e9b3ce06b | 2 Jan 2022   |
+         | Library            | testdata/doc/library.json   | p1     | 5e6980d0958ea618c4d34fe2 | 2 Jan 2022   |
+         
+      And the doc "Image" imports docs:
+         | name               |
+         | Library            |
+                 
+      And there are ideas:
+         | name            | modifyDate   | policy | stream    | doc    | by     |
+         | Count 1         | Sep 2 2021   | p1     | Stream 2  | Count  | tracy  |
 
 #      And there are 5 generated messages in stream "Stream 1" from "tracy" with policy "p1"
 #      And there are 1000 generated messages in stream "Stream 1" from "tracy" with policy "p1"

@@ -11,5 +11,16 @@
       "type": "idea",
       "field": "stream"
     }
+  },
+  {
+    "type": "doc"
+  },
+  {
+    "type": "media",
+    "noplural": true,
+    "subobj": {
+      "type": "format",
+      "field": "media"
+    }
   }
 ]

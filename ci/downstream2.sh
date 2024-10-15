@@ -12,8 +12,7 @@ then
   ci/downstreamdb2.sh
   [ "$?" != "0" ] && exit 1
 
-#  node counts.js --users=1 --groups=1 --streams=3 --ideas=0 --sequences=2 --media=2 --formats=1 --policies=0
-  build/Counts --dbName=test2 --users=1 --groups=1 --streams=3 --ideas=0 --policies=2
+  build/Counts --dbName=test2 --users=1 --groups=1 --streams=3 --ideas=0 --docs=1 --media=2 --formats=1 --policies=2
   [ "$?" != "0" ] && exit 1
 fi
 

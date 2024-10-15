@@ -45,6 +45,10 @@ int main(int argc, char *argv[]) {
   int waitingGroups;
   int fullStreams;
   int waitingStreams;
+  int docs;
+  int fullDocs;
+  int media;
+  int formats;
   
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -59,6 +63,10 @@ int main(int argc, char *argv[]) {
     ("waitingGroups", po::value<int>(&waitingGroups)->default_value(-1), "Waiting Groups")
     ("fullStreams", po::value<int>(&fullStreams)->default_value(-1), "Full Streams")
     ("waitingStreams", po::value<int>(&waitingStreams)->default_value(-1), "Waitkling Streams")
+    ("docs", po::value<int>(&docs)->default_value(-1), "Docs")
+    ("fullDocs", po::value<int>(&fullDocs)->default_value(-1), "Full Docs")
+    ("media", po::value<int>(&media)->default_value(-1), "Media")
+    ("formats", po::value<int>(&formats)->default_value(-1), "Formats")
     ("dbConn", po::value<string>(&dbConn)->default_value("mongodb://127.0.0.1:27017"), "DB Connection string.")
     ("dbName", po::value<string>(&dbName)->default_value("dev"), "DB name.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
@@ -181,6 +189,35 @@ int main(int argc, char *argv[]) {
     lines.push_back({ 
       { "type", "policies" }, 
       { "expected", policies }
+    });
+  }
+
+  if (docs >= 0) {
+    lines.push_back({ 
+      { "type", "docs" }, 
+      { "expected", docs }
+    });
+  }
+  if (fullDocs >= 0) {
+    lines.push_back({ 
+      { "type", "docs" }, 
+      { "expected", fullDocs },
+      { "full", true },
+      { "field", "name" }
+    });
+  }
+
+  if (media >= 0) {
+    lines.push_back({ 
+      { "type", "media" }, 
+      { "expected", media }
+    });
+  }
+
+  if (formats >= 0) {
+    lines.push_back({ 
+      { "type", "formats" }, 
+      { "expected", formats }
     });
   }
 

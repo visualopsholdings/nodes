@@ -12,7 +12,7 @@ then
   ci/upstreamdb.sh test
   [ "$?" != "0" ] && exit 1
 
-  build/Counts --dbName=test --users=4 --groups=2 --streams=4 --ideas=30 --policies=4
+  build/Counts --dbName=test --users=4 --groups=2 --streams=4 --ideas=31 --docs=3 --media=2 --formats=2 --policies=4
   [ "$?" != "0" ] && exit 1
   
 fi

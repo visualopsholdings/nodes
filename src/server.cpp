@@ -794,15 +794,14 @@ void Server::systemStatus(const string &msg) {
   
 }
 
-template <typename RowType>
-string Server::getLastDate(optional<vector<RowType > > rows, const string &hasInitialSync, const string &upstreamLastSeen) {
+string Server::getLastDate(optional<boost::json::array> rows, const string &hasInitialSync, const string &upstreamLastSeen) {
 
   string zd = Date::toISODate(0);
   
   if (rows) {
     // does any of the rows have a null date?
     bool hasNullDate = find_if(rows.value().begin(), rows.value().end(), [zd](auto e) { 
-      return Json::getString(e.j(), "modifyDate") == zd;
+      return Json::getString(e, "modifyDate") == zd;
     }) != rows.value().end();
     return (hasInitialSync == "true") ? (hasNullDate ? zd : upstreamLastSeen) : zd;
   }
@@ -818,57 +817,60 @@ void Server::sendUpDiscover() {
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
   string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
   
-  auto users = User().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
-  
-  // if we have users to discover.
-  vector<string> userids;
-  if (users) {
-    transform(users.value().begin(), users.value().end(), back_inserter(userids), [](auto e){ return e.id(); });
-  }
-
-  auto groups = Group().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
-  
-  // if we have groups to discover.
-  vector<string> groupids;
-  if (groups) {
-    transform(groups.value().begin(), groups.value().end(), back_inserter(groupids), [](auto e){ return e.id(); });
-  }
-
-  auto streams = Stream().find(json{{ "upstream", true }}, { "_id", "modifyDate" }).values();
-  
-  // if we have streams to discover.
-  vector<string> streamids;
-  if (streams) {
-    transform(streams.value().begin(), streams.value().end(), back_inserter(streamids), [](auto e){ return e.id(); });
-  }
-
-	sendDataReq(nullopt, {
+  boost::json::object msg = {
     { "type", "discover" },
-    { "lastUser", getLastDate(users, hasInitialSync, upstreamLastSeen) },
-    { "lastGroup", getLastDate(groups, hasInitialSync, upstreamLastSeen) },
-    { "lastStream", getLastDate(streams, hasInitialSync, upstreamLastSeen) },
-    { "users", boost::json::value_from(userids) },
-    { "groups", boost::json::value_from(groupids) },
-    { "streams", boost::json::value_from(streamids) },
     { "hasInitialSync", hasInitialSync == "true" }
-  });
+  };
+
+  for (auto o: _schema.as_array()) {
+    auto type = Json::getString(o, "type");
+    if (!type) {
+      BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
+      return;
+    }
+    string collname = collName(type.value(), Json::getBool(o, "noplural", true));
+    auto objs = SchemaImpl::findGeneral(collname, json{{ "upstream", true }}, { "_id", "modifyDate" })->values();
+    vector<string> ids;
+    if (objs) {
+      transform(objs.value().begin(), objs.value().end(), back_inserter(ids), [](auto e) {
+        return e.as_object().at("id").as_string().c_str(); 
+      });
+    }
+    string lastname = type.value();
+    lastname[0] = toupper(lastname[0]);
+    lastname = "last" + lastname;
+    msg[lastname] = getLastDate(objs, hasInitialSync, upstreamLastSeen);
+    msg[collname] =  boost::json::value_from(ids);
+  }
+  
+	sendDataReq(nullopt, msg);
 
 }
 
-void Server::collectObjs(const string &name, bsoncxx::document::view_or_value q, boost::json::array *data) {
+void Server::collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data) {
 
-  auto result = SchemaImpl::findGeneral(name + "s", q, {});
+  auto result = SchemaImpl::findGeneral(collname, q, {});
   if (result) {
     auto vals = result->values();
     if (vals) {
       json obj = {
-        { "type", name },
+        { "type", type },
         { "objs", vals.value() }
       };
       data->push_back(obj);
     }
   }
 
+}
+
+string Server::collName(const string &type, optional<bool> noplural) {
+
+  string collname = type;
+  if (!noplural || !noplural.value()) {
+    collname += "s";
+  }
+  return collname;
+  
 }
 
 void Server::sendUpDiscoverLocal(optional<string> corr) {
@@ -902,7 +904,10 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
       BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
       return;
     }
-    collectObjs(type.value(), q, &data);
+    
+    string collname = collName(type.value(), Json::getBool(o, "noplural", true));
+    
+    collectObjs(type.value(), collname, q, &data);
     
     auto subobj = Json::getObject(o, "subobj", true);
     if (subobj) {
@@ -916,13 +921,14 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
         BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
         return;
       }
-      auto result = SchemaImpl::findGeneral(type.value() + "s", json{ { "upstream", true } }, { "_id" });
+      auto result = SchemaImpl::findGeneral(collname, json{ { "upstream", true } }, { "_id" });
       if (result) {
         auto upstreams = result->values();
         if (upstreams) {
+          string subcollname = collName(subtype.value(), Json::getBool(subobj.value(), "noplural", true));
           for (auto o: upstreams.value()) {
             auto id = Json::getString(o, "id");
-            collectObjs(subtype.value(), SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data);
+            collectObjs(subtype.value(), subcollname, SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data);
           }
         }
       }
@@ -958,18 +964,21 @@ void Server::sendDownDiscoverResult(json &j) {
   boost::json::array msgs;
   boost::json::object obj;
   for (auto o: _schema.as_array()) {
+  
     auto type = Json::getString(o, "type");
     if (!type) {
       BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
       return;
     }
     
+    string collname = collName(type.value(), Json::getBool(o, "noplural", true));
+
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
     BOOST_LOG_TRIVIAL(trace) << lastname;
     
-    auto objsname = type.value() + "s";
+    auto objsname = collname;
     BOOST_LOG_TRIVIAL(trace) << objsname;
 
     auto last = Json::getString(j, lastname, true);
@@ -981,7 +990,7 @@ void Server::sendDownDiscoverResult(json &j) {
       obj[objsname] = objs.value();
     }
     if (last && objs && objs.value().size() > 0) {
-      collectObjs(type.value(), SchemaImpl::idRangeAfterDateQuery(objs.value(), last.value()), &msgs);
+      collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(objs.value(), last.value()), &msgs);
       
       auto subobj = Json::getObject(o, "subobj", true);
       if (subobj) {
@@ -995,8 +1004,9 @@ void Server::sendDownDiscoverResult(json &j) {
           BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
           return;
         }
+        string subcollname = collName(subtype.value(), Json::getBool(subobj.value(), "noplural", true));
         for (auto s: objs.value()) {
-          collectObjs(subtype.value(), SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), s.as_string().c_str(), last.value()), &msgs);
+          collectObjs(subtype.value(), subcollname, SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), s.as_string().c_str(), last.value()), &msgs);
         }
       }
     }
@@ -1036,7 +1046,12 @@ void Server::importObjs(boost::json::array &msgs) {
       continue;
     }
     
-    Storage::instance()->bulkInsert(type.value() + "s", objs.value());
+    // TBD: lookup pluralise.
+    string collname = type.value();
+    if (collname != "media") {
+      collname += "s";
+    }
+    Storage::instance()->bulkInsert(collname, objs.value());
 
     auto more = Json::getBool(m, "more", true);
     if (more && more.value()) {
