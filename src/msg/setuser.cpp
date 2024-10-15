@@ -31,10 +31,10 @@ void setuserMsg(Server *server, json &j) {
   if (doc) {
     BOOST_LOG_TRIVIAL(trace) << "user old value " << doc.value().j();
     
-    auto fullname = Json::getString(j, "fullname");
-    auto name = Json::getString(j, "name");
-    auto admin = Json::getBool(j, "admin");
-    auto active = Json::getBool(j, "active");
+    auto fullname = Json::getString(j, "fullname", true);
+    auto name = Json::getString(j, "name", true);
+    auto admin = Json::getBool(j, "admin", true);
+    auto active = Json::getBool(j, "active", true);
 
     boost::json::object obj = {
       { "modifyDate", Storage::instance()->getNow() },
@@ -52,6 +52,14 @@ void setuserMsg(Server *server, json &j) {
       obj["admin"] = admin.value();
     }
     
+    // send to other nodes.
+    boost::json::object obj2 = obj;
+    if (doc.value().upstream()) {
+      obj2["upstream"] = true;
+    }
+    server->sendUpd("user", id.value(), obj2, "");
+    
+    // update this node.
     BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
     auto result = User().updateById(id.value(), obj);
     if (!result) {
@@ -59,6 +67,7 @@ void setuserMsg(Server *server, json &j) {
       return;
     }
     BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+    
     server->sendAck();
     return;
   }

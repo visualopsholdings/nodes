@@ -59,6 +59,7 @@ public:
     sendTo(*_rep, m, "-> ", nullopt);
   }
   void sendDown(const json &m);
+  void pubDown(const json &m);
   void sendErr(const string &msg);
   void sendErrDown(const string &msg);
   void sendWarning(const string &msg);
@@ -66,6 +67,9 @@ public:
   void sendAck();
   void sendAckDown();
   void sendDataReq(optional<string> corr, const json &m);
+  
+  // notifying other nodes.
+  void sendUpd(const string &type, const string &id, boost::json::object &obj, const string &stream);
   
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
@@ -84,6 +88,14 @@ public:
     // given msgs in the format of { "type": "user", "objs": [obj, obj] }
     // import them.
     
+  bool updateObject(json &j);
+    // given an objet in the format {"data":{"type":"user","id":"6121bdfaec9e5a059715739c","obj":obj }}
+    // update it
+    
+  string collName(const string &type, optional<string> coll);
+  string collName(const string &type);
+    // get the collection name from the schema given a type.
+
   string _certFile;
   string _chainFile;
   string _hostName;
@@ -106,6 +118,7 @@ private:
   map<string, msgHandler> _messages;
   map<string, msgHandler> _remoteDataReqMessages;
   map<string, msgHandler> _dataRepMessages;
+  map<string, msgHandler> _remoteMsgSubMessages;
   int _remoteDataReqPort;
   int _remoteMsgSubPort;
   int _dataRepPort;
@@ -124,11 +137,17 @@ private:
   void runUpstreamDownstream();
   void runDownstreamOnly();
   string getLastDate(optional<boost::json::array> objs, const string &hasInitialSync, const string &upstreamLastSeen);
-  string collName(const string &type, optional<string> coll);
   void sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr);
   void sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr);
   void collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies);
   void collectPolicies(const vector<string> &policies, boost::json::array *data);
+  bool isValidId(const string &id);
+  bool validateSentObj(const string &action, const string &type, boost::json::object &obj, const string &id);
+  bool shouldSendDown(const string &action, const string &type, const string &id, const string &stream);
+  bool shouldSendUp(const string &type, boost::json::object &obj, const string &stream);
+  vector<string> getNodeIds(const string &type);
+  bool testListeningIdea(const string &action, const string &type, const string &id, const string &stream);
+  bool testListening(const string &action, const string &type, const string &id);
 };
 
 #endif // H_server

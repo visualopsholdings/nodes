@@ -90,3 +90,27 @@ Feature: Downstream Test
       Then she receives 1 ideas
 	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream4
       Then she receives 10 ideas
+
+ 	@javascript
+   Scenario: Change to a user is reflected in the downstream servers
+   
+      When she sends set user fullname of "tracy" to "Joan"
+      
+      And she sends user "6121bdfaec9e5a059715739c" to upstream
+      And she receives user "Joan"
+      
+      And she sends set user fullname of "6121bdfaec9e5a059715739c" to "Sue" to upstream
+      And she waits 2 seconds
+      
+      And she sends user with id "6121bdfaec9e5a059715739c"
+      And she receives user "Sue"
+
+      And she sends user "6121bdfaec9e5a059715739c" to downstream2
+      And she receives user "Sue"
+      
+      And she sends user "6121bdfaec9e5a059715739c" to downstream3
+      And she receives user "Sue"
+      
+      And she sends user "6121bdfaec9e5a059715739c" to downstream4
+      And she receives user "Sue"
+

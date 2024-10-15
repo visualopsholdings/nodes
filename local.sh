@@ -41,7 +41,7 @@ if [ "$MONGO_PORT_27017_DB" == "" ]; then
 fi
 
 if [ "$NODES_DATA_PORT" == "" ]; then
-  build/nodes --test --logLevel=trace --dbName=$MONGO_PORT_27017_DB \
+  build/nodes --test --logLevel=debug --dbName=$MONGO_PORT_27017_DB \
     --repPort=$NODES_REP_PORT --pubPort=$NODES_PUB_PORT
 else
 	if [ "$NODES_REMOTE_DATA_PORT" == "" ]; then
@@ -50,7 +50,7 @@ else
 	if [ "$NODES_REMOTE_MSG_PORT" == "" ]; then
 		export NODES_REMOTE_MSG_PORT=8811
 	fi
-  build/nodes --test --logLevel=trace --dbName=$MONGO_PORT_27017_DB \
+  build/nodes --test --logLevel=debug --dbName=$MONGO_PORT_27017_DB \
     --repPort=$NODES_REP_PORT --pubPort=$NODES_PUB_PORT \
 	  --dataReqPort=$NODES_DATA_PORT --msgSubPort=$NODES_MSG_PORT \
 	  --remoteDataReqPort=$NODES_REMOTE_DATA_PORT --remoteMsgSubPort=$NODES_REMOTE_MSG_PORT

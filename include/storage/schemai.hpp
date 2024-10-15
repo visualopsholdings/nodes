@@ -44,7 +44,9 @@ public:
   optional<string> updateById(const string &id, const json &doc);
     // update an existing document when you know the ID  (inserts $set around the doc).
     
-  optional<string> rawUpdateById(const string &id, const json &doc);
+  optional<string> rawUpdateById(const string &id, const json &doc) {
+    return updateGeneralById(collName(), id, doc);
+  }
     // update an existing document when you know the ID.
     
   void aggregate(const string &filename);
@@ -57,6 +59,7 @@ public:
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
   static int countGeneral(const string &collection, const json &query);
+  static optional<string> updateGeneralById(const string &collection, const string &id, const json &doc);
     
   shared_ptr<ResultImpl> findResult(const json &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);

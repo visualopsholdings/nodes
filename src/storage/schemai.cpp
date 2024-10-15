@@ -195,9 +195,9 @@ optional<string> SchemaImpl::update(const json &query, const json &doc) {
 
 }
 
-optional<string> SchemaImpl::rawUpdateById(const string &id, const json &doc) {
+optional<string> SchemaImpl::updateGeneralById(const string &collection, const string &id, const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "update " << id << " in " << collName();
+  BOOST_LOG_TRIVIAL(trace) << "update " << id << " in " << collection;
 
   if (!testInit()) {
     return nullopt;
@@ -209,9 +209,9 @@ optional<string> SchemaImpl::rawUpdateById(const string &id, const json &doc) {
   ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
   
-  auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
+  auto result = Storage::instance()->_impl->coll(collection)._c.update_one(q, d);
   if (result) {
-    Storage::instance()->collectionWasChanged(collName());
+    Storage::instance()->collectionWasChanged(collection);
     return "1";
    }
   

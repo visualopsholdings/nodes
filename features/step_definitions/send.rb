@@ -4,7 +4,7 @@ require 'json'
 
 def SendTo(j, reqPort, subPort)
    s = JSON.generate(j)
-   return JSON.parse(`build/Send --logLevel=trace --subPort=#{subPort} --reqPort=#{reqPort} '#{s}'`)
+   return JSON.parse(`build/Send --logLevel=info --subPort=#{subPort} --reqPort=#{reqPort} '#{s}'`)
 end
 
 def Send(j)

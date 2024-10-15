@@ -177,9 +177,6 @@ https://github.com/visualopsholdings/nodes-irc
 
 ### Connecting and synchronizing with upstream servers. 
 
-For now you can only make a Visual Ops (closed source) server an upstream and you can only pull down users 
-from that server.
-
 All of teams, users, streams and policies should all be able to be synchronized, and Nodes (OSS)
 should be able to be an upstream server.
 
@@ -339,6 +336,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 10 Oct 2024
 - Groups can be upstream.
+
+### 15 Oct 2024
+- Lot's more syncing code and tests for such.
+
 
 
 

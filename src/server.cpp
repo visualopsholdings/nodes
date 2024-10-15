@@ -80,6 +80,10 @@ void dateMsg(Server *server, json &json);
 void sendOnMsg(Server *server, json &json);
 void discoverLocalResultMsg(Server *server, json &json);
 void discoverResultMsg(Server *server, json &json);
+void ackMsg(Server *server, json &json);
+
+// remoteMsgSub handlers
+void updSubMsg(Server *server, json &json);
 
 // dataRep handles
 void onlineMsg(Server *server, json &json);
@@ -87,6 +91,7 @@ void discoverLocalMsg(Server *server, json &json);
 void heartbeatMsg(Server *server, json &json);
 void discoverMsg(Server *server, json &json);
 void queryDrMsg(Server *server, json &json);
+void updDrMsg(Server *server, json &json);
 
 }
 
@@ -158,12 +163,16 @@ Server::Server(bool test, bool noupstream,
   _remoteDataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
   _remoteDataReqMessages["discoverLocalResult"] =  bind(&nodes::discoverLocalResultMsg, this, placeholders::_1);
   _remoteDataReqMessages["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
+  _remoteDataReqMessages["ack"] =  bind(&nodes::ackMsg, this, placeholders::_1);
+
+  _remoteMsgSubMessages["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
 
   _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
   _dataRepMessages["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
   _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
   _dataRepMessages["discover"] =  bind(&nodes::discoverMsg, this, placeholders::_1);
   _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
+  _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName);
   
@@ -191,46 +200,8 @@ void Server::runUpstreamOnly() {
   BOOST_LOG_TRIVIAL(info) << "init nodes";
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 },
-      { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 }
-  };
-  const std::chrono::milliseconds timeout{500};
-  while (!_reload) {
-  
-    // check connection events for upstream stuff.
-    _remoteDataReq->check();
-    if (_online) {
-      sendUpHeartbeat();
-    }
-    else {
-//      BOOST_LOG_TRIVIAL(trace) << "not online yet";
-    }
-    if (_remoteMsgSub) {
-      _remoteMsgSub->check();
-    }
-
-//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
-    zmq::message_t message;
-    zmq::poll(&items[0], 2, timeout);
-  
-    if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages)) {
-        sendErr("error in getting rep message");
-      }
-    }
-    if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-&", _remoteDataReq->socket(), _remoteDataReqMessages);
-    }
-  }
-}
-
-void Server::runUpstreamDownstream() {
-
-  BOOST_LOG_TRIVIAL(trace) << "running with upstream and downstream";
-  BOOST_LOG_TRIVIAL(info) << "init nodes";
-  zmq::pollitem_t items [] = {
-      { *_rep, 0, ZMQ_POLLIN, 0 },
       { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
-      { _dataRep->socket(), 0, ZMQ_POLLIN, 0 }
+      { _remoteMsgSub->socket(), 0, ZMQ_POLLIN, 0 }
   };
   const std::chrono::milliseconds timeout{500};
   while (!_reload) {
@@ -243,9 +214,7 @@ void Server::runUpstreamDownstream() {
     else {
 //      BOOST_LOG_TRIVIAL(trace) << "not online yet";
     }
-    if (_remoteMsgSub) {
-      _remoteMsgSub->check();
-    }
+    _remoteMsgSub->check();
 
 //    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
     zmq::message_t message;
@@ -257,11 +226,59 @@ void Server::runUpstreamDownstream() {
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-&", _remoteDataReq->socket(), _remoteDataReqMessages);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-$", _dataRep->socket(), _dataRepMessages)) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
         sendErr("error in getting upstream rep message");
+      }
+    }
+  }
+}
+
+void Server::runUpstreamDownstream() {
+
+  BOOST_LOG_TRIVIAL(trace) << "running with upstream and downstream";
+  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  zmq::pollitem_t items [] = {
+      { *_rep, 0, ZMQ_POLLIN, 0 },
+      { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
+      { _dataRep->socket(), 0, ZMQ_POLLIN, 0 },
+      { _remoteMsgSub->socket(), 0, ZMQ_POLLIN, 0 }
+  };
+  const std::chrono::milliseconds timeout{500};
+  while (!_reload) {
+  
+    // check connection events for upstream stuff.
+    _remoteDataReq->check();
+    if (_online) {
+      sendUpHeartbeat();
+    }
+    else {
+//      BOOST_LOG_TRIVIAL(trace) << "not online yet";
+    }
+    _remoteMsgSub->check();
+
+//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+    zmq::message_t message;
+    zmq::poll(&items[0], 4, timeout);
+  
+    if (items[0].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-", *_rep, _messages)) {
+        sendErr("error in getting rep message");
+      }
+    }
+    if (items[1].revents & ZMQ_POLLIN) {
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
+    }
+    if (items[2].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
+        sendErr("error in getting upstream rep message");
+      }
+    }
+    if (items[3].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
+        sendErr("error in getting remote upstream sub message");
       }
     }
   }
@@ -311,7 +328,7 @@ void Server::runDownstreamOnly() {
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-$", _dataRep->socket(), _dataRepMessages)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -368,7 +385,7 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
     BOOST_LOG_TRIVIAL(trace) << "handling " << type.value();
     map<string, msgHandler>::iterator handler = handlers.find(type.value());
     if (handler == handlers.end()) {
-      BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();
+      BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value() << " for " << name;
       return false;
     }
     handler->second(doc);
@@ -429,7 +446,17 @@ json Server::receiveFrom(shared_ptr<zmq::socket_t> socket) {
 
 void Server::sendDown(const json &m) {
 
-  sendTo(_dataRep->socket(), m, "$-> ", nullopt);
+  sendTo(_dataRep->socket(), m, "dr-> ", nullopt);
+  
+}
+
+void Server::pubDown(const json &m) {
+
+  // set the src of the message.
+  json m2 = m;
+  m2.as_object()["src"] = _serverId;
+
+  sendTo(_msgPub->socket(), m2, "mp-> ", nullopt);
   
 }
 
@@ -575,7 +602,7 @@ void Server::sendDataReq(optional<string> corr, const json &m) {
   json m2 = m;
   m2.as_object()["src"] = _serverId;
 
-  sendTo(_remoteDataReq->socket(), m2, "&-> ", corr);
+  sendTo(_remoteDataReq->socket(), m2, "rdr-> ", corr);
   
 }
 
@@ -665,6 +692,11 @@ void Server::connectUpstream() {
     upstreamPubKey.value(), privateKey.value(), _pubKey));
   _remoteMsgSub.reset(new Upstream(this, *_context, ZMQ_SUB, "remoteMsgSub", upstream.value(), _remoteMsgSubPort, 
     upstreamPubKey.value(), privateKey.value(), _pubKey));
+#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)  
+  _remoteMsgSub->socket().setsockopt(ZMQ_SUBSCRIBE, 0, 0);
+#else
+  _remoteMsgSub->socket().set(zmq::sockopt::subscribe, "");
+#endif
     
 }
 
@@ -1173,6 +1205,25 @@ void Server::resetDB() {
    
 }
 
+string Server::collName(const string &type) {
+
+  // work out how to pluralise.
+  auto scheme = find_if(_schema.begin(), _schema.end(), [&type](auto e) {
+    auto t = Json::getString(e, "type");
+    return t && t.value() == type;
+  });
+  string collname;
+  if (scheme == _schema.end()) {
+    collname = type + "s";
+  }
+  else {
+    auto coll = Json::getString(*scheme, "coll", true);
+      collname = coll ? coll.value() : (type + "s");
+  }
+  
+  return collname;
+}
+
 void Server::importObjs(boost::json::array &msgs) {
 
   for (auto m: msgs) {
@@ -1187,21 +1238,7 @@ void Server::importObjs(boost::json::array &msgs) {
       continue;
     }
     
-    // work out how to pluralise.
-    auto scheme = find_if(_schema.begin(), _schema.end(), [&type](auto e) {
-      auto t = Json::getString(e, "type");
-      return t && t.value() == type;
-    });
-    string collname;
-    if (scheme == _schema.end()) {
-      collname = type.value() + "s";
-    }
-    else {
-      auto coll = Json::getString(*scheme, "coll", true);
-        collname = coll ? coll.value() : (type.value() + "s");
-    }
- 
-    Storage::instance()->bulkInsert(collname, objs.value());
+     Storage::instance()->bulkInsert(collName(type.value()), objs.value());
 
     auto more = Json::getBool(m, "more", true);
     if (more && more.value()) {
@@ -1210,4 +1247,200 @@ void Server::importObjs(boost::json::array &msgs) {
     }
   }
 
+}
+
+bool Server::isValidId(const string &id) {
+  return id.size() == 24;
+}
+
+bool Server::validateSentObj(const string &action, const string &type, boost::json::object &obj, const string &id) {
+
+  auto objid = Json::getString(obj, "id", true);
+  if (!objid) {
+    return true;
+  }
+  if (objid.value() != id) {
+    BOOST_LOG_TRIVIAL(trace) << "skipping update, ids don't match " << objid.value() << " " << id;
+    return false;
+  }
+  return true;
+}
+
+vector<string> Server::getNodeIds(const string &type) {
+
+  auto nodes = Node().find(json{{ "valid", true }}).values();
+  if (!nodes || nodes.value().size() == 0) {
+    return {};
+  }
+  string field = type + "s";
+  vector<string> ids;
+  for (auto n: nodes.value()) {
+    auto nj = n.j();
+    auto a = Json::getArray(nj, field);
+    if (a) {
+      for (auto i: a.value()) {
+        string id(i.as_string());
+        if (find(ids.begin(), ids.end(), id) == ids.end()) {
+          ids.push_back(id);
+        }
+      }
+    }
+  }
+  BOOST_LOG_TRIVIAL(trace) << "getNodeIds " << boost::algorithm::join(ids, ", ");
+  
+  return ids;
+
+}
+
+bool Server::testListeningIdea(const string &action, const string &type, const string &id, const string &stream) {
+	
+	if (stream == "") {
+    BOOST_LOG_TRIVIAL(trace) << "skipping " << action << " idea with no stream " << type << " " << id;
+    return false;
+	}
+	auto ids = getNodeIds("stream");
+	if (find(ids.begin(), ids.end(), "*") != ids.end() || find(ids.begin(), ids.end(), stream) != ids.end()) {
+	  return true;
+	}
+  BOOST_LOG_TRIVIAL(trace) << "skipping " << action << " nobody listening " << type << " " << id << "stream" << stream;
+  return false;
+}
+
+bool Server::testListening(const string &action, const string &type, const string &id) {
+	
+	auto ids = getNodeIds(type);
+	if (find(ids.begin(), ids.end(), "*") != ids.end() || find(ids.begin(), ids.end(), id) != ids.end()) {
+	  return true;
+	}
+  BOOST_LOG_TRIVIAL(trace) << "skipping " << action << " nobody listening " << type << " " << id;
+  return false;
+
+}
+
+bool Server::shouldSendDown(const string &action, const string &type, const string &id, const string &stream) {
+
+  if (_dataRep) {
+    auto nodes = Node().find(json{ { "valid", true }}).values();
+    if (!nodes || nodes.value().size() == 0) {
+      BOOST_LOG_TRIVIAL(trace) << "skipping send down " << action << " nobody listening at all";
+      return false;
+    }
+    if (action == "add") {
+      // always send adds, people can't be listening to them.
+      return true;
+    }
+    if (type == "idea") {
+      return testListeningIdea(action, type, id, stream);
+    }
+    else {
+      return testListening(action, type, id);
+    }
+  }
+	return false;
+}
+
+bool Server::shouldSendUp(const string &type, boost::json::object &obj, const string &stream) {
+
+  BOOST_LOG_TRIVIAL(trace) << "shouldSendUp " << _upstreamId << " obj " << obj;
+
+  if (_upstreamId != "") {
+    string mirror = get1Info("upstreamMirror");
+    if (mirror == "true") {
+      return true;
+    }
+    auto upstream = Json::getBool(obj, "upstream", true);
+    if (upstream && upstream.value()) {
+      return true;
+    }
+  }
+  
+  if (type == "idea") {
+    BOOST_LOG_TRIVIAL(trace) << "testing for upstream";
+    auto streams = Stream().find(json{{ "upstream", true }}, { "_id" }).values();
+    if (streams) {
+      return find_if(streams.value().begin(), streams.value().end(), [&stream](auto e) {
+        return e.id() == stream;
+      }) != streams.value().end();
+    }
+  }
+  
+  BOOST_LOG_TRIVIAL(trace) << "not sending up";
+  
+  return false;
+}
+
+void Server::sendUpd(const string &type, const string &id, boost::json::object &obj, const string &stream) {
+
+  BOOST_LOG_TRIVIAL(trace) << "sendUpd " << type;
+
+  if (!isValidId(id)) {
+    BOOST_LOG_TRIVIAL(warning) << "skipping upd, obj id is not valid" << id;
+    return;
+  }
+  if (!validateSentObj("update", type, obj, id)) {
+    return;
+  }
+  
+  bool up = shouldSendUp(type, obj, stream);
+  bool down = shouldSendDown("update", type, id, stream);
+  
+  if (!up && !down) {
+    BOOST_LOG_TRIVIAL(trace) << "not sending";
+    return;
+  }
+  
+  if (obj.empty()) {
+    return;
+  }
+
+  boost::json::object msg = {
+    { "type", "upd" },
+    { "data", {
+      { "type", type },
+      { "id", id },
+      { "obj", obj }
+      }
+    }
+  };
+  if (down) {
+    pubDown(msg);
+  }
+  msg["dest"] = _upstreamId;
+  if (up) {
+    sendDataReq(nullopt, msg);
+  }
+
+}
+
+bool Server::updateObject(json &j) {
+
+  auto data = Json::getObject(j, "data");
+  if (!data) {
+    BOOST_LOG_TRIVIAL(error) << "upd sub missing data";
+    return false;
+  }
+  auto type = Json::getString(data.value(), "type");
+  if (!type) {
+    BOOST_LOG_TRIVIAL(error) << "upd sub data missing type";
+    return false;
+  }
+  auto id = Json::getString(data.value(), "id");
+  if (!id) {
+    BOOST_LOG_TRIVIAL(error) << "upd sub data missing id";
+    return false;
+  }
+  auto obj = Json::getObject(data.value(), "obj");
+  if (!obj) {
+    BOOST_LOG_TRIVIAL(error) << "upd sub data missing obj";
+    return false;
+  }
+  
+  auto result = SchemaImpl::updateGeneralById(collName(type.value()), id.value(), {{ "$set", obj.value() }});
+  if (!result) {
+    BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
+    return false;
+  }
+
+  return true;
+  
 }

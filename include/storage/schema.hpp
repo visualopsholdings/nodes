@@ -52,6 +52,7 @@ public:
   bool admin() { return getBool("admin"); }
   bool active() { return getBool("active"); }
   string modifyDate() { return getString("modifyDate"); }
+  bool upstream() { return getBool("upstream"); }
   
 };
 

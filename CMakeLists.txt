@@ -121,11 +121,14 @@ set(MESSAGES
   src/rdrmsg/sendOn.cpp
   src/rdrmsg/discoverLocalResult.cpp
   src/rdrmsg/discoverResult.cpp
+  src/rdrmsg/ack.cpp
   src/drmsg/online.cpp
   src/drmsg/discoverLocal.cpp
   src/drmsg/heartbeat.cpp
   src/drmsg/discover.cpp
   src/drmsg/query.cpp
+  src/drmsg/upd.cpp
+  src/rmsmsg/upd.cpp
 )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
