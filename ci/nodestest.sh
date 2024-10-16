@@ -1,9 +1,11 @@
 
-export MONGO_PORT_27017_TCP_ADDR=127.0.0.1
-export MONGO_PORT_27017_TCP_PORT=27017
 export MONGO_PORT_27017_DB=dev
-export NODES_DATA_PORT=8820
-export NODES_MSG_PORT=8821
+
+# bind as an upstream
+export NODES_DATA_PORT=8800
+export NODES_MSG_PORT=8801
+
+# local data
 export NODES_PUB_PORT=3112
 export NODES_REP_PORT=3113
 

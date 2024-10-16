@@ -159,3 +159,19 @@ Feature: Downstream Test
       
       And she sends stream "61a0b4de98499a20f0768351" to downstream4
       And she receives stream "Stream y"
+
+  	@javascript
+   Scenario: A new stream can be created on downstream5
+
+      When she sends add stream "New Conversation" as "56348765b4d6976b478e1bd7" to downstream5
+	   And she sends streams to downstream5
+      Then she receives 5 streams
+
+      # 5 is a mirror of upstream2
+	   And she sends streams to downstream2
+      Then she receives 4 streams
+      
+      # upstream shouldn't get it.
+	   And she sends streams to upstream
+      Then she receives 4 streams
+

@@ -128,6 +128,7 @@ set(MESSAGES
   src/drmsg/discover.cpp
   src/drmsg/query.cpp
   src/drmsg/upd.cpp
+  src/drmsg/add.cpp
   src/rmsmsg/upd.cpp
 )
 

@@ -38,18 +38,24 @@ void addStreamMsg(Server *server, json &j) {
     return;
   }
   
-  // insert a new strean
-  auto result = Stream().insert({
+  boost::json::object obj = {
     { "name", name.value() },
     { "policy", policy.value() },
     { "modifyDate", Storage::instance()->getNow() },
     { "active", true }
-  });
-  if (!result) {
+  };
+  
+  // insert a new strean
+  auto id = Stream().insert(obj);
+  if (!id) {
     server->sendErr("could not insert stream");
     return;
   }
   
+  // send to other nodes.
+  obj["id"] = id.value();
+  server->sendAdd("stream", obj);
+    
   server->sendAck();
 
 }

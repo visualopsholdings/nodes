@@ -81,17 +81,23 @@ void addGroupMsg(Server *server, json &j) {
     return;
   }
   
-  // insert a new strean
-  auto result = Group().insert({
+  boost::json::object obj = {
     { "name", name.value() },
     { "policy", policy.value() },
     { "modifyDate", Storage::instance()->getNow() }
-  });
-  if (!result) {
+  };
+  
+  // insert a new strean
+  auto id = Group().insert(obj);
+  if (!id) {
     server->sendErr("could not insert group");
     return;
   }
   
+  // send to other nodes.
+  obj["id"] = id.value();
+  server->sendAdd("group", obj);
+    
   Security::instance()->regenerateGroups();
 
   server->sendAck();

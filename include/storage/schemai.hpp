@@ -32,7 +32,9 @@ public:
   bool deleteById(const string &id);
     // delete the document that has this id.
     
-  optional<string> insert(const json &doc);
+  optional<string> insert(const json &doc) {
+    return insertGeneral(collName(), doc);
+  }
     // insert a new document.
     
   optional<string> update(const json &query, const json &doc);
@@ -60,6 +62,7 @@ public:
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
   static int countGeneral(const string &collection, const json &query);
   static optional<string> updateGeneralById(const string &collection, const string &id, const json &doc);
+  static optional<string> insertGeneral(const string &collection, const json &doc);
     
   shared_ptr<ResultImpl> findResult(const json &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);

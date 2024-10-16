@@ -149,19 +149,23 @@ void addUserMsg(Server *server, json &j) {
   obj["salt"] = salt;
   obj["hash"] = hash;
 
-  auto result = User().insert(obj);
-  if (!result) {
+  auto id = User().insert(obj);
+  if (!id) {
     server->sendErr("could not insert user");
     return;
   }
 
+  // send to other nodes.
+  obj["id"] = id.value();
+  server->sendAdd("user", obj);
+    
   VID vid;
-  vid.reset(result.value(), password);
+  vid.reset(id.value(), password);
   
 //   vector<tuple<string, string, string > > add;
-//   add.push_back({ "view", "user", result.value() });
-//   add.push_back({ "edit", "user", result.value() });
-//   add.push_back({ "exec", "user", result.value() });
+//   add.push_back({ "view", "user", id.value() });
+//   add.push_back({ "edit", "user", id.value() });
+//   add.push_back({ "exec", "user", id.value() });
 //   vector<string> remove;
 //   auto newpolicy = Security::instance()->modifyPolicy(stream.value().policy(), add, remove);
 //   if (newpolicy.value() != stream.value().policy()) {
@@ -169,7 +173,7 @@ void addUserMsg(Server *server, json &j) {
 //     Stream().updateById(stream.value().id(), { { "policy", newpolicy.value() }});
 //   }
   
-  if (!Group().addMember(team.value(), result.value())) {
+  if (!Group().addMember(team.value(), id.value())) {
      server->sendErr("could not add user to team");
      return;
   }
@@ -178,7 +182,7 @@ void addUserMsg(Server *server, json &j) {
   server->send({
     { "type", "adduser" },
     { "vopsid", vid.value() },
-    { "id", result.value() },
+    { "id", id.value() },
     { "fullname", fullname.value() }
   });
 

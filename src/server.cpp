@@ -92,6 +92,7 @@ void heartbeatMsg(Server *server, json &json);
 void discoverMsg(Server *server, json &json);
 void queryDrMsg(Server *server, json &json);
 void updDrMsg(Server *server, json &json);
+void addDrMsg(Server *server, json &json);
 
 }
 
@@ -173,6 +174,7 @@ Server::Server(bool test, bool noupstream,
   _dataRepMessages["discover"] =  bind(&nodes::discoverMsg, this, placeholders::_1);
   _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
   _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
+  _dataRepMessages["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName);
   
@@ -1253,7 +1255,7 @@ bool Server::isValidId(const string &id) {
   return id.size() == 24;
 }
 
-bool Server::validateSentObj(const string &action, const string &type, boost::json::object &obj, const string &id) {
+bool Server::validateId(boost::json::object &obj, const string &id) {
 
   auto objid = Json::getString(obj, "id", true);
   if (!objid) {
@@ -1377,7 +1379,7 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
     BOOST_LOG_TRIVIAL(warning) << "skipping upd, obj id is not valid" << id;
     return;
   }
-  if (!validateSentObj("update", type, obj, id)) {
+  if (!validateId(obj, id)) {
     return;
   }
   
@@ -1412,6 +1414,46 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
 
 }
 
+void Server::sendAdd(const string &type, boost::json::object &obj) {
+
+  BOOST_LOG_TRIVIAL(trace) << "sendAdd " << type;
+
+  auto id = Json::getString(obj, "id");
+  if (!id) {
+    BOOST_LOG_TRIVIAL(warning) << "skipping add, but obj id ";
+  }
+    
+  bool up = shouldSendUp(type, obj, "");
+  bool down = shouldSendDown("add", type, id.value(), "");
+  
+  if (!up && !down) {
+    BOOST_LOG_TRIVIAL(trace) << "not sending";
+    return;
+  }
+  
+  if (obj.empty()) {
+    return;
+  }
+
+  boost::json::object msg = {
+    { "type", "add" },
+    { "data", {
+      { "type", type },
+      { "obj", obj }
+      }
+    }
+  };
+  
+  if (down) {
+    pubDown(msg);
+  }
+  msg["dest"] = _upstreamId;
+  if (up) {
+    sendDataReq(nullopt, msg);
+  }
+
+}
+
 bool Server::updateObject(json &j) {
 
   auto data = Json::getObject(j, "data");
@@ -1436,6 +1478,34 @@ bool Server::updateObject(json &j) {
   }
   
   auto result = SchemaImpl::updateGeneralById(collName(type.value()), id.value(), {{ "$set", obj.value() }});
+  if (!result) {
+    BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
+    return false;
+  }
+
+  return true;
+  
+}
+
+bool Server::addObject(json &j) {
+
+  auto data = Json::getObject(j, "data");
+  if (!data) {
+    BOOST_LOG_TRIVIAL(error) << "add sub missing data";
+    return false;
+  }
+  auto type = Json::getString(data.value(), "type");
+  if (!type) {
+    BOOST_LOG_TRIVIAL(error) << "add sub data missing type";
+    return false;
+  }
+  auto obj = Json::getObject(data.value(), "obj");
+  if (!obj) {
+    BOOST_LOG_TRIVIAL(error) << "add sub data missing obj";
+    return false;
+  }
+  
+  auto result = SchemaImpl::insertGeneral(collName(type.value()), obj.value());
   if (!result) {
     BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
     return false;

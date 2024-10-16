@@ -70,6 +70,7 @@ public:
   
   // notifying other nodes.
   void sendUpd(const string &type, const string &id, boost::json::object &obj, const string &stream);
+  void sendAdd(const string &type, boost::json::object &obj);
   
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
@@ -89,7 +90,11 @@ public:
     // import them.
     
   bool updateObject(json &j);
-    // given an objet in the format {"data":{"type":"user","id":"6121bdfaec9e5a059715739c","obj":obj }}
+    // given an object in the format {"data":{"type":"user","id":"6121bdfaec9e5a059715739c","obj":obj }}
+    // update it
+    
+  bool addObject(json &j);
+    // given an object in the format {"data":{"type":"user","obj":obj }}
     // update it
     
   string collName(const string &type, optional<string> coll);
@@ -142,7 +147,7 @@ private:
   void collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies);
   void collectPolicies(const vector<string> &policies, boost::json::array *data);
   bool isValidId(const string &id);
-  bool validateSentObj(const string &action, const string &type, boost::json::object &obj, const string &id);
+  bool validateId(boost::json::object &obj, const string &id);
   bool shouldSendDown(const string &action, const string &type, const string &id, const string &stream);
   bool shouldSendUp(const string &type, boost::json::object &obj, const string &stream);
   vector<string> getNodeIds(const string &type);

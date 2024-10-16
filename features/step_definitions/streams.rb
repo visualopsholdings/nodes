@@ -111,6 +111,10 @@ When('she sends stream {string} to upstream') do |id|
    $lastResult = SendTo({ "type": "stream", "stream": id }, 3013, 3012)
 end
 
+Then('she sends streams to upstream') do
+   $lastResult = SendTo({ "type": "streams"}, 3013, 3012)
+end
+
 When('she sends stream {string} to downstream2') do |id|
    $lastResult = SendTo({ "type": "stream", "stream": id }, 3023, 3022)
 end
@@ -125,4 +129,12 @@ end
 
 When('she sends set stream name of {string} to {string} to upstream') do |id, newname|
    $lastResult = SendTo({ "type": "setstream", "id": id, "name": newname }, 3013, 3012)
+end
+
+When('she sends add stream {string} as {string} to downstream5') do |name, user|
+   $lastResult = SendTo({ "type": "addstream", "me": user, "name": name }, 3053, 3052)
+end
+
+When('she sends streams to downstream5') do
+   $lastResult = SendTo({ "type": "streams" }, 3053, 3052)
 end

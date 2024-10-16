@@ -4,3 +4,4 @@ build
 frontend/apps
 mongodb/dump
 *.log
+*.pid

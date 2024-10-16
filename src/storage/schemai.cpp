@@ -130,10 +130,10 @@ bool SchemaImpl::deleteById(const string &id) {
   return false;
     
 }
-  
-optional<string> SchemaImpl::insert(const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "insert " << doc << " in " << collName();
+optional<string> SchemaImpl::insertGeneral(const string &collection, const json &doc) {
+
+  BOOST_LOG_TRIVIAL(trace) << "insert " << doc << " in " << collection;
 
   if (!testInit()) {
     return nullopt;
@@ -144,9 +144,9 @@ optional<string> SchemaImpl::insert(const json &doc) {
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
   
   try {
-    auto result = Storage::instance()->_impl->coll(collName())._c.insert_one(d);
+    auto result = Storage::instance()->_impl->coll(collection)._c.insert_one(d);
     if (result) {
-      Storage::instance()->collectionWasChanged(collName());
+      Storage::instance()->collectionWasChanged(collection);
       return result.value().inserted_id().get_oid().value.to_string();
     }
   }

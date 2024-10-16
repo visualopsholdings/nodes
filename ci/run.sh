@@ -45,5 +45,4 @@ do
 		echo "Ready."
 		exit 0
 	fi
-	sleep 1
 done
