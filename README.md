@@ -82,22 +82,6 @@ all from source.
 [Instructions](https://github.com/visualopsholdings/nodes-devops/blob/main/dev/MONGO.md)
 On OS X or Linux:
 
-#### FLTK
-
-We build some simple GUIs for admin, and for that we use FLTK.
-
-On OS X:
-
-```
-git clone https://github.com/fltk/fltk.git
-cd fltk
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
-```
-
 ### This project
 
 ```
@@ -202,10 +186,6 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 - https://www.mongodb.com
 - https://mongocxx.org/api/current/annotated.html
-
-### FLTK
-
-- https://www.fltk.org/doc-1.4
 
 ## Change Log
 
@@ -339,6 +319,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 15 Oct 2024
 - Lot's more syncing code and tests for such.
+
+### 16 Oct 2024
+- Move out the FLTK stuff to nodes-admin
 
 
 

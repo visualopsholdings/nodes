@@ -156,19 +156,6 @@ add_executable(Counts test/counts.cpp)
 add_executable(nodesaggregate src/nodesaggregate.cpp)
   target_link_libraries(nodesaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
-# FLTK applications
-
-if (APPLE)
-  find_package(FLTK REQUIRED)
-  add_executable(nodesadmin MACOSX_BUNDLE src/nodesadmin.cpp ${CORE})
-  target_include_directories(nodesadmin PRIVATE ${FLTK_INCLUDE_DIR})
-  # Workaround: fltk.framework does not exist, so we have to replace it by libfltk.dylib
-  string(REPLACE "libfltk_images" "libfltk" FLTK_LIBRARY_NAME "${FLTK_IMAGES_LIBRARY_RELEASE}")
-  string(REPLACE "/usr/local/fltk.framework" "${FLTK_LIBRARY_NAME}" FLTK_LIBRARIES "${FLTK_LIBRARIES}")
-  target_link_libraries(nodesadmin ${FLTK_LIBRARIES} ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
-  set_target_properties(nodesadmin PROPERTIES FOLDER "Applications")
-endif ()
-
 # Tests
 
 add_executable(TestStorage test/teststorage.cpp)
