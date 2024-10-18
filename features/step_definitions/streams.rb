@@ -78,28 +78,12 @@ Then('she receives {int} ideas') do |count|
    expect($lastResult["ideas"].length).to eq(count)
 end
 
-When('she sends streams to downstream2') do
-   $lastResult = SendTo({ "type": "streams" }, 3023, 3022)
+When('she sends streams to downstream {int}') do |n|
+   $lastResult = SendTo({ "type": "streams"}, getDownstreamPort(n))
 end
 
-When('she sends ideas for {string} to downstream2') do |id|
-   $lastResult = SendTo({ "type": "ideas", "stream": id }, 3023, 3022)
-end
-
-When('she sends streams to downstream3') do
-   $lastResult = SendTo({ "type": "streams" }, 3033, 3032)
-end
-
-When('she sends ideas for {string} to downstream3') do |id|
-   $lastResult = SendTo({ "type": "ideas", "stream": id }, 3033, 3032)
-end
-
-When('she sends streams to downstream4') do
-   $lastResult = SendTo({ "type": "streams" }, 3043, 3042)
-end
-
-When('she sends ideas for {string} to downstream4') do |id|
-   $lastResult = SendTo({ "type": "ideas", "stream": id }, 3043, 3042)
+When('she sends ideas for {string} to downstream {int}') do |id, n|
+   $lastResult = SendTo({ "type": "ideas", "stream": id }, getDownstreamPort(n))
 end
 
 When('she sends set stream name of {string} to {string}') do |name, newname|
@@ -108,33 +92,25 @@ When('she sends set stream name of {string} to {string}') do |name, newname|
 end
 
 When('she sends stream {string} to upstream') do |id|
-   $lastResult = SendTo({ "type": "stream", "stream": id }, 3013, 3012)
+   $lastResult = SendTo({ "type": "stream", "stream": id }, getUpstreamPort())
 end
 
 Then('she sends streams to upstream') do
-   $lastResult = SendTo({ "type": "streams"}, 3013, 3012)
+   $lastResult = SendTo({ "type": "streams"}, getUpstreamPort())
 end
 
-When('she sends stream {string} to downstream2') do |id|
-   $lastResult = SendTo({ "type": "stream", "stream": id }, 3023, 3022)
-end
-
-When('she sends stream {string} to downstream3') do |id|
-   $lastResult = SendTo({ "type": "stream", "stream": id }, 3033, 3032)
-end
-
-When('she sends stream {string} to downstream4') do |id|
-   $lastResult = SendTo({ "type": "stream", "stream": id }, 3043, 3042)
+When('she sends stream {string} to downstream {int}') do |id, n|
+   $lastResult = SendTo({ "type": "stream", "stream": id }, getDownstreamPort(n))
 end
 
 When('she sends set stream name of {string} to {string} to upstream') do |id, newname|
-   $lastResult = SendTo({ "type": "setstream", "id": id, "name": newname }, 3013, 3012)
+   $lastResult = SendTo({ "type": "setstream", "id": id, "name": newname }, getUpstreamPort())
 end
 
-When('she sends add stream {string} as {string} to downstream5') do |name, user|
-   $lastResult = SendTo({ "type": "addstream", "me": user, "name": name }, 3053, 3052)
+When('she sends add stream {string} as {string} to downstream {int}') do |name, user, n|
+   $lastResult = SendTo({ "type": "addstream", "me": user, "name": name }, getDownstreamPort(n))
 end
 
-When('she sends streams to downstream5') do
-   $lastResult = SendTo({ "type": "streams" }, 3053, 3052)
+When('she sends add stream {string} as {string} to upstream') do |name, user|
+   $lastResult = SendTo({ "type": "addstream", "me": user, "name": name }, getUpstreamPort())
 end

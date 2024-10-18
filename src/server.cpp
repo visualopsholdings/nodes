@@ -84,6 +84,7 @@ void ackMsg(Server *server, json &json);
 
 // remoteMsgSub handlers
 void updSubMsg(Server *server, json &json);
+void addSubMsg(Server *server, json &json);
 
 // dataRep handles
 void onlineMsg(Server *server, json &json);
@@ -167,6 +168,7 @@ Server::Server(bool test, bool noupstream,
   _remoteDataReqMessages["ack"] =  bind(&nodes::ackMsg, this, placeholders::_1);
 
   _remoteMsgSubMessages["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
+  _remoteMsgSubMessages["add"] =  bind(&nodes::addSubMsg, this, placeholders::_1);
 
   _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
   _dataRepMessages["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);

@@ -62,22 +62,26 @@ When('she sends set group name of {string} to {string}') do |name, newname|
    $lastResult = Send({ "type": "setgroup", "id": g, "name": newname })
 end
 
+When('she sends groups to downstream {int}') do |n|
+   $lastResult = SendTo({ "type": "groups"}, getDownstreamPort(n))
+end
+
+When('she sends groups to upstream') do
+   $lastResult = SendTo({ "type": "groups"}, getUpstreamPort())
+end
+
+When('she sends add group {string} as {string} to upstream') do |name, user|
+   $lastResult = SendTo({ "type": "addgroup", "me": user, "name": name }, getUpstreamPort())
+end
+
 When('she sends set group name of {string} to {string} to upstream') do |id, newname|
-   $lastResult = SendTo({ "type": "setgroup", "id": id, "name": newname }, 3013, 3012)
+   $lastResult = SendTo({ "type": "setgroup", "id": id, "name": newname }, getUpstreamPort())
 end
 
 When('she sends group {string} to upstream') do |id|
-   $lastResult = SendTo({ "type": "group", "group": id }, 3013, 3012)
+   $lastResult = SendTo({ "type": "group", "group": id }, getUpstreamPort())
 end
 
-When('she sends group {string} to downstream2') do |id|
-   $lastResult = SendTo({ "type": "group", "group": id }, 3023, 3022)
-end
-
-When('she sends group {string} to downstream3') do |id|
-   $lastResult = SendTo({ "type": "group", "group": id }, 3033, 3032)
-end
-
-When('she sends group {string} to downstream4') do |id|
-   $lastResult = SendTo({ "type": "group", "group": id }, 3043, 3042)
+When('she sends group {string} to downstream {int}') do |id, n|
+   $lastResult = SendTo({ "type": "group", "group": id }, getDownstreamPort(n))
 end

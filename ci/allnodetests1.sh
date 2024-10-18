@@ -87,7 +87,7 @@ ci/run.sh downstream2
 ci/run.sh downstream5
 [ "$?" != "0" ] && fail
 
-ci/nodestest.sh "A new stream can be created on downstream5"
+ci/nodestest.sh "A new stream can be created on downstream 5"
 [ "$?" != "0" ] && fail
 
 finish

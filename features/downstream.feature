@@ -72,23 +72,23 @@ Feature: Downstream Test
 	   When she sends ideas for "Stream 1"
       Then she receives 20 ideas
 
-      When she sends streams to downstream2
+      When she sends streams to downstream 2
       Then she receives 3 streams
-	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream2
+	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream 2
       Then she receives 15 ideas
       
-      When she sends streams to downstream3
+      When she sends streams to downstream 3
       Then she receives 2 streams
-	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream3
+	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream 3
       Then she receives 15 ideas
 
-      When she sends streams to downstream4
+      When she sends streams to downstream 4
       Then she receives 5 streams
-	   When she sends ideas for "613ee472ec9e5aafc85e1301" to downstream4
+	   When she sends ideas for "613ee472ec9e5aafc85e1301" to downstream 4
       Then she receives 20 ideas
-	   When she sends ideas for "61444c6addf5aaa6a02e05b7" to downstream4
+	   When she sends ideas for "61444c6addf5aaa6a02e05b7" to downstream 4
       Then she receives 1 ideas
-	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream4
+	   When she sends ideas for "61a0b4de98499a20f0768351" to downstream 4
       Then she receives 10 ideas
 
  	@javascript
@@ -105,13 +105,13 @@ Feature: Downstream Test
       And she sends user with id "6121bdfaec9e5a059715739c"
       And she receives user "Sue"
 
-      And she sends user "6121bdfaec9e5a059715739c" to downstream2
+      And she sends user "6121bdfaec9e5a059715739c" to downstream 2
       And she receives user "Sue"
       
-      And she sends user "6121bdfaec9e5a059715739c" to downstream3
+      And she sends user "6121bdfaec9e5a059715739c" to downstream 3
       And she receives user "Sue"
       
-      And she sends user "6121bdfaec9e5a059715739c" to downstream4
+      And she sends user "6121bdfaec9e5a059715739c" to downstream 4
       And she receives user "Sue"
 
  	@javascript
@@ -128,13 +128,13 @@ Feature: Downstream Test
       And she sends group with id "613d8641ec9e5a6c4785d6d2"
       And she receives group "Another Group"
 
-      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream2
+      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream 2
       And she receives group "Another Group"
       
-      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream3
+      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream 3
       And she receives group "Another Group"
       
-      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream4
+      And she sends group "613d8641ec9e5a6c4785d6d2" to downstream 4
       And she receives group "Another Group"
  
   	@javascript
@@ -151,27 +151,58 @@ Feature: Downstream Test
       And she sends stream with id "61a0b4de98499a20f0768351"
       And she receives stream "Stream y"
 
-      And she sends stream "61a0b4de98499a20f0768351" to downstream2
+      And she sends stream "61a0b4de98499a20f0768351" to downstream 2
       And she receives stream "Stream y"
       
-      And she sends stream "61a0b4de98499a20f0768351" to downstream3
+      And she sends stream "61a0b4de98499a20f0768351" to downstream 3
       And she receives stream "Stream y"
       
-      And she sends stream "61a0b4de98499a20f0768351" to downstream4
+      And she sends stream "61a0b4de98499a20f0768351" to downstream 4
       And she receives stream "Stream y"
 
   	@javascript
-   Scenario: A new stream can be created on downstream5
+   Scenario: A new stream can be created on downstream 5
 
-      When she sends add stream "New Conversation" as "56348765b4d6976b478e1bd7" to downstream5
-	   And she sends streams to downstream5
+      When she sends add stream "New Conversation" as "56348765b4d6976b478e1bd7" to downstream 5
+	   And she sends streams to downstream 5
       Then she receives 5 streams
 
       # 5 is a mirror of upstream2
-	   And she sends streams to downstream2
+	   And she sends streams to downstream 2
       Then she receives 4 streams
       
       # upstream shouldn't get it.
 	   And she sends streams to upstream
       Then she receives 4 streams
 
+  	@javascript
+   Scenario: A new stream created on upstream appears on downstream mirrors
+
+	   When she sends streams to downstream 4
+      And she receives 5 streams
+ 	   
+      And she sends add stream "New Stream" as "6121bdfaec9e5a059715739c" to upstream
+	   And she sends streams to upstream
+      And she receives 5 streams
+  	   
+	   And she sends streams to downstream 4
+      And she receives 6 streams
+ 	   
+	   And she sends streams to downstream 6
+      Then she receives 6 streams
+ 	   
+  	@javascript
+   Scenario: A new group created on upstream appears on downstream mirrors
+
+	   When she sends groups to downstream 4
+      And she receives 6 groups
+ 	   
+      And she sends add group "New Group" as "6121bdfaec9e5a059715739c" to upstream
+	   And she sends groups to upstream
+      And she receives 3 groups
+  	   
+	   And she sends groups to downstream 4
+      And she receives 7 groups
+ 	   
+	   And she sends groups to downstream 6
+      Then she receives 7 groups

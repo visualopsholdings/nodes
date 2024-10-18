@@ -43,21 +43,13 @@ When('she sends set user fullname of {string} to {string}') do |name, newname|
 end
 
 When('she sends user {string} to upstream') do |id|
-   $lastResult = SendTo({ "type": "user" , "user": id }, 3013, 3012)
+   $lastResult = SendTo({ "type": "user" , "user": id }, getUpstreamPort())
 end
 
 When('she sends set user fullname of {string} to {string} to upstream') do |u, newname|
-   $lastResult = SendTo({ "type": "setuser", "id": u, "fullname": newname }, 3013, 3012)
+   $lastResult = SendTo({ "type": "setuser", "id": u, "fullname": newname }, getUpstreamPort())
 end
 
-When('she sends user {string} to downstream2') do |id|
-   $lastResult = SendTo({ "type": "user" , "user": id }, 3023, 3022)
-end
-
-When('she sends user {string} to downstream3') do |id|
-   $lastResult = SendTo({ "type": "user" , "user": id }, 3033, 3032)
-end
-
-When('she sends user {string} to downstream4') do |id|
-   $lastResult = SendTo({ "type": "user" , "user": id }, 3043, 3052)
+When('she sends user {string} to downstream {int}') do |id, n|
+   $lastResult = SendTo({ "type": "user" , "user": id }, getDownstreamPort(n))
 end
