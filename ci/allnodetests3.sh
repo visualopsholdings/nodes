@@ -8,7 +8,7 @@
 #   downstream4 (mirror)    f2ecaf81-943d-4ffd-a3d4-fc2d2d48c1c6 (8840, 8841) (mahsa)
 #     downstream6 (mirror)  05fd392d-1092-4255-8323-38c774e4f6a8 (8860, 8861)
 
-echo "All node tests 2"
+echo "All node tests 3"
 date "+%H:%M:%S"
 
 finish() {
@@ -27,8 +27,6 @@ pushd ..
 # in case we run on a failed build.
 finish
 
-# tests for mirror mode only
-
 ci/run.sh upstream
 [ "$?" != "0" ] && exit 1
 
@@ -38,13 +36,16 @@ ci/run.sh downstream4
 ci/run.sh downstream6
 [ "$?" != "0" ] && fail
 
-ci/nodestest.sh "A new stream created on upstream appears on downstream mirrors"
+# ci/nodestest.sh "A new draft doc created on upstream appears on downstream mirrors"
+# [ "$?" != "0" ] && fail
+# 
+ci/nodestest.sh "A stream created in a mirror downstream 4 is reflected in the upstream"
 [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "A new doc created on upstream appears on downstream mirrors"
+# ci/nodestest.sh "A new doc created on downstream4 appears on upstream"
 # [ "$?" != "0" ] && fail
 
-ci/nodestest.sh "A new group created on upstream appears on downstream mirrors"
+ci/nodestest.sh "A new group created on downstream 4 appears on upstream"
 [ "$?" != "0" ] && fail
 
 finish

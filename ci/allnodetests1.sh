@@ -70,7 +70,7 @@ ci/nodestest.sh "Change to a user is reflected in the downstream servers"
 ci/nodestest.sh "Change to a group is reflected in the downstream servers"
 [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "Change to a sequence is reflected in the downstream servers"
+# ci/nodestest.sh "Change to a doc is reflected in the downstream servers"
 # [ "$?" != "0" ] && fail
 # 
 ci/nodestest.sh "Change to a stream is reflected in the downstream servers"

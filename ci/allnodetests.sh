@@ -28,9 +28,9 @@ fi
 ./allnodetests2.sh
 [ "$?" != "0" ] && exit 1
 
-# ./allnodetests3.sh
-# [ "$?" != "0" ] && exit 1
-# 
+./allnodetests3.sh
+[ "$?" != "0" ] && exit 1
+
 # ./allnodetests4.sh
 # [ "$?" != "0" ] && exit 1
 # 

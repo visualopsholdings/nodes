@@ -206,3 +206,23 @@ Feature: Downstream Test
  	   
 	   And she sends groups to downstream 6
       Then she receives 7 groups
+
+ 	@javascript
+   Scenario: A stream created in a mirror downstream 4 is reflected in the upstream
+   
+      And she sends add stream "New Stream" as "56348765b4d6976b478e1bd7" to downstream 4
+	   And she sends streams to downstream 4
+      And she receives 6 streams
+
+	   And she sends streams to upstream
+      And she receives 5 streams
+
+  	@javascript
+   Scenario: A new group created on downstream 4 appears on upstream
+
+      And she sends add group "New Group" as "56348765b4d6976b478e1bd7" to downstream 4
+	   And she sends groups to downstream 4
+      And she receives 7 groups
+
+	   And she sends groups to upstream
+      And she receives 3 groups

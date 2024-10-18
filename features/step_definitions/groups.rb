@@ -85,3 +85,7 @@ end
 When('she sends group {string} to downstream {int}') do |id, n|
    $lastResult = SendTo({ "type": "group", "group": id }, getDownstreamPort(n))
 end
+
+When('she sends add group {string} as {string} to downstream {int}') do |name, user, n|
+   $lastResult = SendTo({ "type": "addgroup", "me": user, "name": name }, getDownstreamPort(n))
+end
