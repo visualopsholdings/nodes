@@ -41,7 +41,7 @@ void updDrMsg(Server *server, json &j) {
   }
   
   server->updateObject(j);
-
+  server->sendUp(j);
   server->sendAckDown();
 
   

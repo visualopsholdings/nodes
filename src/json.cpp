@@ -76,7 +76,7 @@ optional<boost::json::array> Json::getArray(json &j, const string &name, bool si
   
 }
 
-optional<json> Json::getObject(json &j, const string &name, bool silent) {
+optional<json> Json::getObject(const json &j, const string &name, bool silent) {
 
   auto obj = getMember(j, name, silent);
   if (!obj.is_object()) {

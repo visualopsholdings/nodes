@@ -464,6 +464,33 @@ void Server::pubDown(const json &m) {
   
 }
 
+void Server::sendUp(const json &m) {
+
+  auto data = Json::getObject(m, "data");
+  if (!data) {
+    BOOST_LOG_TRIVIAL(error) << "sendUp message has no data";
+    return;
+  }
+  auto type = Json::getString(data.value(), "type");
+  if (!type) {
+    BOOST_LOG_TRIVIAL(error) << "sendUp message data has no type";
+    return;
+  }
+  auto obj = Json::getObject(data.value(), "obj");
+  if (!obj) {
+    BOOST_LOG_TRIVIAL(error) << "sendUp message data has no obj";
+    return;
+  }
+  
+  if (shouldSendUp(type.value(), obj.value().as_object(), "")) {
+    BOOST_LOG_TRIVIAL(trace) << "sendUp";
+    boost::json::object m2 = m.as_object();
+    m2["dest"] = _upstreamId;
+    sendDataReq(nullopt, m2);
+  }
+  
+}
+
 void Server::sendErr(const string &msg) {
 
   BOOST_LOG_TRIVIAL(error) << msg;
@@ -1350,10 +1377,12 @@ bool Server::shouldSendUp(const string &type, boost::json::object &obj, const st
   if (_upstreamId != "") {
     string mirror = get1Info("upstreamMirror");
     if (mirror == "true") {
+      BOOST_LOG_TRIVIAL(trace) << "mirror sneding up";
       return true;
     }
     auto upstream = Json::getBool(obj, "upstream", true);
     if (upstream && upstream.value()) {
+      BOOST_LOG_TRIVIAL(trace) << "upstream sending up";
       return true;
     }
   }
@@ -1362,9 +1391,16 @@ bool Server::shouldSendUp(const string &type, boost::json::object &obj, const st
     BOOST_LOG_TRIVIAL(trace) << "testing for upstream";
     auto streams = Stream().find(json{{ "upstream", true }}, { "_id" }).values();
     if (streams) {
-      return find_if(streams.value().begin(), streams.value().end(), [&stream](auto e) {
+      bool send = find_if(streams.value().begin(), streams.value().end(), [&stream](auto e) {
         return e.id() == stream;
       }) != streams.value().end();
+      if (send) {
+        BOOST_LOG_TRIVIAL(trace) << "stream match, sending up";
+      }
+      else {
+        BOOST_LOG_TRIVIAL(trace) << "no stream match, not sending up " << stream;
+      }
+      return send;
     }
   }
   
@@ -1389,7 +1425,7 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
   bool down = shouldSendDown("update", type, id, stream);
   
   if (!up && !down) {
-    BOOST_LOG_TRIVIAL(trace) << "not sending";
+    BOOST_LOG_TRIVIAL(trace) << "not sending up or down";
     return;
   }
   
@@ -1416,7 +1452,7 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
 
 }
 
-void Server::sendAdd(const string &type, boost::json::object &obj) {
+void Server::sendAdd(const string &type, boost::json::object &obj, const string &stream) {
 
   BOOST_LOG_TRIVIAL(trace) << "sendAdd " << type;
 
@@ -1425,8 +1461,8 @@ void Server::sendAdd(const string &type, boost::json::object &obj) {
     BOOST_LOG_TRIVIAL(warning) << "skipping add, but obj id ";
   }
     
-  bool up = shouldSendUp(type, obj, "");
-  bool down = shouldSendDown("add", type, id.value(), "");
+  bool up = shouldSendUp(type, obj, stream);
+  bool down = shouldSendDown("add", type, id.value(), stream);
   
   if (!up && !down) {
     BOOST_LOG_TRIVIAL(trace) << "not sending";

@@ -114,3 +114,11 @@ end
 When('she sends add stream {string} as {string} to upstream') do |name, user|
    $lastResult = SendTo({ "type": "addstream", "me": user, "name": name }, getUpstreamPort())
 end
+
+When('she sends add stream from upstream with {string}') do |id|
+   $lastResult = Send({ "type": "addstream", "upstream": true, "id": id })
+end
+
+When('she sends ideas for {string} to upstream') do |id|
+   $lastResult = SendTo({ "type": "ideas", "stream": id }, getUpstreamPort())
+end

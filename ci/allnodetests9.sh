@@ -11,42 +11,37 @@
 #   downstream4 (mirror)    f2ecaf81-943d-4ffd-a3d4-fc2d2d48c1c6 (8840, 8841) (mahsa)
 #     downstream6 (mirror)  05fd392d-1092-4255-8323-38c774e4f6a8 (8860, 8861)
 
-if [ "$CHANGED_NODES" == "no" ];
-then
-	echo "Skipping allnodetests"
-  exit 0
-fi
+echo "All node tests 9"
+date "+%H:%M:%S"
 
-./allnodetests1.sh
-[ "$?" != "0" ] && exit 1
+finish() {
+	ci/kill.sh upstream
+	ci/kill.sh downstream2
+	ci/kill.sh downstream3
+}
 
-if [ "$EXHAUSTIVE_NODES" == "no" ];
-then
-  exit 0
-fi
+fail() {
+	finish
+	exit 1
+}
 
-./allnodetests2.sh
-[ "$?" != "0" ] && exit 1
+# test all of those that can be run together
+pushd ..
 
-./allnodetests3.sh
-[ "$?" != "0" ] && exit 1
+# ci/run.sh upstream
+# [ "$?" != "0" ] && exit 1
+# 
+# ci/run.sh downstream2
+# [ "$?" != "0" ] && fail
+# 
+# ci/run.sh downstream3
+# [ "$?" != "0" ] && fail
+# 
+# ci/nodestest.sh "An existing user can be pushed downstream"
+# [ "$?" != "0" ] && fail
+# 
+# finish
 
-./allnodetests4.sh
-[ "$?" != "0" ] && exit 1
-
-./allnodetests5.sh
-[ "$?" != "0" ] && exit 1
-
-./allnodetests6.sh
-[ "$?" != "0" ] && exit 1
-
-./allnodetests7.sh
-[ "$?" != "0" ] && exit 1
-
-./allnodetests8.sh
-[ "$?" != "0" ] && exit 1
-
-./allnodetests9.sh
-[ "$?" != "0" ] && exit 1
+popd
 
 exit 0

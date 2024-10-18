@@ -226,3 +226,46 @@ Feature: Downstream Test
 
 	   And she sends groups to upstream
       And she receives 3 groups
+
+ 	@javascript
+   Scenario: A stream created in a mirror downstream 6 is reflected in the upstream
+   
+      And she sends add stream "New Stream" as "6121bdfaec9e5a059715739c" to downstream 6
+	   And she sends streams to downstream 6
+      And she receives 6 streams
+
+	   And she sends streams to upstream
+      And she receives 5 streams
+
+	   And she sends streams to downstream 4
+      And she receives 6 streams
+
+  	@javascript
+   Scenario: A new group created on downstream 6 appears on upstream
+
+      And she sends add group "New Group" as "6121bdfaec9e5a059715739c" to downstream 6
+	   And she sends groups to downstream 6
+      And she receives 7 groups
+
+	   And she sends groups to upstream
+      And she receives 3 groups
+
+	   And she sends groups to downstream 4
+      And she receives 7 groups
+
+   @javascript
+   Scenario: An existing stream can be pulled from upstream
+   
+      When she sends add stream from upstream with "61444c6addf5aaa6a02e05b7"
+      And she receives ack
+      And eventually the stream "Stream 2" has 1 ideas in the DB
+      
+	   And she sends streams
+      And she receives 4 streams
+
+      And she sends message "My Idea" as "tracy" to "Stream 2"
+      And she sends ideas for "Stream 2"
+      And she receives 2 ideas
+
+	   And she sends ideas for "61444c6addf5aaa6a02e05b7" to upstream
+      And she receives 2 ideas

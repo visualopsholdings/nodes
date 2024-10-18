@@ -41,7 +41,7 @@ void addDrMsg(Server *server, json &j) {
   }
   
   server->addObject(j);
-
+  server->sendUp(j);
   server->sendAckDown();
 
   

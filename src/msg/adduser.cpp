@@ -30,7 +30,7 @@ void addUserMsg(Server *server, json &j) {
 
     auto userid = Json::getString(j, "id");
     if (!userid) {
-      server->sendErr("no userid");
+      server->sendErr("no user id");
       return;
     }
   
@@ -157,7 +157,7 @@ void addUserMsg(Server *server, json &j) {
 
   // send to other nodes.
   obj["id"] = id.value();
-  server->sendAdd("user", obj);
+  server->sendAdd("user", obj, "");
     
   VID vid;
   vid.reset(id.value(), password);

@@ -13,6 +13,7 @@
 
 #include "json.hpp"
 #include "storage.hpp"
+#include "security.hpp"
 
 #include <boost/log/trivial.hpp>
 #include <algorithm>
@@ -34,6 +35,10 @@ void discoverResultMsg(Server *server, json &j) {
   json date = Storage::instance()->getNow();
   server->setInfo("upstreamLastSeen", Json::toISODate(date));
   server->systemStatus("Discovery complete");
+
+  // make sure everything is regenerated
+  Security::instance()->regenerateGroups();
+  Security::instance()->regenerate();
 
 }
 

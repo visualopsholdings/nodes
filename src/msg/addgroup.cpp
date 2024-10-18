@@ -96,7 +96,7 @@ void addGroupMsg(Server *server, json &j) {
   
   // send to other nodes.
   obj["id"] = id.value();
-  server->sendAdd("group", obj);
+  server->sendAdd("group", obj, "");
     
   Security::instance()->regenerateGroups();
 

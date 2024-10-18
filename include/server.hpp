@@ -60,6 +60,7 @@ public:
   }
   void sendDown(const json &m);
   void pubDown(const json &m);
+  void sendUp(const json &m);
   void sendErr(const string &msg);
   void sendErrDown(const string &msg);
   void sendWarning(const string &msg);
@@ -70,7 +71,7 @@ public:
   
   // notifying other nodes.
   void sendUpd(const string &type, const string &id, boost::json::object &obj, const string &stream);
-  void sendAdd(const string &type, boost::json::object &obj);
+  void sendAdd(const string &type, boost::json::object &obj, const string &stream);
   
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
