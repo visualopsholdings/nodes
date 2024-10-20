@@ -60,6 +60,12 @@ void setinfoMsg(Server *server, json &j) {
       server->sendErr("could not set upstreamPubKey");
       return;
     }
+    auto upstreamMirror = Json::getString(j, "upstreamMirror", true);
+    if (!server->setInfo("upstreamMirror", upstreamMirror ? upstreamMirror.value() : "false")) {
+      server->sendErr("could not set upstreamMirror");
+      return;
+    }
+
     server->systemStatus("Upstream set");
     server->connectUpstream();
     server->_reload = true;

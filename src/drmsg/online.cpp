@@ -44,6 +44,14 @@ void onlineMsg(Server *server, json &j) {
   if (streamBgColor) {
     obj["streamBgColor"] = streamBgColor.value();
   }
+  auto mirror = Json::getString(j, "mirror", true);
+  if (mirror) {
+    obj["mirror"] = mirror.value();
+  }
+  auto synced = Json::getString(j, "synced", true);
+  if (synced) {
+    obj["synced"] = synced.value();
+  }
 
   // is the node valid?
   bool valid = false;
@@ -77,3 +85,4 @@ void onlineMsg(Server *server, json &j) {
 }
 
 };
+

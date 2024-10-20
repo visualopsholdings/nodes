@@ -749,20 +749,20 @@ void Server::sendUpOnline() {
     return;
   }
   
+  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamMirror"}}} }}, {"type", "text"}).values();
+  string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
+  string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "false");
+
   boost::json::object msg = {
     { "type", "online" },
     { "build", "28474" },
     { "headerTitle", doc.value().headerTitle() },
     { "streamBgColor", doc.value().streamBgColor() },
-    { "hasInitialSync", "true" },
     { "pubKey", _pubKey },
+    { "synced", hasInitialSync == "true" },
+    { "mirror", upstreamMirror == "true" },
 //    { "dest", _upstreamId }    
   };
-  
-  string mirror = get1Info("upstreamMirror");
-  if (mirror == "true") {
-    msg["mirror"] = true;
-  }
   
   sendDataReq(nullopt, msg);
   
