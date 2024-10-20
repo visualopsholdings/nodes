@@ -100,7 +100,7 @@ void addGroupMsg(Server *server, json &j) {
     
   Security::instance()->regenerateGroups();
 
-  server->sendAck();
+  server->sendAck(id.value());
 
 }
 

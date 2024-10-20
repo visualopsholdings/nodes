@@ -28,6 +28,11 @@ void addSubMsg(Server *server, json &j) {
     return;
   }
   
+  // if we should ignore it, then do so.
+  if (server->shouldIgnoreAdd(j)) {
+    return;
+  }
+
   // keep sending it down.
   server->pubDown(j);
 

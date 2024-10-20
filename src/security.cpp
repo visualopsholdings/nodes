@@ -489,6 +489,8 @@ string getHome() {
 
 void Security::regenerate() {
 
+  BOOST_LOG_TRIVIAL(trace) << "Building security...";
+    
   string home = getHome();
   Policy().aggregate(home + "/scripts/groupeditpermissions.json");
   Policy().aggregate(home + "/scripts/groupviewpermissions.json");
@@ -497,6 +499,8 @@ void Security::regenerate() {
 }
 
 void Security::regenerateGroups() {
+
+  BOOST_LOG_TRIVIAL(trace) << "Building groups...";
 
   string home = getHome();
   Group().aggregate(home + "/scripts/useringroups.json");

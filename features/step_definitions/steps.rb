@@ -20,12 +20,6 @@ Then('she receives user') do
    expect($lastResult["type"]).to eq("user")
 end
 
-When('she sends message {string} as {string} to {string}') do |text, user, stream|
-   u = User.where(name: user).first._id.to_s
-   s = Stream.where(name: stream).first._id.to_s
-   $lastResult = Send({ "type": "message" , "me": u,  "stream": s, "text": text, "corr": "1" })
-end
-
 Then('she receives ack') do
    expect($lastResult["type"]).to eq("ack")
 end
@@ -61,5 +55,9 @@ end
 
 When("she waits {int} seconds") do |n|
   sleep(n.to_i)
+end
+
+When("she saves the result") do
+   $savedResult = $lastResult
 end
 

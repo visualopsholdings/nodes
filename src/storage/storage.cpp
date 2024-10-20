@@ -72,12 +72,15 @@ bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
   for (auto i: objs) {
     json obj = i;
     
+//    BOOST_LOG_TRIVIAL(trace) << "insert obj " << obj;
+
     string id;
     if (obj.as_object().if_contains("_id")) {
       id = obj.as_object()["_id"].as_string();
     }
     else if (obj.as_object().if_contains("id")) {
       id = obj.as_object()["id"].as_string();
+      obj.as_object().erase("id");
     }
     else {
       BOOST_LOG_TRIVIAL(error) << "no id or _id";

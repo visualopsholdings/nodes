@@ -65,8 +65,8 @@ public:
   void sendErrDown(const string &msg);
   void sendWarning(const string &msg);
   void sendSecurity();
-  void sendAck();
-  void sendAckDown();
+  void sendAck(optional<string> result=nullopt);
+  void sendAckDown(optional<string> result=nullopt);
   void sendDataReq(optional<string> corr, const json &m);
   
   // notifying other nodes.
@@ -101,6 +101,9 @@ public:
   string collName(const string &type, optional<string> coll);
   string collName(const string &type);
     // get the collection name from the schema given a type.
+
+  bool shouldIgnoreAdd(json &msg);
+    // adds always come, should we ignore one?
 
   string _certFile;
   string _chainFile;

@@ -119,6 +119,24 @@ When('she sends add stream from upstream with {string}') do |id|
    $lastResult = Send({ "type": "addstream", "upstream": true, "id": id })
 end
 
+When('she sends add stream from upstream with saved stream') do
+   $lastResult = Send({ "type": "addstream", "upstream": true, "id": $savedResult["result"] })
+end
+
 When('she sends ideas for {string} to upstream') do |id|
    $lastResult = SendTo({ "type": "ideas", "stream": id }, getUpstreamPort())
+end
+
+When('she sends message {string} as {string} to {string}') do |text, user, stream|
+   u = User.where(name: user).first._id.to_s
+   s = Stream.where(name: stream).first._id.to_s
+   $lastResult = Send({ "type": "message" , "me": u,  "stream": s, "text": text, "corr": "1" })
+end
+
+When('she sends message {string} as {string} to saved stream to upstream') do |text, user|
+   $lastResult = SendTo({ "type": "message" , "me": user,  "stream": $savedResult["result"], "text": text, "corr": "1" }, getUpstreamPort())
+end
+
+When('she sends ideas for saved stream to upstream') do
+   $lastResult = SendTo({ "type": "ideas", "stream": $savedResult["result"] }, getUpstreamPort())
 end

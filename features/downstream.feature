@@ -210,27 +210,27 @@ Feature: Downstream Test
  	@javascript
    Scenario: A stream created in a mirror downstream 4 is reflected in the upstream
    
-      And she sends add stream "New Stream" as "56348765b4d6976b478e1bd7" to downstream 4
+      When she sends add stream "New Stream" as "56348765b4d6976b478e1bd7" to downstream 4
 	   And she sends streams to downstream 4
       And she receives 6 streams
 
 	   And she sends streams to upstream
-      And she receives 5 streams
+      Then she receives 5 streams
 
   	@javascript
    Scenario: A new group created on downstream 4 appears on upstream
 
-      And she sends add group "New Group" as "56348765b4d6976b478e1bd7" to downstream 4
+      When she sends add group "New Group" as "56348765b4d6976b478e1bd7" to downstream 4
 	   And she sends groups to downstream 4
       And she receives 7 groups
 
 	   And she sends groups to upstream
-      And she receives 3 groups
+      Then she receives 3 groups
 
  	@javascript
    Scenario: A stream created in a mirror downstream 6 is reflected in the upstream
    
-      And she sends add stream "New Stream" as "6121bdfaec9e5a059715739c" to downstream 6
+      When she sends add stream "New Stream" as "6121bdfaec9e5a059715739c" to downstream 6
 	   And she sends streams to downstream 6
       And she receives 6 streams
 
@@ -238,12 +238,12 @@ Feature: Downstream Test
       And she receives 5 streams
 
 	   And she sends streams to downstream 4
-      And she receives 6 streams
+      Then she receives 6 streams
 
   	@javascript
    Scenario: A new group created on downstream 6 appears on upstream
 
-      And she sends add group "New Group" as "6121bdfaec9e5a059715739c" to downstream 6
+      When she sends add group "New Group" as "6121bdfaec9e5a059715739c" to downstream 6
 	   And she sends groups to downstream 6
       And she receives 7 groups
 
@@ -251,7 +251,7 @@ Feature: Downstream Test
       And she receives 3 groups
 
 	   And she sends groups to downstream 4
-      And she receives 7 groups
+      Then she receives 7 groups
 
    @javascript
    Scenario: An existing stream can be pulled from upstream
@@ -268,4 +268,34 @@ Feature: Downstream Test
       And she receives 2 ideas
 
 	   And she sends ideas for "61444c6addf5aaa6a02e05b7" to upstream
+      Then she receives 2 ideas
+
+ 	@javascript
+   Scenario: A new stream with ideas can be pulled from upstream
+   
+      # add a new stream to the upstream with 2 new ideas.
+      When she sends add stream "New Stream" as "6121bdfaec9e5a059715739c" to upstream
+      And she saves the result
+      And she sends message "My Idea 1" as "6121bdfaec9e5a059715739c" to saved stream to upstream
+      And she sends message "My Idea 2" as "6121bdfaec9e5a059715739c" to saved stream to upstream
+	   And she sends ideas for saved stream to upstream
       And she receives 2 ideas
+      
+      # make sure nothing came down.
+	   When she sends streams
+      And she receives 3 streams
+      Then eventually there are 30 ideas in the DB
+      
+      # get the the stream from upstream.
+      When she sends add stream from upstream with saved stream
+      And she receives ack
+	   And she sends streams
+      And she receives 4 streams
+      Then eventually there are 32 ideas in the DB
+      
+      # add a new message to this upstream stream.
+      When she sends message "I know" as "tracy" to "New Stream"
+      Then eventually the stream "New Stream" has 3 ideas in the DB
+      
+	   When she sends ideas for saved stream to upstream
+      Then she receives 3 ideas

@@ -46,7 +46,4 @@ fi
 ./allnodetests8.sh
 [ "$?" != "0" ] && exit 1
 
-./allnodetests9.sh
-[ "$?" != "0" ] && exit 1
-
 exit 0

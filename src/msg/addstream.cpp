@@ -99,7 +99,7 @@ void addStreamMsg(Server *server, json &j) {
   obj["id"] = id.value();
   server->sendAdd("stream", obj, "");
     
-  server->sendAck();
+  server->sendAck(id.value());
 
 }
 

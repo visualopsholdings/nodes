@@ -524,19 +524,27 @@ void Server::sendWarning(const string &msg) {
   
 }
 
-void Server::sendAck() {
+void Server::sendAck(optional<string> result) {
 
-  send({ 
-    { "type", "ack" } 
-  });
+  boost::json::object msg = { 
+    { "type", "ack" }
+  };
+  if (result) {
+    msg["result"] = result.value();
+  }
+  send(msg);
   
 }
 
-void Server::sendAckDown() {
+void Server::sendAckDown(optional<string> result) {
 
-  sendDown({ 
-    { "type", "ack" } 
-  });
+  boost::json::object msg = { 
+    { "type", "ack" }
+  };
+  if (result) {
+    msg["result"] = result.value();
+  }
+  sendDown(msg);
   
 }
 
@@ -1350,6 +1358,8 @@ bool Server::testListening(const string &action, const string &type, const strin
 
 bool Server::shouldSendDown(const string &action, const string &type, const string &id, const string &stream) {
 
+  BOOST_LOG_TRIVIAL(trace) << "shouldSendDown";
+
   if (_dataRep) {
     auto nodes = Node().find(json{ { "valid", true }}).values();
     if (!nodes || nodes.value().size() == 0) {
@@ -1358,6 +1368,7 @@ bool Server::shouldSendDown(const string &action, const string &type, const stri
     }
     if (action == "add") {
       // always send adds, people can't be listening to them.
+      // non mirrors will get them, it's up to them to ignore them.
       return true;
     }
     if (type == "idea") {
@@ -1550,5 +1561,47 @@ bool Server::addObject(json &j) {
   }
 
   return true;
+  
+}
+
+bool Server::shouldIgnoreAdd(json &msg) {
+
+  string mirror = get1Info("upstreamMirror");
+  if (mirror == "true") {
+    // always add when we are a mirror.
+    return false;
+  }
+  
+  auto data = Json::getObject(msg, "data");
+  if (!data) {
+    return true;
+  }
+  auto type = Json::getString(data.value(), "type");
+  if (!type) {
+    return true;
+  }
+  if (type.value() != "idea") {
+    BOOST_LOG_TRIVIAL(trace) << "ignoring, not an idea";
+    return true;
+  }
+  auto obj = Json::getObject(data.value(), "obj");
+  if (!obj) {
+    return true;
+  }
+  auto stream = Json::getString(obj.value(), "stream");
+  if (!stream) {
+    return true;
+  }
+  auto s = Stream().findById(stream.value(), { "upstream" }).value();
+  if (!s) {
+    BOOST_LOG_TRIVIAL(trace) << "ignoring, stream not on our server";
+    return true;
+  }
+  if (!s.value().upstream()) {
+    BOOST_LOG_TRIVIAL(trace) << "ignoring, stream not upstream";
+    return true;
+  }
+  
+  return false;
   
 }

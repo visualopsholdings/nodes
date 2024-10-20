@@ -19,10 +19,10 @@ date "+%H:%M:%S"
 ./singlenodestest.sh "An existing stream can be pulled from upstream"
 [ "$?" != "0" ] && exit 1
 
-# ./singlenodestest.sh "A new stream with ideas can be pulled from upstream"
-# [ "$?" != "0" ] && exit 1
-# 
-# # tests that require ALL nodes
+./singlenodestest.sh "A new stream with ideas can be pulled from upstream"
+[ "$?" != "0" ] && exit 1
+
+# tests that require ALL nodes
 # ./singleallnodestest.sh "Idea change is reflected from upstream to downstreams"
 # [ "$?" != "0" ] && exit 1
 # 

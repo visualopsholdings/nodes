@@ -43,7 +43,7 @@ void addNodeMsg(Server *server, json &j) {
     return;
   }
   
-  server->sendAck();
+  server->sendAck(result.value());
 
 }
 
