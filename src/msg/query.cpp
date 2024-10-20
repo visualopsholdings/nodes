@@ -32,43 +32,32 @@ void queryMsg(Server *server, json &j) {
     return;
   }
  
+  string field;
   if (objtype.value() == "user") {
-    auto email = Json::getString(j, "email");
-    if (!email) {
-      server->sendErr("require email for user query");
-      return;
-    }
-    json user = {
-      { "email", email.value() }
-    };
-    server->sendDataReq(Json::getString(j, "corr", true), {
-      { "type", "query" },
-      { "user", user }
-    });
-      
-    server->sendAck();
+    field = "email";
+  }
+  else if (objtype.value() == "group" || objtype.value() == "stream") {
+    field = "name";
+  }
+  else {
+    server->sendErr("only user, group and stream queries available");
     return;
   }
   
-  if (objtype.value() == "group") {
-    auto name = Json::getString(j, "name");
-    if (!name) {
-      server->sendErr("require name for group query");
-      return;
-    }
-    json group = {
-      { "name", name.value() }
-    };
-    server->sendDataReq(Json::getString(j, "corr", true), {
-      { "type", "query" },
-      { "group", group }
-    });
-      
-    server->sendAck();
+  auto fieldval = Json::getString(j, field);
+  if (!fieldval) {
+    server->sendErr("require " + field + " for " + objtype.value() + " query");
     return;
   }
-  
-  server->sendErr("only user and group queries available");
+  json obj = {
+    { field, fieldval.value() }
+  };
+  server->sendDataReq(Json::getString(j, "corr", true), {
+    { "type", "query" },
+    {  objtype.value(), obj }
+  });
+    
+  server->sendAck();
   
 }
 

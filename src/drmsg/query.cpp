@@ -34,62 +34,68 @@ void queryDrMsg(Server *server, json &j) {
     return;
   }
   
+  // calculate the type of query we want.
+  string fieldname;
+  string type;
+  string val;
+  
   auto userq = Json::getObject(j, "user", true);
   if (userq) {
-    auto email = Json::getString(userq.value(), "email");
-    if (!email) {
+    type = "user";
+    fieldname = "fullname";
+    auto v = Json::getString(userq.value(), "email");
+    if (!v) {
       server->sendErrDown("user query didnt have email");
       return;
     }
-    
-    auto docs = User().find(json{ { "fullname", { { "$regex", email.value() }, { "$options", "i" } } } }, { "fullname" }).values();
-  
-    boost::json::array s;
-    if (docs) {
-      for (auto i: docs.value()) {
-        s.push_back(i.j());
+    val = v.value();
+  }
+  else {
+    auto groupq = Json::getObject(j, "group", true);
+    if (groupq) {
+      type = "group";
+      fieldname = "name";
+      auto v = Json::getString(groupq.value(), "name");
+      if (!v) {
+        server->sendErrDown("group query didnt have name");
+        return;
+      }
+      val = v.value();
+    }
+    else {
+      auto streamq = Json::getObject(j, "stream", true);
+      if (streamq) {
+        type = "stream";
+        fieldname = "name";
+        auto v = Json::getString(streamq.value(), "name");
+        if (!v) {
+          server->sendErrDown("stream query didnt have name");
+          return;
+        }
+        val = v.value();
+      }
+      else {
+        server->sendErrDown("query only handles user, group and stream queries");
+        return;
       }
     }
-    server->sendDown({
-      { "type", "queryResult" },
-      { "queryType", "user" },
-      { "result", s },
-      { "corr", corr.value() },
-      { "dest", src.value() }   
-    });
-    return;
   }
   
-  
-  auto groupq = Json::getObject(j, "group", true);
-  if (groupq) {
-    auto name = Json::getString(groupq.value(), "name");
-    if (!name) {
-      server->sendErrDown("group query didnt have name");
-      return;
-    }
-    
-    auto docs = Group().find(json{ { "name", { { "$regex", name.value() }, { "$options", "i" } } } }, { "name" }).values();
-  
-    boost::json::array s;
-    if (docs) {
-      for (auto i: docs.value()) {
-        s.push_back(i.j());
-      }
-    }
-    server->sendDown({
-      { "type", "queryResult" },
-      { "queryType", "group" },
-      { "result", s },
-      { "corr", corr.value() },
-      { "dest", src.value() }   
-    });
+  auto result = SchemaImpl::findGeneral(type + "s", json{ { fieldname, { { "$regex", val }, { "$options", "i" } } } }, { fieldname });
+  if (!result) {
+    server->sendErrDown("find failed");
     return;
   }
-  
-  server->sendErrDown("query only handles user and group queries");
-
-  
+      
+  auto docs = result->values();
+  server->sendDown({
+    { "type", "queryResult" },
+    { "queryType", type },
+    { "result", docs ? docs.value() : boost::json::array() },
+    { "corr", corr.value() },
+    { "dest", src.value() }   
+  });
+ 
 }
 
 };
