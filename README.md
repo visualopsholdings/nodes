@@ -324,6 +324,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Move out the FLTK stuff to nodes-admin
 - Synchorinise adds, add more tests.
 
+### 20 Oct 2024
+- More tests for synching ideas.
+
+
 
 
 
