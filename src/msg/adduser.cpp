@@ -16,6 +16,7 @@
 #include "security.hpp"
 #include "vid.hpp"
 #include "date.hpp"
+#include "handler.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -25,46 +26,18 @@ void discoverLocalResultMsg(Server *server, json &);
 
 void addUserMsg(Server *server, json &j) {
 
+  User users;
+  
   auto upstream = Json::getBool(j, "upstream", true);
   if (upstream && upstream.value()) {
-
-    auto userid = Json::getString(j, "id");
-    if (!userid) {
+  
+    auto id = Json::getString(j, "id");
+    if (!id) {
       server->sendErr("no user id");
       return;
     }
   
-    auto doc = User().findById(userid.value()).value();
-    if (doc) {
-      // set the upstream on doc.
-      auto result = User().updateById(userid.value(), { 
-        { "modifyDate", Storage::instance()->getNow() },
-        { "upstream", true } 
-      });
-      if (!result) {
-        server->sendErr("could not update user");
-        return;
-      }
-      server->sendAck();
-      return;
-    }
-    
-    // insert a new user
-    auto result = User().insert({
-      { "_id", { { "$oid", userid.value() } } },
-      { "fullname", "Waiting discovery" },
-      { "upstream", true },
-      { "modifyDate", { { "$date", 0 } } }
-    });
-    if (!result) {
-      server->sendErr("could not insert user");
-      return;
-    }
-    
-    server->sendAck();
-    
-    // run discovery.  
-    server->sendUpDiscover();
+    Handler<UserRow>::upstream(server, users, "user", id.value(), "fullname");
     return;
   }
   
@@ -149,7 +122,7 @@ void addUserMsg(Server *server, json &j) {
   obj["salt"] = salt;
   obj["hash"] = hash;
 
-  auto id = User().insert(obj);
+  auto id = users.insert(obj);
   if (!id) {
     server->sendErr("could not insert user");
     return;

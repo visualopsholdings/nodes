@@ -131,6 +131,7 @@ set(MESSAGES
   src/drmsg/add.cpp
   src/rmsmsg/upd.cpp
   src/rmsmsg/add.cpp
+  src/handler.cpp
 )
 
 include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})

@@ -33,8 +33,8 @@ void setStreamPolicyMsg(Server *server, json &j) {
     return;
   }
 
-  auto doc = streams.findById(id.value(), {}).value();
-  if (!doc) {
+  auto orig = streams.findById(id.value(), {}).value();
+  if (!orig) {
     server->sendErr("stream not found");
     return;
   }
@@ -50,11 +50,11 @@ void setStreamPolicyMsg(Server *server, json &j) {
   arr = j.at("remove").as_array();
   transform(arr.begin(), arr.end(), back_inserter(remove), [](auto e) { return e.as_string().c_str(); });
   
-  auto policy = Security::instance()->modifyPolicy(doc.value().policy(), add, remove);
+  auto policy = Security::instance()->modifyPolicy(orig.value().policy(), add, remove);
   if (!policy) {
     server->sendErr("could not modify policy");
   }
-  if (policy.value() == doc.value().policy()) {
+  if (policy.value() == orig.value().policy()) {
     BOOST_LOG_TRIVIAL(info) << "policy didn't change for " << id.value();
     server->sendAck();
   }
@@ -63,6 +63,14 @@ void setStreamPolicyMsg(Server *server, json &j) {
     { "modifyDate", Storage::instance()->getNow() },
     { "policy", policy.value() }
   };
+
+  // send to other nodes.
+  boost::json::object obj2 = obj;
+  if (orig.value().upstream()) {
+    obj2["upstream"] = true;
+  }
+  server->sendUpd("stream", id.value(), obj2, "");
+    
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
   auto result = streams.updateById(id.value(), obj);
   if (!result) {
@@ -71,7 +79,7 @@ void setStreamPolicyMsg(Server *server, json &j) {
   }
   
   BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
-  server->sendAck();
+  server->sendAck(result.value());
 
 }
 

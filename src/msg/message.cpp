@@ -75,25 +75,26 @@ void messageMsg(Server *server, json &j) {
     { "text", text.value() },
     { "modifyDate", Storage::instance()->getNow() }
   };
-  auto result = Idea().insert(obj);
-  if (!result) {
+  auto id = Idea().insert(obj);
+  if (!id) {
     server->sendErr("DB Error (no idea)");
     return;
   }
-  BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
+  BOOST_LOG_TRIVIAL(trace) << "inserted " << id.value();
     
-  obj["id"] = result.value();
+  obj["id"] = id.value();
   obj["type"] = "idea";
   
   // send to other nodes.
   server->sendAdd("idea", obj, streamid.value());
 
+  // publish as well
   if (!Json::has(j, "corr")) {
     BOOST_LOG_TRIVIAL(warning) << "message missing correlation id";
   }
   server->publish(Json::getString(j, "corr", true), obj);
   
-  server->sendAck();
+  server->sendAck(id.value());
 
 }
 

@@ -72,7 +72,7 @@ void setuserMsg(Server *server, json &j) {
   }
   BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
   
-  server->sendAck();
+  server->sendAck(result.value());
   
 }
 

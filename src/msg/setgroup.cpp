@@ -14,6 +14,7 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "json.hpp"
+#include "handler.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -28,45 +29,9 @@ void setGroupMsg(Server *server, json &j) {
   }  
   
   Group groups;
-  if (!Security::instance()->canEdit(groups, Json::getString(j, "me", true), id.value())) {
-    BOOST_LOG_TRIVIAL(error) << "no edit for group " << id.value();
-    server->sendSecurity();
-    return;
-  }
-
-  auto doc = groups.findById(id.value(), {}).value();
-  if (!doc) {
-    server->sendErr("group not found");
-    return;
-  }
-  
-  BOOST_LOG_TRIVIAL(trace) << "group old value " << doc.value().j();
-  
-  boost::json::object obj = {
-    { "modifyDate", Storage::instance()->getNow() }
-  };
-  auto name = Json::getString(j, "name", true);
-  if (name) {
-    obj["name"] = name.value();
-  }
-  
-  // send to other nodes.
-  boost::json::object obj2 = obj;
-  if (doc.value().upstream()) {
-    obj2["upstream"] = true;
-  }
-  server->sendUpd("group", id.value(), obj2, "");
-    
-  // update locally
-  BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
-  auto result = groups.updateById(id.value(), obj);
-  if (!result) {
-    server->sendErr("could not update group");
-    return;
-  }
-  
-  BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
-  server->sendAck();
+  boost::json::object obj;
+  Handler<GroupRow>::update(server, groups, "group", id.value(), 
+    Json::getString(j, "me", true), Json::getString(j, "name", true), &obj);
 
 }
 

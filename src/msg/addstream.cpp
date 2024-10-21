@@ -14,6 +14,7 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "json.hpp"
+#include "handler.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -21,46 +22,18 @@ namespace nodes {
 
 void addStreamMsg(Server *server, json &j) {
 
+  Stream streams;
+
   auto upstream = Json::getBool(j, "upstream", true);
   if (upstream && upstream.value()) {
 
-    auto streamid = Json::getString(j, "id");
-    if (!streamid) {
+    auto id = Json::getString(j, "id");
+    if (!id) {
       server->sendErr("no stream id");
       return;
     }
   
-    auto doc = Stream().findById(streamid.value()).value();
-    if (doc) {
-      // set the upstream on doc.
-      auto result = Stream().updateById(streamid.value(), { 
-        { "modifyDate", Storage::instance()->getNow() },
-        { "upstream", true } 
-      });
-      if (!result) {
-        server->sendErr("could not update stream");
-        return;
-      }
-      server->sendAck();
-      return;
-    }
-    
-    // insert a new stream
-    auto result = Stream().insert({
-      { "_id", { { "$oid", streamid.value() } } },
-      { "name", "Waiting discovery" },
-      { "upstream", true },
-      { "modifyDate", { { "$date", 0 } } }
-    });
-    if (!result) {
-      server->sendErr("could not insert stream");
-      return;
-    }
-    
-    server->sendAck();
-    
-    // run discovery.  
-    server->sendUpDiscover();
+    Handler<StreamRow>::upstream(server, streams, "stream", id.value(), "name");
     return;
   }
 
@@ -75,31 +48,7 @@ void addStreamMsg(Server *server, json &j) {
     return;
   }
   
-  auto policy = Security::instance()->findPolicyForUser(me.value());
-  if (!policy) {
-    server->sendErr("could not get policy");
-    return;
-  }
-  
-  boost::json::object obj = {
-    { "name", name.value() },
-    { "policy", policy.value() },
-    { "modifyDate", Storage::instance()->getNow() },
-    { "active", true }
-  };
-  
-  // insert a new strean
-  auto id = Stream().insert(obj);
-  if (!id) {
-    server->sendErr("could not insert stream");
-    return;
-  }
-  
-  // send to other nodes.
-  obj["id"] = id.value();
-  server->sendAdd("stream", obj, "");
-    
-  server->sendAck(id.value());
+  Handler<StreamRow>::add(server, streams, "stream", me.value(), name.value());
 
 }
 

@@ -14,6 +14,7 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "json.hpp"
+#include "handler.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -21,46 +22,18 @@ namespace nodes {
 
 void addGroupMsg(Server *server, json &j) {
 
+  Group groups;
+  
   auto upstream = Json::getBool(j, "upstream", true);
   if (upstream && upstream.value()) {
-
-    auto groupid = Json::getString(j, "id");
-    if (!groupid) {
-      server->sendErr("no groupid");
+  
+    auto id = Json::getString(j, "id");
+    if (!id) {
+      server->sendErr("no group id");
       return;
     }
   
-    auto doc = Group().findById(groupid.value()).value();
-    if (doc) {
-      // set the upstream on doc.
-      auto result = Group().updateById(groupid.value(), { 
-        { "modifyDate", Storage::instance()->getNow() },
-        { "upstream", true } 
-      });
-      if (!result) {
-        server->sendErr("could not update group");
-        return;
-      }
-      server->sendAck();
-      return;
-    }
-    
-    // insert a new group
-    auto result = Group().insert({
-      { "_id", { { "$oid", groupid.value() } } },
-      { "name", "Waiting discovery" },
-      { "upstream", true },
-      { "modifyDate", { { "$date", 0 } } }
-    });
-    if (!result) {
-      server->sendErr("could not insert groupid");
-      return;
-    }
-    
-    server->sendAck();
-    
-    // run discovery.  
-    server->sendUpDiscover();
+    Handler<GroupRow>::upstream(server, groups, "group", id.value(), "name");
     return;
   }
   
@@ -75,32 +48,9 @@ void addGroupMsg(Server *server, json &j) {
     return;
   }
   
-  auto policy = Security::instance()->findPolicyForUser(me.value());
-  if (!policy) {
-    server->sendErr("could not get policy");
-    return;
+  if (Handler<GroupRow>::add(server, groups, "group", me.value(), name.value())) {
+    Security::instance()->regenerateGroups();
   }
-  
-  boost::json::object obj = {
-    { "name", name.value() },
-    { "policy", policy.value() },
-    { "modifyDate", Storage::instance()->getNow() }
-  };
-  
-  // insert a new strean
-  auto id = Group().insert(obj);
-  if (!id) {
-    server->sendErr("could not insert group");
-    return;
-  }
-  
-  // send to other nodes.
-  obj["id"] = id.value();
-  server->sendAdd("group", obj, "");
-    
-  Security::instance()->regenerateGroups();
-
-  server->sendAck(id.value());
 
 }
 

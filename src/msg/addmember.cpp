@@ -21,6 +21,8 @@ namespace nodes {
 
 void addMemberMsg(Server *server, json &j) {
 
+  // TBD: this should be very similar code to setgroup!
+  
   auto groupid = Json::getString(j, "group");
   if (!groupid) {
     server->sendErr("no group");
