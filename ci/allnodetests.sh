@@ -11,13 +11,19 @@
 #   downstream4 (mirror)    f2ecaf81-943d-4ffd-a3d4-fc2d2d48c1c6 (8840, 8841) (mahsa)
 #     downstream6 (mirror)  05fd392d-1092-4255-8323-38c774e4f6a8 (8860, 8861)
 
+if [ ! -d "ci" ];
+then
+  echo "Run from root"
+  exit 1
+fi
+
 if [ "$CHANGED_NODES" == "no" ];
 then
 	echo "Skipping allnodetests"
   exit 0
 fi
 
-./allnodetests1.sh
+ci/allnodetests1.sh
 [ "$?" != "0" ] && exit 1
 
 if [ "$EXHAUSTIVE_NODES" == "no" ];
@@ -25,25 +31,25 @@ then
   exit 0
 fi
 
-./allnodetests2.sh
+ci/allnodetests2.sh
 [ "$?" != "0" ] && exit 1
 
-./allnodetests3.sh
+ci/allnodetests3.sh
 [ "$?" != "0" ] && exit 1
 
-./allnodetests4.sh
+ci/allnodetests4.sh
 [ "$?" != "0" ] && exit 1
 
-./allnodetests5.sh
+ci/allnodetests5.sh
 [ "$?" != "0" ] && exit 1
 
-./allnodetests6.sh
+ci/allnodetests6.sh
 [ "$?" != "0" ] && exit 1
 
-./allnodetests7.sh
+ci/allnodetests7.sh
 [ "$?" != "0" ] && exit 1
 
-./allnodetests8.sh
+ci/allnodetests8.sh
 [ "$?" != "0" ] && exit 1
 
 exit 0

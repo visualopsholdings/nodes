@@ -11,6 +11,12 @@
 echo "All node tests 3"
 date "+%H:%M:%S"
 
+if [ ! -d "ci" ];
+then
+  echo "Run from root"
+  exit 1
+fi
+
 finish() {
 	ci/kill.sh upstream
 	ci/kill.sh downstream4
@@ -21,8 +27,6 @@ fail() {
 	finish
 	exit 1
 }
-
-pushd ..
 
 # in case we run on a failed build.
 finish
@@ -49,7 +53,5 @@ ci/nodestest.sh "A new group created on downstream 4 appears on upstream"
 [ "$?" != "0" ] && fail
 
 finish
-
-popd
 
 exit 0

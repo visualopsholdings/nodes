@@ -10,6 +10,12 @@
 echo "All node tests 4"
 date "+%H:%M:%S"
 
+if [ ! -d "ci" ];
+then
+  echo "Run from root"
+  exit 1
+fi
+
 finish() {
 	ci/kill.sh upstream
 	ci/kill.sh downstream4
@@ -19,8 +25,6 @@ fail() {
 	finish
 	exit 1
 }
-
-pushd ..
 
 # in case we run on a failed build.
 finish
@@ -44,7 +48,5 @@ finish
 # [ "$?" != "0" ] && fail
 # 
 # finish
-
-popd
 
 exit 0

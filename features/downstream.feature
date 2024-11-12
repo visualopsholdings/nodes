@@ -286,7 +286,7 @@ Feature: Downstream Test
       And she receives 3 streams
       Then eventually there are 30 ideas in the DB
       
-      # get the the stream from upstream.
+      # get the stream from upstream.
       When she sends add stream from upstream with saved stream
       And she receives ack
 	   And she sends streams

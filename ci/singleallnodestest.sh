@@ -7,6 +7,12 @@
 #			downstream3
 #   downstream4 (mirror)
 
+if [ ! -d "ci" ];
+then
+  echo "Run from root"
+  exit 1
+fi
+
 finish() {
 	ci/kill.sh upstream
 	ci/kill.sh downstream2
@@ -19,7 +25,6 @@ fail() {
 	exit 1
 }
 
-pushd ..
 ci/run.sh upstream
 [ "$?" != "0" ] && exit 1
 
@@ -36,6 +41,5 @@ ci/nodestest.sh "$1"
 [ "$?" != "0" ] && fail
 
 finish
-popd
 
 exit 0

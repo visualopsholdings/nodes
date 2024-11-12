@@ -14,31 +14,37 @@
 echo "All node tests 8"
 date "+%H:%M:%S"
 
+if [ ! -d "ci" ];
+then
+  echo "Run from root"
+  exit 1
+fi
+
 # test all that need there own new upstream DB
 
-./singlenodestest.sh "An existing stream can be pulled from upstream"
+ci/singlenodestest.sh "An existing stream can be pulled from upstream"
 [ "$?" != "0" ] && exit 1
 
-./singlenodestest.sh "A new stream with ideas can be pulled from upstream"
+ci/singlenodestest.sh "A new stream with ideas can be pulled from upstream"
 [ "$?" != "0" ] && exit 1
 
 # tests that require ALL nodes
-# ./singleallnodestest.sh "Idea change is reflected from upstream to downstreams"
+# ci/singleallnodestest.sh "Idea change is reflected from upstream to downstreams"
 # [ "$?" != "0" ] && exit 1
 # 
-# ./singleallnodestest.sh "Idea change is reflected from downstream2 to downstream"
+# ci/singleallnodestest.sh "Idea change is reflected from downstream2 to downstream"
 # [ "$?" != "0" ] && exit 1
 # 
-# ./singleallnodestest.sh "A deleted idea is reflected upstream and downstream servers"
+# ci/singleallnodestest.sh "A deleted idea is reflected upstream and downstream servers"
 # [ "$?" != "0" ] && exit 1
 # 
-# ./singleallnodestest.sh "An idea created owned and deleted is reflected upstream and downstream servers"
+# ci/singleallnodestest.sh "An idea created owned and deleted is reflected upstream and downstream servers"
 # [ "$?" != "0" ] && exit 1
 # 
-# ./singleallnodestest.sh "A renamed idea is reflected to downstream servers"
+# ci/singleallnodestest.sh "A renamed idea is reflected to downstream servers"
 # [ "$?" != "0" ] && exit 1
 # 
-# ./singleallnodestest.sh "A renamed idea is reflected to upstream servers"
+# ci/singleallnodestest.sh "A renamed idea is reflected to upstream servers"
 # [ "$?" != "0" ] && exit 1
 
 exit 0

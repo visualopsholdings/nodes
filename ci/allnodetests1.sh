@@ -14,6 +14,12 @@
 echo "All node tests 1"
 date "+%H:%M:%S"
 
+if [ ! -d "ci" ];
+then
+  echo "Run from root"
+  exit 1
+fi
+
 finish() {
 	ci/kill.sh upstream
 	ci/kill.sh downstream2
@@ -27,9 +33,6 @@ fail() {
 	finish
 	exit 1
 }
-
-# test all of those that can be run together
-pushd ..
 
 # in case we run on a failed build.
 finish
@@ -91,7 +94,5 @@ ci/nodestest.sh "A new stream can be created on downstream 5"
 [ "$?" != "0" ] && fail
 
 finish
-
-popd
 
 exit 0
