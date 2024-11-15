@@ -97,12 +97,20 @@ long Date::fromISODate(const string &d) {
   
   string rem = d.substr(dot+1);
 //  BOOST_LOG_TRIVIAL(trace) << rem;
+  long ms = 0;
   auto plus = rem.rfind("+");
-  if (plus == string::npos) {
-    BOOST_LOG_TRIVIAL(error) << "no plus in " << rem;
-    return 0;
+  if (plus != string::npos) {
+    rem = rem.substr(0, plus);
+    ms = atol(rem.substr(0, plus).c_str());
   }
-
+  else {
+    if (rem[rem.size()-1] != 'Z') {
+      BOOST_LOG_TRIVIAL(error) << "no plus in " << rem << " and not Zulu";
+      return 0;
+    }
+  }
+//  BOOST_LOG_TRIVIAL(trace) << "ms: " << ms;
+  
   tm tm = {};
   istringstream ss(start);
   // 2024-07-01T06:54:39
@@ -120,10 +128,6 @@ long Date::fromISODate(const string &d) {
 
   auto t = timegm(&tm);
 //  BOOST_LOG_TRIVIAL(trace) << "t: " << t;
-  
-  rem = rem.substr(0, plus);
-  long ms = atol(rem.substr(0, plus).c_str());
-//  BOOST_LOG_TRIVIAL(trace) << "ms: " << ms;
   
   return (t * 1000) + ms;
   

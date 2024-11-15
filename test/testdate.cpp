@@ -99,4 +99,12 @@ BOOST_AUTO_TEST_CASE( rubyDate )
   
 }
 
+BOOST_AUTO_TEST_CASE( NodeJSDate )
+{
+  cout << "=== NodeJSDate ===" << endl;
+  
+  BOOST_CHECK_EQUAL(Date::fromISODate("2024-05-10T14:51:11.255Z"), 1715352671000);
+  
+}
+
 
