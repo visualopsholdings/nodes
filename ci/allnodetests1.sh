@@ -79,6 +79,9 @@ ci/nodestest.sh "Change to a group is reflected in the downstream servers"
 ci/nodestest.sh "Change to a stream is reflected in the downstream servers"
 [ "$?" != "0" ] && fail
 
+ci/nodestest.sh "An existing user can pulled be through 2 upstreams"
+[ "$?" != "0" ] && fail
+
 finish
 
 ci/run.sh upstream

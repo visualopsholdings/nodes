@@ -46,7 +46,7 @@ On Ubuntu 24.04:
 
 ```
 sudo apt-get update
-sudo apt-get -y install g++ gcc make cmake ruby-rubygems libssl-dev
+sudo apt-get -y install g++ gcc make cmake ruby-rubygems ruby-bundler ruby-dev libssl-dev
 ```
 
 On the maxc OS:

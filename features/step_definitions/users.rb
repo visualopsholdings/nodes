@@ -53,3 +53,7 @@ end
 When('she sends user {string} to downstream {int}') do |id, n|
    $lastResult = SendTo({ "type": "user" , "user": id }, getDownstreamPort(n))
 end
+
+When('she sends add user from upstream with {string} to downstream {int}') do |id, n|
+   $lastResult = SendTo({ "type": "adduser", "upstream": true, "id": id }, getDownstreamPort(n))
+end
