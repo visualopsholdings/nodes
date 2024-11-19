@@ -42,6 +42,14 @@ When('she sends set user fullname of {string} to {string}') do |name, newname|
    $lastResult = Send({ "type": "setuser", "id": u, "fullname": newname })
 end
 
+Then('she sends purge count users') do
+   $lastResult = Send({ "type": "purgecountusers" })
+end
+
+Then('she sends purge users') do
+   $lastResult = Send({ "type": "purgeusers" })
+end
+
 When('she sends user {string} to upstream') do |id|
    $lastResult = SendTo({ "type": "user" , "user": id }, getUpstreamPort())
 end

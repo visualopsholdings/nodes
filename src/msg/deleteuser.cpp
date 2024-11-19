@@ -14,6 +14,7 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "json.hpp"
+#include "handler.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -27,12 +28,9 @@ void deleteUserMsg(Server *server, json &j) {
     return;
   }
 
-  if (User().deleteById(id.value())) {
-    server->sendAck();
-    return;
-  }
-
-  server->sendErr("could not remove user");
+  User users;
+  Handler<UserRow>::remove(server, users, "user", id.value(), 
+    Json::getString(j, "me", true));
 
 }
 

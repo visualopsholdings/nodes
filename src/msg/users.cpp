@@ -19,7 +19,13 @@ namespace nodes {
 
 void usersMsg(Server *server, json &j) {
 
-  auto docs = User().find(json{{}}, { "id", "modifyDate", "name", "fullname", "admin", "active", "upstream" }).values();
+  json query = {
+    { "deleted", {
+      { "$ne", true }
+      }
+    }
+  };
+  auto docs = User().find(query, { "id", "modifyDate", "name", "fullname", "admin", "active", "upstream" }).values();
 
   boost::json::array s;
   if (docs) {

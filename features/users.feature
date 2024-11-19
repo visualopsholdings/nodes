@@ -14,4 +14,8 @@ Feature: Users
 	Scenario: delete a user
 	   And she sends delete user "Bob"
 	   And she sends users
-      Then she receives 4 users
+      And she receives 4 users
+	   And she sends purge count users
+      And she receives 1 count
+	   Then she sends purge users
+ 

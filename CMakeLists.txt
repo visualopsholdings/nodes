@@ -118,6 +118,13 @@ set(MESSAGES
   src/msg/node.cpp
   src/msg/addnode.cpp
   src/msg/deletenode.cpp
+  src/msg/deleteidea.cpp
+  src/msg/purgecountgroups.cpp
+  src/msg/purgegroups.cpp
+  src/msg/purgecountstreams.cpp
+  src/msg/purgestreams.cpp
+  src/msg/purgecountusers.cpp
+  src/msg/purgeusers.cpp
   src/rdrmsg/upstream.cpp
   src/rdrmsg/date.cpp
   src/rdrmsg/sendOn.cpp

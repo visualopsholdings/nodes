@@ -61,3 +61,9 @@ When("she saves the result") do
    $savedResult = $lastResult
 end
 
+Then('she receives {int} count') do |count|
+   expect($lastResult["type"]).to eq("count")
+   expect($lastResult["count"]).to eq(count)
+end
+
+

@@ -28,8 +28,14 @@ void ideasMsg(Server *server, json &j) {
   }
 
   Idea ideas;
-  auto docs = Security::instance()->withView(ideas, Json::getString(j, "me", true), 
-    { { "stream", streamid.value() } }).values();
+  json query = {
+    { "stream", streamid.value() },
+    { "deleted", {
+      { "$ne", true }
+      }
+    }
+  };
+  auto docs = Security::instance()->withView(ideas, Json::getString(j, "me", true), query).values();
 
   boost::json::array s;
   if (docs) {

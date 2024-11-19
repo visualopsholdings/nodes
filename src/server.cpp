@@ -73,6 +73,13 @@ void nodesMsg(Server *server, json &json);
 void nodeMsg(Server *server, json &json);
 void addNodeMsg(Server *server, json &json);
 void deleteNodeMsg(Server *server, json &json);
+void deleteIdeaMsg(Server *server, json &json);
+void purgeCountGroupsMsg(Server *server, json &json);
+void purgeGroupsMsg(Server *server, json &json);
+void purgeCountStreamsMsg(Server *server, json &json);
+void purgeStreamsMsg(Server *server, json &json);
+void purgeCountUsersMsg(Server *server, json &json);
+void purgeUsersMsg(Server *server, json &json);
 
 // remoteDataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -159,6 +166,13 @@ Server::Server(bool test, bool noupstream,
   _messages["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
   _messages["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
   _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
+  _messages["deleteidea"] = bind(&nodes::deleteIdeaMsg, this, placeholders::_1);
+  _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
+  _messages["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
+  _messages["purgecountstreams"] = bind(&nodes::purgeCountStreamsMsg, this, placeholders::_1);
+  _messages["purgestreams"] = bind(&nodes::purgeStreamsMsg, this, placeholders::_1);
+  _messages["purgecountusers"] = bind(&nodes::purgeCountUsersMsg, this, placeholders::_1);
+  _messages["purgeusers"] = bind(&nodes::purgeUsersMsg, this, placeholders::_1);
 
   _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);

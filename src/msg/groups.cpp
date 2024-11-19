@@ -22,7 +22,14 @@ namespace nodes {
 void groupsMsg(Server *server, json &j) {
 
   Group group;
-  auto docs = Security::instance()->withView(group, Json::getString(j, "me", true), json{{}}, 
+  json query = {
+    { "deleted", {
+      { "$ne", true }
+      }
+    }
+  };
+  BOOST_LOG_TRIVIAL(trace) << query;
+  auto docs = Security::instance()->withView(group, Json::getString(j, "me", true), query, 
     { "id", "policy", "modifyDate", "name", "upstream" }).values();
 
   boost::json::array s;

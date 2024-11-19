@@ -329,6 +329,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 20 Oct 2024
 - More tests for synching ideas.
 
+### 19 Nov 2024
+- Implement delete by marking deleted objects and purging.
+- for streams, teams and users
+
 
 
 

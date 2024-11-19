@@ -100,6 +100,17 @@ public:
     
   }
     
+  // Users can always be edited and viewed
+  Result<User> withView(Schema<User> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
+    return schema.find(query, fields);    
+  }
+  Result<User> withEdit(Schema<User> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
+    return schema.find(query, fields);    
+  }
+  bool canEdit(Schema<User> &schema, optional<string> me, const string &id) {
+    return true;
+  }
+  
   optional<json> getPolicyLines(const string &id);
     // get a json array of policy lines.
   

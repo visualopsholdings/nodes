@@ -22,7 +22,13 @@ namespace nodes {
 void streamsMsg(Server *server, json &j) {
 
   Stream stream;
-  auto docs = Security::instance()->withView(stream, Json::getString(j, "me", true), {{}}, { "id", "name", "policy", "upstream", "modifyDate", "emoji", "image" }).values();
+  json query = {
+    { "deleted", {
+      { "$ne", true }
+      }
+    }
+  };
+  auto docs = Security::instance()->withView(stream, Json::getString(j, "me", true), query, { "id", "name", "policy", "upstream", "modifyDate", "emoji", "image" }).values();
   
   boost::json::array s;
   if (docs) {

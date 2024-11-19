@@ -40,6 +40,14 @@ When('she sends delete stream {string} as {string}') do |name, user|
    $lastResult = Send({ "type": "deletestream" , "me": u, "id": s })
 end
 
+Then('she sends purge count streams') do
+   $lastResult = Send({ "type": "purgecountstreams" })
+end
+
+Then('she sends purge streams') do
+   $lastResult = Send({ "type": "purgestreams" })
+end
+
 When('she sends set stream name of {string} to {string} as {string}') do |name, newname, user|
    u = User.where(name: user).first._id.to_s
    s = Stream.where(name: name).first._id.to_s
@@ -126,17 +134,6 @@ end
 When('she sends ideas for {string} to upstream') do |id|
    $lastResult = SendTo({ "type": "ideas", "stream": id }, getUpstreamPort())
 end
-
-When('she sends message {string} as {string} to {string}') do |text, user, stream|
-   u = User.where(name: user).first._id.to_s
-   s = Stream.where(name: stream).first._id.to_s
-   $lastResult = Send({ "type": "message" , "me": u,  "stream": s, "text": text, "corr": "1" })
-end
-
-When('she sends message {string} as {string} to saved stream to upstream') do |text, user|
-   $lastResult = SendTo({ "type": "message" , "me": user,  "stream": $savedResult["result"], "text": text, "corr": "1" }, getUpstreamPort())
-end
-
 When('she sends ideas for saved stream to upstream') do
    $lastResult = SendTo({ "type": "ideas", "stream": $savedResult["result"] }, getUpstreamPort())
 end

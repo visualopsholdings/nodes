@@ -36,6 +36,11 @@ public:
     // update an existing object.
     // used for stream and group
     
+  static bool remove(Server *server, Schema<RowType> &schema, const string &type, const string &id, 
+                optional<string> me);
+    // remove (delete) an existing object.
+    // used for stream, group and user
+    
   static bool upstream(Server *server, Schema<RowType> &schema, const string &type, const string &id, const string &namefield);
     // get an object from the upstream server.
     // used for stream, group and user

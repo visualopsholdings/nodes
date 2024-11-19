@@ -32,6 +32,9 @@ Feature: Streams
 	   And she sends delete stream "My Stream" as "tracy"
 	   And she sends streams as "tracy"
       Then she receives 2 streams
+	   And she sends purge count streams
+      And she receives 1 count
+	   Then she sends purge streams
 
 	Scenario: not allowed to delete a stream
 	   When she sends add stream "My Stream" as "tracy"

@@ -62,6 +62,14 @@ When('she sends set group name of {string} to {string}') do |name, newname|
    $lastResult = Send({ "type": "setgroup", "id": g, "name": newname })
 end
 
+Then('she sends purge count groups') do
+   $lastResult = Send({ "type": "purgecountgroups" })
+end
+
+Then('she sends purge groups') do
+   $lastResult = Send({ "type": "purgegroups" })
+end
+
 When('she sends groups to downstream {int}') do |n|
    $lastResult = SendTo({ "type": "groups"}, getDownstreamPort(n))
 end

@@ -100,6 +100,51 @@ bool Handler<RowType>::update(Server *server, Schema<RowType> &schema, const str
 }
 
 template <typename RowType>
+bool Handler<RowType>::remove(Server *server, Schema<RowType> &schema, const string &type, const string &id, optional<string> me) {
+
+  if (!Security::instance()->canEdit(schema, me, id)) {
+    BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
+    server->sendSecurity();
+    return false;
+  }
+
+  auto orig = schema.findById(id, {}).value();
+  if (!orig) {
+    server->sendErr(type + " not found");
+    return false;
+  }
+  
+  BOOST_LOG_TRIVIAL(trace) << type << " old value " << orig.value().j();
+  
+  boost::json::object obj = {
+    { "deleted", true },
+    { "modifyDate", Storage::instance()->getNow() }
+  };
+  
+  // send to other nodes.
+  boost::json::object obj2 = obj;
+  if (orig.value().upstream()) {
+    obj2["upstream"] = true;
+  }
+  server->sendUpd(type, id, obj2, "");
+    
+  // update locally
+  BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
+  auto result = schema.updateById(id, obj);
+  if (!result) {
+    server->sendErr("could not update " + type);
+    return false;
+  }
+  
+  // and reply back
+  BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+  server->sendAck();
+
+  return true;
+  
+}
+
+template <typename RowType>
 bool Handler<RowType>::upstream(Server *server, Schema<RowType> &schema, const string &type, const string &id, const string &namefield) {
 
   auto doc = schema.findById(id).value();
@@ -141,3 +186,4 @@ bool Handler<RowType>::upstream(Server *server, Schema<RowType> &schema, const s
 template class Handler<UserRow>;
 template class Handler<StreamRow>;
 template class Handler<GroupRow>;
+template class Handler<IdeaRow>;

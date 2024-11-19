@@ -1,8 +1,8 @@
 /*
-  deletestream.cpp
+  deleteidea.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
-  Date: 10-Sep-2024
+  Date: 18-Nov-2024
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
@@ -20,7 +20,7 @@
 
 namespace nodes {
 
-void deleteStreamMsg(Server *server, json &j) {
+void deleteIdeaMsg(Server *server, json &j) {
 
   auto id = Json::getString(j, "id");
   if (!id) {
@@ -28,8 +28,8 @@ void deleteStreamMsg(Server *server, json &j) {
     return;
   }
 
-  Stream streams;
-  Handler<StreamRow>::remove(server, streams, "stream", id.value(), 
+  Idea ideas;
+  Handler<IdeaRow>::remove(server, ideas, "idea", id.value(), 
     Json::getString(j, "me", true));
 
 }
