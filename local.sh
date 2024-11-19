@@ -35,7 +35,7 @@
 # 		./local-ng.sh nodes downstream
 #		ci/killupstream.sh 
 
-export LOG=trace
+export LOG=debug
 
 if [ "$MONGO_PORT_27017_DB" == "" ]; then
 	export MONGO_PORT_27017_DB=dev
