@@ -333,6 +333,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Implement delete by marking deleted objects and purging.
 - for streams, teams and users
 
+### 20 Nov 2024
+- Implement delete by marking deleted objects and purging.
+- for ideas
+
 
 
 

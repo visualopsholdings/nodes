@@ -80,6 +80,8 @@ void purgeCountStreamsMsg(Server *server, json &json);
 void purgeStreamsMsg(Server *server, json &json);
 void purgeCountUsersMsg(Server *server, json &json);
 void purgeUsersMsg(Server *server, json &json);
+void purgeCountIdeasMsg(Server *server, json &json);
+void purgeIdeasMsg(Server *server, json &json);
 
 // remoteDataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -173,6 +175,8 @@ Server::Server(bool test, bool noupstream,
   _messages["purgestreams"] = bind(&nodes::purgeStreamsMsg, this, placeholders::_1);
   _messages["purgecountusers"] = bind(&nodes::purgeCountUsersMsg, this, placeholders::_1);
   _messages["purgeusers"] = bind(&nodes::purgeUsersMsg, this, placeholders::_1);
+  _messages["purgecountideas"] = bind(&nodes::purgeCountIdeasMsg, this, placeholders::_1);
+  _messages["purgeideas"] = bind(&nodes::purgeIdeasMsg, this, placeholders::_1);
 
   _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
