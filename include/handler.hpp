@@ -37,7 +37,7 @@ public:
     // used for stream and group
     
   static bool remove(Server *server, Schema<RowType> &schema, const string &type, const string &id, 
-                optional<string> me);
+                optional<string> me, bool addstream=false);
     // remove (delete) an existing object.
     // used for stream, group and user
     

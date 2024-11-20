@@ -30,7 +30,7 @@ void deleteIdeaMsg(Server *server, json &j) {
 
   Idea ideas;
   Handler<IdeaRow>::remove(server, ideas, "idea", id.value(), 
-    Json::getString(j, "me", true));
+    Json::getString(j, "me", true), true);
 
 }
 

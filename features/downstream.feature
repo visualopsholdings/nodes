@@ -295,18 +295,18 @@ Feature: Downstream Test
       And she saves the result
       And she sends message "My Idea 1" as "6121bdfaec9e5a059715739c" to saved stream to upstream
       And she sends message "My Idea 2" as "6121bdfaec9e5a059715739c" to saved stream to upstream
-     And she sends ideas for saved stream to upstream
+      And she sends ideas for saved stream to upstream
       And she receives 2 ideas
       
       # make sure nothing came down.
-     When she sends streams
+      When she sends streams
       And she receives 3 streams
       Then eventually there are 30 ideas in the DB
       
       # get the stream from upstream.
       When she sends add stream from upstream with saved stream
       And she receives ack
-     And she sends streams
+      And she sends streams
       And she receives 4 streams
       Then eventually there are 32 ideas in the DB
       
@@ -314,5 +314,26 @@ Feature: Downstream Test
       When she sends message "I know" as "tracy" to "New Stream"
       Then eventually the stream "New Stream" has 3 ideas in the DB
       
-     When she sends ideas for saved stream to upstream
+      When she sends ideas for saved stream to upstream
       Then she receives 3 ideas
+
+   @javascript
+   Scenario: A deleted idea is reflected upstream and downstream servers
+   
+      When she sends ideas for "Shared Stream"
+      And she receives 10 ideas
+	   And she sends delete idea "Message 5" as "tracy" in "Shared Stream"
+      And she sends ideas for "Shared Stream"
+      And she receives 9 ideas
+
+      And she sends ideas for "61a0b4de98499a20f0768351" to upstream
+      And she receives 9 ideas
+
+      And she sends ideas for "61a0b4de98499a20f0768351" to downstream 2
+      And she receives 14 ideas
+
+      And she sends ideas for "61a0b4de98499a20f0768351" to downstream 3
+      And she receives 14 ideas
+
+      And she sends ideas for "61a0b4de98499a20f0768351" to downstream 4
+      And she receives 9 ideas

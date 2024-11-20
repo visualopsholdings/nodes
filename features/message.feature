@@ -22,6 +22,6 @@ Feature: Message
 	Scenario: delete an idea
       And she sends ideas for "My Conversation 2"
       And she receives 3 ideas
-	   And she sends delete idea "Message 1" as "tracy"
+	   And she sends delete idea "Message 1" as "tracy" in "My Conversation 2"
       And she sends ideas for "My Conversation 2"
       Then she receives 2 ideas

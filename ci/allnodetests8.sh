@@ -34,10 +34,10 @@ ci/singlenodestest.sh "A new stream with ideas can be pulled from upstream"
 # 
 # ci/singleallnodestest.sh "Idea change is reflected from downstream2 to downstream"
 # [ "$?" != "0" ] && exit 1
-# 
-# ci/singleallnodestest.sh "A deleted idea is reflected upstream and downstream servers"
-# [ "$?" != "0" ] && exit 1
-# 
+
+ci/singleallnodestest.sh "A deleted idea is reflected upstream and downstream servers"
+[ "$?" != "0" ] && exit 1
+
 # ci/singleallnodestest.sh "An idea created owned and deleted is reflected upstream and downstream servers"
 # [ "$?" != "0" ] && exit 1
 # 

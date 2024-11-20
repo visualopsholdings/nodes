@@ -482,31 +482,56 @@ void Server::pubDown(const json &m) {
   
 }
 
-void Server::sendUp(const json &m) {
+void Server::sendOn(const json &m) {
 
   auto data = Json::getObject(m, "data");
   if (!data) {
-    BOOST_LOG_TRIVIAL(error) << "sendUp message has no data";
+    BOOST_LOG_TRIVIAL(error) << "sendOn message has no data";
     return;
   }
   auto type = Json::getString(data.value(), "type");
   if (!type) {
-    BOOST_LOG_TRIVIAL(error) << "sendUp message data has no type";
+    BOOST_LOG_TRIVIAL(error) << "sendOn message data has no type";
     return;
   }
   auto obj = Json::getObject(data.value(), "obj");
   if (!obj) {
-    BOOST_LOG_TRIVIAL(error) << "sendUp message data has no obj";
+    BOOST_LOG_TRIVIAL(error) << "sendOn message data has no obj";
     return;
   }
   
   if (shouldSendUp(type.value(), obj.value().as_object(), "")) {
-    BOOST_LOG_TRIVIAL(trace) << "sendUp";
+    BOOST_LOG_TRIVIAL(trace) << "sendOn";
     boost::json::object m2 = m.as_object();
     m2["dest"] = _upstreamId;
     sendDataReq(nullopt, m2);
   }
   
+  // try to find the id. It's either in the object or in the message data
+  auto id = Json::getString(data.value(), "id", true);
+  if (!id) {
+    id = Json::getString(obj.value(), "id");
+  }
+  if (!id) {
+    BOOST_LOG_TRIVIAL(error) << "sendOn message data and obj has no id";
+    return;
+  }
+  
+  // work out the stream. Ideas have the stream in them.
+  string stream = "";
+  if (type.value() == "idea") {
+    auto istream = Json::getString(obj.value(), "stream");
+    if (!istream) {
+      BOOST_LOG_TRIVIAL(error) << "sendOn message idea has no stream";
+      return;
+    }
+    stream = istream.value();
+  }
+  
+  if (shouldSendDown("on", type.value(), id.value(), stream)) {
+    BOOST_LOG_TRIVIAL(trace) << "publish down";
+    sendTo(_msgPub->socket(), m.as_object(), "mp-> ", nullopt);
+  }
 }
 
 void Server::sendErr(const string &msg) {
@@ -1401,7 +1426,7 @@ bool Server::shouldSendDown(const string &action, const string &type, const stri
 
 bool Server::shouldSendUp(const string &type, boost::json::object &obj, const string &stream) {
 
-  BOOST_LOG_TRIVIAL(trace) << "shouldSendUp " << _upstreamId << " obj " << obj;
+  BOOST_LOG_TRIVIAL(trace) << "shouldSendUp " << _upstreamId << " obj " << obj << " stream " << stream;
 
   if (_upstreamId != "") {
     string mirror = get1Info("upstreamMirror");
@@ -1417,19 +1442,23 @@ bool Server::shouldSendUp(const string &type, boost::json::object &obj, const st
   }
   
   if (type == "idea") {
-    BOOST_LOG_TRIVIAL(trace) << "testing for upstream";
-    auto streams = Stream().find(json{{ "upstream", true }}, { "_id" }).values();
-    if (streams) {
-      bool send = find_if(streams.value().begin(), streams.value().end(), [&stream](auto e) {
-        return e.id() == stream;
-      }) != streams.value().end();
-      if (send) {
+    BOOST_LOG_TRIVIAL(trace) << "testing idea for upstream";
+    if (!stream.empty()) {
+      BOOST_LOG_TRIVIAL(warning) << "ignoring passed in stream, using stream in idea";
+    }
+    auto istream = Json::getString(obj, "stream");
+    if (!istream) {
+      BOOST_LOG_TRIVIAL(error) << "idea is missing stream";
+      return false;
+    }
+    auto s = Stream().findById(istream.value()).value();
+    if (s) {
+      if (s.value().upstream()) {
         BOOST_LOG_TRIVIAL(trace) << "stream match, sending up";
+        return true;
       }
-      else {
-        BOOST_LOG_TRIVIAL(trace) << "no stream match, not sending up " << stream;
-      }
-      return send;
+      BOOST_LOG_TRIVIAL(trace) << "no stream match, not sending up " << stream;
+      return false;
     }
   }
   
@@ -1572,7 +1601,12 @@ bool Server::addObject(json &j) {
     return false;
   }
   
-  auto result = SchemaImpl::insertGeneral(collName(type.value()), obj.value());
+  // clean up the object.
+  boost::json::object obj2 = obj.value().as_object();
+  obj2.erase("id");
+  obj2.erase("type");
+  
+  auto result = SchemaImpl::insertGeneral(collName(type.value()), obj2);
   if (!result) {
     BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
     return false;

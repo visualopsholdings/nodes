@@ -30,7 +30,7 @@ void deleteUserMsg(Server *server, json &j) {
 
   User users;
   Handler<UserRow>::remove(server, users, "user", id.value(), 
-    Json::getString(j, "me", true));
+    Json::getString(j, "me", true), false);
 
 }
 

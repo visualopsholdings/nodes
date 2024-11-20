@@ -24,7 +24,11 @@ void addSubMsg(Server *server, json &j) {
         
   auto src = Json::getString(j, "src");
   if (!src) {
-    BOOST_LOG_TRIVIAL(error) << "upd sub missing src";
+    BOOST_LOG_TRIVIAL(error) << "add sub missing src";
+    return;
+  }
+  if (src.value() == server->_serverId) {
+    BOOST_LOG_TRIVIAL(trace) << "ignoring, came from us";
     return;
   }
   

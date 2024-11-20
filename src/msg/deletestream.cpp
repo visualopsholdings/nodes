@@ -30,7 +30,7 @@ void deleteStreamMsg(Server *server, json &j) {
 
   Stream streams;
   Handler<StreamRow>::remove(server, streams, "stream", id.value(), 
-    Json::getString(j, "me", true));
+    Json::getString(j, "me", true), false);
 
 }
 

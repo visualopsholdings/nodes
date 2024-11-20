@@ -100,7 +100,7 @@ bool Handler<RowType>::update(Server *server, Schema<RowType> &schema, const str
 }
 
 template <typename RowType>
-bool Handler<RowType>::remove(Server *server, Schema<RowType> &schema, const string &type, const string &id, optional<string> me) {
+bool Handler<RowType>::remove(Server *server, Schema<RowType> &schema, const string &type, const string &id, optional<string> me, bool addstream) {
 
   if (!Security::instance()->canEdit(schema, me, id)) {
     BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
@@ -120,6 +120,14 @@ bool Handler<RowType>::remove(Server *server, Schema<RowType> &schema, const str
     { "deleted", true },
     { "modifyDate", Storage::instance()->getNow() }
   };
+  if (addstream) {
+    auto str = Json::getString(orig.value().j(), "stream");
+    if (!str) {
+      server->sendErr("missing stream in " + id);
+      return false;
+    }
+    obj["stream"] = str.value();
+  }
   
   // send to other nodes.
   boost::json::object obj2 = obj;

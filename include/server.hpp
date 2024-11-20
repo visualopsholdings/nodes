@@ -60,7 +60,7 @@ public:
   }
   void sendDown(const json &m);
   void pubDown(const json &m);
-  void sendUp(const json &m);
+  void sendOn(const json &m);
   void sendErr(const string &msg);
   void sendErrDown(const string &msg);
   void sendWarning(const string &msg);

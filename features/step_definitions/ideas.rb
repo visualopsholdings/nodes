@@ -9,8 +9,9 @@ When('she sends message {string} as {string} to saved stream to upstream') do |t
    $lastResult = SendTo({ "type": "message" , "me": user,  "stream": $savedResult["result"], "text": text, "corr": "1" }, getUpstreamPort())
 end
 
-When('she sends delete idea {string} as {string}') do |text, user|
+When('she sends delete idea {string} as {string} in {string}') do |text, user, stream|
    u = User.where(name: user).first._id.to_s
-   i = Idea.where(text: text).first._id.to_s
+   s = Stream.where(name: stream).first._id.to_s
+   i = Idea.where(text: text, stream: s).first._id.to_s
    $lastResult = Send({ "type": "deleteidea" , "me": u, "id": i })
 end

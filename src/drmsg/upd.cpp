@@ -20,7 +20,7 @@ namespace nodes {
 
 void updDrMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "upd " << j;
+  BOOST_LOG_TRIVIAL(trace) << "upd (dr) " << j;
        
   auto src = Json::getString(j, "src");
   if (!src) {
@@ -41,7 +41,7 @@ void updDrMsg(Server *server, json &j) {
   }
   
   server->updateObject(j);
-  server->sendUp(j);
+  server->sendOn(j);
   server->sendAckDown();
 
   
