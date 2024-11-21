@@ -40,6 +40,12 @@ export LOG=debug
 if [ "$MONGO_PORT_27017_DB" == "" ]; then
 	export MONGO_PORT_27017_DB=dev
 fi
+if [ "$NODES_PUB_PORT" == "" ]; then
+	export NODES_PUB_PORT=3012
+fi
+if [ "$NODES_REP_PORT" == "" ]; then
+	export NODES_REP_PORT=3013
+fi
 
 if [ "$NODES_DATA_PORT" == "" ]; then
   build/nodes --test --logLevel=$LOG --dbName=$MONGO_PORT_27017_DB \
