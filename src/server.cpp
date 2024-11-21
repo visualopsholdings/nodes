@@ -466,6 +466,27 @@ json Server::receiveFrom(shared_ptr<zmq::socket_t> socket) {
 
 }
 
+void Server::setSrc(boost::json::object *m) {
+
+  if (!Json::appendArray(m, "path", _serverId)) {
+    BOOST_LOG_TRIVIAL(error) << _serverId << " is already in the path!";
+  }
+  
+}
+
+bool Server::getSrc(json &msg, string *s) {
+
+  return Json::arrayTail(msg.as_object(), "path", s);
+
+}
+
+bool Server::wasFromUs(json &msg) {
+
+  // make sure it's not on the path either.
+  return Json::arrayHas(msg.as_object(), "path", _serverId);
+  
+}
+
 void Server::sendDown(const json &m) {
 
   sendTo(_dataRep->socket(), m, "dr-> ", nullopt);
@@ -474,17 +495,17 @@ void Server::sendDown(const json &m) {
 
 void Server::pubDown(const json &m) {
 
-  // set the src of the message.
-  json m2 = m;
-  m2.as_object()["src"] = _serverId;
-
-  sendTo(_msgPub->socket(), m2, "mp-> ", nullopt);
+  // no destination for publishes.
+  boost::json::object m2 = m.as_object();
+  m2.erase("dest");
   
+  sendTo(_msgPub->socket(), m2, "mp-> ", nullopt);
+
 }
 
-void Server::sendOn(const json &m) {
+void Server::sendOn(const json &origm) {
 
-  auto data = Json::getObject(m, "data");
+  auto data = Json::getObject(origm, "data");
   if (!data) {
     BOOST_LOG_TRIVIAL(error) << "sendOn message has no data";
     return;
@@ -500,11 +521,13 @@ void Server::sendOn(const json &m) {
     return;
   }
   
+  boost::json::object msg = origm.as_object();
+  setSrc(&msg);
+
   if (shouldSendUp(type.value(), obj.value().as_object(), "")) {
     BOOST_LOG_TRIVIAL(trace) << "sendOn";
-    boost::json::object m2 = m.as_object();
-    m2["dest"] = _upstreamId;
-    sendDataReq(nullopt, m2);
+    msg["dest"] = _upstreamId;
+    sendDataReq(nullopt, msg);
   }
   
   // try to find the id. It's either in the object or in the message data
@@ -530,7 +553,7 @@ void Server::sendOn(const json &m) {
   
   if (shouldSendDown("on", type.value(), id.value(), stream)) {
     BOOST_LOG_TRIVIAL(trace) << "publish down";
-    sendTo(_msgPub->socket(), m.as_object(), "mp-> ", nullopt);
+    pubDown(msg);
   }
 }
 
@@ -680,11 +703,7 @@ void Server::sendObject(json &j, const string &name, const json &doc) {
 
 void Server::sendDataReq(optional<string> corr, const json &m) {
 
-  // set the src of the message.
-  json m2 = m;
-  m2.as_object()["src"] = _serverId;
-
-  sendTo(_remoteDataReq->socket(), m2, "rdr-> ", corr);
+  sendTo(_remoteDataReq->socket(), m, "rdr-> ", corr);
   
 }
 
@@ -803,10 +822,9 @@ void Server::sendUpOnline() {
     { "streamBgColor", doc.value().streamBgColor() },
     { "pubKey", _pubKey },
     { "synced", hasInitialSync == "true" },
-    { "mirror", upstreamMirror == "true" },
-//    { "dest", _upstreamId }    
+    { "mirror", upstreamMirror == "true" }
   };
-  
+  setSrc(&msg);  
   sendDataReq(nullopt, msg);
   
 }
@@ -820,9 +838,11 @@ void Server::sendUpHeartbeat() {
   }
   _lastHeartbeat = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   
-	sendDataReq(nullopt, {
+  boost::json::object msg = {
     { "type", "heartbeat" }
-  });
+  };
+  setSrc(&msg);  
+	sendDataReq(nullopt, msg);
 	
 }
 
@@ -974,6 +994,7 @@ void Server::sendUpDiscover() {
     }
     msg[collname] =  boost::json::value_from(ids);
   }
+  setSrc(&msg);
   
 	sendDataReq(nullopt, msg);
 
@@ -1079,11 +1100,12 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
   
   // we don't send policies upstream.
   // that's why the policies array is ignored.
-  
-  sendDataReq(corr, {
+  boost::json::object msg = {
     { "type", "discoverLocal" },
     { "data", data }
-  });
+  };
+  setSrc(&msg);  
+  sendDataReq(corr, msg);
   
 }
 
@@ -1138,10 +1160,12 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
   
   collectPolicies(policies, &data);
 
-  sendDataReq(corr, {
+  boost::json::object msg = {
     { "type", "discoverLocal" },
     { "data", data }
-  });
+  };
+  setSrc(&msg);  
+  sendDataReq(corr, msg);
 
 }
 
@@ -1155,10 +1179,12 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
   if (hasInitialSync != "true") {
     BOOST_LOG_TRIVIAL(trace) << "no initial sync, nothing to discover locally.";
     boost::json::array empty;
-    sendDataReq(corr, {
+    boost::json::object msg = {
       { "type", "discoverLocal" },
       { "data", empty }
-    });
+    };
+    setSrc(&msg);  
+    sendDataReq(corr, msg);
     return;
   }
   if (upstreamLastSeen == "") {
@@ -1179,13 +1205,13 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
 
 void Server::sendDownDiscoverResult(json &j) {
 
-  auto src = Json::getString(j, "src");
-  if (!src) {
+  string src;
+  if (!getSrc(j, &src)) {
     sendErrDown("discover missing src");
     return;
   }
 
-  auto node = Node().find(json{ { "serverId", src.value() } }, {}).value();
+  auto node = Node().find(json{ { "serverId", src } }, {}).value();
   if (!node) {
     sendErrDown("discover no node");
     return;
@@ -1431,7 +1457,7 @@ bool Server::shouldSendUp(const string &type, boost::json::object &obj, const st
   if (_upstreamId != "") {
     string mirror = get1Info("upstreamMirror");
     if (mirror == "true") {
-      BOOST_LOG_TRIVIAL(trace) << "mirror sneding up";
+      BOOST_LOG_TRIVIAL(trace) << "mirror sending up";
       return true;
     }
     auto upstream = Json::getBool(obj, "upstream", true);
@@ -1500,6 +1526,7 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
       }
     }
   };
+  setSrc(&msg);
   if (down) {
     pubDown(msg);
   }
@@ -1540,6 +1567,7 @@ void Server::sendAdd(const string &type, boost::json::object &obj, const string 
     }
   };
   
+  setSrc(&msg);
   if (down) {
     pubDown(msg);
   }

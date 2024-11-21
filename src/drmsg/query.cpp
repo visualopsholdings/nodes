@@ -22,8 +22,8 @@ void queryDrMsg(Server *server, json &j) {
    
   BOOST_LOG_TRIVIAL(trace) << "query " << j;
        
-  auto src = Json::getString(j, "src");
-  if (!src) {
+  string src;
+  if (!server->getSrc(j, &src)) {
     server->sendErrDown("query missing src");
     return;
   }
@@ -93,7 +93,7 @@ void queryDrMsg(Server *server, json &j) {
     { "queryType", type },
     { "result", docs ? docs.value() : boost::json::array() },
     { "corr", corr.value() },
-    { "dest", src.value() }   
+    { "dest", src }   
   });
  
 }

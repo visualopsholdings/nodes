@@ -23,15 +23,15 @@ void heartbeatMsg(Server *server, json &j) {
    
   BOOST_LOG_TRIVIAL(trace) << "heartbeat " << j;
          
-  auto src = Json::getString(j, "src");
-  if (!src) {
+  string src;
+  if (!server->getSrc(j, &src)) {
     server->sendErrDown("heartbeat missing src");
     return;
   }
   
-  auto node = Node().find(json{ { "serverId", src.value() } }, {}).value();
+  auto node = Node().find(json{ { "serverId", src } }, {}).value();
   if (!node) {
-    BOOST_LOG_TRIVIAL(error) << "heartbeat no node " << src.value();
+    BOOST_LOG_TRIVIAL(error) << "heartbeat no node " << src;
     server->sendAckDown();
     return;
   }
@@ -42,7 +42,7 @@ void heartbeatMsg(Server *server, json &j) {
   auto date = Date::toISODate(now);
   server->publish(nullopt, {
     { "type", "nodeSeen" },
-    { "serverId", src.value() },
+    { "serverId", src },
     { "lastSeen", date }
   });
     

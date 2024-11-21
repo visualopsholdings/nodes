@@ -58,6 +58,8 @@ public:
   void send(const json &m) {
     sendTo(*_rep, m, "-> ", nullopt);
   }
+  void setSrc(boost::json::object *m);
+  bool getSrc(json &msg, string *s);
   void sendDown(const json &m);
   void pubDown(const json &m);
   void sendOn(const json &m);
@@ -104,6 +106,9 @@ public:
 
   bool shouldIgnoreAdd(json &msg);
     // adds always come, should we ignore one?
+
+  bool wasFromUs(json &msg);
+    // the message was send from us.
 
   string _certFile;
   string _chainFile;

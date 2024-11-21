@@ -22,12 +22,6 @@ void updDrMsg(Server *server, json &j) {
    
   BOOST_LOG_TRIVIAL(trace) << "upd (dr) " << j;
        
-  auto src = Json::getString(j, "src");
-  if (!src) {
-    server->sendErrDown("upd missing src");
-    return;
-  }
-  
   auto dest = Json::getString(j, "dest");
   if (!dest) {
     server->sendErrDown("upd missing dest");

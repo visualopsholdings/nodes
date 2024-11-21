@@ -22,12 +22,6 @@ void addDrMsg(Server *server, json &j) {
    
   BOOST_LOG_TRIVIAL(trace) << "add (dr) " << j;
        
-  auto src = Json::getString(j, "src");
-  if (!src) {
-    server->sendErrDown("add missing src");
-    return;
-  }
-  
   auto dest = Json::getString(j, "dest");
   if (!dest) {
     server->sendErrDown("add missing dest");

@@ -978,7 +978,7 @@ Server sends to upstream:
   "streamBgColor":"lightgreen",
   "hasInitialSync":"true",
   "pubKey":"/9AxT<](&2X.HceOX#VoJ.zONJ#=*lgYu8hKgP*4",
-  "src":"server id"
+  "path":["server id"]
 } 
 ```
 
@@ -1003,7 +1003,7 @@ Downstream sends "discoverLocal".
 {
   "type":"discoverLocal",
   "data":[],
-  "src":"server id"
+  "path":["server id"]
 }
 ```
 
@@ -1027,7 +1027,7 @@ Downstream sends "discover".
   "lastUser":"1970-01-01T00:00:00.0+00:00",
   "users":["user id"],
   "hasInitialSync":false,
-  "src":"server id"
+  "path":["server id"]
 }
 ```
 

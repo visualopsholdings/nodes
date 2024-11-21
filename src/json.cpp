@@ -115,5 +115,64 @@ optional<long> Json::getNumber(const json &j, const string &name, bool silent) {
 
 }
 
+bool Json::hasArrayMember(const boost::json::object &obj, const string &name) {
+
+  return obj.if_contains(name) && obj.at(name).is_array();
+  
+}
+
+bool Json::hasArrayValue(const boost::json::array &arr, const string &val) {
+
+  return find_if(arr.begin(), arr.end(), [&](auto e) { return e.as_string() == val; }) != arr.end();
+
+}
+
+bool Json::appendArray(boost::json::object *obj, const string &name, const string &val) {
+
+  boost::json::array arr;
+  
+  if (hasArrayMember(*obj, name)) {
+    auto a = obj->at(name).as_array();
+    copy(a.begin(), a.end(), back_inserter(arr));
+  }
+  
+  if (hasArrayValue(arr, val)) {
+    return false;
+  }
+  
+  arr.push_back(val.c_str());
+  
+  (*obj)[name] = arr;
+  
+  return true;
+  
+}
+
+bool Json::arrayHas(const boost::json::object &obj, const string &name, const string &val) {
+
+  if (!hasArrayMember(obj, name)) {
+    return false;
+  }
+  return hasArrayValue(obj.at(name).as_array(), val);
+
+}
+
+bool Json::arrayTail(const boost::json::object &obj, const string &name, string *val) {
+
+  if (!hasArrayMember(obj, name)) {
+    return false;
+  }
+  auto a = obj.at(name).as_array();
+  int asize = a.size();
+  if (asize == 0) {
+    return false;
+  }
+  if (!a[asize - 1].is_string()) {
+    return false;
+  }
+  *val = a[asize - 1].as_string().c_str();
+  return true;
+  
+}
 
 

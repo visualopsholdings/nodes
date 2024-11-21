@@ -22,12 +22,7 @@ void updSubMsg(Server *server, json &j) {
    
   BOOST_LOG_TRIVIAL(trace) << "upd sub" << j;
         
-  auto src = Json::getString(j, "src");
-  if (!src) {
-    BOOST_LOG_TRIVIAL(error) << "upd sub missing src";
-    return;
-  }
-  if (src.value() == server->_serverId) {
+  if (server->wasFromUs(j)) {
     BOOST_LOG_TRIVIAL(trace) << "ignoring, came from us";
     return;
   }

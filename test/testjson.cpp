@@ -151,4 +151,62 @@ BOOST_AUTO_TEST_CASE( badDate )
   
 }
 
+BOOST_AUTO_TEST_CASE( appendArray )
+{
+  cout << "=== appendArray ===" << endl;
+  
+  boost::json::array a = {"a", "b", "c"};
+  boost::json::object obj = {
+    { "x", a }
+  };
+
+  BOOST_CHECK(!Json::appendArray(&obj, "x", "a"));
+  BOOST_CHECK(!Json::appendArray(&obj, "x", "b"));
+  BOOST_CHECK(!Json::appendArray(&obj, "x", "c"));
+  BOOST_CHECK(Json::appendArray(&obj, "x", "d"));
+  BOOST_CHECK(Json::appendArray(&obj, "y", "e"));
+  
+  int xlen = obj.at("x").as_array().size();
+  BOOST_CHECK_EQUAL(xlen, 4);
+  BOOST_CHECK_EQUAL(obj.at("x").as_array()[xlen-1], "d");
+  
+  BOOST_CHECK(obj.if_contains("y"));
+  BOOST_CHECK(obj.at("y").is_array());
+  BOOST_CHECK_EQUAL(obj.at("y").as_array().size(), 1);
+  BOOST_CHECK_EQUAL(obj.at("y").as_array()[0], "e");
+  
+}
+
+BOOST_AUTO_TEST_CASE( arrayHas )
+{
+  cout << "=== arrayHas ===" << endl;
+  
+  boost::json::array a = {"a", "b", "c"};
+  boost::json::object obj = {
+    { "x", a }
+  };
+
+  BOOST_CHECK(Json::arrayHas(obj, "x", "a"));
+  BOOST_CHECK(!Json::arrayHas(obj, "x", "d"));
+  
+}
+
+BOOST_AUTO_TEST_CASE( arrayTail )
+{
+  cout << "=== arrayTail ===" << endl;
+  
+  boost::json::array a = {"a", "b", "c"};
+  boost::json::object obj = {
+    { "x", a },
+    { "y", "" }
+  };
+
+  string s;
+  BOOST_CHECK(Json::arrayTail(obj, "x", &s));
+  BOOST_CHECK_EQUAL(s, "c");
+  BOOST_CHECK(!Json::arrayTail(obj, "y", &s));
+  BOOST_CHECK(!Json::arrayTail(obj, "z", &s));
+  
+}
+
 

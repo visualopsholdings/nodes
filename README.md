@@ -337,6 +337,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Implement delete by marking deleted objects and purging.
 - for ideas
 
+### 21 Nov 2024
+- Refactor to use a "path" instead of a single "src".
+
 
 
 

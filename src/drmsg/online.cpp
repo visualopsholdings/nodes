@@ -22,8 +22,8 @@ void onlineMsg(Server *server, json &j) {
    
   BOOST_LOG_TRIVIAL(trace) << "online " << j;
        
-  auto src = Json::getString(j, "src");
-  if (!src) {
+  string src;
+  if (!server->getSrc(j, &src)) {
     server->sendErrDown("online missing src");
     return;
   }
@@ -55,7 +55,7 @@ void onlineMsg(Server *server, json &j) {
 
   // is the node valid?
   bool valid = false;
-  auto node = Node().find(json{ { "serverId", src.value() } }, {}).value();
+  auto node = Node().find(json{ { "serverId", src } }, {}).value();
   if (node) {
     if (node.value().pubKey() == pubKey.value()) {
       obj["valid"] = true;
@@ -64,7 +64,7 @@ void onlineMsg(Server *server, json &j) {
     }
   }
   else {
-    obj["serverId"] = src.value();
+    obj["serverId"] = src;
     obj["pubKey"] = pubKey.value();
     
     // create a new node.
@@ -79,7 +79,7 @@ void onlineMsg(Server *server, json &j) {
     { "type", "upstream" },
     { "id", server->_serverId },
     { "valid", valid },
-    { "dest", src.value() }   
+    { "dest", src }   
   });
   
 }
