@@ -13,7 +13,16 @@ def SendTo(j, subPort)
 end
 
 def Send(j)
-   SendToPorts(j, ENV['NODES_REP_PORT'], ENV['NODES_PUB_PORT'])
+   # same defaults as inside local.sh
+   subPort = ENV['NODES_PUB_PORT']
+   if !subPort
+      subPort = 3012
+   end
+   repPort = ENV['NODES_REP_PORT']
+   if !repPort
+      repPort = 3013
+   end
+   SendToPorts(j, repPort, subPort)
 end
 
 def calcPort(n)

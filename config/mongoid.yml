@@ -1,7 +1,11 @@
+<% dbname=ENV['MONGO_PORT_27017_DB'] %>
+<% if !dbname %>
+<%   dbname ='dev' %>
+<% end %>
 
 test:
   clients:
     default:
-      database: <%= "#{ENV['MONGO_PORT_27017_DB']}" %>
+      database: <%= dbname %>
       hosts:
         - 127.0.0.1:27017
