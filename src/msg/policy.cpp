@@ -33,7 +33,12 @@ void policyMsg(Server *server, json &j) {
   }
 
   // the collection names are pluralised object types.
-  string collname = objtype.value() + "s";
+  string collname;
+  if (!Storage::instance()->collName(objtype.value(), &collname, false)) {
+    server->sendErr("Could not get collection name for policy");
+    return;
+  }
+
   auto doc = Security::instance()->withView(collname, Json::getString(j, "me", true), 
     {{ { "_id", { { "$oid", objid.value() } } } }}, { "policy" }).value();
   if (!doc) {

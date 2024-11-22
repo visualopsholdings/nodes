@@ -69,7 +69,7 @@ void setGroupPolicyMsg(Server *server, json &j) {
   if (orig.value().upstream()) {
     obj2["upstream"] = true;
   }
-  server->sendUpd("group", id.value(), obj2, "");
+  server->sendUpd("group", id.value(), obj2);
     
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
   auto result = groups.updateById(id.value(), obj);

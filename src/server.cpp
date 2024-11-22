@@ -500,7 +500,7 @@ void Server::sendOn(const json &origm) {
   boost::json::object msg = origm.as_object();
   setSrc(&msg);
 
-  if (shouldSendUp(type.value(), obj.value().as_object(), "")) {
+  if (shouldSendUp(type.value(), obj.value().as_object())) {
     BOOST_LOG_TRIVIAL(trace) << "sendOn";
     msg["dest"] = _upstreamId;
     sendDataReq(nullopt, msg);
@@ -516,18 +516,7 @@ void Server::sendOn(const json &origm) {
     return;
   }
   
-  // work out the stream. Ideas have the stream in them.
-  string stream = "";
-  if (type.value() == "idea") {
-    auto istream = Json::getString(obj.value(), "stream");
-    if (!istream) {
-      BOOST_LOG_TRIVIAL(error) << "sendOn message idea has no stream";
-      return;
-    }
-    stream = istream.value();
-  }
-  
-  if (shouldSendDown("on", type.value(), id.value(), stream)) {
+  if (shouldSendDown("on", type.value(), id.value(), obj.value().as_object())) {
     BOOST_LOG_TRIVIAL(trace) << "publish down";
     pubDown(msg);
   }
@@ -929,6 +918,12 @@ string Server::getLastDate(optional<boost::json::array> rows, const string &hasI
   
 }
 
+string Server::getCollName(const string &type, optional<string> coll) {
+
+  return coll ? coll.value() : (type + "s");
+  
+}
+
 void Server::sendUpDiscover() {
 
   auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).values();
@@ -948,7 +943,7 @@ void Server::sendUpDiscover() {
       return;
     }
     
-    string collname = Storage::instance()->collName(type.value(), Json::getString(o, "coll", true));
+    string collname = getCollName(type.value(), Json::getString(o, "coll", true));
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
@@ -1038,17 +1033,12 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
       return;
     }
     
-    string collname = Storage::instance()->collName(type.value(), Json::getString(o, "coll", true));
+    string collname = getCollName(type.value(), Json::getString(o, "coll", true));
     
     collectObjs(type.value(), collname, q, &data, &policies);
     
     auto subobj = Json::getObject(o, "subobj", true);
     if (subobj) {
-      auto subtype = Json::getString(subobj.value(), "type");
-      if (!subtype) {
-        BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
-        return;
-      }
       auto field = Json::getString(subobj.value(), "field");
       if (!field) {
         BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
@@ -1058,7 +1048,12 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
       if (result) {
         auto upstreams = result->values();
         if (upstreams) {
-          string subcollname = Storage::instance()->collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+          auto subtype = Json::getString(subobj.value(), "type");
+          if (!subtype) {
+            BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+            return;
+          }
+          string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
           for (auto o: upstreams.value()) {
             auto id = Json::getString(o, "id");
             collectObjs(subtype.value(), subcollname, SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data, &policies);
@@ -1098,17 +1093,12 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
       return;
     }
     
-    string collname = Storage::instance()->collName(type.value(), Json::getString(o, "coll", true));
+    string collname = getCollName(type.value(), Json::getString(o, "coll", true));
     
     collectObjs(type.value(), collname, q, &data, &policies);
     
     auto subobj = Json::getObject(o, "subobj", true);
     if (subobj) {
-      auto subtype = Json::getString(subobj.value(), "type");
-      if (!subtype) {
-        BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
-        return;
-      }
       auto field = Json::getString(subobj.value(), "field");
       if (!field) {
         BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
@@ -1118,7 +1108,12 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
       if (result) {
         auto upstreams = result->values();
         if (upstreams) {
-          string subcollname = Storage::instance()->collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+          auto subtype = Json::getString(subobj.value(), "type");
+          if (!subtype) {
+            BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+            return;
+          }
+          string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
           for (auto o: upstreams.value()) {
             auto id = Json::getString(o, "id");
             collectObjs(subtype.value(), subcollname, SchemaImpl::afterDateQuery(upstreamLastSeen), &data, &policies);
@@ -1208,7 +1203,7 @@ void Server::sendDownDiscoverResult(json &j) {
       return;
     }
     
-    string collname = Storage::instance()->collName(type.value(), Json::getString(o, "coll", true));
+    string collname = getCollName(type.value(), Json::getString(o, "coll", true));
 
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
@@ -1232,17 +1227,17 @@ void Server::sendDownDiscoverResult(json &j) {
       
       auto subobj = Json::getObject(o, "subobj", true);
       if (subobj) {
-        auto subtype = Json::getString(subobj.value(), "type");
-        if (!subtype) {
-          BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
-          return;
-        }
         auto field = Json::getString(subobj.value(), "field");
         if (!field) {
           BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
           return;
         }
-        string subcollname = Storage::instance()->collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+        auto subtype = Json::getString(subobj.value(), "type");
+        if (!subtype) {
+          BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+          return;
+        }
+        string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
         if (objs.value().size() == 1 && objs.value()[0] == "*") {
           // collect ALL sub objects after the date.
           auto objs = SchemaImpl::findGeneral(collname, json{{}}, { "_id" })->values();
@@ -1297,7 +1292,12 @@ void Server::importObjs(boost::json::array &msgs) {
       continue;
     }
     
-     Storage::instance()->bulkInsert(Storage::instance()->collName(type.value()), objs.value());
+    string coll;
+    if (!Storage::instance()->collName(type.value(), &coll, false)) {
+      continue;
+    }
+
+    Storage::instance()->bulkInsert(coll, objs.value());
 
     auto more = Json::getBool(m, "more", true);
     if (more && more.value()) {
@@ -1351,32 +1351,7 @@ vector<string> Server::getNodeIds(const string &type) {
 
 }
 
-bool Server::testListeningIdea(const string &action, const string &type, const string &id, const string &stream) {
-	
-	if (stream == "") {
-    BOOST_LOG_TRIVIAL(trace) << "skipping " << action << " idea with no stream " << type << " " << id;
-    return false;
-	}
-	auto ids = getNodeIds("stream");
-	if (find(ids.begin(), ids.end(), "*") != ids.end() || find(ids.begin(), ids.end(), stream) != ids.end()) {
-	  return true;
-	}
-  BOOST_LOG_TRIVIAL(trace) << "skipping " << action << " nobody listening " << type << " " << id << "stream" << stream;
-  return false;
-}
-
-bool Server::testListening(const string &action, const string &type, const string &id) {
-	
-	auto ids = getNodeIds(type);
-	if (find(ids.begin(), ids.end(), "*") != ids.end() || find(ids.begin(), ids.end(), id) != ids.end()) {
-	  return true;
-	}
-  BOOST_LOG_TRIVIAL(trace) << "skipping " << action << " nobody listening " << type << " " << id;
-  return false;
-
-}
-
-bool Server::shouldSendDown(const string &action, const string &type, const string &id, const string &stream) {
+bool Server::shouldSendDown(const string &action, const string &type, const string &id, boost::json::object &obj) {
 
   BOOST_LOG_TRIVIAL(trace) << "shouldSendDown";
 
@@ -1391,19 +1366,69 @@ bool Server::shouldSendDown(const string &action, const string &type, const stri
       // non mirrors will get them, it's up to them to ignore them.
       return true;
     }
-    if (type == "idea") {
-      return testListeningIdea(action, type, id, stream);
+    
+    // calculate the type of object and the id of the object to search for.
+    string ltype;
+    string iid;
+    string pfield;
+    if (Storage::instance()->parentInfo(type, &pfield, &ltype)) {
+      auto iparent = Json::getString(obj, pfield);
+      if (!iparent) {
+        BOOST_LOG_TRIVIAL(error) << "shouldSendDown obj has no parent field";
+        return false;
+      }
+      iid = iparent.value();
     }
     else {
-      return testListening(action, type, id);
+      ltype = type;
+      iid = id;
     }
+    
+    // search for it.
+    auto ids = getNodeIds(ltype);
+    if (find(ids.begin(), ids.end(), "*") != ids.end() || find(ids.begin(), ids.end(), iid) != ids.end()) {
+      return true;
+    }
+    BOOST_LOG_TRIVIAL(trace) << "skipping " << action << " nobody listening " << ltype << " " << iid;
+    return false;
   }
 	return false;
 }
 
-bool Server::shouldSendUp(const string &type, boost::json::object &obj, const string &stream) {
+bool Server::isParentUpstream(const string &type, boost::json::object &obj) {
 
-  BOOST_LOG_TRIVIAL(trace) << "shouldSendUp " << _upstreamId << " obj " << obj << " stream " << stream;
+  string ptype;
+  string pfield;
+  if (Storage::instance()->parentInfo(type, &pfield, &ptype)) {
+    auto iparent = Json::getString(obj, pfield);
+    if (!iparent) {
+      BOOST_LOG_TRIVIAL(error) << "obj is missing " << pfield;
+      return false;
+    }
+    string coll;
+    if (!Storage::instance()->collName(ptype, &coll)) {
+      return false;
+    }
+
+    auto result = SchemaImpl::findByIdGeneral(coll, iparent.value(), { "upstream" });
+    if (!result) {
+      BOOST_LOG_TRIVIAL(error) << "Can't find " << iparent.value();
+      return false;
+    }
+    
+    auto s = result->value();
+    if (s) {
+      auto upstream = Json::getBool(s.value(), "upstream", true);
+      return upstream && upstream.value();
+    }
+  }
+  return false;
+
+}
+
+bool Server::shouldSendUp(const string &type, boost::json::object &obj) {
+
+  BOOST_LOG_TRIVIAL(trace) << "shouldSendUp " << _upstreamId << " obj " << obj;
 
   if (_upstreamId != "") {
     string mirror = get1Info("upstreamMirror");
@@ -1418,31 +1443,9 @@ bool Server::shouldSendUp(const string &type, boost::json::object &obj, const st
     }
   }
   
-  if (type == "idea") {
-    BOOST_LOG_TRIVIAL(trace) << "testing idea for upstream";
-    if (!stream.empty()) {
-      BOOST_LOG_TRIVIAL(warning) << "ignoring passed in stream, using stream in idea";
-    }
-    auto istream = Json::getString(obj, "stream");
-    if (!istream) {
-      BOOST_LOG_TRIVIAL(error) << "idea is missing stream";
-      return false;
-    }
-    auto result = SchemaImpl::findByIdGeneral("streams", istream.value(), {});
-    if (!result) {
-      BOOST_LOG_TRIVIAL(trace) << "Can't find stream";
-      return false;
-    }
-    auto s = result->value();
-    if (s) {
-      auto upstream = Json::getBool(s.value(), "upstream", true);
-      if (upstream && upstream.value()) {
-        BOOST_LOG_TRIVIAL(trace) << "stream match, sending up";
-        return true;
-      }
-      BOOST_LOG_TRIVIAL(trace) << "no stream match, not sending up " << stream;
-      return false;
-    }
+  if (isParentUpstream(type, obj)) {
+    BOOST_LOG_TRIVIAL(trace) << type << " parent upstream, sending up";
+    return true;
   }
   
   BOOST_LOG_TRIVIAL(trace) << "not sending up";
@@ -1450,7 +1453,7 @@ bool Server::shouldSendUp(const string &type, boost::json::object &obj, const st
   return false;
 }
 
-void Server::sendUpd(const string &type, const string &id, boost::json::object &obj, const string &stream) {
+void Server::sendUpd(const string &type, const string &id, boost::json::object &obj) {
 
   BOOST_LOG_TRIVIAL(trace) << "sendUpd " << type;
 
@@ -1462,8 +1465,8 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
     return;
   }
   
-  bool up = shouldSendUp(type, obj, stream);
-  bool down = shouldSendDown("update", type, id, stream);
+  bool up = shouldSendUp(type, obj);
+  bool down = shouldSendDown("update", type, id, obj);
   
   if (!up && !down) {
     BOOST_LOG_TRIVIAL(trace) << "not sending up or down";
@@ -1494,7 +1497,7 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
 
 }
 
-void Server::sendAdd(const string &type, boost::json::object &obj, const string &stream) {
+void Server::sendAdd(const string &type, boost::json::object &obj) {
 
   BOOST_LOG_TRIVIAL(trace) << "sendAdd " << type;
 
@@ -1503,8 +1506,8 @@ void Server::sendAdd(const string &type, boost::json::object &obj, const string 
     BOOST_LOG_TRIVIAL(warning) << "skipping add, but obj id ";
   }
     
-  bool up = shouldSendUp(type, obj, stream);
-  bool down = shouldSendDown("add", type, id.value(), stream);
+  bool up = shouldSendUp(type, obj);
+  bool down = shouldSendDown("add", type, id.value(), obj);
   
   if (!up && !down) {
     BOOST_LOG_TRIVIAL(trace) << "not sending";
@@ -1558,7 +1561,12 @@ bool Server::updateObject(json &j) {
     return false;
   }
   
-  auto result = SchemaImpl::updateGeneralById(Storage::instance()->collName(type.value()), id.value(), {{ "$set", obj.value() }});
+  string coll;
+  if (!Storage::instance()->collName(type.value(), &coll, false)) {
+    return false;
+  }
+
+  auto result = SchemaImpl::updateGeneralById(coll, id.value(), {{ "$set", obj.value() }});
   if (!result) {
     BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
     return false;
@@ -1591,7 +1599,12 @@ bool Server::addObject(json &j) {
   obj2.erase("id");
   obj2.erase("type");
   
-  auto result = SchemaImpl::insertGeneral(Storage::instance()->collName(type.value()), obj2);
+  string coll;
+  if (!Storage::instance()->collName(type.value(), &coll, false)) {
+    return false;
+  }
+
+  auto result = SchemaImpl::insertGeneral(coll, obj2);
   if (!result) {
     BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
     return false;
@@ -1613,38 +1626,22 @@ bool Server::shouldIgnoreAdd(json &msg) {
   if (!data) {
     return true;
   }
+  
   auto type = Json::getString(data.value(), "type");
   if (!type) {
     return true;
   }
-  if (type.value() != "idea") {
-    BOOST_LOG_TRIVIAL(trace) << "ignoring, not an idea";
-    return true;
-  }
+  
   auto obj = Json::getObject(data.value(), "obj");
   if (!obj) {
     return true;
   }
-  auto stream = Json::getString(obj.value(), "stream");
-  if (!stream) {
+
+  if (!isParentUpstream(type.value(), obj.value().as_object())) {
+    BOOST_LOG_TRIVIAL(trace) << type.value() << " parent upstream, ignoring add";
     return true;
   }
-  auto result = SchemaImpl::findByIdGeneral("streams", stream.value(), { "upstream" });
-  if (!result) {
-    BOOST_LOG_TRIVIAL(error) << "Can't find stream.";
-    return false;
-  }
-  auto s = result->value();
-  if (!s) {
-    BOOST_LOG_TRIVIAL(trace) << "ignoring, stream not on our server";
-    return true;
-  }
-  auto upstream = Json::getBool(s.value(), "upstream", true);
-  if (!upstream || !upstream.value()) {
-    BOOST_LOG_TRIVIAL(trace) << "ignoring, stream not upstream";
-    return true;
-  }
-  
+
   return false;
   
 }

@@ -33,7 +33,11 @@ void setObjectPolicyMsg(Server *server, json &j) {
   }  
   
   // get the collection name.
-  string coll = Storage::instance()->collName(objtype.value());
+  string coll;
+  if (!Storage::instance()->collName(objtype.value(), &coll)) {
+    server->sendErr("Could not get collection name for setobjectpolicy");
+    return;
+  }
   
   if (!Security::instance()->canEdit(coll, Json::getString(j, "me", true), id.value())) {
     server->sendErr("no edit for " + objtype.value() + " " + id.value());
@@ -87,7 +91,7 @@ void setObjectPolicyMsg(Server *server, json &j) {
   if (orig.value().as_object().if_contains("upstream")) {
     obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
   }
-  server->sendUpd(objtype.value(), id.value(), obj2, "");
+  server->sendUpd(objtype.value(), id.value(), obj2);
     
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
   auto r = SchemaImpl::updateGeneralById(coll, id.value(), {

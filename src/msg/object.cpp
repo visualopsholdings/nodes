@@ -33,7 +33,11 @@ void objectMsg(Server *server, json &j) {
   }
 
   // get the collection name.
-  string coll = Storage::instance()->collName(objtype.value());
+  string coll;
+  if (!Storage::instance()->collName(objtype.value(), &coll)) {
+    server->sendErr("Could not get collection name for object");
+    return;
+  }
   
   auto doc = Security::instance()->withView(coll, Json::getString(j, "me", true), 
     {{ { "_id", { { "$oid", id.value() } } } }}).value();

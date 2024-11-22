@@ -61,7 +61,7 @@ void setuserMsg(Server *server, json &j) {
   if (doc.value().upstream()) {
     obj2["upstream"] = true;
   }
-  server->sendUpd("user", id.value(), obj2, "");
+  server->sendUpd("user", id.value(), obj2);
   
   // update this node.
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;

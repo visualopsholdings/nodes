@@ -133,21 +133,10 @@ void addUserMsg(Server *server, json &j) {
 
   // send to other nodes.
   obj["id"] = id.value();
-  server->sendAdd("user", obj, "");
+  server->sendAdd("user", obj);
     
   VID vid;
   vid.reset(id.value(), password);
-  
-//   vector<tuple<string, string, string > > add;
-//   add.push_back({ "view", "user", id.value() });
-//   add.push_back({ "edit", "user", id.value() });
-//   add.push_back({ "exec", "user", id.value() });
-//   vector<string> remove;
-//   auto newpolicy = Security::instance()->modifyPolicy(stream.value().policy(), add, remove);
-//   if (newpolicy.value() != stream.value().policy()) {
-//     BOOST_LOG_TRIVIAL(trace) << "new policy needed for stream" << newpolicy.value();
-//     Stream().updateById(stream.value().id(), { { "policy", newpolicy.value() }});
-//   }
   
   if (!Group().addMember(team.value(), id.value())) {
      server->sendErr("could not add user to team");

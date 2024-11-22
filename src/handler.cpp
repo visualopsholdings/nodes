@@ -21,7 +21,11 @@
 bool Handler::add(Server *server, const string &type, const string &me, const string &name) {
 
   // get the collection name.
-  string coll = Storage::instance()->collName(type);
+  string coll;
+  if (!Storage::instance()->collName(type, &coll, false)) {
+    server->sendErr("Could not get collection name for Handler::add");
+    return false;
+  }
   
   auto policy = Security::instance()->findPolicyForUser(me);
   if (!policy) {
@@ -47,7 +51,7 @@ bool Handler::add(Server *server, const string &type, const string &me, const st
   obj["type"] = type;
 
   // send to other nodes.
-  server->sendAdd(type, obj, "");
+  server->sendAdd(type, obj);
     
   // and reply back
   server->sendAck(id.value());
@@ -59,7 +63,11 @@ bool Handler::add(Server *server, const string &type, const string &me, const st
 bool Handler::update(Server *server, const string &type, const string &id, optional<string> me, optional<string> name, boost::json::object *obj) {
 
   // get the collection name.
-  string coll = Storage::instance()->collName(type);
+  string coll;
+  if (!Storage::instance()->collName(type, &coll, false)) {
+    server->sendErr("Could not get collection name for Handler::update");
+    return false;
+  }
   
   if (!Security::instance()->canEdit(coll, me, id)) {
     BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
@@ -90,7 +98,7 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
   if (orig.value().as_object().if_contains("upstream")) {
     obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
   }
-  server->sendUpd(type, id, obj2, "");
+  server->sendUpd(type, id, obj2);
     
   // update locally
   BOOST_LOG_TRIVIAL(trace) << "updating " << (*obj);
@@ -113,7 +121,11 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
 bool Handler::remove(Server *server, const string &type, const string &id, optional<string> me) {
 
   // get the collection name.
-  string coll = Storage::instance()->collName(type);
+  string coll;
+  if (!Storage::instance()->collName(type, &coll, false)) {
+    server->sendErr("Could not get collection name for Handler::remove");
+    return false;
+  }
   
   if (!Security::instance()->canEdit(coll, me, id)) {
     BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
@@ -140,14 +152,14 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   };
   
   // add in any parent field.
-  auto parent = Storage::instance()->parentField(type);
-  if (parent) {
-    auto pid = Json::getString(orig.value(), parent.value());
+  string parent;
+  if (Storage::instance()->parentInfo(type, &parent)) {
+    auto pid = Json::getString(orig.value(), parent);
     if (!pid) {
-      server->sendErr("missing " + parent.value() + " in " + id);
+      server->sendErr("missing " + parent + " in " + id);
       return false;
     }
-    obj[parent.value()] = pid.value();
+    obj[parent] = pid.value();
   }
   
   // send to other nodes.
@@ -155,7 +167,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   if (orig.value().as_object().if_contains("upstream")) {
     obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
   }
-  server->sendUpd(type, id, obj2, "");
+  server->sendUpd(type, id, obj2);
     
   // update locally
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
@@ -178,7 +190,11 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
 bool Handler::upstream(Server *server, const string &type, const string &id, const string &namefield) {
 
   // get the collection name.
-  string coll = Storage::instance()->collName(type);
+  string coll;
+  if (!Storage::instance()->collName(type, &coll, false)) {
+    server->sendErr("Could not get collection name for Handler::upstream");
+    return false;
+  }
   
   auto result = SchemaImpl::findByIdGeneral(coll, id, {});
   if (!result) {

@@ -51,32 +51,50 @@ void Storage::init(const string &dbConn, const string &dbName) {
   
 }
 
-string Storage::collName(const string &type) {
+optional<boost::json::object> Storage::searchSchema(const string &type) {
 
-  // work out how to pluralise.
-  auto scheme = find_if(_schema.begin(), _schema.end(), [&type](auto e) {
-    auto t = Json::getString(e, "type");
-    return t && t.value() == type;
-  });
-  string collname;
-  if (scheme == _schema.end()) {
-    collname = type + "s";
+  for (auto s: _schema) {
+    auto t = Json::getString(s, "type");
+    if (t && t.value() == type) {
+      return s.as_object();
+    }
+    auto subobj = Json::getObject(s, "subobj", true);
+    if (subobj) {
+      t = Json::getString(subobj.value(), "type");
+      if (t && t.value() == type) {
+        return subobj.value().as_object();
+      }
+    }
   }
-  else {
-    auto coll = Json::getString(*scheme, "coll", true);
-      collname = coll ? coll.value() : (type + "s");
-  }
-  
-  return collname;
-}
-
-string Storage::collName(const string &type, optional<string> coll) {
-
-  return coll ? coll.value() : (type + "s");
+  return nullopt;
   
 }
 
-optional<string> Storage::parentField(const string &type) {
+bool Storage::collName(const string &type, string *name, bool checkinternal) {
+
+  optional<boost::json::object> scheme = searchSchema(type);
+  if (!scheme) {
+    BOOST_LOG_TRIVIAL(trace) << type << " is not in schema";
+    return false;
+  }
+  
+  if (checkinternal) {
+    auto internal = Json::getBool(scheme.value(), "internal", true);
+    if (internal && internal.value()) {
+      BOOST_LOG_TRIVIAL(trace) << type << " is internal. Use the Schema objects";
+      return false;
+    }
+  }
+  
+  auto coll = Json::getString(scheme.value(), "coll", true);
+  
+  *name = coll ? coll.value() : (type + "s");
+  
+  return true;
+
+}
+
+bool Storage::parentInfo(const string &type, string *parentfield, optional<string *> parenttype) {
 
   for (auto o: _schema) {
     auto subobj = Json::getObject(o, "subobj", true);
@@ -84,20 +102,27 @@ optional<string> Storage::parentField(const string &type) {
       auto subtype = Json::getString(subobj.value(), "type");
       if (!subtype) {
         BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
-        return nullopt;
+        return false;
       }
       if (subtype.value() == type) {
         auto field = Json::getString(subobj.value(), "field");
         if (!field) {
           BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
-          return nullopt;
+          return false;
         }
-        return field.value();
+        *parentfield = field.value();
+        if (parenttype) {
+          auto type = Json::getString(o, "type");
+          if (type) {
+            *(parenttype.value()) = type.value();
+          }
+        }
+        return true;
       }
     }
   }
   
-  return nullopt;
+  return false;
   
 }
 

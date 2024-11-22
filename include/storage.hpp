@@ -57,11 +57,12 @@ public:
   void allCollectionsChanged();
     // everything changed.
     
-  string collName(const string &type, optional<string> coll);
-  string collName(const string &type);
+  bool collName(const string &type, string *name, bool checkinternal=true);
     // get the collection name from the schema given a type.
+    // if the collection doesn't exist in the schema or it is marked as "internal"
+    // then this will return false
     
-  optional<string> parentField(const string &type);
+  bool parentInfo(const string &type, string *parentfield, optional<string *> parenttype = nullopt);
     // if the type has a parent field, then return that.
     
   boost::json::array _schema;
@@ -76,6 +77,8 @@ private:
   map<string, long> _changed;
     // a map of collection names, along with when they were last changed.
     
+  optional<boost::json::object> searchSchema(const string &type);
+
 };
 
 #endif // H_storage

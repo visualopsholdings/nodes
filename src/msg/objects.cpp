@@ -34,18 +34,22 @@ void objectsMsg(Server *server, json &j) {
   };
   
   // add in any parent query.
-  auto parent = Storage::instance()->parentField(objtype.value());
-  if (parent) {
-    auto pid = Json::getString(j, parent.value());
+  string parent;
+  if (Storage::instance()->parentInfo(objtype.value(), &parent)) {
+    auto pid = Json::getString(j, parent);
     if (!pid) {
-      server->sendErr("no " + parent.value());
+      server->sendErr("no " + parent);
       return;
     }
-    query[parent.value()] = pid.value();
+    query[parent] = pid.value();
   }
   
   // get the collection name.
-  string coll = Storage::instance()->collName(objtype.value());
+  string coll;
+  if (!Storage::instance()->collName(objtype.value(), &coll)) {
+    server->sendErr("Could not get collection name for objects");
+    return;
+  }
   
   // make sure it can be viewed.
   auto docs = Security::instance()->withView(coll, Json::getString(j, "me", true), query).values();

@@ -86,7 +86,7 @@ void messageMsg(Server *server, json &j) {
   obj["type"] = "idea";
   
   // send to other nodes.
-  server->sendAdd("idea", obj, streamid.value());
+  server->sendAdd("idea", obj);
 
   // publish as well
   if (!Json::has(j, "corr")) {
