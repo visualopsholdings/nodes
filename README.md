@@ -340,6 +340,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 21 Nov 2024
 - Refactor to use a "path" instead of a single "src".
 
+### 22 Nov 2024
+- Refactor to generalise streams and ideas ready for media and formats.
+
 
 
 

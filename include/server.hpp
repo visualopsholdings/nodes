@@ -100,10 +100,6 @@ public:
     // given an object in the format {"data":{"type":"user","obj":obj }}
     // update it
     
-  string collName(const string &type, optional<string> coll);
-  string collName(const string &type);
-    // get the collection name from the schema given a type.
-
   bool shouldIgnoreAdd(json &msg);
     // adds always come, should we ignore one?
 
@@ -140,7 +136,6 @@ private:
   string _pubKey;
   time_t _lastHeartbeat;
   bool _noupstream;
-  boost::json::array _schema;
   
   void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);

@@ -82,11 +82,10 @@ set(MESSAGES
   src/msg/login.cpp 
   src/msg/message.cpp 
   src/msg/policyusers.cpp
-  src/msg/streams.cpp
-  src/msg/stream.cpp
+  src/msg/objects.cpp
+  src/msg/object.cpp
   src/msg/users.cpp
   src/msg/user.cpp
-  src/msg/ideas.cpp
   src/msg/infos.cpp
   src/msg/setinfo.cpp
   src/msg/site.cpp
@@ -102,13 +101,13 @@ set(MESSAGES
   src/msg/deletemember.cpp
   src/msg/setuser.cpp
   src/msg/policy.cpp
-  src/msg/addstream.cpp
-  src/msg/deletestream.cpp
+  src/msg/addobject.cpp
+  src/msg/deleteobject.cpp
   src/msg/addgroup.cpp
   src/msg/setgroup.cpp
-  src/msg/setstream.cpp
+  src/msg/setobject.cpp
   src/msg/deletegroup.cpp
-  src/msg/setstreampolicy.cpp
+  src/msg/setobjectpolicy.cpp
   src/msg/setgrouppolicy.cpp
   src/msg/policygroups.cpp
   src/msg/streamsharelink.cpp
@@ -118,15 +117,12 @@ set(MESSAGES
   src/msg/node.cpp
   src/msg/addnode.cpp
   src/msg/deletenode.cpp
-  src/msg/deleteidea.cpp
   src/msg/purgecountgroups.cpp
   src/msg/purgegroups.cpp
-  src/msg/purgecountstreams.cpp
-  src/msg/purgestreams.cpp
+  src/msg/purgecount.cpp
+  src/msg/purge.cpp
   src/msg/purgecountusers.cpp
   src/msg/purgeusers.cpp
-  src/msg/purgecountideas.cpp
-  src/msg/purgeideas.cpp
   src/rdrmsg/upstream.cpp
   src/rdrmsg/date.cpp
   src/rdrmsg/sendOn.cpp

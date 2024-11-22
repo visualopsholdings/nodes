@@ -57,6 +57,16 @@ public:
   void allCollectionsChanged();
     // everything changed.
     
+  string collName(const string &type, optional<string> coll);
+  string collName(const string &type);
+    // get the collection name from the schema given a type.
+    
+  optional<string> parentField(const string &type);
+    // if the type has a parent field, then return that.
+    
+  boost::json::array _schema;
+    // the loaded schema
+
 private:
 
   // there can be only 1.

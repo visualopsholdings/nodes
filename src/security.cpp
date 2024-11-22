@@ -26,9 +26,7 @@
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
 #include <base64.hpp>
-#include <sstream>
 #include <cstdlib>
-#include <wordexp.h>
 #include <ctime>
 #include <iomanip>
 
@@ -36,6 +34,8 @@
 #define ITERATIONS  12000
 
 shared_ptr<Security> Security::_instance;
+
+string getHome();
 
 Security::Security() {
 
@@ -96,6 +96,35 @@ Result<DynamicRow> Security::withView(const string &collection, optional<string>
   }
 
   return  SchemaImpl::findGeneral(collection, query, fields);
+  
+}
+
+Result<DynamicRow> Security::withEdit(const string &collection, optional<string> me, const json &query, const vector<string> &fields) {
+
+  if (me) {
+    GroupEditPermissions groupedits;
+    UserEditPermissions useredits;
+    return SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), query), fields);
+  }
+
+  return  SchemaImpl::findGeneral(collection, query, fields);
+  
+}
+
+bool Security::canEdit(const string &collection, optional<string> me, const string &id) {
+
+  if (me) {
+    GroupEditPermissions groupedits;
+    UserEditPermissions useredits;
+    auto result = SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), json{ { "_id", { { "$oid", id } } } }), {});
+    if (!result) {
+      BOOST_LOG_TRIVIAL(error) << "can't find in canEdit";
+      return false;
+    }
+    return result->value() != nullopt;
+  }
+    
+  return true;
   
 }
 
@@ -461,32 +490,6 @@ optional<string> Security::modifyPolicy(const string &id, const vector<addTupleT
   
 }
   
-string expandVar(const string &name) {
-
-  wordexp_t p;
-  wordexp(name.c_str(), &p, 0);
-  stringstream ss;
-  char** w = p.we_wordv;
-  for (size_t i=0; i<p.we_wordc;i++ ) ss << w[i];
-  wordfree(&p);
-
-  return ss.str();
-}
-
-string getHome() {
-
-  // try $NODES_HOME
-  string home = expandVar("$NODES_HOME");
-  if (home.size() == 0) {
-    // use $HOME (like in production)
-    home = expandVar("$HOME") + "/nodes";
-  }
-  BOOST_LOG_TRIVIAL(trace) << "home=" << home;
-  
-  return home;
-  
-}
-
 void Security::regenerate() {
 
   BOOST_LOG_TRIVIAL(debug) << "Building security...";
@@ -506,17 +509,39 @@ void Security::regenerateGroups() {
   Group().aggregate(home + "/scripts/useringroups.json");
 }
 
+enum StreamBits {
+  
+  none = 0,
+  shareWithNewUsers = (1 << 11)
+
+};
+
 optional<string> Security::generateShareLink(const string &me, const string &hostname, const string &streamid, const string &groupid, int expires) {
 
-  auto stream = Stream().findById(streamid).value();
+  auto result = SchemaImpl::findByIdGeneral("streams", streamid, {});
+  if (!result) {
+    BOOST_LOG_TRIVIAL(error) << "Can't find stream.";
+    return nullopt;
+  }
+  auto stream = result->value();
   if (!stream) {
     BOOST_LOG_TRIVIAL(error) << "Could not find stream.";
     return nullopt;
   }
+  auto id = Json::getString(stream.value(), "id");
+  if (!id) {
+    BOOST_LOG_TRIVIAL(error) << "Stream had no id";
+    return nullopt;
+  }
+  auto streambits = Json::getNumber(stream.value(), "streambits");
+  if (!streambits) {
+    BOOST_LOG_TRIVIAL(error) << "Stream had no streambits";
+    return nullopt;
+  }
   
-	auto url = hostname + "/apps/chat/#/streams/" + stream.value().id();
-  if (stream.value().streambits() && shareWithNewUsers) {
-    auto token = createStreamShareToken(stream.value().id(), me, "mustName", groupid, Date::getFutureTime(Date::now(), expires));
+	auto url = hostname + "/apps/chat/#/streams/" + id.value();
+  if (streambits.value() && shareWithNewUsers) {
+    auto token = createStreamShareToken(id.value(), me, "mustName", groupid, Date::getFutureTime(Date::now(), expires));
     if (token) {
       url += "?token=" + token.value();
     }

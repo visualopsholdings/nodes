@@ -86,7 +86,7 @@ Feature: Downstream Test
    Scenario: Downstreams have synced
      When she sends streams
       Then she receives 3 streams
-     When she sends ideas for "Stream 1"
+     When she sends ideas for "Stream 1" as "tracy"
       Then she receives 20 ideas
 
       When she sends streams to downstream 2
@@ -281,7 +281,7 @@ Feature: Downstream Test
       And she receives 4 streams
 
       And she sends message "My Idea" as "tracy" to "Stream 2"
-      And she sends ideas for "Stream 2"
+      And she sends ideas for "Stream 2" as "tracy"
       And she receives 2 ideas
 
      And she sends ideas for "61444c6addf5aaa6a02e05b7" to upstream
@@ -320,10 +320,10 @@ Feature: Downstream Test
    @javascript
    Scenario: A deleted idea is reflected upstream and downstream servers
    
-      When she sends ideas for "Shared Stream"
+      When she sends ideas for "Shared Stream" as "tracy"
       And she receives 10 ideas
 	   And she sends delete idea "Message 5" as "tracy" in "Shared Stream"
-      And she sends ideas for "Shared Stream"
+      And she sends ideas for "Shared Stream" as "tracy"
       And she receives 9 ideas
 
       And she sends ideas for "61a0b4de98499a20f0768351" to upstream

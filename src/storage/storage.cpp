@@ -15,10 +15,16 @@
 #include "storage/collectioni.hpp"
 #include "storage/resulti.hpp"
 #include "date.hpp"
+#include "json.hpp"
 
 #include <boost/log/trivial.hpp>
+#include <fstream>
+#include <wordexp.h>
+#include <sstream>
 
 shared_ptr<Storage> Storage::_instance;
+
+string getHome();
 
 void Storage::init(const string &dbConn, const string &dbName) {
 
@@ -29,6 +35,95 @@ void Storage::init(const string &dbConn, const string &dbName) {
   _impl.reset(new StorageImpl(dbConn, dbName));
 
   allCollectionsChanged();
+  
+  ifstream file(getHome() + "/scripts/schema.json");
+  if (file) {
+    string input(istreambuf_iterator<char>(file), {});
+    auto json = boost::json::parse(input);
+    if (!json.is_array()) {
+      BOOST_LOG_TRIVIAL(error) << "file does not contain array";
+    }
+    _schema = json.as_array();
+  }
+  else {
+    BOOST_LOG_TRIVIAL(error) << "schema file not found";
+  }
+  
+}
+
+string Storage::collName(const string &type) {
+
+  // work out how to pluralise.
+  auto scheme = find_if(_schema.begin(), _schema.end(), [&type](auto e) {
+    auto t = Json::getString(e, "type");
+    return t && t.value() == type;
+  });
+  string collname;
+  if (scheme == _schema.end()) {
+    collname = type + "s";
+  }
+  else {
+    auto coll = Json::getString(*scheme, "coll", true);
+      collname = coll ? coll.value() : (type + "s");
+  }
+  
+  return collname;
+}
+
+string Storage::collName(const string &type, optional<string> coll) {
+
+  return coll ? coll.value() : (type + "s");
+  
+}
+
+optional<string> Storage::parentField(const string &type) {
+
+  for (auto o: _schema) {
+    auto subobj = Json::getObject(o, "subobj", true);
+    if (subobj) {
+      auto subtype = Json::getString(subobj.value(), "type");
+      if (!subtype) {
+        BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+        return nullopt;
+      }
+      if (subtype.value() == type) {
+        auto field = Json::getString(subobj.value(), "field");
+        if (!field) {
+          BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
+          return nullopt;
+        }
+        return field.value();
+      }
+    }
+  }
+  
+  return nullopt;
+  
+}
+
+string expandVar(const string &name) {
+
+  wordexp_t p;
+  wordexp(name.c_str(), &p, 0);
+  stringstream ss;
+  char** w = p.we_wordv;
+  for (size_t i=0; i<p.we_wordc;i++ ) ss << w[i];
+  wordfree(&p);
+
+  return ss.str();
+}
+
+string getHome() {
+
+  // try $NODES_HOME
+  string home = expandVar("$NODES_HOME");
+  if (home.size() == 0) {
+    // use $HOME (like in production)
+    home = expandVar("$HOME") + "/nodes";
+  }
+  BOOST_LOG_TRIVIAL(trace) << "home=" << home;
+  
+  return home;
   
 }
 

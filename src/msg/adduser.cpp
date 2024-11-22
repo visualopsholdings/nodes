@@ -25,8 +25,6 @@ namespace nodes {
 void discoverLocalResultMsg(Server *server, json &);
 
 void addUserMsg(Server *server, json &j) {
-
-  User users;
   
   auto upstream = Json::getBool(j, "upstream", true);
   if (upstream && upstream.value()) {
@@ -37,7 +35,7 @@ void addUserMsg(Server *server, json &j) {
       return;
     }
   
-    Handler<UserRow>::upstream(server, users, "user", id.value(), "fullname");
+    Handler::upstream(server, "user", id.value(), "fullname");
     return;
   }
   
@@ -87,7 +85,12 @@ void addUserMsg(Server *server, json &j) {
     return;
   }
 
-  auto stream = Stream().findById(streamid.value()).value();
+  auto result = SchemaImpl::findByIdGeneral("streams", streamid.value(), {});
+  if (!result) {
+    server->sendErr("Can't find stream");
+    return;
+  }
+  auto stream = result->value();
   if (!stream) {
     server->sendErr("Stream in token doesn't exist");
     return;
@@ -122,7 +125,7 @@ void addUserMsg(Server *server, json &j) {
   obj["salt"] = salt;
   obj["hash"] = hash;
 
-  auto id = users.insert(obj);
+  auto id = User().insert(obj);
   if (!id) {
     server->sendErr("could not insert user");
     return;

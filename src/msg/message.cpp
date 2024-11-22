@@ -33,34 +33,34 @@ void messageMsg(Server *server, json &j) {
     return;
   }
   
-  Stream streams;
-  if (!Security::instance()->canEdit(streams, me, streamid.value())) {
+  if (!Security::instance()->canEdit("streams", me, streamid.value())) {
     server->sendErr("no edit for stream " + streamid.value());
     return;
   }
-
-//   if (!Stream().findById(streamid.value(), { "id" }).value()) {
-//     server->sendErr("Stream not found");
-//     return;
-//   }
 
   string policyid;
   if (Json::has(j, "policy")) {
     policyid = Json::getString(j, "policy").value();
   }
   else {
-    auto doc = streams.findById(streamid.value(), {"policy"}).value();
+    auto result = SchemaImpl::findByIdGeneral("streams", streamid.value(), {"policy"});
+    if (!result) {
+      server->sendErr("Can't find stream.");
+      return;
+    }
+    auto doc = result->value();
     if (!doc) {
       server->sendErr("invalid stream");
       return;
     }
-    policyid = doc->policy();
+    BOOST_LOG_TRIVIAL(trace) << doc.value();
+    auto policy = Json::getString(doc.value(), "policy");
+    if (!policy) {
+      server->sendErr("stream missing policy");
+      return;
+    }
+    policyid = policy.value();
   }
-
-//   if (!Policy().findById(policyid.value(), { "id" }).value()) {
-//     server->sendErr("Policy not found");
-//     return;
-//   }
 
   auto text = Json::getString(j, "text");
   if (!text) {
@@ -75,7 +75,7 @@ void messageMsg(Server *server, json &j) {
     { "text", text.value() },
     { "modifyDate", Storage::instance()->getNow() }
   };
-  auto id = Idea().insert(obj);
+  auto id = SchemaImpl::insertGeneral("ideas", obj);
   if (!id) {
     server->sendErr("DB Error (no idea)");
     return;

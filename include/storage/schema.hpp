@@ -93,52 +93,6 @@ public:
 
 };
 
-enum StreamBits {
-  
-  none = 0,
-  shareWithNewUsers = (1 << 11)
-
-};
-
-class StreamRow: public DynamicRow {
-
-public:
-  StreamRow(json json): DynamicRow(json) {}
-
-  string name() { return getString("name"); }
-  string policy() { return getString("policy"); }
-  int streambits() { return getNumber("streambits"); }
-  bool upstream() { return getBool("upstream", true); }
-  bool deleted() { return getBool("deleted", true); }
-  
-};
-
-class Stream: public Schema<StreamRow> {
-
-public:
-  
-  virtual string collName() { return "streams"; };
-
-};
-
-class IdeaRow: public DynamicRow {
-
-public:
-  IdeaRow(json json): DynamicRow(json) {}
-  
-  bool upstream() { return getBool("upstream", true); }
-  bool deleted() { return getBool("deleted", true); }
-
-};
-
-class Idea: public Schema<IdeaRow> {
-
-public:
-  
-  virtual string collName() { return "ideas"; };
-
-};
-
 class MemberRow: public DynamicRow {
 
 public:

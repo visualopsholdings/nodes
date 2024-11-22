@@ -29,13 +29,14 @@ We process and return;
 
 The session id, is just turned around for convenience. It isn't used by Nodes.
 
-#### Streams
+#### Objects
 
 When this is received:
 
 ```
 { 
-  "type": "streams", 
+  "type": "objects", 
+  "objtype": "stream", 
   "me": "user guid",
   "test": {
     "time": 123456
@@ -78,13 +79,14 @@ that the collection was changed they can use the cached version of the collectio
 
 This presents "micro hammering" of this service and only returns new data when a collection has changed.
 
-#### Stream
+#### Object
 
 When this is received:
 
 ```
 { 
-  "type": "stream", 
+  "type": "object", 
+  "objtype": "stream", 
   "stream": "stream guid",
   "me": "user guid",
   "test": {
@@ -119,13 +121,14 @@ Otherwise we process and return;
 }
 ```
 
-#### Set Stream
+#### Set Object
 
 When this is received:
 
 ```
 {
-  "type": "setstream",
+  "type": "setobject",
+  "objtype": "stream",
   "id": "stream guid",
   "name": "A new name",
   "me": "userid guid"
@@ -134,13 +137,14 @@ When this is received:
 
 If the user can edit the stream the details are set and Ack is returned.
 
-#### Add Stream
+#### Add Object
 
 When this is received:
 
 ```
 {
-  "type": "addstream",
+  "type": "addobject",
+  "objtype": "stream",
   "name": "My new stream",
   "me": "userid guid"
 }
@@ -148,13 +152,14 @@ When this is received:
 
 We find a policy just for "me" and create a new stream with that policy and return Ack.
 
-#### Delete Stream
+#### Delete Object
 
 When this is received:
 
 ```
 {
-  "type": "deletestream",
+  "type": "deleteobject",
+  "objtype": "stream",
   "id": "stream guid",
   "me": "userid guid"
 }
@@ -162,13 +167,14 @@ When this is received:
 
 If the user is allowed to edit the stream they can delete it. If succesful we return "ack".
 
-#### Set Stream Policy
+#### Set Object Policy
 
 When this is received:
 
 ```
 {
-  "type":"setstreampolicy",
+  "type":"setobjectpolicy",
+  "objtype": "stream",
   "add": [
     { "context":"user", "type":"edit", "id":"66e0246b62df890f877fc1d8" },
     { "context":"user", "type":"view", "id":"66e0246b62df890f877fc1d8" },
@@ -705,36 +711,6 @@ When this is received:
 ```
 
 We process and return Ack or an error.
-
-#### Ideas
-
-"Ideas" are what we call the "messages" that are persisted in the system.
-
-When this is received:
-
-```
-{ 
-  "type": "ideas",
-  "stream": "stream guid"
-}
-```
-
-We process and return;
-
-```
-{ 
-  "type": "ideas", 
-  "ideas": [
-    {
-      "text": "Message text",
-      "stream": "stream guid",
-      "policy": "stream policy guid",
-      "user": "user guid",
-      "id": "group guid"
-    }
-  ]
-}
-```
 
 #### Policy
 

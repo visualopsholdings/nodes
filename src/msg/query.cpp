@@ -52,10 +52,12 @@ void queryMsg(Server *server, json &j) {
   json obj = {
     { field, fieldval.value() }
   };
-  server->sendDataReq(Json::getString(j, "corr", true), {
+  boost::json::object msg = {
     { "type", "query" },
     {  objtype.value(), obj }
-  });
+  };
+  server->setSrc(&msg);
+  server->sendDataReq(Json::getString(j, "corr", true), msg);
     
   server->sendAck();
   

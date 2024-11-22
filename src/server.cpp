@@ -25,7 +25,6 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp> 
 #include <boost/algorithm/string.hpp>
-#include <fstream>
 #include <cctype>
 
 #define HEARTBEAT_INTERVAL 5 // in seconds
@@ -40,9 +39,8 @@ void messageMsg(Server *server, json &json);
 void certsMsg(Server *server, json &json);
 void usersMsg(Server *server, json &json);
 void userMsg(Server *server, json &json);
-void streamsMsg(Server *server, json &json);
-void streamMsg(Server *server, json &json);
-void ideasMsg(Server *server, json &json);
+void objectsMsg(Server *server, json &json);
+void objectMsg(Server *server, json &json);
 void infosMsg(Server *server, json &json);
 void setinfoMsg(Server *server, json &json);
 void siteMsg(Server *server, json &json);
@@ -58,13 +56,13 @@ void addMemberMsg(Server *server, json &json);
 void deleteMemberMsg(Server *server, json &json);
 void setuserMsg(Server *server, json &json);
 void policyMsg(Server *server, json &json);
-void addStreamMsg(Server *server, json &json);
-void deleteStreamMsg(Server *server, json &json);
+void addObjectMsg(Server *server, json &json);
+void deleteObjectMsg(Server *server, json &json);
 void addGroupMsg(Server *server, json &json);
 void setGroupMsg(Server *server, json &json);
-void setStreamMsg(Server *server, json &json);
+void setObjectMsg(Server *server, json &json);
 void deleteGroupMsg(Server *server, json &json);
-void setStreamPolicyMsg(Server *server, json &json);
+void setObjectPolicyMsg(Server *server, json &json);
 void setGroupPolicyMsg(Server *server, json &json);
 void streamShareLinkMsg(Server *server, json &json);
 void canRegisterMsg(Server *server, json &json);
@@ -73,15 +71,12 @@ void nodesMsg(Server *server, json &json);
 void nodeMsg(Server *server, json &json);
 void addNodeMsg(Server *server, json &json);
 void deleteNodeMsg(Server *server, json &json);
-void deleteIdeaMsg(Server *server, json &json);
 void purgeCountGroupsMsg(Server *server, json &json);
 void purgeGroupsMsg(Server *server, json &json);
-void purgeCountStreamsMsg(Server *server, json &json);
-void purgeStreamsMsg(Server *server, json &json);
+void purgeCountMsg(Server *server, json &json);
+void purgeMsg(Server *server, json &json);
 void purgeCountUsersMsg(Server *server, json &json);
 void purgeUsersMsg(Server *server, json &json);
-void purgeCountIdeasMsg(Server *server, json &json);
-void purgeIdeasMsg(Server *server, json &json);
 
 // remoteDataReq handlers
 void upstreamMsg(Server *server, json &json);
@@ -105,8 +100,6 @@ void updDrMsg(Server *server, json &json);
 void addDrMsg(Server *server, json &json);
 
 }
-
-string getHome();
 
 Server::Server(bool test, bool noupstream, 
     int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
@@ -135,9 +128,8 @@ Server::Server(bool test, bool noupstream,
   _messages["message"] = bind(&nodes::messageMsg, this, placeholders::_1);
   _messages["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
   _messages["user"] = bind(&nodes::userMsg, this, placeholders::_1);
-  _messages["streams"] = bind(&nodes::streamsMsg, this, placeholders::_1);
-  _messages["stream"] = bind(&nodes::streamMsg, this, placeholders::_1);
-  _messages["ideas"] = bind(&nodes::ideasMsg, this, placeholders::_1);
+  _messages["objects"] = bind(&nodes::objectsMsg, this, placeholders::_1);
+  _messages["object"] = bind(&nodes::objectMsg, this, placeholders::_1);
   _messages["infos"] = bind(&nodes::infosMsg, this, placeholders::_1);
   _messages["setinfo"] = bind(&nodes::setinfoMsg, this, placeholders::_1);
   _messages["site"] = bind(&nodes::siteMsg, this, placeholders::_1);
@@ -153,13 +145,13 @@ Server::Server(bool test, bool noupstream,
   _messages["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
   _messages["setuser"] = bind(&nodes::setuserMsg, this, placeholders::_1);
   _messages["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
-  _messages["addstream"] = bind(&nodes::addStreamMsg, this, placeholders::_1);
-  _messages["deletestream"] = bind(&nodes::deleteStreamMsg, this, placeholders::_1);
+  _messages["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
+  _messages["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
   _messages["addgroup"] = bind(&nodes::addGroupMsg, this, placeholders::_1);
   _messages["setgroup"] = bind(&nodes::setGroupMsg, this, placeholders::_1);
-  _messages["setstream"] = bind(&nodes::setStreamMsg, this, placeholders::_1);
+  _messages["setobject"] = bind(&nodes::setObjectMsg, this, placeholders::_1);
   _messages["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
-  _messages["setstreampolicy"] = bind(&nodes::setStreamPolicyMsg, this, placeholders::_1);
+  _messages["setobjectpolicy"] = bind(&nodes::setObjectPolicyMsg, this, placeholders::_1);
   _messages["setgrouppolicy"] = bind(&nodes::setGroupPolicyMsg, this, placeholders::_1);
   _messages["streamsharelink"] = bind(&nodes::streamShareLinkMsg, this, placeholders::_1);
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
@@ -168,15 +160,12 @@ Server::Server(bool test, bool noupstream,
   _messages["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
   _messages["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
   _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
-  _messages["deleteidea"] = bind(&nodes::deleteIdeaMsg, this, placeholders::_1);
   _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
   _messages["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
-  _messages["purgecountstreams"] = bind(&nodes::purgeCountStreamsMsg, this, placeholders::_1);
-  _messages["purgestreams"] = bind(&nodes::purgeStreamsMsg, this, placeholders::_1);
+  _messages["purgecount"] = bind(&nodes::purgeCountMsg, this, placeholders::_1);
+  _messages["purge"] = bind(&nodes::purgeMsg, this, placeholders::_1);
   _messages["purgecountusers"] = bind(&nodes::purgeCountUsersMsg, this, placeholders::_1);
   _messages["purgeusers"] = bind(&nodes::purgeUsersMsg, this, placeholders::_1);
-  _messages["purgecountideas"] = bind(&nodes::purgeCountIdeasMsg, this, placeholders::_1);
-  _messages["purgeideas"] = bind(&nodes::purgeIdeasMsg, this, placeholders::_1);
 
   _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
@@ -197,19 +186,6 @@ Server::Server(bool test, bool noupstream,
   _dataRepMessages["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName);
-  
-  ifstream file(getHome() + "/scripts/schema.json");
-  if (file) {
-    string input(istreambuf_iterator<char>(file), {});
-    auto json = boost::json::parse(input);
-    if (!json.is_array()) {
-      BOOST_LOG_TRIVIAL(error) << "file does not contain array";
-    }
-    _schema = json.as_array();
-  }
-  else {
-    BOOST_LOG_TRIVIAL(error) << "schema file not found";
-  }
   
 }
   
@@ -965,14 +941,14 @@ void Server::sendUpDiscover() {
     { "hasInitialSync", hasInitialSync == "true" }
   };
 
-  for (auto o: _schema) {
+  for (auto o: Storage::instance()->_schema) {
     auto type = Json::getString(o, "type");
     if (!type) {
       BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
       return;
     }
     
-    string collname = collName(type.value(), Json::getString(o, "coll", true));
+    string collname = Storage::instance()->collName(type.value(), Json::getString(o, "coll", true));
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
@@ -1043,19 +1019,13 @@ void Server::collectPolicies(const vector<string> &policies, boost::json::array 
 
 }
 
-string Server::collName(const string &type, optional<string> coll) {
-
-  return coll ? coll.value() : (type + "s");
-  
-}
-
 void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr) {
     
   auto q = SchemaImpl::boolFieldEqualAfterDateQuery("upstream", true, upstreamLastSeen);
 
   boost::json::array data;
   vector<string> policies;
-  for (auto o: _schema) {
+  for (auto o: Storage::instance()->_schema) {
   
     auto nosync = Json::getBool(o, "nosync", true);
     if (nosync && nosync.value()) {
@@ -1068,7 +1038,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
       return;
     }
     
-    string collname = collName(type.value(), Json::getString(o, "coll", true));
+    string collname = Storage::instance()->collName(type.value(), Json::getString(o, "coll", true));
     
     collectObjs(type.value(), collname, q, &data, &policies);
     
@@ -1088,7 +1058,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
       if (result) {
         auto upstreams = result->values();
         if (upstreams) {
-          string subcollname = collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+          string subcollname = Storage::instance()->collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
           for (auto o: upstreams.value()) {
             auto id = Json::getString(o, "id");
             collectObjs(subtype.value(), subcollname, SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data, &policies);
@@ -1115,7 +1085,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
 
   boost::json::array data;
   vector<string> policies;
-  for (auto o: _schema) {
+  for (auto o: Storage::instance()->_schema) {
   
     auto nosync = Json::getBool(o, "nosync", true);
     if (nosync && nosync.value()) {
@@ -1128,7 +1098,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
       return;
     }
     
-    string collname = collName(type.value(), Json::getString(o, "coll", true));
+    string collname = Storage::instance()->collName(type.value(), Json::getString(o, "coll", true));
     
     collectObjs(type.value(), collname, q, &data, &policies);
     
@@ -1148,7 +1118,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
       if (result) {
         auto upstreams = result->values();
         if (upstreams) {
-          string subcollname = collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+          string subcollname = Storage::instance()->collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
           for (auto o: upstreams.value()) {
             auto id = Json::getString(o, "id");
             collectObjs(subtype.value(), subcollname, SchemaImpl::afterDateQuery(upstreamLastSeen), &data, &policies);
@@ -1225,7 +1195,7 @@ void Server::sendDownDiscoverResult(json &j) {
   boost::json::array msgs;
   boost::json::object obj;
   vector<string> policies;
-  for (auto o: _schema) {
+  for (auto o: Storage::instance()->_schema) {
   
     auto nosync = Json::getBool(o, "nosync", true);
     if (nosync && nosync.value()) {
@@ -1238,7 +1208,7 @@ void Server::sendDownDiscoverResult(json &j) {
       return;
     }
     
-    string collname = collName(type.value(), Json::getString(o, "coll", true));
+    string collname = Storage::instance()->collName(type.value(), Json::getString(o, "coll", true));
 
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
@@ -1272,7 +1242,7 @@ void Server::sendDownDiscoverResult(json &j) {
           BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
           return;
         }
-        string subcollname = collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+        string subcollname = Storage::instance()->collName(subtype.value(), Json::getString(subobj.value(), "coll", true));
         if (objs.value().size() == 1 && objs.value()[0] == "*") {
           // collect ALL sub objects after the date.
           auto objs = SchemaImpl::findGeneral(collname, json{{}}, { "_id" })->values();
@@ -1313,25 +1283,6 @@ void Server::resetDB() {
    
 }
 
-string Server::collName(const string &type) {
-
-  // work out how to pluralise.
-  auto scheme = find_if(_schema.begin(), _schema.end(), [&type](auto e) {
-    auto t = Json::getString(e, "type");
-    return t && t.value() == type;
-  });
-  string collname;
-  if (scheme == _schema.end()) {
-    collname = type + "s";
-  }
-  else {
-    auto coll = Json::getString(*scheme, "coll", true);
-      collname = coll ? coll.value() : (type + "s");
-  }
-  
-  return collname;
-}
-
 void Server::importObjs(boost::json::array &msgs) {
 
   for (auto m: msgs) {
@@ -1346,7 +1297,7 @@ void Server::importObjs(boost::json::array &msgs) {
       continue;
     }
     
-     Storage::instance()->bulkInsert(collName(type.value()), objs.value());
+     Storage::instance()->bulkInsert(Storage::instance()->collName(type.value()), objs.value());
 
     auto more = Json::getBool(m, "more", true);
     if (more && more.value()) {
@@ -1477,9 +1428,15 @@ bool Server::shouldSendUp(const string &type, boost::json::object &obj, const st
       BOOST_LOG_TRIVIAL(error) << "idea is missing stream";
       return false;
     }
-    auto s = Stream().findById(istream.value()).value();
+    auto result = SchemaImpl::findByIdGeneral("streams", istream.value(), {});
+    if (!result) {
+      BOOST_LOG_TRIVIAL(trace) << "Can't find stream";
+      return false;
+    }
+    auto s = result->value();
     if (s) {
-      if (s.value().upstream()) {
+      auto upstream = Json::getBool(s.value(), "upstream", true);
+      if (upstream && upstream.value()) {
         BOOST_LOG_TRIVIAL(trace) << "stream match, sending up";
         return true;
       }
@@ -1601,7 +1558,7 @@ bool Server::updateObject(json &j) {
     return false;
   }
   
-  auto result = SchemaImpl::updateGeneralById(collName(type.value()), id.value(), {{ "$set", obj.value() }});
+  auto result = SchemaImpl::updateGeneralById(Storage::instance()->collName(type.value()), id.value(), {{ "$set", obj.value() }});
   if (!result) {
     BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
     return false;
@@ -1634,7 +1591,7 @@ bool Server::addObject(json &j) {
   obj2.erase("id");
   obj2.erase("type");
   
-  auto result = SchemaImpl::insertGeneral(collName(type.value()), obj2);
+  auto result = SchemaImpl::insertGeneral(Storage::instance()->collName(type.value()), obj2);
   if (!result) {
     BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
     return false;
@@ -1672,12 +1629,18 @@ bool Server::shouldIgnoreAdd(json &msg) {
   if (!stream) {
     return true;
   }
-  auto s = Stream().findById(stream.value(), { "upstream" }).value();
+  auto result = SchemaImpl::findByIdGeneral("streams", stream.value(), { "upstream" });
+  if (!result) {
+    BOOST_LOG_TRIVIAL(error) << "Can't find stream.";
+    return false;
+  }
+  auto s = result->value();
   if (!s) {
     BOOST_LOG_TRIVIAL(trace) << "ignoring, stream not on our server";
     return true;
   }
-  if (!s.value().upstream()) {
+  auto upstream = Json::getBool(s.value(), "upstream", true);
+  if (!upstream || !upstream.value()) {
     BOOST_LOG_TRIVIAL(trace) << "ignoring, stream not upstream";
     return true;
   }

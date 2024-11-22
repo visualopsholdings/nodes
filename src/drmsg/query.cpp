@@ -20,7 +20,7 @@ namespace nodes {
 
 void queryDrMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "query " << j;
+  BOOST_LOG_TRIVIAL(trace) << "query (dr)" << j;
        
   string src;
   if (!server->getSrc(j, &src)) {

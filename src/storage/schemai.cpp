@@ -84,9 +84,9 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, co
   
 }
 
-void SchemaImpl::deleteMany(const json &doc) {
+void SchemaImpl::deleteManyGeneral(const string &collection, const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "deleteMany " << doc << " in " << collName();
+  BOOST_LOG_TRIVIAL(trace) << "deleteMany " << doc << " in " << collection;
 
   if (!testInit()) {
     return;
@@ -96,11 +96,11 @@ void SchemaImpl::deleteMany(const json &doc) {
   ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
 
-  Storage::instance()->_impl->coll(collName())._c.delete_many(d);
-  Storage::instance()->collectionWasChanged(collName());
-  
+  Storage::instance()->_impl->coll(collection)._c.delete_many(d);
+  Storage::instance()->collectionWasChanged(collection);
+
 }
-  
+
 bool SchemaImpl::testInit() {
 
   if (!Storage::instance()->_impl) {

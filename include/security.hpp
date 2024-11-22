@@ -59,6 +59,12 @@ public:
   Result<DynamicRow> withView(const string &collection, optional<string> me, const json &query, const vector<string> &fields = {});
     // execute a query ensuring that the user can view the results, using the name of the collection.
 
+  Result<DynamicRow> withEdit(const string &collection, optional<string> me, const json &query, const vector<string> &fields = {});
+    //execute a query ensuring that the user can edit the results, using the name of the collection.
+
+  bool canEdit(const string &collection, optional<string> me, const string &id);
+    // an object can be edited.
+    
   // execute a query ensuring that the user can view the results.
   template <typename RowType>
   Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
@@ -73,38 +79,13 @@ public:
     
   }
 
-  // execute a query ensuring that the user can edit the results.
-  template <typename RowType>
-  Result<RowType> withEdit(Schema<RowType> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
-  
-    if (me) {
-      GroupEditPermissions groupedits;
-      UserEditPermissions useredits;
-      return schema.find(withQuery(groupedits, useredits, me.value(), query), fields);
-    }
-
-    return schema.find(query, fields);    
-    
-  }
-
   template <typename RowType>
   bool canEdit(Schema<RowType> &schema, optional<string> me, const string &id) {
-  
-    if (me) {
-      GroupEditPermissions groupedits;
-      UserEditPermissions useredits;
-      return schema.find(withQuery(groupedits, useredits, me.value(), json{ { "_id", { { "$oid", id } } } })).value() != nullopt;
-    }
-      
-    return true;
-    
+    return canEdit(schema.collName(), me, id);
   }
     
   // Users can always be edited and viewed
   Result<User> withView(Schema<User> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
-    return schema.find(query, fields);    
-  }
-  Result<User> withEdit(Schema<User> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
     return schema.find(query, fields);    
   }
   bool canEdit(Schema<User> &schema, optional<string> me, const string &id) {

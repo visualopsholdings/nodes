@@ -22,8 +22,6 @@ namespace nodes {
 
 void addGroupMsg(Server *server, json &j) {
 
-  Group groups;
-  
   auto upstream = Json::getBool(j, "upstream", true);
   if (upstream && upstream.value()) {
   
@@ -33,7 +31,7 @@ void addGroupMsg(Server *server, json &j) {
       return;
     }
   
-    Handler<GroupRow>::upstream(server, groups, "group", id.value(), "name");
+    Handler::upstream(server, "group", id.value(), "name");
     return;
   }
   
@@ -48,7 +46,7 @@ void addGroupMsg(Server *server, json &j) {
     return;
   }
   
-  if (Handler<GroupRow>::add(server, groups, "group", me.value(), name.value())) {
+  if (Handler::add(server, "group", me.value(), name.value())) {
     Security::instance()->regenerateGroups();
   }
 

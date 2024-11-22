@@ -26,7 +26,9 @@ class SchemaImpl {
 
 public:
  
-  void deleteMany(const json &doc);
+  void deleteMany(const json &doc) {
+    deleteManyGeneral(collName(), doc);
+  }
     // delete all documents that match the query.
     
   bool deleteById(const string &id);
@@ -63,6 +65,7 @@ public:
   static int countGeneral(const string &collection, const json &query);
   static optional<string> updateGeneralById(const string &collection, const string &id, const json &doc);
   static optional<string> insertGeneral(const string &collection, const json &doc);
+  static void deleteManyGeneral(const string &collection, const json &doc);
     
   shared_ptr<ResultImpl> findResult(const json &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);

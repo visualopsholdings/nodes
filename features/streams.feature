@@ -5,8 +5,8 @@ Feature: Streams
 
       And there are streams:
          | name               | policy |
-         | Conversation 1  | p1     |
-         | Conversation 2  | p1     |
+         | Conversation 1     | p1     |
+         | Conversation 2     | p1     |
 
 	Scenario: get the streams
 	   When she sends streams as "tracy"

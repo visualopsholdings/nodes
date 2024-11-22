@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE( with )
   dbSetup();
   Policy().deleteMany({{}});
   Group().deleteMany({{}});
-  Stream().deleteMany({{}});
+  SchemaImpl::deleteManyGeneral("streams", {{}});
   BOOST_CHECK(Group().insert({
     { "_id", { { "$oid", team1 } } },
     { "name", "Team 1" },
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE( with )
       } 
     }
   }));
-  BOOST_CHECK(Stream().insert({
+  BOOST_CHECK(SchemaImpl::insertGeneral("streams", {
     { "name", "Conversation 1" },
     { "policy", policy }
   }));
@@ -247,42 +247,41 @@ BOOST_AUTO_TEST_CASE( with )
   Security::instance()->regenerateGroups();
   Security::instance()->regenerate();
 
-  Stream streams;
   {
     // tracy is in the team that can view.
-    auto doc = Security::instance()->withView(streams, tracy, {{ "name", "Conversation 1" }}).value();
+    auto doc = Security::instance()->withView("streams", tracy, {{ "name", "Conversation 1" }}).value();
     BOOST_CHECK(doc);
   }
   
   {
     // leanne can only edit.
-    auto docs = Security::instance()->withView(streams, leanne, {{ "name", "Conversation 1" }}).values();
+    auto docs = Security::instance()->withView("streams", leanne, {{ "name", "Conversation 1" }}).values();
     BOOST_CHECK(!docs);
   }
   
   {
     // leanne is in the team that can edit.
-    auto docs = Security::instance()->withEdit(streams, leanne, {{ "name", "Conversation 1" }}).values();
+    auto docs = Security::instance()->withEdit("streams", leanne, {{ "name", "Conversation 1" }}).values();
     BOOST_CHECK(docs);
     BOOST_CHECK_EQUAL(docs.value().size(), 1);
   }
   
   {
     // tracy can only view.
-    auto docs = Security::instance()->withEdit(streams, tracy, {{ "name", "Conversation 1" }}).values();
+    auto docs = Security::instance()->withEdit("streams", tracy, {{ "name", "Conversation 1" }}).values();
     BOOST_CHECK(!docs);
   }
 
   {
     // admin can see them all.
-    auto docs = Security::instance()->withView(streams, nullopt, {{ "name", "Conversation 1" }}).values();
+    auto docs = Security::instance()->withView("streams", nullopt, {{ "name", "Conversation 1" }}).values();
     BOOST_CHECK(docs);
     BOOST_CHECK_EQUAL(docs.value().size(), 1);
   }
   
   {
     // even tracy can't see a conversation not there.
-    auto docs = Security::instance()->withView(streams, tracy, {{ "name", "Conversation 2" }}).values();
+    auto docs = Security::instance()->withView("streams", tracy, {{ "name", "Conversation 2" }}).values();
     BOOST_CHECK(!docs);
   }
   
@@ -294,7 +293,7 @@ BOOST_AUTO_TEST_CASE( canEdit )
   
   dbSetup();
   Policy().deleteMany({{}});
-  Stream().deleteMany({{}});
+  SchemaImpl::deleteManyGeneral("streams", {{}});
   boost::json::array empty;
   auto policy = Policy().insert({
     { "accesses", {
@@ -313,15 +312,14 @@ BOOST_AUTO_TEST_CASE( canEdit )
       } 
     }
   });
-  auto stream = Stream().insert({
+  auto stream = SchemaImpl::insertGeneral("streams", {
     { "name", "Conversation 1" },
     { "policy", policy.value() }
   });
   Security::instance()->regenerate();
   
-  Stream streams;
-  BOOST_CHECK(Security::instance()->canEdit(streams, tracy, stream.value()));
-  BOOST_CHECK(!Security::instance()->canEdit(streams, leanne, stream.value()));
+  BOOST_CHECK(Security::instance()->canEdit("streams", tracy, stream.value()));
+  BOOST_CHECK(!Security::instance()->canEdit("streams", leanne, stream.value()));
 }
 
 BOOST_AUTO_TEST_CASE( getPolicyLines )
@@ -525,7 +523,7 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
   dbSetup();
   User().deleteMany({{}});
   Group().deleteMany({{}});
-  Stream().deleteMany({{}});
+  SchemaImpl::deleteManyGeneral("streams", {{}});
   Info().deleteMany({{}});
   BOOST_CHECK(Info().insert({
     { "type", "tokenKey" },
@@ -548,7 +546,7 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
       } 
     }
   }));
-  BOOST_CHECK(Stream().insert({
+  BOOST_CHECK(SchemaImpl::insertGeneral("streams", {
     { "_id", { { "$oid", stream1 } } },
     { "name", "Stream 1" },
     { "streambits", 2048 }

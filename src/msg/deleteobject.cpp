@@ -1,8 +1,8 @@
 /*
-  deleteidea.cpp
+  deleteobject.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
-  Date: 18-Nov-2024
+  Date: 22-Nov-2024
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
@@ -20,7 +20,13 @@
 
 namespace nodes {
 
-void deleteIdeaMsg(Server *server, json &j) {
+void deleteObjectMsg(Server *server, json &j) {
+
+  auto objtype = Json::getString(j, "objtype");
+  if (!objtype) {
+    server->sendErr("no object type");
+    return;
+  }
 
   auto id = Json::getString(j, "id");
   if (!id) {
@@ -28,9 +34,7 @@ void deleteIdeaMsg(Server *server, json &j) {
     return;
   }
 
-  Idea ideas;
-  Handler<IdeaRow>::remove(server, ideas, "idea", id.value(), 
-    Json::getString(j, "me", true), true);
+  Handler::remove(server, objtype.value(), id.value(), Json::getString(j, "me", true));
 
 }
 

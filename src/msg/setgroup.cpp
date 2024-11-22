@@ -28,9 +28,8 @@ void setGroupMsg(Server *server, json &j) {
     return;
   }  
   
-  Group groups;
   boost::json::object obj;
-  Handler<GroupRow>::update(server, groups, "group", id.value(), 
+  Handler::update(server, "group", id.value(), 
     Json::getString(j, "me", true), Json::getString(j, "name", true), &obj);
 
 }

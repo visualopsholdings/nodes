@@ -28,9 +28,7 @@ void deleteGroupMsg(Server *server, json &j) {
     return;
   }
 
-  Group groups;
-  Handler<GroupRow>::remove(server, groups, "group", id.value(), 
-    Json::getString(j, "me", true), false);
+  Handler::remove(server, "group", id.value(), Json::getString(j, "me", true));
 
   Security::instance()->regenerateGroups();
 

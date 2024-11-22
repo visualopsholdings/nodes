@@ -18,9 +18,11 @@
 
 #include <boost/log/trivial.hpp>
 
-template <typename RowType>
-bool Handler<RowType>::add(Server *server, Schema<RowType> &schema, const string &type, const string &me, const string &name) {
+bool Handler::add(Server *server, const string &type, const string &me, const string &name) {
 
+  // get the collection name.
+  string coll = Storage::instance()->collName(type);
+  
   auto policy = Security::instance()->findPolicyForUser(me);
   if (!policy) {
     server->sendErr("could not get policy");
@@ -35,7 +37,7 @@ bool Handler<RowType>::add(Server *server, Schema<RowType> &schema, const string
   };
   
   // insert a new object
-  auto id = schema.insert(obj);
+  auto id = SchemaImpl::insertGeneral(coll, obj);
   if (!id) {
     server->sendErr("could not insert " + type);
     return false;
@@ -54,22 +56,29 @@ bool Handler<RowType>::add(Server *server, Schema<RowType> &schema, const string
   
 }
 
-template <typename RowType>
-bool Handler<RowType>::update(Server *server, Schema<RowType> &schema, const string &type, const string &id, optional<string> me, optional<string> name, boost::json::object *obj) {
+bool Handler::update(Server *server, const string &type, const string &id, optional<string> me, optional<string> name, boost::json::object *obj) {
 
-  if (!Security::instance()->canEdit(schema, me, id)) {
+  // get the collection name.
+  string coll = Storage::instance()->collName(type);
+  
+  if (!Security::instance()->canEdit(coll, me, id)) {
     BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
     server->sendSecurity();
     return false;
   }
 
-  auto orig = schema.findById(id, {}).value();
+  auto result = SchemaImpl::findByIdGeneral(coll, id, {});
+  if (!result) {
+    server->sendErr(type + " can't find");
+    return false;
+  }
+  auto orig = result->value();
   if (!orig) {
     server->sendErr(type + " not found");
     return false;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << type << " old value " << orig.value().j();
+  BOOST_LOG_TRIVIAL(trace) << type << " old value " << orig.value();
   
   (*obj)["modifyDate"] = Storage::instance()->getNow();
   if (name) {
@@ -78,89 +87,112 @@ bool Handler<RowType>::update(Server *server, Schema<RowType> &schema, const str
   
   // send to other nodes.
   boost::json::object obj2 = (*obj);
-  if (orig.value().upstream()) {
-    obj2["upstream"] = true;
+  if (orig.value().as_object().if_contains("upstream")) {
+    obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
   }
   server->sendUpd(type, id, obj2, "");
     
   // update locally
   BOOST_LOG_TRIVIAL(trace) << "updating " << (*obj);
-  auto result = schema.updateById(id, (*obj));
-  if (!result) {
+  auto r = SchemaImpl::updateGeneralById(coll, id, {
+    { "$set", (*obj) }
+  });
+  if (!r) {
     server->sendErr("could not update " + type);
     return false;
   }
   
   // and reply back
-  BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+  BOOST_LOG_TRIVIAL(trace) << "updated " << r.value();
   server->sendAck();
 
   return true;
   
 }
 
-template <typename RowType>
-bool Handler<RowType>::remove(Server *server, Schema<RowType> &schema, const string &type, const string &id, optional<string> me, bool addstream) {
+bool Handler::remove(Server *server, const string &type, const string &id, optional<string> me) {
 
-  if (!Security::instance()->canEdit(schema, me, id)) {
+  // get the collection name.
+  string coll = Storage::instance()->collName(type);
+  
+  if (!Security::instance()->canEdit(coll, me, id)) {
     BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
     server->sendSecurity();
     return false;
   }
 
-  auto orig = schema.findById(id, {}).value();
+  auto result = SchemaImpl::findByIdGeneral(coll, id, {});
+  if (!result) {
+    server->sendErr(type + " can't find");
+    return false;
+  }
+  auto orig = result->value();
   if (!orig) {
     server->sendErr(type + " not found");
     return false;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << type << " old value " << orig.value().j();
+  BOOST_LOG_TRIVIAL(trace) << type << " old value " << orig.value();
   
   boost::json::object obj = {
     { "deleted", true },
     { "modifyDate", Storage::instance()->getNow() }
   };
-  if (addstream) {
-    auto str = Json::getString(orig.value().j(), "stream");
-    if (!str) {
-      server->sendErr("missing stream in " + id);
+  
+  // add in any parent field.
+  auto parent = Storage::instance()->parentField(type);
+  if (parent) {
+    auto pid = Json::getString(orig.value(), parent.value());
+    if (!pid) {
+      server->sendErr("missing " + parent.value() + " in " + id);
       return false;
     }
-    obj["stream"] = str.value();
+    obj[parent.value()] = pid.value();
   }
   
   // send to other nodes.
   boost::json::object obj2 = obj;
-  if (orig.value().upstream()) {
-    obj2["upstream"] = true;
+  if (orig.value().as_object().if_contains("upstream")) {
+    obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
   }
   server->sendUpd(type, id, obj2, "");
     
   // update locally
   BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
-  auto result = schema.updateById(id, obj);
-  if (!result) {
+  auto r = SchemaImpl::updateGeneralById(coll, id, {
+    { "$set", obj }
+  });
+  if (!r) {
     server->sendErr("could not update " + type);
     return false;
   }
   
   // and reply back
-  BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+  BOOST_LOG_TRIVIAL(trace) << "updated " << r.value();
   server->sendAck();
 
   return true;
   
 }
 
-template <typename RowType>
-bool Handler<RowType>::upstream(Server *server, Schema<RowType> &schema, const string &type, const string &id, const string &namefield) {
+bool Handler::upstream(Server *server, const string &type, const string &id, const string &namefield) {
 
-  auto doc = schema.findById(id).value();
+  // get the collection name.
+  string coll = Storage::instance()->collName(type);
+  
+  auto result = SchemaImpl::findByIdGeneral(coll, id, {});
+  if (!result) {
+    server->sendErr(type + " can't find");
+    return false;
+  }
+  auto doc = result->value();
   if (doc) {
     // set the upstream on doc.
-    auto result = schema.updateById(id, { 
-      { "modifyDate", Storage::instance()->getNow() },
-      { "upstream", true } 
+    auto result = SchemaImpl::updateGeneralById(coll, id, {
+      { "$set", { 
+        { "modifyDate", Storage::instance()->getNow() },
+        { "upstream", true } 
+      } }
     });
     if (!result) {
       server->sendErr("could not update " + type);
@@ -171,27 +203,22 @@ bool Handler<RowType>::upstream(Server *server, Schema<RowType> &schema, const s
   }
   
   // insert a new object
-  auto result = schema.insert({
+  auto r = SchemaImpl::insertGeneral(coll, {
     { "_id", { { "$oid", id } } },
     { namefield, "Waiting discovery" },
     { "upstream", true },
     { "modifyDate", { { "$date", 0 } } }
   });
-  if (!result) {
+  if (!r) {
     server->sendErr("could not insert " + type);
     return false;
   }
   
   // and reply back
-  server->sendAck(result.value());
+  server->sendAck(r.value());
   
   // run discovery.  
   server->sendUpDiscover();
   return true;
 
 }
-
-template class Handler<UserRow>;
-template class Handler<StreamRow>;
-template class Handler<GroupRow>;
-template class Handler<IdeaRow>;
