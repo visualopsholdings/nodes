@@ -30,16 +30,12 @@ Feature: Downstream 3 Test
          | name         | policy |
          | Team 1 Y     | p1     |
  
-      And there are streams:
+      And there are collections:
          | name               | id                          | upstream  | modifyDate   | policy |
-         | Shared Stream      | 61a0b4de98499a20f0768351    | true      | 1 Jan 2022   | p1     |
-         | Stream 4           | 637aa99202e727169a58282f    | true      | 4 Jan 2022   | p1     |
+         | Shared Collection  | 61a0b4de98499a20f0768351    | true      | 1 Jan 2022   | p1     |
+         | Collection 4       | 637aa99202e727169a58282f    | true      | 4 Jan 2022   | p1     |
 
-      And there are docs:
-         | name               | id                       | data                     | upstream  | modifyDate   | policy |
-         | Count Y            | 6134e711a6041562149f4ef2 | testdata/doc/count.json  | true      | 4 Jan 2022   | p1     |
-
-      And there are 5 generated messages in stream "Shared Stream" from "fred" with policy "p1"
+      And there are 5 generated objs in collection "Shared Collection" from "fred" with policy "p1"
 
       And the server has id "e4448086-8a22-4db0-9dcf-c95a56418d77"
       And the server has privateKey "RHVqBD^IzF.?]i&*Y{&)0bWz@PZai>[]D8)62x-N"
@@ -57,4 +53,4 @@ Feature: Downstream 3 Test
 
    @javascript @downstream3
 	Scenario: Setup downstream 3 server
-      Then eventually there are 2 streams in the DB
+      Then eventually there are 2 collections in the DB

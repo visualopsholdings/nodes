@@ -35,7 +35,6 @@ namespace nodes {
 void loginMsg(Server *server, json &json);
 void policyUsersMsg(Server *server, json &json);
 void policyGroupsMsg(Server *server, json &json);
-void messageMsg(Server *server, json &json);
 void certsMsg(Server *server, json &json);
 void usersMsg(Server *server, json &json);
 void userMsg(Server *server, json &json);
@@ -103,7 +102,7 @@ void addDrMsg(Server *server, json &json);
 
 Server::Server(bool test, bool noupstream, 
     int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
-    const string &dbConn, const string &dbName, 
+    const string &dbConn, const string &dbName, const string &schema, 
     const string &certFile, const string &chainFile, 
     const string &hostName, const string &bindAddress) :
     _test(test), _certFile(certFile), _chainFile(chainFile),
@@ -125,7 +124,6 @@ Server::Server(bool test, bool noupstream,
   _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
   _messages["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
   _messages["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
-  _messages["message"] = bind(&nodes::messageMsg, this, placeholders::_1);
   _messages["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
   _messages["user"] = bind(&nodes::userMsg, this, placeholders::_1);
   _messages["objects"] = bind(&nodes::objectsMsg, this, placeholders::_1);
@@ -185,7 +183,7 @@ Server::Server(bool test, bool noupstream,
   _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
   _dataRepMessages["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
   
-  Storage::instance()->init(dbConn, dbName);
+  Storage::instance()->init(dbConn, dbName, schema);
   
 }
   

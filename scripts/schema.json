@@ -14,21 +14,11 @@
     "internal": true
   },
   {
-    "type": "stream",
+    "type": "collection",
     "subobj": {
-      "type": "idea",
-      "field": "stream"
-    }
-  },
-  {
-    "type": "doc"
-  },
-  {
-    "type": "media",
-    "coll": "media",
-    "subobj": {
-      "type": "format",
-      "field": "media"
+      "type": "obj",
+      "field": "coll",
+      "namefield": "text"
     }
   }
 ]

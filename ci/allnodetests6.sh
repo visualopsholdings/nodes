@@ -40,7 +40,7 @@ finish
 # ci/run.sh downstream4
 # [ "$?" != "0" ] && fail
 # 
-# ci/nodestest.sh "An idea can be moved from a non shared stream to a shared stream on upstream"
+# ci/nodestest.sh "An obj can be moved from a non shared collection to a shared collection on upstream"
 # [ "$?" != "0" ] && fail
 # 
 # finish

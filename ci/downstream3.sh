@@ -11,7 +11,7 @@ then
   [ "$?" != "0" ] && exit 1
 
   echo "downstream3 pre count"
-  build/Counts --dbName=$MONGO_PORT_27017_DB --users=2 --groups=2 --streams=2 --ideas=5 --docs=1 --media=0 --formats=0 --policies=1
+  build/Counts --dbName=$MONGO_PORT_27017_DB --users=2 --groups=2 --collections=2 --objs=5 --policies=1
   [ "$?" != "0" ] && exit 1
 fi
 

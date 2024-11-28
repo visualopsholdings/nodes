@@ -22,29 +22,26 @@ fi
 
 # test all that need there own new upstream DB
 
-ci/singlenodestest.sh "An existing stream can be pulled from upstream"
+ci/singlenodestest.sh "An existing collection can be pulled from upstream"
 [ "$?" != "0" ] && exit 1
 
-ci/singlenodestest.sh "A new stream with ideas can be pulled from upstream"
+ci/singlenodestest.sh "A new collection with objs can be pulled from upstream"
 [ "$?" != "0" ] && exit 1
 
 # tests that require ALL nodes
-# ci/singleallnodestest.sh "Idea change is reflected from upstream to downstreams"
+# ci/singleallnodestest.sh "Obj change is reflected from upstream to downstreams"
 # [ "$?" != "0" ] && exit 1
 # 
-# ci/singleallnodestest.sh "Idea change is reflected from downstream2 to downstream"
+# ci/singleallnodestest.sh "Obj change is reflected from downstream2 to downstream"
 # [ "$?" != "0" ] && exit 1
 
-ci/singleallnodestest.sh "A deleted idea is reflected upstream and downstream servers"
+ci/singleallnodestest.sh "A deleted obj is reflected upstream and downstream servers"
 [ "$?" != "0" ] && exit 1
 
-# ci/singleallnodestest.sh "An idea created owned and deleted is reflected upstream and downstream servers"
+# ci/singleallnodestest.sh "A renamed obj is reflected to downstream servers"
 # [ "$?" != "0" ] && exit 1
 # 
-# ci/singleallnodestest.sh "A renamed idea is reflected to downstream servers"
-# [ "$?" != "0" ] && exit 1
-# 
-# ci/singleallnodestest.sh "A renamed idea is reflected to upstream servers"
+# ci/singleallnodestest.sh "A renamed obj is reflected to upstream servers"
 # [ "$?" != "0" ] && exit 1
 
 exit 0

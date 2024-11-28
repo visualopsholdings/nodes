@@ -10,7 +10,7 @@ then
   ci/downstreamdb2.sh
   [ "$?" != "0" ] && exit 1
 
-  build/Counts --dbName=$MONGO_PORT_27017_DB --users=1 --groups=1 --streams=3 --ideas=0 --docs=1 --media=2 --formats=1 --policies=2
+  build/Counts --dbName=$MONGO_PORT_27017_DB --users=1 --groups=1 --collections=3 --objs=0 --policies=2
   [ "$?" != "0" ] && exit 1
 fi
 

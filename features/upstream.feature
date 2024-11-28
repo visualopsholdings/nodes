@@ -3,11 +3,11 @@ Feature: Upstream Test
 
    Background:
       When there are users:
-         | name      | admin  | fullname  | email           | ui              | uibits    | id                       | modifyDate   |
-         | admin     | true   | Admin     | conversations   | conversations   | 293853    | 56348765b4d6976b478e1bd7 | Dec 4 2021    |
-         | public    | false  | Public    | conversations   | conversations   | 7340036   | 5ed64555155a1f6043b954e7 | Apr 8 2021    |
-         | tracy     | true   | Tracy     | tracy@fe.com    | conversations   | 293853    | 6121bdfaec9e5a059715739c | 2 Jan 2022   |
-         | leanne    | false  | Leanne    | leanne@fe.com   | conversations   | 293853    | 6142d258ddf5aa5644057d35 | 2 Jan 2022   |
+         | name      | admin  | fullname  | id                       | modifyDate   |
+         | admin     | true   | Admin     | 56348765b4d6976b478e1bd7 | Dec 4 2021   |
+         | public    | false  | Public    | 5ed64555155a1f6043b954e7 | Apr 8 2021   |
+         | tracy     | true   | Tracy     | 6121bdfaec9e5a059715739c | 2 Jan 2022   |
+         | leanne    | false  | Leanne    | 6142d258ddf5aa5644057d35 | 2 Jan 2022   |
           
       And there are groups:
          | name        | id                        | modifyDate   |
@@ -33,57 +33,24 @@ Feature: Upstream Test
          
      And the security indexes are generated
          
-      And there are media:
-         | name               | policy    | id |
-         | SevenFortySeven    | p1        | 643d0523ddf5aa60877582f6 |
-         | MumAndI            | p3        | 643d0523ddf5aa60877582f7 |
-         
-      And there are formats for media "SevenFortySeven":
-         | name         | uuid                        | type  |
-         | thumbnail    | eeeeeee-ffff-gggg-hhhhhhhh  | image |
-
-      And there are formats for media "MumAndI":
-         | name         | uuid                        | type  |
-         | thumbnail    | aaaaaaaa-bbbb-cccc-dddddddd | image |
-
       And groups have policies:
          | name         | policy |
          | Team 1       | p1     |
          | Team 2       | p2     |
  
-      And there are streams:
-         | name            | policy | id                       | modifyDate   |
-         | Stream 1        | p1     | 613ee472ec9e5aafc85e1301 | 4 Jan 2022   |
-         | Stream 2        | p1     | 61444c6addf5aaa6a02e05b7 | 5 Jan 2022   |
-         | Shared Stream   | p1     | 61a0b4de98499a20f0768351 | 2 Jan 2022   |
-         | Shared 2 Stream | p1     | 63c0c08e337cce14a54e0517 | 2 Jan 2022   |
+      And there are collections:
+         | name                | policy | id                       | modifyDate   |
+         | Collection 1        | p1     | 613ee472ec9e5aafc85e1301 | 4 Jan 2022   |
+         | Collection 2        | p1     | 61444c6addf5aaa6a02e05b7 | 5 Jan 2022   |
+         | Shared Collection   | p1     | 61a0b4de98499a20f0768351 | 2 Jan 2022   |
+         | Shared 2 Collection | p1     | 63c0c08e337cce14a54e0517 | 2 Jan 2022   |
 
-      And user "tracy" has image "SevenFortySeven"
-      And user "leanne" has image "MumAndI"
-      And group "Team 1" has image "SevenFortySeven"
-      And stream "Stream 1" has image "SevenFortySeven"
-      And stream "Stream 2" has image "MumAndI"
-      
-      And there are docs:
-         | name               | data                        | policy | id                       | modifyDate   |
-         | Count              | testdata/doc/count.json     | p1     | 6134e711a6041562149f4ef2 | 2 Jan 2022   |
-         | Image              | testdata/doc/image.json     | p1     | 59ca44ef404b132e9b3ce06b | 2 Jan 2022   |
-         | Library            | testdata/doc/library.json   | p1     | 5e6980d0958ea618c4d34fe2 | 2 Jan 2022   |
-         
-      And the doc "Image" imports docs:
-         | name               |
-         | Library            |
-                 
-      And there are ideas:
-         | name            | modifyDate   | policy | stream    | doc    | by     |
-         | Count 1         | Sep 2 2021   | p1     | Stream 2  | Count  | tracy  |
+      And there are objs:
+         | name            | modifyDate   | policy | collection   | by     |
+         | Count 1         | Sep 2 2021   | p1     | Collection 2 | tracy  |
 
-#      And there are 5 generated messages in stream "Stream 1" from "tracy" with policy "p1"
-#      And there are 1000 generated messages in stream "Stream 1" from "tracy" with policy "p1"
-      And there are 20 generated messages in stream "Stream 1" from "tracy" with policy "p1"
-#      And there are 10000 generated messages in stream "Stream 1" from "tracy" with policy "p1"
-#      And there are 5 generated owned ideas in stream "Shared Stream" from "tracy" with policy "p1"
-      And there are 10 generated messages in stream "Shared Stream" from "tracy" with policy "p1"
+      And there are 20 generated objs in collection "Collection 1" from "tracy" with policy "p1"
+      And there are 10 generated objs in collection "Shared Collection" from "tracy" with policy "p1"
 
       And the server has id "4ecaf2b6-42f2-49fe-b0ef-123758a3a4db"
       And the server has privateKey "t5R[&?W.8-mjIc]cs#<T(5AW7sCJYHo^<2k-]!2!"
@@ -103,5 +70,5 @@ Feature: Upstream Test
 
    @javascript @upstream
 	Scenario: Setup upstream server
-      Then eventually there are 4 streams in the DB	
+      Then eventually there are 4 collections in the DB	
    

@@ -23,15 +23,11 @@ Feature: Downstream 2 Test
          | name         | policy |
          | Team 1       | p1     |
  
-      And there are streams:
-         | name               | id                          | upstream  | modifyDate   | policy |
-         | Shared Stream      | 61a0b4de98499a20f0768351    | true      | 1 Jan 2022   | p1     |
-         | Shared 2 Stream    | 63c0c08e337cce14a54e0517    | true      | 2 Jan 2022   | p1     |
-         | Stream 4           | 637aa99202e727169a58282f    |           | 2 Jan 2022   | p1     |
-
-      And there are docs:
-         | name               | id                       | data                     | upstream  | modifyDate   | policy |
-         | Count              | 6134e711a6041562149f4ef2 | testdata/doc/count.json  | true      | 2 Jan 2022   | p1     |
+      And there are collections:
+         | name                  | id                          | upstream  | modifyDate   | policy |
+         | Shared Collection     | 61a0b4de98499a20f0768351    | true      | 1 Jan 2022   | p1     |
+         | Shared 2 Collection   | 63c0c08e337cce14a54e0517    | true      | 2 Jan 2022   | p1     |
+         | Collection 4          | 637aa99202e727169a58282f    |           | 2 Jan 2022   | p1     |
 
       And the server has id "14ee64a1-d68f-4f6f-862a-d1ea23210010"
       And the server has privateKey "ul(R&i4F6yjAI8+iZD&8*/2p4Uk7VESxs9NnwdLB"
@@ -40,18 +36,6 @@ Feature: Downstream 2 Test
       And the server has upstreamPubKey "31r]#CW@p}=]xYRwvg+P>NrDffBG}wXL0%t:[j6("
       And the server has hasInitialSync
       And the server has upstreamLastSeen "1 Jan 2022"
-
-      And there are media:
-         | name               | policy    |
-         | Mum                | p1        |
-         
-      And there are media:
-         | name               | id                          | upstream  | modifyDate   |
-         | Waiting discovery  | 643d0523ddf5aa60877582f7    | true      | 1 Jan 1970   |
-         
-      And there are formats for media "Mum":
-         | name         | uuid                        | type  |
-         | thumbnail    | llllllll-mmmm-nnnn-oooooooo | image |
 
       And there are sites:
          | name      | headerTitle     | streamBgColor   | headerImage           |
@@ -66,5 +50,5 @@ Feature: Downstream 2 Test
 
    @javascript @downstream2
 	Scenario: Setup downstream 2 server
-      Then eventually there are 3 streams in the DB
+      Then eventually there are 3 collections in the DB
       

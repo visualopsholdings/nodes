@@ -38,7 +38,7 @@ Feature: Downstream 6 Test
          | name      |
          | public     |
          
-      And there are streams:
+      And there are collections:
          | name             | policy | id                        | modifyDate |
          | Login Messages   | p1     | 61a7e24ab7726a10fd5254d4  | Jan 19 2018 |
 
@@ -54,4 +54,4 @@ Feature: Downstream 6 Test
 
    @javascript @downstream6
 	Scenario: Setup downstream 6 server
-      Then eventually there are 1 streams in the DB
+      Then eventually there are 1 collections in the DB

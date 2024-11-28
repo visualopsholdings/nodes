@@ -33,8 +33,8 @@ class Server {
 
 public:
   Server(bool test, bool noupstream, 
-    int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
-    const string &dbConn, const string &dbName, 
+    int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub,
+    const string &dbConn, const string &dbName, const string &schema,
     const string &certFile, const string &chainFile, const string &hostName, const string &bindAddress);
   ~Server();
   

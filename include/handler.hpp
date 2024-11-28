@@ -26,7 +26,7 @@ class Handler {
 
 public:
 
-  static bool add(Server *server, const string &type, const string &me, const string &name);
+  static bool add(Server *server, const string &type, const json &obj, optional<string> corr);
     // add a new object.
     // used for stream and group
     

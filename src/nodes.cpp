@@ -45,9 +45,11 @@ int main(int argc, char *argv[]) {
   int remoteDataReqPort;
   int remoteMsgSubPort;
   string bindAddress;
+  string schema;
   
   po::options_description desc("Allowed options");
   desc.add_options()
+    ("schema", po::value<string>(&schema)->default_value(""), "The place to get the schema from. Defaults to $HOME/nodes/scripts/schema.json")
     ("pubPort", po::value<int>(&pubPort)->default_value(3012), "ZMQ Pub port.")
     ("repPort", po::value<int>(&repPort)->default_value(3013), "ZMQ Rep port.")
     ("dataReqPort", po::value<int>(&dataReqPort)->default_value(0), "ZMQ Data Req port.")
@@ -102,7 +104,7 @@ int main(int argc, char *argv[]) {
 
   Server server(test, noupstream, 
     pubPort, repPort, dataReqPort, msgSubPort, remoteDataReqPort, remoteMsgSubPort, 
-    dbConn, dbName, certFile, chainFile, hostName, bindAddress);
+    dbConn, dbName, schema, certFile, chainFile, hostName, bindAddress);
   
   if (noupstream) {
     BOOST_LOG_TRIVIAL(info) << "ignoring upstream.";

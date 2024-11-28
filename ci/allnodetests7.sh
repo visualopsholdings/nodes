@@ -40,17 +40,8 @@ ci/run.sh downstream4
 ci/run.sh downstream6
 [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "A new draft doc created on downstream6 appears on upstream"
-# [ "$?" != "0" ] && fail
-
-ci/nodestest.sh "A stream created in a mirror downstream 6 is reflected in the upstream"
+ci/nodestest.sh "A collection created in a mirror downstream 6 is reflected in the upstream"
 [ "$?" != "0" ] && fail
-
-# ci/nodestest.sh "An idea can be branched from the downstream6 mirror"
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "A new doc created on downstream6 appears on upstream"
-# [ "$?" != "0" ] && fail
 
 ci/nodestest.sh "A new group created on downstream 6 appears on upstream"
 [ "$?" != "0" ] && fail

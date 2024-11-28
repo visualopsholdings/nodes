@@ -141,8 +141,7 @@ If this changes, you can fetch it down and rebuild again with:
 
 ```
 cd build
-rm -rf _deps/nodes-test-*
-make
+rm -rf _deps/nodes-test-* && make -j4
 ```
 
 ## Companion projects
@@ -342,6 +341,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 22 Nov 2024
 - Refactor to generalise streams and ideas ready for media and formats.
+
+### 28 Nov 2024
+- Refactor to generalise and to "collections" and "objs".
 
 
 

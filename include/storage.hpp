@@ -36,7 +36,7 @@ public:
     return _instance;
   };
     
-  void init(const string &dbConn, const string &dbName);
+  void init(const string &dbConn, const string &dbName, const string &schema="");
   
   shared_ptr<StorageImpl> _impl;
 
@@ -62,7 +62,7 @@ public:
     // if the collection doesn't exist in the schema or it is marked as "internal"
     // then this will return false
     
-  bool parentInfo(const string &type, string *parentfield, optional<string *> parenttype = nullopt);
+  bool parentInfo(const string &type, string *parentfield, optional<string *> parenttype = nullopt, optional<string *> namefield = nullopt);
     // if the type has a parent field, then return that.
     
   boost::json::array _schema;

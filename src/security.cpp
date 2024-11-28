@@ -41,7 +41,7 @@ Security::Security() {
 
   auto infos = Info().find({{ "type", { { "$in", {"tokenKey", "tokenIV"}}} }}, {"type", "text"}).values();
   if (!infos) {
-    BOOST_LOG_TRIVIAL(error) << "missing infos";
+    BOOST_LOG_TRIVIAL(warning) << "missing infos. Running without can work.";
     return;
   }
   auto key = Info::getInfo(infos.value(), "tokenKey");

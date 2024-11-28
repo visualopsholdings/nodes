@@ -18,7 +18,7 @@
 
 #include <boost/log/trivial.hpp>
 
-bool Handler::add(Server *server, const string &type, const string &me, const string &name) {
+bool Handler::add(Server *server, const string &type, const json &obj, optional<string> corr) {
 
   // get the collection name.
   string coll;
@@ -27,19 +27,6 @@ bool Handler::add(Server *server, const string &type, const string &me, const st
     return false;
   }
   
-  auto policy = Security::instance()->findPolicyForUser(me);
-  if (!policy) {
-    server->sendErr("could not get policy");
-    return false;
-  }
-  
-  boost::json::object obj = {
-    { "name", name },
-    { "policy", policy.value() },
-    { "modifyDate", Storage::instance()->getNow() },
-    { "active", true }
-  };
-  
   // insert a new object
   auto id = SchemaImpl::insertGeneral(coll, obj);
   if (!id) {
@@ -47,12 +34,18 @@ bool Handler::add(Server *server, const string &type, const string &me, const st
     return false;
   }
   
-  obj["id"] = id.value();
-  obj["type"] = type;
+  boost::json::object obj2 = obj.as_object();
+  obj2["id"] = id.value();
+  obj2["type"] = type;
 
   // send to other nodes.
-  server->sendAdd(type, obj);
+  server->sendAdd(type, obj2);
     
+  // publish as well
+  if (corr) {
+    server->publish(corr.value(), obj2);
+  }
+  
   // and reply back
   server->sendAck(id.value());
   

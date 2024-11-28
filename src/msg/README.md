@@ -308,22 +308,6 @@ We process and return;
 }
 ```
 
-#### Message
-
-This is sent to the REQ socket when a message happens on IRC, and will be received on the 
-SUB socket when a new message is received.
-
-```
-{ 
-  "type": "message", 
-  "text": "Message text",
-  "stream": "stream guid",
-  "policy": "stream policy guid",
-  "me": "user guid",
-  "corr": "a correlation id sent through and passed back"
-}
-```
-
 #### Users
 
 When this is received:

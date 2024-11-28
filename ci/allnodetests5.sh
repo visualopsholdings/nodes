@@ -52,13 +52,13 @@ finish
 # ci/run.sh downstream6
 # [ "$?" != "0" ] && fail
 # 
-# ci/nodestest.sh "An idea can be moved from a shared stream to a non shared stream on downstream"
+# ci/nodestest.sh "An obj can be moved from a shared collecion to a non shared stream on downstream"
 # [ "$?" != "0" ] && fail
 # 
-# ci/nodestest.sh "An idea can be moved between shared streams"
+# ci/nodestest.sh "An obj can be moved between shared collections"
 # [ "$?" != "0" ] && fail
 # 
-# ci/nodestest.sh "An idea can be moved from a shared stream to a non shared stream on mirror"
+# ci/nodestest.sh "An obj can be moved from a shared collection to a non shared collection on mirror"
 # [ "$?" != "0" ] && fail
 # 
 # finish

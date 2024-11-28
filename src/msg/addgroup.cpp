@@ -46,7 +46,20 @@ void addGroupMsg(Server *server, json &j) {
     return;
   }
   
-  if (Handler::add(server, "group", me.value(), name.value())) {
+  auto policy = Security::instance()->findPolicyForUser(me.value());
+  if (!policy) {
+    server->sendErr("could not get policy");
+    return;
+  }
+
+  json obj = {
+    { "name", name.value() },
+    { "policy", policy.value() },
+    { "modifyDate", Storage::instance()->getNow() },
+    { "active", true }
+  };
+
+  if (Handler::add(server, "group", obj, Json::getString(j, "corr", true))) {
     Security::instance()->regenerateGroups();
   }
 

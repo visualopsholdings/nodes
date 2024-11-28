@@ -26,7 +26,7 @@ shared_ptr<Storage> Storage::_instance;
 
 string getHome();
 
-void Storage::init(const string &dbConn, const string &dbName) {
+void Storage::init(const string &dbConn, const string &dbName, const string &schema) {
 
   if (_impl.get()) {
     BOOST_LOG_TRIVIAL(trace) << "ignoring extra Storage::init";
@@ -36,14 +36,22 @@ void Storage::init(const string &dbConn, const string &dbName) {
 
   allCollectionsChanged();
   
-  ifstream file(getHome() + "/scripts/schema.json");
+  // use the schema name passed in
+  string fn = schema.empty() ? getHome() + "/scripts/schema.json" : schema;
+  
+  ifstream file(fn);
   if (file) {
     string input(istreambuf_iterator<char>(file), {});
-    auto json = boost::json::parse(input);
-    if (!json.is_array()) {
-      BOOST_LOG_TRIVIAL(error) << "file does not contain array";
+    try {
+      auto json = boost::json::parse(input);
+      if (!json.is_array()) {
+        BOOST_LOG_TRIVIAL(error) << "file does not contain array";
+      }
+      _schema = json.as_array();
     }
-    _schema = json.as_array();
+    catch (exception &e) {
+      BOOST_LOG_TRIVIAL(error) << "error loading schema " << e.what();
+    }
   }
   else {
     BOOST_LOG_TRIVIAL(error) << "schema file not found";
@@ -94,7 +102,7 @@ bool Storage::collName(const string &type, string *name, bool checkinternal) {
 
 }
 
-bool Storage::parentInfo(const string &type, string *parentfield, optional<string *> parenttype) {
+bool Storage::parentInfo(const string &type, string *parentfield, optional<string *> parenttype, optional<string *> namefield) {
 
   for (auto o: _schema) {
     auto subobj = Json::getObject(o, "subobj", true);
@@ -115,6 +123,15 @@ bool Storage::parentInfo(const string &type, string *parentfield, optional<strin
           auto type = Json::getString(o, "type");
           if (type) {
             *(parenttype.value()) = type.value();
+          }
+        }
+        if (namefield) {
+          auto f = Json::getString(subobj.value(), "namefield", true);
+          if (f) {
+            *(namefield.value()) = f.value();
+          }
+          else {
+            *(namefield.value()) = "name";
           }
         }
         return true;

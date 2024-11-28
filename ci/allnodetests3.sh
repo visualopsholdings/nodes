@@ -40,14 +40,8 @@ ci/run.sh downstream4
 ci/run.sh downstream6
 [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "A new draft doc created on upstream appears on downstream mirrors"
-# [ "$?" != "0" ] && fail
-# 
-ci/nodestest.sh "A stream created in a mirror downstream 4 is reflected in the upstream"
+ci/nodestest.sh "A collection created in a mirror downstream 4 is reflected in the upstream"
 [ "$?" != "0" ] && fail
-
-# ci/nodestest.sh "A new doc created on downstream4 appears on upstream"
-# [ "$?" != "0" ] && fail
 
 ci/nodestest.sh "A new group created on downstream 4 appears on upstream"
 [ "$?" != "0" ] && fail

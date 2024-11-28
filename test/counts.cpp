@@ -36,37 +36,29 @@ int main(int argc, char *argv[]) {
   string dbConn;
   int users;
   int groups;
-  int streams;
-  int ideas;
+  int collections;
+  int objs;
   int policies;
   int fullUsers;
   int waitingUsers;
   int fullGroups;
   int waitingGroups;
-  int fullStreams;
-  int waitingStreams;
-  int docs;
-  int fullDocs;
-  int media;
-  int formats;
+  int fullCollections;
+  int waitingCollections;
   
   po::options_description desc("Allowed options");
   desc.add_options()
     ("users", po::value<int>(&users)->default_value(-1), "Users")
     ("groups", po::value<int>(&groups)->default_value(-1), "Groups")
-    ("streams", po::value<int>(&streams)->default_value(-1), "Streams")
-    ("ideas", po::value<int>(&ideas)->default_value(-1), "Ideas")
+    ("collections", po::value<int>(&collections)->default_value(-1), "Collections")
+    ("objs", po::value<int>(&objs)->default_value(-1), "Objs")
     ("policies", po::value<int>(&policies)->default_value(-1), "Policies")
     ("fullUsers", po::value<int>(&fullUsers)->default_value(-1), "Full Users")
     ("waitingUsers", po::value<int>(&waitingUsers)->default_value(-1), "Waiting Users")
     ("fullGroups", po::value<int>(&fullGroups)->default_value(-1), "Full Groups")
     ("waitingGroups", po::value<int>(&waitingGroups)->default_value(-1), "Waiting Groups")
-    ("fullStreams", po::value<int>(&fullStreams)->default_value(-1), "Full Streams")
-    ("waitingStreams", po::value<int>(&waitingStreams)->default_value(-1), "Waitkling Streams")
-    ("docs", po::value<int>(&docs)->default_value(-1), "Docs")
-    ("fullDocs", po::value<int>(&fullDocs)->default_value(-1), "Full Docs")
-    ("media", po::value<int>(&media)->default_value(-1), "Media")
-    ("formats", po::value<int>(&formats)->default_value(-1), "Formats")
+    ("fullCollections", po::value<int>(&fullCollections)->default_value(-1), "Full Collections")
+    ("waitingCollections", po::value<int>(&waitingCollections)->default_value(-1), "Waiting Collections")
     ("dbConn", po::value<string>(&dbConn)->default_value("mongodb://127.0.0.1:27017"), "DB Connection string.")
     ("dbName", po::value<string>(&dbName)->default_value("dev"), "DB name.")
     ("logLevel", po::value<string>(&logLevel)->default_value("info"), "Logging level [trace, debug, warn, info].")
@@ -155,33 +147,33 @@ int main(int argc, char *argv[]) {
     });
   }
 
-  if (streams >= 0) {
+  if (collections >= 0) {
     lines.push_back({ 
-      { "type", "streams" }, 
-      { "expected", streams }
+      { "type", "collections" }, 
+      { "expected", collections }
     });
   }
-  if (fullStreams >= 0) {
+  if (fullCollections >= 0) {
     lines.push_back({ 
-      { "type", "streams" }, 
-      { "expected", fullStreams },
+      { "type", "collections" }, 
+      { "expected", fullCollections },
       { "full", true },
       { "field", "name" }
     });
   }
-  if (waitingStreams >= 0) {
+  if (waitingCollections >= 0) {
     lines.push_back({ 
-      { "type", "streams" }, 
-      { "expected", waitingStreams },
+      { "type", "collections" }, 
+      { "expected", waitingCollections },
       { "waiting", true },
       { "field", "name" }
     });
   }
 
-  if (ideas >= 0) {
+  if (objs >= 0) {
     lines.push_back({ 
-      { "type", "ideas" }, 
-      { "expected", ideas }
+      { "type", "objs" }, 
+      { "expected", objs }
     });
   }
 
@@ -189,35 +181,6 @@ int main(int argc, char *argv[]) {
     lines.push_back({ 
       { "type", "policies" }, 
       { "expected", policies }
-    });
-  }
-
-  if (docs >= 0) {
-    lines.push_back({ 
-      { "type", "docs" }, 
-      { "expected", docs }
-    });
-  }
-  if (fullDocs >= 0) {
-    lines.push_back({ 
-      { "type", "docs" }, 
-      { "expected", fullDocs },
-      { "full", true },
-      { "field", "name" }
-    });
-  }
-
-  if (media >= 0) {
-    lines.push_back({ 
-      { "type", "media" }, 
-      { "expected", media }
-    });
-  }
-
-  if (formats >= 0) {
-    lines.push_back({ 
-      { "type", "formats" }, 
-      { "expected", formats }
     });
   }
 

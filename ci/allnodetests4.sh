@@ -35,16 +35,7 @@ finish
 # ci/run.sh downstream4
 # [ "$?" != "0" ] && fail
 # 
-# ci/nodestest.sh "A new draft doc created on downstream4 appears on upstream"
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "An idea can be moved from one stream to another on a mirror"
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "A certificate can be requested from the upstream"
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "A new media is reflected in a mirror"
+# ci/nodestest.sh "An obj can be moved from one collection to another on a mirror"
 # [ "$?" != "0" ] && fail
 # 
 # finish

@@ -80,7 +80,6 @@ set(UTILS
 set(MESSAGES 
   src/msg/certs.cpp
   src/msg/login.cpp 
-  src/msg/message.cpp 
   src/msg/policyusers.cpp
   src/msg/objects.cpp
   src/msg/object.cpp
