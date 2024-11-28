@@ -1,6 +1,53 @@
 # Nodes
 
-The core subsystem for deliverying the messages, synchronizing nodes etc.
+The core subsystem for deliverying the JSON based objects, synchronizing nodes etc.
+
+The Nodes system can be used to implement any "tree" of nodes that want to deliver arbitrary
+JSON between them, synchronizing a MongoDB with that JSON:
+
+Core to understanding how this might work you can look at this file which is used
+to configure the "schema" that is used to maintain and synchronize objects:
+
+```
+[
+  {
+    "type": "user",
+    "internal": true
+  },
+  {
+    "type": "group",
+    "internal": true
+  },
+  {
+    "type": "policy",
+    "coll": "policies",
+    "nosync": true,
+    "internal": true
+  },
+  {
+    "type": "collection",
+    "subobj": {
+      "type": "obj",
+      "field": "coll",
+      "namefield": "text"
+    }
+  }
+]
+```
+
+The "internal" objects are regarded as first class objects in the system and are used
+to configure the security of the "collection" and "obj" objects by providing the idea
+of editable policies.
+
+A node can have an "upstream" which it communicates with using ECURVE cryptography (ZMQ)
+and objects in the "collection" can be markes as "upstream" and then they will be synchronized
+between nodes.
+
+Nodes can also be a mirror of another node, and then they will be virtual copies of that node
+at all times.
+
+Because everything is implementred using message queuing, this system is perfect to be used in
+a "DDIL" environment (Denied, Degraded, Interdicted, and Limited).
 
 The best way to get started is to take a look at:
 
