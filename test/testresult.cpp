@@ -150,8 +150,8 @@ BOOST_AUTO_TEST_CASE( number )
         { "$oid", "xxxx" }
       }
     },
-    { "name", "Stream 1" },
-    { "streambits", 2048 }
+    { "name", "Collection 1" },
+    { "stuff", 2048 }
   });
 //  cout << doc << endl;
   BOOST_CHECK(doc.is_object());

@@ -35,7 +35,7 @@ string tracyvid = "Vk9mF3iET2RYB0cHwToBZj0zxZyZMTFkaMXG+0kD2P5rVH3YdJpK";
 string policy = "667bfee4b07cc40ec3dd6ee8";
 string leanne = "667d0baedfb1ed18430d8ed4";
 string team1 = "667d0bae39ae84d0890a2141";
-string stream1 = "6622129f207af2b4e65ab90f";
+string collection1 = "6622129f207af2b4e65ab90f";
 
 
 BOOST_AUTO_TEST_CASE( PiVID )
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE( with )
   dbSetup();
   Policy().deleteMany({{}});
   Group().deleteMany({{}});
-  SchemaImpl::deleteManyGeneral("streams", {{}});
+  SchemaImpl::deleteManyGeneral("collections", {{}});
   BOOST_CHECK(Group().insert({
     { "_id", { { "$oid", team1 } } },
     { "name", "Team 1" },
@@ -239,8 +239,8 @@ BOOST_AUTO_TEST_CASE( with )
       } 
     }
   }));
-  BOOST_CHECK(SchemaImpl::insertGeneral("streams", {
-    { "name", "Conversation 1" },
+  BOOST_CHECK(SchemaImpl::insertGeneral("collections", {
+    { "name", "Collection 1" },
     { "policy", policy }
   }));
 
@@ -249,39 +249,39 @@ BOOST_AUTO_TEST_CASE( with )
 
   {
     // tracy is in the team that can view.
-    auto doc = Security::instance()->withView("streams", tracy, {{ "name", "Conversation 1" }}).value();
+    auto doc = Security::instance()->withView("collections", tracy, {{ "name", "Collection 1" }}).value();
     BOOST_CHECK(doc);
   }
   
   {
     // leanne can only edit.
-    auto docs = Security::instance()->withView("streams", leanne, {{ "name", "Conversation 1" }}).values();
+    auto docs = Security::instance()->withView("collections", leanne, {{ "name", "Collection 1" }}).values();
     BOOST_CHECK(!docs);
   }
   
   {
     // leanne is in the team that can edit.
-    auto docs = Security::instance()->withEdit("streams", leanne, {{ "name", "Conversation 1" }}).values();
+    auto docs = Security::instance()->withEdit("collections", leanne, {{ "name", "Collection 1" }}).values();
     BOOST_CHECK(docs);
     BOOST_CHECK_EQUAL(docs.value().size(), 1);
   }
   
   {
     // tracy can only view.
-    auto docs = Security::instance()->withEdit("streams", tracy, {{ "name", "Conversation 1" }}).values();
+    auto docs = Security::instance()->withEdit("collections", tracy, {{ "name", "Collection 1" }}).values();
     BOOST_CHECK(!docs);
   }
 
   {
     // admin can see them all.
-    auto docs = Security::instance()->withView("streams", nullopt, {{ "name", "Conversation 1" }}).values();
+    auto docs = Security::instance()->withView("collections", nullopt, {{ "name", "Collection 1" }}).values();
     BOOST_CHECK(docs);
     BOOST_CHECK_EQUAL(docs.value().size(), 1);
   }
   
   {
-    // even tracy can't see a conversation not there.
-    auto docs = Security::instance()->withView("streams", tracy, {{ "name", "Conversation 2" }}).values();
+    // even tracy can't see a collection not there.
+    auto docs = Security::instance()->withView("collections", tracy, {{ "name", "Collection 2" }}).values();
     BOOST_CHECK(!docs);
   }
   
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE( canEdit )
   
   dbSetup();
   Policy().deleteMany({{}});
-  SchemaImpl::deleteManyGeneral("streams", {{}});
+  SchemaImpl::deleteManyGeneral("collections", {{}});
   boost::json::array empty;
   auto policy = Policy().insert({
     { "accesses", {
@@ -312,14 +312,14 @@ BOOST_AUTO_TEST_CASE( canEdit )
       } 
     }
   });
-  auto stream = SchemaImpl::insertGeneral("streams", {
-    { "name", "Conversation 1" },
+  auto collection = SchemaImpl::insertGeneral("collections", {
+    { "name", "Collection 1" },
     { "policy", policy.value() }
   });
   Security::instance()->regenerate();
   
-  BOOST_CHECK(Security::instance()->canEdit("streams", tracy, stream.value()));
-  BOOST_CHECK(!Security::instance()->canEdit("streams", leanne, stream.value()));
+  BOOST_CHECK(Security::instance()->canEdit("collections", tracy, collection.value()));
+  BOOST_CHECK(!Security::instance()->canEdit("collections", leanne, collection.value()));
 }
 
 BOOST_AUTO_TEST_CASE( getPolicyLines )
@@ -523,7 +523,7 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
   dbSetup();
   User().deleteMany({{}});
   Group().deleteMany({{}});
-  SchemaImpl::deleteManyGeneral("streams", {{}});
+  SchemaImpl::deleteManyGeneral("collections", {{}});
   Info().deleteMany({{}});
   BOOST_CHECK(Info().insert({
     { "type", "tokenKey" },
@@ -546,13 +546,13 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
       } 
     }
   }));
-  BOOST_CHECK(SchemaImpl::insertGeneral("streams", {
-    { "_id", { { "$oid", stream1 } } },
-    { "name", "Stream 1" },
-    { "streambits", 2048 }
+  BOOST_CHECK(SchemaImpl::insertGeneral("collections", {
+    { "_id", { { "$oid", collection1 } } },
+    { "name", "Collection 1" },
+    { "bits", 2048 }
   }));
   
-  auto link = Security::instance()->generateShareLink(tracy, "http://visualops.com", stream1, team1, 4);
+  auto link = Security::instance()->generateShareLink(tracy, "http://visualops.com/apps/chat/#/streams/" + collection1, "collections", collection1, team1, 4, "bits");
   BOOST_CHECK(link);
   BOOST_CHECK_EQUAL(link.value().find("token="), 66);
   
@@ -575,16 +575,16 @@ BOOST_AUTO_TEST_CASE( streamShareToken )
   
   string options = "mustName";
   string expires = "2024-09-13T11:56:24.0+00:00";
-  auto token = Security::instance()->createStreamShareToken(stream1, tracy, options, team1, expires);
+  auto token = Security::instance()->createShareToken(collection1, tracy, options, team1, expires);
   BOOST_CHECK(token);
   cout << token.value() << endl;
-  auto json = Security::instance()->expandStreamShareToken(token.value());
+  auto json = Security::instance()->expandShareToken(token.value());
   BOOST_CHECK(json);
   cout << json.value() << endl;
   BOOST_CHECK(json.value().is_object());
   auto obj = json.value().as_object();
   BOOST_CHECK(obj.if_contains("id"));
-  BOOST_CHECK_EQUAL(obj.at("id").as_string(), stream1);
+  BOOST_CHECK_EQUAL(obj.at("id").as_string(), collection1);
   BOOST_CHECK(obj.if_contains("user"));
   BOOST_CHECK_EQUAL(obj.at("user").as_string(), tracy);
   BOOST_CHECK(obj.if_contains("options"));

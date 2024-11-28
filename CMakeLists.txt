@@ -109,7 +109,7 @@ set(MESSAGES
   src/msg/setobjectpolicy.cpp
   src/msg/setgrouppolicy.cpp
   src/msg/policygroups.cpp
-  src/msg/streamsharelink.cpp
+  src/msg/sharelink.cpp
   src/msg/canregister.cpp
   src/msg/deleteuser.cpp
   src/msg/nodes.cpp

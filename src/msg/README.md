@@ -193,28 +193,36 @@ except for the extra "/" at the start of each line.
 If the user can edit the stream the policy is modified, searched for and then 
 set and Ack is returned.
 
-#### Stream Share Link
+#### Share Link
 
-Get a share link to a stream
+Get a share link
 
 When this is received:
 
 ```
 { 
-  "type": "streamsharelink", 
-  "stream": "stream guid", 
+  "type": "sharelink", 
+  "collection": "collections",
+  "id": "collection guid", 
   "group": "group guid",
   "expires": 4,
-  "me": "user guid"
+  "me": "user guid",
+  "bitsfield": "bits",
+  "urlpostfix": "/somepath"
 }
 ```
+
+We lookup "id" in "collections" to get an object. Then we get the numerical of "bitsfield"
+and if the 11th bit is set (historical) we return a valid URL with the 
+token in it, otherwise we just leave the token off. It's up to the webapp to correctly return the
+token back.
 
 We process and return;
 
 ```
 { 
-  "type": "streamsharelink", 
-  "url": "http://www.google.com"
+  "type": "sharelink", 
+  "url": "https://ourhostname/somepath?token=xxxxx"
 }
 ```
 
@@ -412,7 +420,7 @@ When this is received:
 { 
   "type": "query",
   "objtype": "user",
-  "email": "xxxx",
+  "fullname": "xxxx",
   "corr": "a correlation id sent through and passed back"
 }
 ```
@@ -442,6 +450,21 @@ We process and return Ack or an error.
 
 If this message is successful, we run a "discovery" on the upstream server to populate the
 user details.
+
+You can invite a user to collection with:
+
+When this is received:
+
+```
+{ 
+  "type": "adduser",
+  "vopsidtoken": "VID",
+  "fullname": "full name of user",
+  "collection": "name of collection that the ID in the VID points to"
+}
+```
+
+We process and return Ack or an error.
 
 #### Search Users
 

@@ -28,20 +28,16 @@ public:
 
   static bool add(Server *server, const string &type, const json &obj, optional<string> corr);
     // add a new object.
-    // used for stream and group
     
   static bool update(Server *server, const string &type, const string &id, 
                 optional<string> me, optional<string> name, boost::json::object *obj);
     // update an existing object.
-    // used for stream and group
     
   static bool remove(Server *server, const string &type, const string &id, optional<string> me);
     // remove (delete) an existing object.
-    // used for stream, group and user
     
   static bool upstream(Server *server, const string &type, const string &id, const string &namefield);
     // get an object from the upstream server.
-    // used for stream, group and user
     
 };
 

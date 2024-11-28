@@ -509,39 +509,35 @@ void Security::regenerateGroups() {
   Group().aggregate(home + "/scripts/useringroups.json");
 }
 
-enum StreamBits {
+enum CollectionBits {
   
   none = 0,
   shareWithNewUsers = (1 << 11)
 
 };
 
-optional<string> Security::generateShareLink(const string &me, const string &hostname, const string &streamid, const string &groupid, int expires) {
+optional<string> Security::generateShareLink(const string &me, const string &urlprefix, 
+  const string &coll, const string &objid, const string &groupid, int expires, const string &bitsfield) {
 
-  auto result = SchemaImpl::findByIdGeneral("streams", streamid, {});
+  auto result = SchemaImpl::findByIdGeneral(coll, objid, {});
   if (!result) {
-    BOOST_LOG_TRIVIAL(error) << "Can't find stream.";
+    BOOST_LOG_TRIVIAL(error) << "Can't find in " << coll;
     return nullopt;
   }
-  auto stream = result->value();
-  if (!stream) {
-    BOOST_LOG_TRIVIAL(error) << "Could not find stream.";
+  auto obj = result->value();
+  if (!obj) {
+    BOOST_LOG_TRIVIAL(error) << "Could not find in " << coll;
     return nullopt;
   }
-  auto id = Json::getString(stream.value(), "id");
-  if (!id) {
-    BOOST_LOG_TRIVIAL(error) << "Stream had no id";
-    return nullopt;
-  }
-  auto streambits = Json::getNumber(stream.value(), "streambits");
-  if (!streambits) {
-    BOOST_LOG_TRIVIAL(error) << "Stream had no streambits";
+  auto bits = Json::getNumber(obj.value(), bitsfield);
+  if (!bits) {
+    BOOST_LOG_TRIVIAL(error) << "Obj had no " + bitsfield;
     return nullopt;
   }
   
-	auto url = hostname + "/apps/chat/#/streams/" + id.value();
-  if (streambits.value() && shareWithNewUsers) {
-    auto token = createStreamShareToken(id.value(), me, "mustName", groupid, Date::getFutureTime(Date::now(), expires));
+  auto url = urlprefix;
+  if (bits.value() && shareWithNewUsers) {
+    auto token = createShareToken(objid, me, "mustName", groupid, Date::getFutureTime(Date::now(), expires));
     if (token) {
       url += "?token=" + token.value();
     }
@@ -551,13 +547,13 @@ optional<string> Security::generateShareLink(const string &me, const string &hos
   
 }
 
-optional<string> Security::createStreamShareToken(const string &streamid, const string &me, const string &options, const string &groupid, const string &expires) {
+optional<string> Security::createShareToken(const string &collid, const string &me, const string &options, const string &groupid, const string &expires) {
 
-  BOOST_LOG_TRIVIAL(trace) << "stream token will expire " << expires;
+  BOOST_LOG_TRIVIAL(trace) << "share token will expire " << expires;
   BOOST_LOG_TRIVIAL(trace) << "now " << Date::toISODate(Date::now());
 
   json keyd = {
-    { "id", streamid },
+    { "id", collid },
 		{ "user", me },
 		{ "options", options },
 		{ "team", groupid },
@@ -571,7 +567,7 @@ optional<string> Security::createStreamShareToken(const string &streamid, const 
   
 }
 
-optional<json> Security::expandStreamShareToken(const string &token) {
+optional<json> Security::expandShareToken(const string &token) {
 
   Encrypter encrypter(_key, _iv);
   auto dec = encrypter.decryptText(token);

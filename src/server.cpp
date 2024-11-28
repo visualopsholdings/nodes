@@ -63,7 +63,7 @@ void setObjectMsg(Server *server, json &json);
 void deleteGroupMsg(Server *server, json &json);
 void setObjectPolicyMsg(Server *server, json &json);
 void setGroupPolicyMsg(Server *server, json &json);
-void streamShareLinkMsg(Server *server, json &json);
+void shareLinkMsg(Server *server, json &json);
 void canRegisterMsg(Server *server, json &json);
 void deleteUserMsg(Server *server, json &json);
 void nodesMsg(Server *server, json &json);
@@ -151,7 +151,7 @@ Server::Server(bool test, bool noupstream,
   _messages["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
   _messages["setobjectpolicy"] = bind(&nodes::setObjectPolicyMsg, this, placeholders::_1);
   _messages["setgrouppolicy"] = bind(&nodes::setGroupPolicyMsg, this, placeholders::_1);
-  _messages["streamsharelink"] = bind(&nodes::streamShareLinkMsg, this, placeholders::_1);
+  _messages["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
   _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
   _messages["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);

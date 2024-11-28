@@ -27,7 +27,7 @@ void canRegisterMsg(Server *server, json &j) {
     return;
   }
   
-  auto exptoken = Security::instance()->expandStreamShareToken(token.value());
+  auto exptoken = Security::instance()->expandShareToken(token.value());
   if (!exptoken) {
     server->sendErr("Could not expand token");
     return;

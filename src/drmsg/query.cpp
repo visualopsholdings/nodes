@@ -13,6 +13,7 @@
 
 #include "json.hpp"
 #include "storage/schema.hpp"
+#include "storage.hpp"
 
 #include <boost/log/trivial.hpp>
 
@@ -34,54 +35,33 @@ void queryDrMsg(Server *server, json &j) {
     return;
   }
   
-  // calculate the type of query we want.
-  string fieldname;
-  string type;
-  string val;
-  
-  auto userq = Json::getObject(j, "user", true);
-  if (userq) {
-    type = "user";
-    fieldname = "fullname";
-    auto v = Json::getString(userq.value(), "email");
-    if (!v) {
-      server->sendErrDown("user query didnt have email");
-      return;
-    }
-    val = v.value();
-  }
-  else {
-    auto groupq = Json::getObject(j, "group", true);
-    if (groupq) {
-      type = "group";
-      fieldname = "name";
-      auto v = Json::getString(groupq.value(), "name");
-      if (!v) {
-        server->sendErrDown("group query didnt have name");
-        return;
-      }
-      val = v.value();
-    }
-    else {
-      auto streamq = Json::getObject(j, "stream", true);
-      if (streamq) {
-        type = "stream";
-        fieldname = "name";
-        auto v = Json::getString(streamq.value(), "name");
-        if (!v) {
-          server->sendErrDown("stream query didnt have name");
-          return;
-        }
-        val = v.value();
-      }
-      else {
-        server->sendErrDown("query only handles user, group and stream queries");
-        return;
-      }
-    }
+  auto objtype = Json::getString(j, "objtype");
+  if (!objtype) {
+    server->sendErrDown("query missing objtype");
+    return;
   }
   
-  auto result = SchemaImpl::findGeneral(type + "s", json{ { fieldname, { { "$regex", val }, { "$options", "i" } } } }, { fieldname });
+  auto fieldname = Json::getString(j, "fieldname");
+  if (!fieldname) {
+    server->sendErrDown("query missing fieldname");
+    return;
+  }
+  
+  auto fieldval = Json::getString(j, "fieldval");
+  if (!fieldval) {
+    server->sendErrDown("query missing fieldval");
+    return;
+  }
+
+  // get the collection name.
+  string coll;
+  if (!Storage::instance()->collName(objtype.value(), &coll, false)) {
+    server->sendErr("Could not get collection name for query");
+    return;
+  }
+
+  auto result = SchemaImpl::findGeneral(coll, json{ { fieldname.value(), 
+    { { "$regex", fieldval.value() }, { "$options", "i" } } } }, { fieldname.value() });
   if (!result) {
     server->sendErrDown("find failed");
     return;
@@ -90,7 +70,7 @@ void queryDrMsg(Server *server, json &j) {
   auto docs = result->values();
   server->sendDown({
     { "type", "queryResult" },
-    { "queryType", type },
+    { "objtype", objtype.value() },
     { "result", docs ? docs.value() : boost::json::array() },
     { "corr", corr.value() },
     { "dest", src }   

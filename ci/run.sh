@@ -9,6 +9,8 @@ echo "Running up $1"
 ci/$1.sh > $1.log 2>&1 &
 echo "$!" > $1.pid
 
+timeout=5
+start=$(date +%s)
 while [ 1 ]
 do
 	if [ "$1" == "upstream" ]; then
@@ -44,5 +46,11 @@ do
     [ "$?" != "0" ] && exit 1
 		echo "Ready."
 		exit 0
+	fi
+	now=$(date +%s)
+	elapsed=$((now-start))
+	if ((elapsed > timeout)); then
+    echo "failed with timeout"
+    exit 1
 	fi
 done

@@ -107,12 +107,14 @@ public:
   void regenerateGroups();
     // run aggregator when group members change.
  
-  optional<string> generateShareLink(const string &me, const string &hostname, const string &streamid, const string &groupid, int expires);
+  optional<string> generateShareLink(const string &me, const string &urlprefix, 
+                    const string &coll, const string &objid, const string &groupid, 
+                    int expires, const string &bitsfield);
     // generate a link that can be passed to somebody, putting them in a team and only
     // for expires ours.
     
-  optional<string> createStreamShareToken(const string &streamid, const string &me, const string &options, const string &groupid, const string &expires);
-  optional<json> expandStreamShareToken(const string &token);
+  optional<string> createShareToken(const string &collid, const string &me, const string &options, const string &groupid, const string &expires);
+  optional<json> expandShareToken(const string &token);
     // public for testing.
   
   string newSalt();

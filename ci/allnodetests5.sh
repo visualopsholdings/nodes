@@ -52,7 +52,7 @@ finish
 # ci/run.sh downstream6
 # [ "$?" != "0" ] && fail
 # 
-# ci/nodestest.sh "An obj can be moved from a shared collecion to a non shared stream on downstream"
+# ci/nodestest.sh "An obj can be moved from a shared collecion to a non shared collection on downstream"
 # [ "$?" != "0" ] && fail
 # 
 # ci/nodestest.sh "An obj can be moved between shared collections"

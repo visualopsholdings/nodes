@@ -35,8 +35,8 @@ end
 
 When('she sends policy for {string} named {string}') do |objtype, name |
    id = ""
-   if objtype == "stream"
-      id = Stream.where(name: name).first._id.to_s
+   if objtype == "collection"
+      id = Collection.where(name: name).first._id.to_s
    elsif objtype == "group"
       id = Group.where(name: name).first._id.to_s
    else

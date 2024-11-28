@@ -39,6 +39,12 @@ void addUserMsg(Server *server, json &j) {
     return;
   }
   
+  auto coll = Json::getString(j, "collection");
+  if (!coll) {
+    server->sendErr("no collection");
+    return;
+  }
+
   auto vopsidtoken = Json::getString(j, "vopsidtoken");
   if (!vopsidtoken) {
     server->sendErr("only upstream or having a token.");
@@ -46,7 +52,7 @@ void addUserMsg(Server *server, json &j) {
   }
   auto fullname = Json::getString(j, "fullname");
 
-  auto token = Security::instance()->expandStreamShareToken(vopsidtoken.value());
+  auto token = Security::instance()->expandShareToken(vopsidtoken.value());
   if (!token) {
     server->sendErr("Could not expand token");
     return;
@@ -65,7 +71,7 @@ void addUserMsg(Server *server, json &j) {
   auto texpires = Date::fromISODate(expires.value());
   if (texpires < tnow) {
     BOOST_LOG_TRIVIAL(error) << "Token expired";
-    BOOST_LOG_TRIVIAL(trace) << "stream token expires " << expires.value() << ": " << texpires;
+    BOOST_LOG_TRIVIAL(trace) << "token expires " << expires.value() << ": " << texpires;
     BOOST_LOG_TRIVIAL(trace) << "now " << Date::toISODate(tnow) << ": " << tnow;
     server->sendWarning("Invalid token.");
     return;
@@ -78,21 +84,20 @@ void addUserMsg(Server *server, json &j) {
     return;
   }
 
-  auto streamid = Json::getString(token.value(), "id");
-  if (!streamid) {
-    BOOST_LOG_TRIVIAL(error) << "Stream must be specified in token";
+  auto id = Json::getString(token.value(), "id");
+  if (!id) {
+    BOOST_LOG_TRIVIAL(error) << "Id must be specified in token";
     server->sendWarning("Invalid token.");
     return;
   }
 
-  auto result = SchemaImpl::findByIdGeneral("streams", streamid.value(), {});
+  auto result = SchemaImpl::findByIdGeneral(coll.value(), id.value(), {});
   if (!result) {
-    server->sendErr("Can't find stream");
+    server->sendErr("Can't find in " + coll.value());
     return;
   }
-  auto stream = result->value();
-  if (!stream) {
-    server->sendErr("Stream in token doesn't exist");
+  if (!result->value()) {
+    server->sendErr("collection in token doesn't exist");
     return;
   }
 
@@ -125,20 +130,20 @@ void addUserMsg(Server *server, json &j) {
   obj["salt"] = salt;
   obj["hash"] = hash;
 
-  auto id = User().insert(obj);
-  if (!id) {
+  auto userid = User().insert(obj);
+  if (!userid) {
     server->sendErr("could not insert user");
     return;
   }
 
   // send to other nodes.
-  obj["id"] = id.value();
+  obj["id"] = userid.value();
   server->sendAdd("user", obj);
     
   VID vid;
-  vid.reset(id.value(), password);
+  vid.reset(userid.value(), password);
   
-  if (!Group().addMember(team.value(), id.value())) {
+  if (!Group().addMember(team.value(), userid.value())) {
      server->sendErr("could not add user to team");
      return;
   }
@@ -147,7 +152,7 @@ void addUserMsg(Server *server, json &j) {
   server->send({
     { "type", "adduser" },
     { "vopsid", vid.value() },
-    { "id", id.value() },
+    { "id", userid.value() },
     { "fullname", fullname.value() }
   });
 
