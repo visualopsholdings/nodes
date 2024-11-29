@@ -36,7 +36,7 @@ When this is received:
 ```
 { 
   "type": "objects", 
-  "objtype": "stream", 
+  "objtype": "collection", 
   "me": "user guid",
   "test": {
     "time": 123456
@@ -48,7 +48,7 @@ If the time is smaller than the internal time then we return that the collection
 
 ```
 { 
-  "type": "streams", 
+  "type": "collections", 
   "test": {
     "latest": true
   }
@@ -59,15 +59,15 @@ Otherwise we process and return;
 
 ```
 { 
-  "type": "streams",
+  "type": "collections",
   "test": {
     "time": 123456
   },
-  "streams": [
+  "collections": [
     {
-      "name": "Conversation 1",
-      "stream": "stream guid",
-      "policy": "stream policy guid"
+      "name": "Collection 1",
+      "id": " guid",
+      "policy": "policy guid"
     }
   ]
 }
@@ -86,8 +86,8 @@ When this is received:
 ```
 { 
   "type": "object", 
-  "objtype": "stream", 
-  "stream": "stream guid",
+  "objtype": "obj", 
+  "id": "guid",
   "me": "user guid",
   "test": {
     "time": "UTC time"
@@ -95,11 +95,11 @@ When this is received:
 }
 ```
 
-If the time is earlier than the modifyDate of the stream then we return.
+If the time is earlier than the modifyDate of the obj then we return.
 
 ```
 { 
-  "type": "stream", 
+  "type": "obj", 
   "test": {
     "latest": true
   }
@@ -110,12 +110,12 @@ Otherwise we process and return;
 
 ```
 { 
-  "type": "stream", 
-  "stream": "stream guid",
-  "stream": {
-    "name": "Conversation 1",
-    "stream": "stream guid",
-    "policy": "stream policy guid",
+  "type": "obj", 
+  "id": "guid",
+  "obj": {
+    "name": "Obj 1",
+    "id": "guid",
+    "policy": "policy guid",
     "modifyDate": "UTC time"
   }
 }
@@ -128,14 +128,14 @@ When this is received:
 ```
 {
   "type": "setobject",
-  "objtype": "stream",
-  "id": "stream guid",
+  "objtype": "obj",
+  "id": "guid",
   "name": "A new name",
   "me": "userid guid"
 }
 ```
 
-If the user can edit the stream the details are set and Ack is returned.
+If the user can edit the obj the details are set and Ack is returned.
 
 #### Add Object
 
@@ -144,13 +144,13 @@ When this is received:
 ```
 {
   "type": "addobject",
-  "objtype": "stream",
-  "name": "My new stream",
+  "objtype": "obj",
+  "name": "My new Obj",
   "me": "userid guid"
 }
 ```
 
-We find a policy just for "me" and create a new stream with that policy and return Ack.
+We find a policy just for "me" and create a new object with that policy and return Ack.
 
 #### Delete Object
 
@@ -159,13 +159,13 @@ When this is received:
 ```
 {
   "type": "deleteobject",
-  "objtype": "stream",
-  "id": "stream guid",
+  "objtype": "obj",
+  "id": "guid",
   "me": "userid guid"
 }
 ```
 
-If the user is allowed to edit the stream they can delete it. If succesful we return "ack".
+If the user is allowed to edit the obj they can delete it. If succesful we return "ack".
 
 #### Set Object Policy
 
@@ -174,7 +174,7 @@ When this is received:
 ```
 {
   "type":"setobjectpolicy",
-  "objtype": "stream",
+  "objtype": "collection",
   "add": [
     { "context":"user", "type":"edit", "id":"66e0246b62df890f877fc1d8" },
     { "context":"user", "type":"view", "id":"66e0246b62df890f877fc1d8" },
@@ -190,7 +190,7 @@ When this is received:
 The remove is VERY similar to https://datatracker.ietf.org/doc/html/rfc6901
 except for the extra "/" at the start of each line.
 
-If the user can edit the stream the policy is modified, searched for and then 
+If the user can edit the collection the policy is modified, searched for and then 
 set and Ack is returned.
 
 #### Share Link
@@ -252,8 +252,8 @@ We process and return;
 
 #### Policy users
 
-Since the Nodes system is persistent, when you join a stream, you can query the 
-users in that stream by the stream policy and join those users too.
+Since the Nodes system is persistent, when you join a collection, you can query the 
+users in that collection by the collection policy and join those users too.
 
 When this is received:
 
@@ -286,8 +286,8 @@ We process and return;
 
 #### Policy groups
 
-Since the Nodes system is persistent, when you join a stream, you can query the 
-groups in that stream by the stream policy and join those users too.
+Since the Nodes system is persistent, when you join a collection, you can query the 
+groups in that collection by the collection policy and join those users too.
 
 When this is received:
 
@@ -729,7 +729,7 @@ When this is received:
 ```
 { 
   "type": "policy",
-  "objtype": "stream",
+  "objtype": "collection",
   "id": "object guid"
 }
 ```
