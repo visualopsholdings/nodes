@@ -17,11 +17,11 @@ end
 When('she sends collection {string} as {string}') do |name, user|
    u = User.where(name: user).first._id.to_s
    s = Collection.where(name: name).first._id.to_s
-   $lastResult = Send({ "type": "object", "objtype": "collection", "me": u, "collection": s })
+   $lastResult = Send({ "type": "object", "objtype": "collection", "me": u, "id": s })
 end
 
 When('she sends collection with id {string}') do |id|
-   $lastResult = Send({ "type": "object", "objtype": "collection", "collection": id })
+   $lastResult = Send({ "type": "object", "objtype": "collection", "id": id })
 end
 
 Then('she receives collection {string}') do |name|
@@ -84,7 +84,7 @@ When('she sends set collection name of {string} to {string}') do |name, newname|
 end
 
 When('she sends collection {string} to upstream') do |id|
-   $lastResult = SendTo({ "type": "object", "objtype": "collection", "collection": id }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "object", "objtype": "collection", "id": id }, getUpstreamPort())
 end
 
 Then('she sends collections to upstream') do
@@ -92,7 +92,7 @@ Then('she sends collections to upstream') do
 end
 
 When('she sends collection {string} to downstream {int}') do |id, n|
-   $lastResult = SendTo({ "type": "object", "objtype": "collection", "collection": id }, getDownstreamPort(n))
+   $lastResult = SendTo({ "type": "object", "objtype": "collection", "id": id }, getDownstreamPort(n))
 end
 
 When('she sends set collection name of {string} to {string} to upstream') do |id, newname|

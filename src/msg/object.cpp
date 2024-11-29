@@ -26,7 +26,7 @@ void objectMsg(Server *server, json &j) {
     server->sendErr("no object type");
     return;
   }
-  auto id = Json::getString(j, objtype.value());
+  auto id = Json::getString(j, "id");
   if (!id) {
     server->sendErr("no " + objtype.value());
     return;
