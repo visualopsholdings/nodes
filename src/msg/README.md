@@ -110,8 +110,7 @@ Otherwise we process and return;
 
 ```
 { 
-  "type": "obj", 
-  "id": "guid",
+  "type": "obj",
   "obj": {
     "name": "Obj 1",
     "id": "guid",
