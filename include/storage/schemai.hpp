@@ -66,6 +66,7 @@ public:
   static optional<string> updateGeneralById(const string &collection, const string &id, const json &doc);
   static optional<string> insertGeneral(const string &collection, const json &doc);
   static void deleteManyGeneral(const string &collection, const json &doc);
+  static bool existsGeneral(const string &collection, const string &id);
     
   shared_ptr<ResultImpl> findResult(const json &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);

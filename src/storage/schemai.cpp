@@ -50,6 +50,18 @@ int SchemaImpl::countGeneral(const string &collection, const json &query) {
   
 }
 
+bool SchemaImpl::existsGeneral(const string &collection, const string &id) {
+
+  if (!testInit()) {
+    return 0;
+  }
+
+  bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
+
+  return Storage::instance()->_impl->coll(collection)._c.count_documents(q) == 1;
+  
+}
+
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const json &query, const vector<string> &fields) {
 
   BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collection; 

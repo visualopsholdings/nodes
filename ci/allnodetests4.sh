@@ -29,15 +29,15 @@ fail() {
 # in case we run on a failed build.
 finish
 
-# ci/run.sh upstream
-# [ "$?" != "0" ] && exit 1
-# 
-# ci/run.sh downstream4
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "An obj can be moved from one collection to another on a mirror"
-# [ "$?" != "0" ] && fail
-# 
-# finish
+ci/run.sh upstream
+[ "$?" != "0" ] && exit 1
+
+ci/run.sh downstream4
+[ "$?" != "0" ] && fail
+
+ci/nodestest.sh "An obj can be moved from one collection to another on a mirror"
+[ "$?" != "0" ] && fail
+
+finish
 
 exit 0

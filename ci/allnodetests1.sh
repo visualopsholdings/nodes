@@ -49,12 +49,6 @@ ci/nodestest.sh "An existing user can be pulled from upstream"
 ci/nodestest.sh "An existing group can be pulled from upstream"
 [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "An existing doc can be pulled from upstream"
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "An existing media can be pulled from upstream"
-# [ "$?" != "0" ] && fail
-
 ci/run.sh downstream2
 [ "$?" != "0" ] && fail
 

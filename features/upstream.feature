@@ -46,8 +46,8 @@ Feature: Upstream Test
          | Shared 2 Collection | p1     | 63c0c08e337cce14a54e0517 | 2 Jan 2022   |
 
       And there are objs:
-         | name            | modifyDate   | policy | collection   | by     |
-         | Count 1         | Sep 2 2021   | p1     | Collection 2 | tracy  |
+         | name            | modifyDate   | policy | collection   | by     | id                       |
+         | Count 1         | Sep 2 2021   | p1     | Collection 2 | tracy  | 67455997ca25979b57a61319 |
 
       And there are 20 generated objs in collection "Collection 1" from "tracy" with policy "p1"
       And there are 10 generated objs in collection "Shared Collection" from "tracy" with policy "p1"

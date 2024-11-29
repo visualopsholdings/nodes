@@ -392,6 +392,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 28 Nov 2024
 - Refactor to generalise and to "collections" and "objs".
 
+### 29 Nov 2024
+- Implement "moveobject" message.
+
+
 
 
 

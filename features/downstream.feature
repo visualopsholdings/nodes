@@ -337,3 +337,17 @@ Feature: Downstream Test
 
       And she sends objs for "61a0b4de98499a20f0768351" to downstream 4
       And she receives 9 objs
+
+   @javascript
+   Scenario: An obj can be moved from one collection to another on a mirror
+   
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 1 objs
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 10 objs
+      # move Count 1 to Shared Stream as tracy
+      When she sends move obj "67455997ca25979b57a61319" to "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 0 objs
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 11 objs

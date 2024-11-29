@@ -102,6 +102,7 @@ set(MESSAGES
   src/msg/policy.cpp
   src/msg/addobject.cpp
   src/msg/deleteobject.cpp
+  src/msg/moveobject.cpp
   src/msg/addgroup.cpp
   src/msg/setgroup.cpp
   src/msg/setobject.cpp

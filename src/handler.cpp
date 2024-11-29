@@ -62,12 +62,6 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
     return false;
   }
   
-  if (!Security::instance()->canEdit(coll, me, id)) {
-    BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
-    server->sendSecurity();
-    return false;
-  }
-
   auto result = SchemaImpl::findByIdGeneral(coll, id, {});
   if (!result) {
     server->sendErr(type + " can't find");
@@ -80,6 +74,34 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
   }
   
   BOOST_LOG_TRIVIAL(trace) << type << " old value " << orig.value();
+  
+  // make sure it can be edited. If it has a parent we use that field.
+  string editcoll;
+  string editid;
+  string parentfield;
+  string parenttype;
+  if (Storage::instance()->parentInfo(type, &parentfield, &parenttype)) {
+    if (!Storage::instance()->collName(parenttype, &editcoll, false)) {
+      server->sendErr("Could not get collection name for Handler::update (parent)");
+      return false;
+    }
+    auto id = Json::getString(orig.value(), parentfield);
+    if (!id) {
+      server->sendErr("coll field not found");
+      return false;
+    }
+    editid = id.value();
+  }
+  else {
+    editcoll = coll;
+    editid = id;
+  }
+
+  if (!Security::instance()->canEdit(editcoll, me, editid)) {
+    BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
+    server->sendSecurity();
+    return false;
+  }
   
   (*obj)["modifyDate"] = Storage::instance()->getNow();
   if (name) {

@@ -57,6 +57,7 @@ void setuserMsg(Server *server, json &json);
 void policyMsg(Server *server, json &json);
 void addObjectMsg(Server *server, json &json);
 void deleteObjectMsg(Server *server, json &json);
+void moveObjectMsg(Server *server, json &json);
 void addGroupMsg(Server *server, json &json);
 void setGroupMsg(Server *server, json &json);
 void setObjectMsg(Server *server, json &json);
@@ -145,6 +146,7 @@ Server::Server(bool test, bool noupstream,
   _messages["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
   _messages["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
   _messages["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
+  _messages["moveobject"] = bind(&nodes::moveObjectMsg, this, placeholders::_1);
   _messages["addgroup"] = bind(&nodes::addGroupMsg, this, placeholders::_1);
   _messages["setgroup"] = bind(&nodes::setGroupMsg, this, placeholders::_1);
   _messages["setobject"] = bind(&nodes::setObjectMsg, this, placeholders::_1);

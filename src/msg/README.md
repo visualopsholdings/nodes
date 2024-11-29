@@ -166,6 +166,22 @@ When this is received:
 
 If the user is allowed to edit the obj they can delete it. If succesful we return "ack".
 
+#### Move Object
+
+When this is received:
+
+```
+{
+  "type": "moveobject",
+  "objtype": "obj",
+  "id": "obj giud",
+  "coll": "coll guid",
+  "me": "userid guid"
+}
+```
+
+We find a policy just for "me" and move the object with that policy to the new collection and return Ack.
+
 #### Set Object Policy
 
 When this is received:

@@ -251,6 +251,19 @@ BOOST_AUTO_TEST_CASE( countGeneral )
   
 }
 
+BOOST_AUTO_TEST_CASE( existsGeneral )
+{
+  cout << "=== existsGeneral ===" << endl;
+
+  dbSetup();
+
+  BOOST_CHECK(SchemaImpl::existsGeneral("users", tracy));
+  BOOST_CHECK(!SchemaImpl::existsGeneral("users", "667d0baedfb1ed18430d8eda"));
+  
+}
+
+
+
 
 
 
