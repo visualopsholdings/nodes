@@ -55,11 +55,11 @@ ci/run.sh downstream6
 ci/nodestest.sh "An obj can be moved from a shared collection to a non shared collection on downstream"
 [ "$?" != "0" ] && fail
 
-# ci/nodestest.sh "An obj can be moved between shared collections"
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "An obj can be moved from a shared collection to a non shared collection on mirror"
-# [ "$?" != "0" ] && fail
+ci/nodestest.sh "An obj can be moved between shared collections"
+[ "$?" != "0" ] && fail
+
+ci/nodestest.sh "An obj can be moved from a shared collection to a non shared collection on mirror"
+[ "$?" != "0" ] && fail
 
 finish
 

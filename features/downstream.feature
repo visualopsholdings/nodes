@@ -369,14 +369,12 @@ Feature: Downstream Test
    
       And she sends objs for "Shared Collection" as "tracy"
       And she receives 11 objs
-      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 2
-      And she receives 11 objs
       And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
       And she receives 11 objs
-#       And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 5
-#       And she receives 11 objs
-#       And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 6
-#       And she receives 11 objs
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 11 objs
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 11 objs
 
       # downstream2
       # old collection is Shared Collection
@@ -451,185 +449,144 @@ Feature: Downstream Test
       And she receives 11 objs
       And she sends objs for "637aa99202e727169a58282f" as "6121bdfaec9e5a059715739c" to upstream
       And she receives 0 objs
-
-#       When "tracy" log into other2 app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 5 of 5"
-#  	   And she clicks menu on first action in conversation item with title "Message 3"
-# 	   And she clicks "MOVE"
-# 	   And she clicks "MOVE TO STREAM"
-#       And a modal dialog appears
-#       And she enters "Stream" in "query"
-#       And she clicks stream "Stream 4" in modal dialog
-#       And she clicks "Ok"
-#       And eventually the modal dialog disappears
-# 	   And eventually the page contains "1 – 4 of 4"
-#   	   And she clicks "Stream 4"
-# 	   And eventually the page contains "1 – 1 of 1"
-# 	   
-#       # downstream4
-#       When "tracy" log into other4 app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 4 of 4"
-#       
-#       # downstream5
-#       When "tracy" log into other5 app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 4 of 4"
-#       
-#       # downstream6
-#       When "tracy" log into other6 app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 4 of 4"
-#       
-#       # upstream
-#       When "tracy" log into other app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 4 of 4"
-#       
-#       # downstream2
-#       When "tracy" log into other2 app "conversations"
-#       And she clicks "Stream 4"
-# 	   And eventually the page contains "1 – 1 of 1"
-#  	   And she clicks menu on first action in conversation item with title "Message 3"
-# 	   And she clicks "MOVE"
-# 	   And she clicks "MOVE TO STREAM"
-#       And a modal dialog appears
-#       And she enters "Shared" in "query"
-#       And she clicks stream "Shared Stream" in modal dialog
-#       And she clicks "Ok"
-#       And eventually the modal dialog disappears
-# 	   And eventually the page contains "0 of 0"
-# 
-#       # downstream4
-#       When "tracy" log into other4 app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 5 of 5"
-#       
-#       # downstream5
-#       When "tracy" log into other5 app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 5 of 5"
-#       
-#       # downstream6
-#       When "tracy" log into other6 app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 5 of 5"
-#       
-#       # upstream
-#       When "tracy" log into other app "conversations"
-#  	   And she clicks "Shared Stream"
-# 	   And eventually the page contains "1 – 5 of 5"
       
    @javascript
-   Scenario: An idea can be moved from a shared stream to a non shared stream on mirror
+   Scenario: An obj can be moved from a shared collection to a non shared collection on mirror
    
-      # downstream4
-      When "tracy" log into other4 app "conversations"
- 	   And she clicks "Stream 2"
-	   And eventually the page contains "1 – 1 of 1"
- 	   And she clicks menu on first action in conversation item with title "Count 1"
-	   And she clicks "MOVE"
-	   And she clicks "MOVE TO STREAM"
-      And a modal dialog appears
-      And she enters "Stream" in "query"
-      And she clicks stream "Shared Stream" in modal dialog
-      And she clicks "Ok"
-      And eventually the modal dialog disappears
-	   And eventually the page contains "0 of 0"
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to upstream
+      And she receives 11 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to upstream
+      And she receives 1 objs
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 11 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 0 objs
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 11 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 0 objs
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 11 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 1 objs
+
+       # downstream4
+      # old collection is Shared Collection
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 11 objs
+      # new collection is Collection 2
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 1 objs
+
+      # move Shared Obj 1
+      When she sends move obj "673ed9121dfe58ad02e185e6" to "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives ack
+
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 10 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 2 objs
 
       # upstream
-      When "tracy" log into other app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 6 of 6"
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to upstream
+      And she receives 10 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to upstream
+      And she receives 2 objs
 
-      # downstream2
-      When "tracy" log into other2 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 6 of 6"
-      
-      # downstream5
-      When "tracy" log into other5 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 6 of 6"
-      
-      # downstream6
-      When "tracy" log into other6 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 6 of 6"
+      # downstream 2
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 10 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 1 objs
+
+      # downstream 5
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 10 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 1 objs
+
+      # downstream 6
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 10 objs
+      And she sends objs for "61444c6addf5aaa6a02e05b7" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 2 objs
       
    @javascript
-   Scenario: An idea can be moved between shared streams
+   Scenario: An obj can be moved between shared collections
    
-      # downstream2
-      When "tracy" log into other2 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 5 of 5"
- 	   And she clicks menu on first action in conversation item with title "Message 3"
-	   And she clicks "MOVE"
-	   And she clicks "MOVE TO STREAM"
-      And a modal dialog appears
-      And she enters "Stream" in "query"
-      And she clicks stream "Shared 2 Stream" in modal dialog
-      And she clicks "Ok"
-      And eventually the modal dialog disappears
-	   And eventually the page contains "1 – 4 of 4"
-  	   And she clicks "Shared 2 Stream"
-	   And eventually the page contains "1 – 1 of 1"
-	   
-      # upstream
-      When "tracy" log into other app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 4 of 4"
-      
-      # downstream4
-      When "tracy" log into other4 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 4 of 4"
-      
-      # downstream5
-      When "tracy" log into other5 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 4 of 4"
-      
-      # downstream6
-      When "tracy" log into other6 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 4 of 4"
-      
-      # downstream2
-      When "tracy" log into other2 app "conversations"
-      And she clicks "Shared 2 Stream"
-	   And eventually the page contains "1 – 1 of 1"
- 	   And she clicks menu on first action in conversation item with title "Message 3"
-	   And she clicks "MOVE"
-	   And she clicks "MOVE TO STREAM"
-      And a modal dialog appears
-      And she enters "Shared" in "query"
-      And she clicks stream "Shared Stream" in modal dialog
-      And she clicks "Ok"
-      And eventually the modal dialog disappears
-	   And eventually the page contains "0 of 0"
+      # Shared 2 Collection
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to upstream
+      And she receives 0 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 0 objs
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 11 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 0 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 0 objs
 
-      # upstream
-      When "tracy" log into other app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 5 of 5"
-      
+      # downstream2
+      # old collection is Shared Collection
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 11 objs
+      # new collection is Shared 2 Collection
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 0 objs
+
+      # move Shared Obj 1
+      When she sends move obj "673ed9121dfe58ad02e185e6" to "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives ack
+
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 10 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 1 objs
+
       # downstream4
-      When "tracy" log into other4 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 5 of 5"
-      
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 10 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 1 objs
+
       # downstream5
-      When "tracy" log into other5 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 5 of 5"
-      
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 10 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 1 objs
+
       # downstream6
-      When "tracy" log into other6 app "conversations"
- 	   And she clicks "Shared Stream"
-	   And eventually the page contains "1 – 5 of 5"
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 10 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 1 objs
+
+      # move Shared Obj 1 back
+      When she sends move obj "673ed9121dfe58ad02e185e6" to "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives ack
+
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 11 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 2
+      And she receives 0 objs
+
+      # downstream4
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 11 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 4
+      And she receives 0 objs
+
+      # downstream5
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 11 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 5
+      And she receives 0 objs
+
+      # downstream6
+      And she sends objs for "61a0b4de98499a20f0768351" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 11 objs
+      And she sends objs for "63c0c08e337cce14a54e0517" as "6121bdfaec9e5a059715739c" to downstream 6
+      And she receives 0 objs
       
    @javascript
    Scenario: An idea can be moved from a non shared stream to a shared stream on upstream

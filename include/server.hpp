@@ -158,9 +158,10 @@ private:
   bool shouldSendDown(const string &action, const string &type, const string &id, boost::json::object &obj);
   vector<string> getNodeIds(const string &type);
   string getCollName(const string &type, optional<string> coll);
-  bool isParentUpstream(const string &type, boost::json::object &obj);
+  bool isObjParentUpstream(const string &type, boost::json::object &obj);
   bool isParentUpstream(const string &ptype, const string &origparent);
   bool isObjUpstream(boost::json::object &obj);
+  bool hasUpstream();
 };
 
 #endif // H_server

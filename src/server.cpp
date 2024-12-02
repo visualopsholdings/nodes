@@ -502,7 +502,7 @@ void Server::sendOn(const json &origm) {
   boost::json::object msg = origm.as_object();
   setSrc(&msg);
 
-  if (isObjUpstream(obj.value().as_object()) || isParentUpstream(type.value(), obj.value().as_object())) {
+  if (hasUpstream() && (isObjUpstream(obj.value().as_object()) || isObjParentUpstream(type.value(), obj.value().as_object()))) {
     BOOST_LOG_TRIVIAL(trace) << "sendOn";
     msg["dest"] = _upstreamId;
     sendDataReq(nullopt, msg);
@@ -1415,7 +1415,9 @@ bool Server::shouldSendDown(const string &action, const string &type, const stri
   
 }
 
-bool Server::isParentUpstream(const string &type, boost::json::object &obj) {
+bool Server::isObjParentUpstream(const string &type, boost::json::object &obj) {
+
+  BOOST_LOG_TRIVIAL(trace) << "isObjParentUpstream";
 
   string ptype;
   string pfield;
@@ -1471,20 +1473,29 @@ bool Server::isParentUpstream(const string &ptype, const string &origparent) {
   return false;
 }
 
+bool Server::hasUpstream() {
+
+  BOOST_LOG_TRIVIAL(trace) << "isObjUpstream";
+
+  return _upstreamId != "";
+  
+}
+
 bool Server::isObjUpstream(boost::json::object &obj) {
 
-  if (_upstreamId != "") {
-    string mirror = get1Info("upstreamMirror");
-    if (mirror == "true") {
-      BOOST_LOG_TRIVIAL(trace) << "mirror sending up";
-      return true;
-    }
-    auto upstream = Json::getBool(obj, "upstream", true);
-    if (upstream && upstream.value()) {
-      BOOST_LOG_TRIVIAL(trace) << "upstream sending up";
-      return true;
-    }
+  BOOST_LOG_TRIVIAL(trace) << "isObjUpstream";
+
+  string mirror = get1Info("upstreamMirror");
+  if (mirror == "true") {
+    BOOST_LOG_TRIVIAL(trace) << "mirror sending up";
+    return true;
   }
+  auto upstream = Json::getBool(obj, "upstream", true);
+  if (upstream && upstream.value()) {
+    BOOST_LOG_TRIVIAL(trace) << "upstream sending up";
+    return true;
+  }
+
   return false;
   
 }
@@ -1501,9 +1512,9 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
     return;
   }
   
-  bool up = isObjUpstream(obj);
+  bool up = hasUpstream() && isObjUpstream(obj);
   if (!up) {
-    up = isParentUpstream(type, obj);
+    up = isObjParentUpstream(type, obj);
   }
   bool down = hasValidNodes();
   if (!down) {
@@ -1548,9 +1559,9 @@ void Server::sendAdd(const string &type, boost::json::object &obj) {
     BOOST_LOG_TRIVIAL(warning) << "skipping add, but obj id ";
   }
     
-  bool up = isObjUpstream(obj);
+  bool up = hasUpstream() && isObjUpstream(obj);
   if (!up) {
-    up = isParentUpstream(type, obj);
+    up = isObjParentUpstream(type, obj);
   }
   bool down = hasValidNodes();
   if (!down) {
@@ -1598,9 +1609,9 @@ void Server::sendMov(const string &type, const string &id, boost::json::object &
     return;
   }
   
-  bool up = isObjUpstream(obj);
+  bool up = hasUpstream() && isObjUpstream(obj);
   if (!up) {
-    up = isParentUpstream(type, obj);
+    up = isObjParentUpstream(type, obj);
   }
   if (!up) {
     up = isParentUpstream(ptype, origparent);
@@ -1742,7 +1753,7 @@ bool Server::shouldIgnoreAdd(json &msg) {
     return true;
   }
 
-  if (!isParentUpstream(type.value(), obj.value().as_object())) {
+  if (!isObjParentUpstream(type.value(), obj.value().as_object())) {
     BOOST_LOG_TRIVIAL(trace) << type.value() << " parent upstream, ignoring add";
     return true;
   }
