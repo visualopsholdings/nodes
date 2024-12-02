@@ -37,30 +37,30 @@ finish
 
 # test moves
 
-# ci/run.sh upstream
-# [ "$?" != "0" ] && exit 1
-# 
-# ci/run.sh downstream2
-# [ "$?" != "0" ] && fail
-# 
-# ci/run.sh downstream4
-# [ "$?" != "0" ] && fail
-# 
-# ci/run.sh downstream5
-# [ "$?" != "0" ] && fail
-# 
-# ci/run.sh downstream6
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "An obj can be moved from a shared collecion to a non shared collection on downstream"
-# [ "$?" != "0" ] && fail
-# 
+ci/run.sh upstream
+[ "$?" != "0" ] && exit 1
+
+ci/run.sh downstream2
+[ "$?" != "0" ] && fail
+
+ci/run.sh downstream4
+[ "$?" != "0" ] && fail
+
+ci/run.sh downstream5
+[ "$?" != "0" ] && fail
+
+ci/run.sh downstream6
+[ "$?" != "0" ] && fail
+
+ci/nodestest.sh "An obj can be moved from a shared collection to a non shared collection on downstream"
+[ "$?" != "0" ] && fail
+
 # ci/nodestest.sh "An obj can be moved between shared collections"
 # [ "$?" != "0" ] && fail
 # 
 # ci/nodestest.sh "An obj can be moved from a shared collection to a non shared collection on mirror"
 # [ "$?" != "0" ] && fail
-# 
-# finish
+
+finish
 
 exit 0

@@ -74,6 +74,7 @@ public:
   // notifying other nodes.
   void sendUpd(const string &type, const string &id, boost::json::object &obj);
   void sendAdd(const string &type, boost::json::object &obj);
+  void sendMov(const string &type, const string &id, boost::json::object &obj, const string &ptype, const string &origparent);
   
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
@@ -152,11 +153,14 @@ private:
   void collectPolicies(const vector<string> &policies, boost::json::array *data);
   bool isValidId(const string &id);
   bool validateId(boost::json::object &obj, const string &id);
+  bool hasValidNodes();
+  bool anyNodesListening(const string &type, const string &id);
   bool shouldSendDown(const string &action, const string &type, const string &id, boost::json::object &obj);
-  bool shouldSendUp(const string &type, boost::json::object &obj);
   vector<string> getNodeIds(const string &type);
   string getCollName(const string &type, optional<string> coll);
   bool isParentUpstream(const string &type, boost::json::object &obj);
+  bool isParentUpstream(const string &ptype, const string &origparent);
+  bool isObjUpstream(boost::json::object &obj);
 };
 
 #endif // H_server

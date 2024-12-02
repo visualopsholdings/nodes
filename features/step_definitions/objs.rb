@@ -40,6 +40,10 @@ When('she sends objs for {string} to upstream') do |id|
    $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": id }, getUpstreamPort())
 end
 
+When('she sends objs for {string} as {string} to upstream') do |id, uid|
+   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": id, me: uid }, getUpstreamPort())
+end
+
 When('she sends objs for saved collection to upstream') do
    $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": $savedResult["result"] }, getUpstreamPort())
 end

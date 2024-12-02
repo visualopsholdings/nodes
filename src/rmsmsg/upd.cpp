@@ -20,7 +20,7 @@ namespace nodes {
 
 void updSubMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "upd sub" << j;
+  BOOST_LOG_TRIVIAL(trace) << "upd or mov sub" << j;
         
   if (server->wasFromUs(j)) {
     BOOST_LOG_TRIVIAL(trace) << "ignoring, came from us";

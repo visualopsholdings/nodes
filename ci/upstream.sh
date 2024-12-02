@@ -10,7 +10,7 @@ then
   ci/upstreamdb.sh
   [ "$?" != "0" ] && exit 1
 
-  build/Counts --dbName=$MONGO_PORT_27017_DB --users=4 --groups=2 --collections=4 --objs=31 --policies=4
+  build/Counts --dbName=$MONGO_PORT_27017_DB --users=4 --groups=2 --collections=4 --objs=32 --policies=4
   [ "$?" != "0" ] && exit 1
   
 fi

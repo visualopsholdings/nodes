@@ -31,18 +31,18 @@ fail() {
 # in case we run on a failed build.
 finish
 
-# ci/run.sh upstream
-# [ "$?" != "0" ] && exit 1
-# 
-# ci/run.sh downstream2
-# [ "$?" != "0" ] && fail
-# 
-# ci/run.sh downstream4
-# [ "$?" != "0" ] && fail
-# 
-# ci/nodestest.sh "An obj can be moved from a non shared collection to a shared collection on upstream"
-# [ "$?" != "0" ] && fail
-# 
-# finish
+ci/run.sh upstream
+[ "$?" != "0" ] && exit 1
+
+ci/run.sh downstream2
+[ "$?" != "0" ] && fail
+
+ci/run.sh downstream4
+[ "$?" != "0" ] && fail
+
+ci/nodestest.sh "An obj can be moved from a non shared collection to a shared collection on upstream"
+[ "$?" != "0" ] && fail
+
+finish
 
 exit 0

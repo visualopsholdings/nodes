@@ -175,6 +175,7 @@ Server::Server(bool test, bool noupstream,
   _remoteDataReqMessages["ack"] =  bind(&nodes::ackMsg, this, placeholders::_1);
 
   _remoteMsgSubMessages["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
+  _remoteMsgSubMessages["mov"] =  bind(&nodes::updSubMsg, this, placeholders::_1); // same handler as upd
   _remoteMsgSubMessages["add"] =  bind(&nodes::addSubMsg, this, placeholders::_1);
 
   _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
@@ -183,6 +184,7 @@ Server::Server(bool test, bool noupstream,
   _dataRepMessages["discover"] =  bind(&nodes::discoverMsg, this, placeholders::_1);
   _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
   _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
+  _dataRepMessages["mov"] =  bind(&nodes::updDrMsg, this, placeholders::_1); // same handler as upd
   _dataRepMessages["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName, schema);
@@ -500,7 +502,7 @@ void Server::sendOn(const json &origm) {
   boost::json::object msg = origm.as_object();
   setSrc(&msg);
 
-  if (shouldSendUp(type.value(), obj.value().as_object())) {
+  if (isObjUpstream(obj.value().as_object()) || isParentUpstream(type.value(), obj.value().as_object())) {
     BOOST_LOG_TRIVIAL(trace) << "sendOn";
     msg["dest"] = _upstreamId;
     sendDataReq(nullopt, msg);
@@ -516,7 +518,7 @@ void Server::sendOn(const json &origm) {
     return;
   }
   
-  if (shouldSendDown("on", type.value(), id.value(), obj.value().as_object())) {
+  if (hasValidNodes() && shouldSendDown("on", type.value(), id.value(), obj.value().as_object())) {
     BOOST_LOG_TRIVIAL(trace) << "publish down";
     pubDown(msg);
   }
@@ -1351,48 +1353,66 @@ vector<string> Server::getNodeIds(const string &type) {
 
 }
 
-bool Server::shouldSendDown(const string &action, const string &type, const string &id, boost::json::object &obj) {
+bool Server::hasValidNodes() {
 
-  BOOST_LOG_TRIVIAL(trace) << "shouldSendDown";
+  BOOST_LOG_TRIVIAL(trace) << "hasValidNodes";
 
   if (_dataRep) {
     auto nodes = Node().find(json{ { "valid", true }}).values();
     if (!nodes || nodes.value().size() == 0) {
-      BOOST_LOG_TRIVIAL(trace) << "skipping send down " << action << " nobody listening at all";
+      BOOST_LOG_TRIVIAL(trace) << "skipping send down mov nobody listening at all";
       return false;
     }
-    if (action == "add") {
-      // always send adds, people can't be listening to them.
-      // non mirrors will get them, it's up to them to ignore them.
-      return true;
-    }
-    
-    // calculate the type of object and the id of the object to search for.
-    string ltype;
-    string iid;
-    string pfield;
-    if (Storage::instance()->parentInfo(type, &pfield, &ltype)) {
-      auto iparent = Json::getString(obj, pfield);
-      if (!iparent) {
-        BOOST_LOG_TRIVIAL(error) << "shouldSendDown obj has no parent field";
-        return false;
-      }
-      iid = iparent.value();
-    }
-    else {
-      ltype = type;
-      iid = id;
-    }
-    
-    // search for it.
-    auto ids = getNodeIds(ltype);
-    if (find(ids.begin(), ids.end(), "*") != ids.end() || find(ids.begin(), ids.end(), iid) != ids.end()) {
-      return true;
-    }
-    BOOST_LOG_TRIVIAL(trace) << "skipping " << action << " nobody listening " << ltype << " " << iid;
-    return false;
+    return true;
   }
-	return false;
+  
+  return false;
+  
+}
+
+bool Server::anyNodesListening(const string &type, const string &id) {
+
+  BOOST_LOG_TRIVIAL(trace) << "anyNodesListening";
+
+  // search for it.
+  auto ids = getNodeIds(type);
+  if (find(ids.begin(), ids.end(), "*") != ids.end() || find(ids.begin(), ids.end(), id) != ids.end()) {
+    return true;
+  }
+  BOOST_LOG_TRIVIAL(trace) << "skipping mov nobody listening " << type << " " << id;
+  return false;
+
+}
+
+bool Server::shouldSendDown(const string &action, const string &type, const string &id, boost::json::object &obj) {
+
+  BOOST_LOG_TRIVIAL(trace) << "shouldSendDown";
+
+  if (action == "add") {
+    // always send adds, people can't be listening to them.
+    // non mirrors will get them, it's up to them to ignore them.
+    return true;
+  }
+  
+  // calculate the type of object and the id of the object to search for.
+  string ltype;
+  string iid;
+  string pfield;
+  if (Storage::instance()->parentInfo(type, &pfield, &ltype)) {
+    auto iparent = Json::getString(obj, pfield);
+    if (!iparent) {
+      BOOST_LOG_TRIVIAL(error) << "shouldSendDown obj has no parent field";
+      return false;
+    }
+    iid = iparent.value();
+  }
+  else {
+    ltype = type;
+    iid = id;
+  }
+  
+  return anyNodesListening(ltype, iid);
+  
 }
 
 bool Server::isParentUpstream(const string &type, boost::json::object &obj) {
@@ -1426,9 +1446,32 @@ bool Server::isParentUpstream(const string &type, boost::json::object &obj) {
 
 }
 
-bool Server::shouldSendUp(const string &type, boost::json::object &obj) {
+bool Server::isParentUpstream(const string &ptype, const string &origparent) {
 
-  BOOST_LOG_TRIVIAL(trace) << "shouldSendUp " << _upstreamId << " obj " << obj;
+  BOOST_LOG_TRIVIAL(trace) << "isParentUpstream";
+
+  string coll;
+  if (!Storage::instance()->collName(ptype, &coll)) {
+    return false;
+  }
+  
+  auto result = SchemaImpl::findByIdGeneral(coll, origparent, { "upstream" });
+  if (!result) {
+    BOOST_LOG_TRIVIAL(error) << "Can't find " << origparent;
+    return false;
+  }
+  auto s = result->value();
+  if (s) {
+    auto upstream = Json::getBool(s.value(), "upstream", true);
+    return upstream && upstream.value();
+  }
+
+  BOOST_LOG_TRIVIAL(trace) << "not sending up";
+  
+  return false;
+}
+
+bool Server::isObjUpstream(boost::json::object &obj) {
 
   if (_upstreamId != "") {
     string mirror = get1Info("upstreamMirror");
@@ -1442,15 +1485,8 @@ bool Server::shouldSendUp(const string &type, boost::json::object &obj) {
       return true;
     }
   }
-  
-  if (isParentUpstream(type, obj)) {
-    BOOST_LOG_TRIVIAL(trace) << type << " parent upstream, sending up";
-    return true;
-  }
-  
-  BOOST_LOG_TRIVIAL(trace) << "not sending up";
-  
   return false;
+  
 }
 
 void Server::sendUpd(const string &type, const string &id, boost::json::object &obj) {
@@ -1465,8 +1501,14 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
     return;
   }
   
-  bool up = shouldSendUp(type, obj);
-  bool down = shouldSendDown("update", type, id, obj);
+  bool up = isObjUpstream(obj);
+  if (!up) {
+    up = isParentUpstream(type, obj);
+  }
+  bool down = hasValidNodes();
+  if (!down) {
+    down = shouldSendDown("update", type, id, obj);
+  }
   
   if (!up && !down) {
     BOOST_LOG_TRIVIAL(trace) << "not sending up or down";
@@ -1506,8 +1548,14 @@ void Server::sendAdd(const string &type, boost::json::object &obj) {
     BOOST_LOG_TRIVIAL(warning) << "skipping add, but obj id ";
   }
     
-  bool up = shouldSendUp(type, obj);
-  bool down = shouldSendDown("add", type, id.value(), obj);
+  bool up = isObjUpstream(obj);
+  if (!up) {
+    up = isParentUpstream(type, obj);
+  }
+  bool down = hasValidNodes();
+  if (!down) {
+    down = shouldSendDown("add", type, id.value(), obj);
+  }
   
   if (!up && !down) {
     BOOST_LOG_TRIVIAL(trace) << "not sending";
@@ -1527,6 +1575,63 @@ void Server::sendAdd(const string &type, boost::json::object &obj) {
     }
   };
   
+  setSrc(&msg);
+  if (down) {
+    pubDown(msg);
+  }
+  msg["dest"] = _upstreamId;
+  if (up) {
+    sendDataReq(nullopt, msg);
+  }
+
+}
+
+void Server::sendMov(const string &type, const string &id, boost::json::object &obj, const string &ptype, const string &origparent) {
+
+  BOOST_LOG_TRIVIAL(trace) << "sendMov" << type;
+
+  if (!isValidId(id)) {
+    BOOST_LOG_TRIVIAL(warning) << "skipping mov, obj id is not valid" << id;
+    return;
+  }
+  if (!validateId(obj, id)) {
+    return;
+  }
+  
+  bool up = isObjUpstream(obj);
+  if (!up) {
+    up = isParentUpstream(type, obj);
+  }
+  if (!up) {
+    up = isParentUpstream(ptype, origparent);
+  }
+  bool down = hasValidNodes();
+  if (!down) {
+    down = anyNodesListening(ptype, origparent);
+  }
+  if (!down) {
+    down = shouldSendDown("move", type, id, obj);
+  }
+  
+  if (!up && !down) {
+    BOOST_LOG_TRIVIAL(trace) << "not sending up or down";
+    return;
+  }
+  
+  if (obj.empty()) {
+    return;
+  }
+
+  boost::json::object msg = {
+    { "type", "mov" },
+    { "data", {
+      { "type", type },
+      { "id", id },
+      { "obj", obj },
+      { "orig", origparent }
+      }
+    }
+  };
   setSrc(&msg);
   if (down) {
     pubDown(msg);

@@ -20,7 +20,7 @@ namespace nodes {
 
 void updDrMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "upd (dr) " << j;
+  BOOST_LOG_TRIVIAL(trace) << "upd or mov (dr) " << j;
        
   auto dest = Json::getString(j, "dest");
   if (!dest) {

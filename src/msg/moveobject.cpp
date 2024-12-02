@@ -35,21 +35,21 @@ void moveObjectMsg(Server *server, json &j) {
     return;
   }
 
-  // get the collection name.
-  string coll;
-  if (!Storage::instance()->collName(parenttype, &coll)) {
+  // get the parent collection name.
+  string pcoll;
+  if (!Storage::instance()->collName(parenttype, &pcoll)) {
     server->sendErr("Could not get collection name for move object");
     return;
   }
   
-  auto collid = Json::getString(j, "coll");
-  if (!collid) {
+  auto pcollid = Json::getString(j, "coll");
+  if (!pcollid) {
     server->sendErr("no coll");
     return;
   }
 
-  if (!SchemaImpl::existsGeneral(coll, collid.value())) {
-    server->sendErr("collection does not exist to move to " + collid.value());
+  if (!SchemaImpl::existsGeneral(pcoll, pcollid.value())) {
+    server->sendErr("collection does not exist to move to " + pcollid.value());
     return;
   }
   
@@ -65,13 +65,65 @@ void moveObjectMsg(Server *server, json &j) {
     return;
   }
   
+  // get the collection name.
+  string coll;
+  if (!Storage::instance()->collName(objtype.value(), &coll, false)) {
+    server->sendErr("Could not get collection name for Handler::update");
+    return;
+  }
+  
+  auto result = SchemaImpl::findByIdGeneral(coll, id.value(), {});
+  if (!result) {
+    server->sendErr(objtype.value() + " can't find");
+    return;
+  }
+  auto orig = result->value();
+  if (!orig) {
+    server->sendErr(objtype.value() + " not found");
+    return;
+  }
+  
+  BOOST_LOG_TRIVIAL(trace) << objtype.value() << " old value " << orig.value();
+  
+  auto origparent = Json::getString(orig.value(), parentfield);
+  if (!origparent) {
+    server->sendErr("parent field not found");
+    return;
+  }
+
+  if (!Security::instance()->canEdit(pcoll, me, origparent.value())) {
+    BOOST_LOG_TRIVIAL(error) << "no edit for " << objtype.value() << " " << id.value();
+    server->sendSecurity();
+    return;
+  }
+  
   // Set the parent field of the object.
   boost::json::object obj = {
-    { parentfield, collid.value() }
+    { parentfield, pcollid.value() }
   };
 
-  Handler::update(server, objtype.value(),  id.value(), 
-    Json::getString(j, "me", true), nullopt, &obj);
+  obj["modifyDate"] = Storage::instance()->getNow();
+  
+  // send to other nodes.
+  boost::json::object obj2 = obj;
+  if (orig.value().as_object().if_contains("upstream")) {
+    obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
+  }
+  server->sendMov(objtype.value(), id.value(), obj2, parenttype, origparent.value());
+    
+  // update locally
+  BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
+  auto r = SchemaImpl::updateGeneralById(coll, id.value(), {
+    { "$set", obj }
+  });
+  if (!r) {
+    server->sendErr("could not update " + objtype.value());
+    return;
+  }
+  
+  // and reply back
+  BOOST_LOG_TRIVIAL(trace) << "updated " << r.value();
+  server->sendAck();
 
 }
 
