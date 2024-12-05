@@ -206,10 +206,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Connecting and synchronizing with upstream servers. 
-
-All of teams, users, streams and policies should all be able to be synchronized, and Nodes (OSS)
-should be able to be an upstream server.
+### Testing and release 
 
 ## License
 
