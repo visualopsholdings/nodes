@@ -134,7 +134,6 @@ all from source.
 #### MongoDB
 
 [Instructions](https://github.com/visualopsholdings/nodes-devops/blob/main/dev/MONGO.md)
-On OS X or Linux:
 
 ### This project
 
