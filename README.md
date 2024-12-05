@@ -80,7 +80,7 @@ tools you might need.
 
 Ok your back!!!!
 
-No this project can be found as the folder nodes-web in the thing you just setup. The next step
+This project can be found as the folder "nodes" in the thing you just setup. The next step
 is to remove that folder and pull the SOURCE from git with:
 
 ```
