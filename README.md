@@ -174,7 +174,7 @@ export NODES_HOME=/where/nodes/went
 You can run tests that build multiple servers and run tests between then with:
 
 ```
-ci/allnodetests1.sh
+ci/allnodetests.sh
 ```
 
 ## Testing dependencies
