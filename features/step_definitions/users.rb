@@ -15,7 +15,7 @@ When('she sends user {string}') do |name|
 end
 
 When('she sends user with id {string}') do |u|
-   $lastResult = Send({ "type": "user" , "user": u })
+   $lastResult = Send({ "type": "user" , "user": get_id(u) })
 end
 
 Then('she receives user {string}') do |name|
@@ -29,7 +29,7 @@ Then('she sends delete user {string}') do |fullname|
 end
 
 When('she sends add user from upstream with {string}') do |id|
-   $lastResult = Send({ "type": "adduser", "upstream": true, "id": id })
+   $lastResult = Send({ "type": "adduser", "upstream": true, "id": get_id(id) })
 end
 
 When('she sends set user name of {string} to {string}') do |name, newname|
@@ -51,17 +51,17 @@ Then('she sends purge users') do
 end
 
 When('she sends user {string} to upstream') do |id|
-   $lastResult = SendTo({ "type": "user" , "user": id }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "user" , "user": get_id(id) }, getUpstreamPort())
 end
 
 When('she sends set user fullname of {string} to {string} to upstream') do |u, newname|
-   $lastResult = SendTo({ "type": "setuser", "id": u, "fullname": newname }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "setuser", "id": get_id(u), "fullname": newname }, getUpstreamPort())
 end
 
 When('she sends user {string} to downstream {int}') do |id, n|
-   $lastResult = SendTo({ "type": "user" , "user": id }, getDownstreamPort(n))
+   $lastResult = SendTo({ "type": "user" , "user": get_id(id) }, getDownstreamPort(n))
 end
 
 When('she sends add user from upstream with {string} to downstream {int}') do |id, n|
-   $lastResult = SendTo({ "type": "adduser", "upstream": true, "id": id }, getDownstreamPort(n))
+   $lastResult = SendTo({ "type": "adduser", "upstream": true, "id": get_id(id) }, getDownstreamPort(n))
 end

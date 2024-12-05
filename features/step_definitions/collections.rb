@@ -21,7 +21,7 @@ When('she sends collection {string} as {string}') do |name, user|
 end
 
 When('she sends collection with id {string}') do |id|
-   $lastResult = Send({ "type": "object", "objtype": "collection", "id": id })
+   $lastResult = Send({ "type": "object", "objtype": "collection", "id": get_id(id) })
 end
 
 Then('she receives collection {string}') do |name|
@@ -84,7 +84,7 @@ When('she sends set collection name of {string} to {string}') do |name, newname|
 end
 
 When('she sends collection {string} to upstream') do |id|
-   $lastResult = SendTo({ "type": "object", "objtype": "collection", "id": id }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "object", "objtype": "collection", "id": get_id(id) }, getUpstreamPort())
 end
 
 Then('she sends collections to upstream') do
@@ -92,23 +92,23 @@ Then('she sends collections to upstream') do
 end
 
 When('she sends collection {string} to downstream {int}') do |id, n|
-   $lastResult = SendTo({ "type": "object", "objtype": "collection", "id": id }, getDownstreamPort(n))
+   $lastResult = SendTo({ "type": "object", "objtype": "collection", "id": get_id(id) }, getDownstreamPort(n))
 end
 
 When('she sends set collection name of {string} to {string} to upstream') do |id, newname|
-   $lastResult = SendTo({ "type": "setobject", "objtype": "collection", "id": id, "name": newname }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "setobject", "objtype": "collection", "id": get_id(id), "name": newname }, getUpstreamPort())
 end
 
 When('she sends add collection {string} as {string} to downstream {int}') do |name, user, n|
-   $lastResult = SendTo({ "type": "addobject", "objtype": "collection", "me": user, "name": name }, getDownstreamPort(n))
+   $lastResult = SendTo({ "type": "addobject", "objtype": "collection", "me": get_id(user), "name": name }, getDownstreamPort(n))
 end
 
 When('she sends add collection {string} as {string} to upstream') do |name, user|
-   $lastResult = SendTo({ "type": "addobject", "objtype": "collection", "me": user, "name": name }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "addobject", "objtype": "collection", "me": get_id(user), "name": name }, getUpstreamPort())
 end
 
 When('she sends add collection from upstream with {string}') do |id|
-   $lastResult = Send({ "type": "addobject", "objtype": "collection", "upstream": true, "id": id })
+   $lastResult = Send({ "type": "addobject", "objtype": "collection", "upstream": true, "id": get_id(id) })
 end
 
 When('she sends add collection from upstream with saved collection') do

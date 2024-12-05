@@ -90,6 +90,10 @@ void Security::addTo(vector<string> *v, const string &val) {
 Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const json &query, const vector<string> &fields) {
 
   if (me) {
+    if (!isValidId(me.value())) {
+      BOOST_LOG_TRIVIAL(error) << "me is not a valid Id.";
+      return shared_ptr<ResultImpl>(0);
+    }
     GroupViewPermissions groupviews;
     UserViewPermissions userviews;
     return SchemaImpl::findGeneral(collection, withQuery(groupviews, userviews, me.value(), query), fields);
@@ -102,6 +106,10 @@ Result<DynamicRow> Security::withView(const string &collection, optional<string>
 Result<DynamicRow> Security::withEdit(const string &collection, optional<string> me, const json &query, const vector<string> &fields) {
 
   if (me) {
+    if (!isValidId(me.value())) {
+      BOOST_LOG_TRIVIAL(error) << "me is not a valid Id.";
+      return shared_ptr<ResultImpl>(0);
+    }
     GroupEditPermissions groupedits;
     UserEditPermissions useredits;
     return SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), query), fields);
@@ -114,6 +122,10 @@ Result<DynamicRow> Security::withEdit(const string &collection, optional<string>
 bool Security::canEdit(const string &collection, optional<string> me, const string &id) {
 
   if (me) {
+    if (!isValidId(me.value())) {
+      BOOST_LOG_TRIVIAL(error) << "me is not a valid Id.";
+      return false;
+    }
     GroupEditPermissions groupedits;
     UserEditPermissions useredits;
     auto result = SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), json{ { "_id", { { "$oid", id } } } }), {});
@@ -600,5 +612,9 @@ string Security::newPassword() {
   RAND_bytes(password, sizeof(password));
   return boost::algorithm::hex(string((const char *)password, sizeof(password)));
 
+}
+
+bool Security::isValidId(const string &id) {
+  return id.size() == 24;
 }
 

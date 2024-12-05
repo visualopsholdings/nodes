@@ -11,15 +11,15 @@ Feature: Downstream 5 Test
 
       And there are users:
          | name   | admin  | fullname  | ui              | uibits    | id                         | modifyDate    |
-         | admin  | true   | Admin     | conversations   | 293853    | 56348765b4d6976b478e1bd7   | Dec 4 2021    |
-         | public | false  | Public    | conversations   | 7340036   | 5ed64555155a1f6043b954e7   | Apr 8 2021    |
+         | admin  | true   | Admin     | conversations   | 293853    | $admin   | Dec 4 2021    |
+         | public | false  | Public    | conversations   | 7340036   | $public   | Apr 8 2021    |
          
       And there are groups:
-         | name         | id                       | modifyDate   |
-         | Admin        | 581c6d3bd81902a173c3ecd2 | Apr 8 2021   |
-         | Everybody    | 601aa304d7a55b33de48707a | Apr 8 2021   |
-         | Invited      | 601ce314d7a55b33de48bcd4 | Apr 8 2021   |
-         | Public       | 5ef34b9a7264281391b4c72e | Apr 8 2021   |
+         | name         | id           | modifyDate   |
+         | Admin        | $Admin       | Apr 8 2021   |
+         | Everybody    | $Everybody   | Apr 8 2021   |
+         | Invited      | $Invited     | Apr 8 2021   |
+         | Public       | $Public      | Apr 8 2021   |
          
       And there are policies:
          | name   | viewgroup             | editgroup                   | execgroup    |
@@ -39,8 +39,8 @@ Feature: Downstream 5 Test
          | public     |
          
       And there are collections:
-         | name             | policy | id                        | modifyDate |
-         | Login Messages   | p1     | 61a7e24ab7726a10fd5254d4  | Jan 19 2018 |
+         | name             | policy | id                | modifyDate |
+         | Login Messages   | p1     | $Login Messages   | Jan 19 2018 |
 
       And the server has infos:
          | type            | text            |

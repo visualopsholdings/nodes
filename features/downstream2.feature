@@ -3,12 +3,12 @@ Feature: Downstream 2 Test
 
    Background:
       And there are users:
-         | name      | fullname           | id                          | upstream  | modifyDate   | ui              | uibits    | admin  |
-         | tracy     | Tracy              | 6121bdfaec9e5a059715739c    | true      | 1 Jan 2022   | conversations   | 293853    | true   |
+         | name      | fullname           | id        | upstream  | modifyDate   | ui              | uibits    | admin  |
+         | tracy     | Tracy              | $tracy    | true      | 1 Jan 2022   | conversations   | 293853    | true   |
          
       And there are groups:
-         | name               | id                          | upstream  | modifyDate   |
-         | Team 1             | 613d8641ec9e5a6c4785d6d2    | true      | 1 Jan 2022   |
+         | name               | id        | upstream  | modifyDate   |
+         | Team 1             | $Team 1   | true      | 1 Jan 2022   |
          
       And there are users in group "Team 1":
          | name      |
@@ -16,18 +16,18 @@ Feature: Downstream 2 Test
          
       And there are policies:
          | name   | viewuser           | viewgroup | edituser           | editgroup | execuser           | execgroup | id                       | 
-         | p1     |                    | Team 1    |                    | Team 1    |                    | Team 1    | 6386dbabddf5aaf74ca1e1f6 |
-         | p3     | tracy              |           | tracy              |           | tracy              |           | 64365effddf5aa03b2c092a3 |
+         | p1     |                    | Team 1    |                    | Team 1    |                    | Team 1    | $All Team 1 Policy |
+         | p3     | tracy              |           | tracy              |           | tracy              |           | $All Tracy Policy |
          
       And groups have policies:
          | name         | policy |
          | Team 1       | p1     |
  
       And there are collections:
-         | name                  | id                          | upstream  | modifyDate   | policy |
-         | Shared Collection     | 61a0b4de98499a20f0768351    | true      | 1 Jan 2022   | p1     |
-         | Shared 2 Collection   | 63c0c08e337cce14a54e0517    | true      | 2 Jan 2022   | p1     |
-         | Collection 4          | 637aa99202e727169a58282f    |           | 2 Jan 2022   | p1     |
+         | name                  | id                    | upstream  | modifyDate   | policy |
+         | Shared Collection     | $Shared Collection    | true      | 1 Jan 2022   | p1     |
+         | Shared 2 Collection   | $Shared 2 Collection  | true      | 2 Jan 2022   | p1     |
+         | Collection 4          | $Collection 4         |           | 2 Jan 2022   | p1     |
 
       And the server has id "14ee64a1-d68f-4f6f-862a-d1ea23210010"
       And the server has privateKey "ul(R&i4F6yjAI8+iZD&8*/2p4Uk7VESxs9NnwdLB"

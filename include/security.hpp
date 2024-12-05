@@ -145,7 +145,8 @@ private:
   boost::json::object makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
   void removeAt(json *obj, const string &fullpath);
   void addPolicy(json *obj, const string &type, const string &context, const string &id);
-
+  bool isValidId(const string &id);
+  
 };
 
 #endif // H_security

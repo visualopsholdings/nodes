@@ -1475,7 +1475,7 @@ bool Server::isParentUpstream(const string &ptype, const string &origparent) {
 
 bool Server::hasUpstream() {
 
-  BOOST_LOG_TRIVIAL(trace) << "isObjUpstream";
+  BOOST_LOG_TRIVIAL(trace) << "hasUpstream " << _upstreamId;
 
   return _upstreamId != "";
   
@@ -1512,12 +1512,16 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
     return;
   }
   
-  bool up = hasUpstream() && isObjUpstream(obj);
-  if (!up) {
-    up = isObjParentUpstream(type, obj);
+  bool up = false;
+  if (hasUpstream()) {
+    up = isObjUpstream(obj);
+    if (!up) {
+      up = isObjParentUpstream(type, obj);
+    }
   }
-  bool down = hasValidNodes();
-  if (!down) {
+  
+  bool down = false;
+  if (hasValidNodes()) {
     down = shouldSendDown("update", type, id, obj);
   }
   
@@ -1559,12 +1563,15 @@ void Server::sendAdd(const string &type, boost::json::object &obj) {
     BOOST_LOG_TRIVIAL(warning) << "skipping add, but obj id ";
   }
     
-  bool up = hasUpstream() && isObjUpstream(obj);
-  if (!up) {
-    up = isObjParentUpstream(type, obj);
+  bool up = false;
+  if (hasUpstream()) {
+    up = isObjUpstream(obj);
+    if (!up) {
+      up = isObjParentUpstream(type, obj);
+    }
   }
-  bool down = hasValidNodes();
-  if (!down) {
+  bool down = false;
+  if (hasValidNodes()) {
     down = shouldSendDown("add", type, id.value(), obj);
   }
   
@@ -1609,19 +1616,22 @@ void Server::sendMov(const string &type, const string &id, boost::json::object &
     return;
   }
   
-  bool up = hasUpstream() && isObjUpstream(obj);
-  if (!up) {
-    up = isObjParentUpstream(type, obj);
+  bool up = false;
+  if (hasUpstream()) {
+    up = isObjUpstream(obj);
+    if (!up) {
+      up = isObjParentUpstream(type, obj);
+    }
+    if (!up) {
+      up = isParentUpstream(ptype, origparent);
+    }
   }
-  if (!up) {
-    up = isParentUpstream(ptype, origparent);
-  }
-  bool down = hasValidNodes();
-  if (!down) {
+  bool down = false;
+  if (hasValidNodes()) {
     down = anyNodesListening(ptype, origparent);
-  }
-  if (!down) {
-    down = shouldSendDown("move", type, id, obj);
+    if (!down) {
+      down = shouldSendDown("move", type, id, obj);
+    }
   }
   
   if (!up && !down) {

@@ -320,6 +320,7 @@ BOOST_AUTO_TEST_CASE( canEdit )
   
   BOOST_CHECK(Security::instance()->canEdit("collections", tracy, collection.value()));
   BOOST_CHECK(!Security::instance()->canEdit("collections", leanne, collection.value()));
+  BOOST_CHECK(!Security::instance()->canEdit("collections", "$tracy", collection.value()));
 }
 
 BOOST_AUTO_TEST_CASE( getPolicyLines )

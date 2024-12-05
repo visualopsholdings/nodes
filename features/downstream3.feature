@@ -7,20 +7,20 @@ Feature: Downstream 3 Test
          | fred      | true   | Fred      | conversations   | 293853    |
 
       And there are users:
-         | name   | fullname           | id                          | upstream  | modifyDate   | ui              | uibits    | admin  |
-         | tracy  | Tracy              | 6121bdfaec9e5a059715739c    | true      | 1 Jan 2022   | conversations   | 293853    | true   |
+         | name   | fullname           | id        | upstream  | modifyDate   | ui              | uibits    | admin  |
+         | tracy  | Tracy              | $tracy    | true      | 1 Jan 2022   | conversations   | 293853    | true   |
 
       And there are groups:
          | name               | id                          | upstream  | modifyDate   |
-         | Team 1 Y           | 613d8641ec9e5a6c4785d6d2    | true      | 3 Jan 2022   |
+         | Team 1 Y           | $Team 1    | true      | 3 Jan 2022   |
          
       And there are users in group "Team 1 Y":
          | name      |
          | tracy     |
          
       And there are policies:
-         | name   | viewuser           | viewgroup | edituser           | editgroup | execuser           | execgroup | id                       | 
-         | p1     |                    | Team 1 Y  |                    | Team 1 Y  |                    | Team 1 Y  | 6386dbabddf5aaf74ca1e1f6 |
+         | name   | viewuser           | viewgroup | edituser           | editgroup | execuser           | execgroup | id                 | 
+         | p1     |                    | Team 1 Y  |                    | Team 1 Y  |                    | Team 1 Y  | $All Team 1 Policy |
          
       And there are groups:
          | name        |
@@ -31,9 +31,9 @@ Feature: Downstream 3 Test
          | Team 1 Y     | p1     |
  
       And there are collections:
-         | name               | id                          | upstream  | modifyDate   | policy |
-         | Shared Collection  | 61a0b4de98499a20f0768351    | true      | 1 Jan 2022   | p1     |
-         | Collection 4       | 637aa99202e727169a58282f    | true      | 4 Jan 2022   | p1     |
+         | name               | id                    | upstream  | modifyDate   | policy |
+         | Shared Collection  | $Shared Collection    | true      | 1 Jan 2022   | p1     |
+         | Collection 4       | $Collection 4         | true      | 4 Jan 2022   | p1     |
 
       And there are 5 generated objs in collection "Shared Collection" from "fred" with policy "p1"
 

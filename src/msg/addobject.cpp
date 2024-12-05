@@ -47,6 +47,8 @@ void addObjectMsg(Server *server, json &j) {
     return;
   }
   
+  json obj;
+
   // if the object has a parent, then we use the security of the parent.
   string parentfield;
   string parenttype;
@@ -96,15 +98,13 @@ void addObjectMsg(Server *server, json &j) {
     }
 
     // how do we know to add user and not active?
-    json obj = {
+    obj = {
       { namefield, name.value() },
       { "policy", policyid },
       { "modifyDate", Storage::instance()->getNow() },
       { parentfield, parentid.value() },
       { "user", me.value() }
     };
-
-    Handler::add(server, objtype.value(), obj, Json::getString(j, "corr", true));
   }
   else {
     auto name = Json::getString(j, "name");
@@ -118,16 +118,15 @@ void addObjectMsg(Server *server, json &j) {
       return;
     }
     
-    json obj = {
+    obj = {
       { "name", name.value() },
       { "policy", policy.value() },
       { "modifyDate", Storage::instance()->getNow() },
       { "active", true }
     };
-
-    Handler::add(server, objtype.value(), obj, Json::getString(j, "corr", true));
   }
   
+  Handler::add(server, objtype.value(), obj, Json::getString(j, "corr", true));
 
 }
 

@@ -395,6 +395,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 29 Nov 2024
 - Implement "moveobject" message.
 
+### 5 Dec 2024
+- Add many more move tests.
+- Implement ID lookup to cleanup all tests.
 
 
 

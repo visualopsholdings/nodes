@@ -6,7 +6,7 @@ When('she sends obj {string} as {string} to {string}') do |text, user, coll|
 end
 
 When('she sends obj {string} as {string} to saved collection to upstream') do |text, user|
-   $lastResult = SendTo({ "type": "addobject", "objtype": "obj", "me": user, "coll": $savedResult["result"], "text": text, "corr": "1" }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "addobject", "objtype": "obj", "me": get_id(user), "coll": $savedResult["result"], "text": text, "corr": "1" }, getUpstreamPort())
 end
 
 When('she sends delete obj {string} as {string} in {string}') do |text, user, coll|
@@ -29,25 +29,29 @@ Then('she receives {int} objs') do |count|
 end
 
 When('she sends objs for {string} to downstream {int}') do |id, n|
-   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": id }, getDownstreamPort(n))
+   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": get_id(id) }, getDownstreamPort(n))
 end
 
 When('she sends objs for {string} as {string} to downstream {int}') do |id, uid, n|
-   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": id, "me": uid }, getDownstreamPort(n))
+   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": get_id(id), "me": get_id(uid) }, getDownstreamPort(n))
 end
 
 When('she sends objs for {string} to upstream') do |id|
-   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": id }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": get_id(id) }, getUpstreamPort())
 end
 
 When('she sends objs for {string} as {string} to upstream') do |id, uid|
-   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": id, me: uid }, getUpstreamPort())
+   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": get_id(id), me: get_id(uid) }, getUpstreamPort())
 end
 
 When('she sends objs for saved collection to upstream') do
    $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": $savedResult["result"] }, getUpstreamPort())
 end
 
+When('she sends move obj {string} to {string} as {string} to upstream') do |id, coll, uid|
+   $lastResult = SendTo({ "type": "moveobject", "objtype": "obj", "id": get_id(id), "coll": get_id(coll), "me": get_id(uid) }, getUpstreamPort())
+end
+
 When('she sends move obj {string} to {string} as {string} to downstream {int}') do |id, coll, uid, n|
-   $lastResult = SendTo({ "type": "moveobject", "objtype": "obj", "id": id, "coll": coll, "me": uid }, getDownstreamPort(n))
+   $lastResult = SendTo({ "type": "moveobject", "objtype": "obj", "id": get_id(id), "coll": get_id(coll), "me": get_id(uid) }, getDownstreamPort(n))
 end
