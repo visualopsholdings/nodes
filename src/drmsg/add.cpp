@@ -13,14 +13,13 @@
 
 #include "json.hpp"
 #include "storage/schema.hpp"
-
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
 void addDrMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "add (dr) " << j;
+  L_TRACE("add (dr) " << j);
        
   auto dest = Json::getString(j, "dest");
   if (!dest) {
@@ -29,7 +28,7 @@ void addDrMsg(Server *server, json &j) {
   }
   
   if (dest.value() != server->_serverId) {
-   BOOST_LOG_TRIVIAL(trace) << "not for us";
+   L_TRACE("not for us");
    server->sendAckDown();
    return;
   }

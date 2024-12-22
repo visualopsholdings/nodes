@@ -15,7 +15,7 @@
 #include "security.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -24,7 +24,7 @@ void setinfoMsg(Server *server, json &j) {
   auto serverId = Json::getString(j, "serverId");
   if (serverId) {
     if (serverId.value() == "none") {
-      BOOST_LOG_TRIVIAL(trace) << "reset server";
+      L_TRACE("reset server");
       if (server->resetServer()) {
         server->_reload = true;
       }

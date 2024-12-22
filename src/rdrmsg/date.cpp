@@ -13,13 +13,13 @@
 
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
 void dateMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "date " << j;
+  L_TRACE("date " << j);
      
   if (!server->_online) {
     server->sendUpOnline();

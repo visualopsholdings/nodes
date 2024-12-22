@@ -15,7 +15,7 @@
 #include "security.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -42,7 +42,7 @@ void objectMsg(Server *server, json &j) {
   auto doc = Security::instance()->withView(coll, Json::getString(j, "me", true), 
     {{ { "_id", { { "$oid", id.value() } } } }}).value();
   if (!doc) {
-    BOOST_LOG_TRIVIAL(error) << "no object to view";
+    L_ERROR("no object to view");
     server->sendSecurity();
     return;
   }

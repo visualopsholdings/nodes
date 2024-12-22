@@ -19,8 +19,8 @@
 #include "encrypter.hpp"
 #include "security.hpp"
 #include "date.hpp"
+#include "log.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp> 
@@ -115,11 +115,11 @@ Server::Server(bool test, bool noupstream,
   _context.reset(new zmq::context_t(1));
   _pub.reset(new zmq::socket_t(*_context, ZMQ_PUB));
   _pub->bind("tcp://127.0.0.1:" + to_string(pub));
-	BOOST_LOG_TRIVIAL(info) << "Bound to ZMQ as Local PUB on " << pub;
+	L_INFO("Bound to ZMQ as Local PUB on " << pub);
 
   _rep.reset(new zmq::socket_t(*_context, ZMQ_REP));
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
-	BOOST_LOG_TRIVIAL(info) << "Bound to ZMQ as Local REP on " << rep;
+	L_INFO("Bound to ZMQ as Local REP on " << rep);
 
   _messages["certs"] = bind(&nodes::certsMsg, this, placeholders::_1);
   _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
@@ -196,8 +196,8 @@ Server::~Server() {
   
 void Server::runUpstreamOnly() {
 
-  BOOST_LOG_TRIVIAL(trace) << "running with upstream only";
-  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  L_TRACE("running with upstream only");
+  L_INFO("init nodes");
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 },
       { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
@@ -212,11 +212,11 @@ void Server::runUpstreamOnly() {
       sendUpHeartbeat();
     }
     else {
-//      BOOST_LOG_TRIVIAL(trace) << "not online yet";
+//      L_TRACE("not online yet");
     }
     _remoteMsgSub->check();
 
-//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+//    L_DEBUG("polling for messages");
     zmq::message_t message;
     zmq::poll(&items[0], 3, timeout);
   
@@ -238,8 +238,8 @@ void Server::runUpstreamOnly() {
 
 void Server::runUpstreamDownstream() {
 
-  BOOST_LOG_TRIVIAL(trace) << "running with upstream and downstream";
-  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  L_TRACE("running with upstream and downstream");
+  L_INFO("init nodes");
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 },
       { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
@@ -255,11 +255,11 @@ void Server::runUpstreamDownstream() {
       sendUpHeartbeat();
     }
     else {
-//      BOOST_LOG_TRIVIAL(trace) << "not online yet";
+//      L_TRACE("not online yet");
     }
     _remoteMsgSub->check();
 
-//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+//    L_DEBUG("polling for messages");
     zmq::message_t message;
     zmq::poll(&items[0], 4, timeout);
   
@@ -286,15 +286,15 @@ void Server::runUpstreamDownstream() {
 
 void Server::runStandalone() {
 
-  BOOST_LOG_TRIVIAL(trace) << "running standalone";
-  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  L_TRACE("running standalone");
+  L_INFO("init nodes");
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 }
   };
   const std::chrono::milliseconds timeout{500};
   while (!_reload) {
   
-//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+//    L_DEBUG("polling for messages");
     zmq::message_t message;
     zmq::poll(&items[0], 1, timeout);
   
@@ -309,8 +309,8 @@ void Server::runStandalone() {
 
 void Server::runDownstreamOnly() {
 
-  BOOST_LOG_TRIVIAL(trace) << "running downstream only";
-  BOOST_LOG_TRIVIAL(info) << "init nodes";
+  L_TRACE("running downstream only");
+  L_INFO("init nodes");
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 },
       { _dataRep->socket(), 0, ZMQ_POLLIN, 0 }
@@ -318,7 +318,7 @@ void Server::runDownstreamOnly() {
   const std::chrono::milliseconds timeout{500};
   while (!_reload) {
   
-//    BOOST_LOG_TRIVIAL(debug) << "polling for messages";
+//    L_DEBUG("polling for messages");
     zmq::message_t message;
     zmq::poll(&items[0], 2, timeout);
   
@@ -362,7 +362,7 @@ void Server::run() {
 
 bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers ) {
 
-  BOOST_LOG_TRIVIAL(trace) << "got " << name << " message";
+  L_TRACE("got " << name << " message");
   zmq::message_t reply;
   try {
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
@@ -374,24 +374,24 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
     string r((const char *)reply.data(), reply.size());
     json doc = boost::json::parse(r);
 
-    BOOST_LOG_TRIVIAL(debug) << name << " " << doc;
+    L_DEBUG(name << " " << doc);
 
     auto type = Json::getString(doc, "type");
     if (!type) {
-      BOOST_LOG_TRIVIAL(error) << "no type for " << name << " reply";
+      L_ERROR("no type for " << name << " reply");
       return false;
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "handling " << type.value();
+    L_TRACE("handling " << type.value());
     map<string, msgHandler>::iterator handler = handlers.find(type.value());
     if (handler == handlers.end()) {
-      BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value() << " for " << name;
+      L_ERROR("unknown msg type " << type.value() << " for " << name);
       return false;
     }
     handler->second(doc);
   }
   catch (zmq::error_t &e) {
-    BOOST_LOG_TRIVIAL(warning) << "got exc with " << name << " recv" << e.what() << "(" << e.num() << ")";
+    L_WARNING("got exc with " << name << " recv" << e.what() << "(" << e.num() << ")");
   }
 
   return true;
@@ -402,7 +402,7 @@ void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type, op
 
   json j2 = j;
   if (corr) {
-    BOOST_LOG_TRIVIAL(trace) << "had corr id " << corr.value();
+    L_TRACE("had corr id " << corr.value());
     if (type == "&->") {
       // old servers (NodeJS) still use socket id
       j2.as_object()["socketid"] = corr.value();
@@ -414,7 +414,7 @@ void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type, op
   ss << j2;
   string m = ss.str();
   
-  BOOST_LOG_TRIVIAL(debug) << type << " " << m;
+  L_DEBUG(type << " " << m);
 
 	zmq::message_t msg(m.length());
 	memcpy(msg.data(), m.c_str(), m.length());
@@ -426,7 +426,7 @@ void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type, op
 #endif
   }
   catch (zmq::error_t &e) {
-    BOOST_LOG_TRIVIAL(warning) << "got exc publish" << e.what() << "(" << e.num() << ")";
+    L_WARNING("got exc publish" << e.what() << "(" << e.num() << ")");
   }
 
 }
@@ -447,7 +447,7 @@ json Server::receiveFrom(shared_ptr<zmq::socket_t> socket) {
 void Server::setSrc(boost::json::object *m) {
 
   if (!Json::appendArray(m, "path", _serverId)) {
-    BOOST_LOG_TRIVIAL(error) << _serverId << " is already in the path!";
+    L_ERROR(_serverId << " is already in the path!");
   }
   
 }
@@ -485,17 +485,17 @@ void Server::sendOn(const json &origm) {
 
   auto data = Json::getObject(origm, "data");
   if (!data) {
-    BOOST_LOG_TRIVIAL(error) << "sendOn message has no data";
+    L_ERROR("sendOn message has no data");
     return;
   }
   auto type = Json::getString(data.value(), "type");
   if (!type) {
-    BOOST_LOG_TRIVIAL(error) << "sendOn message data has no type";
+    L_ERROR("sendOn message data has no type");
     return;
   }
   auto obj = Json::getObject(data.value(), "obj");
   if (!obj) {
-    BOOST_LOG_TRIVIAL(error) << "sendOn message data has no obj";
+    L_ERROR("sendOn message data has no obj");
     return;
   }
   
@@ -503,7 +503,7 @@ void Server::sendOn(const json &origm) {
   setSrc(&msg);
 
   if (hasUpstream() && (isObjUpstream(obj.value().as_object()) || isObjParentUpstream(type.value(), obj.value().as_object()))) {
-    BOOST_LOG_TRIVIAL(trace) << "sendOn";
+    L_TRACE("sendOn");
     msg["dest"] = _upstreamId;
     sendDataReq(nullopt, msg);
   }
@@ -514,19 +514,19 @@ void Server::sendOn(const json &origm) {
     id = Json::getString(obj.value(), "id");
   }
   if (!id) {
-    BOOST_LOG_TRIVIAL(error) << "sendOn message data and obj has no id";
+    L_ERROR("sendOn message data and obj has no id");
     return;
   }
   
   if (hasValidNodes() && shouldSendDown("on", type.value(), id.value(), obj.value().as_object())) {
-    BOOST_LOG_TRIVIAL(trace) << "publish down";
+    L_TRACE("publish down");
     pubDown(msg);
   }
 }
 
 void Server::sendErr(const string &msg) {
 
-  BOOST_LOG_TRIVIAL(error) << msg;
+  L_ERROR(msg);
   send({ 
     { "type", "err" }, 
     { "level", "fatal" }, 
@@ -537,7 +537,7 @@ void Server::sendErr(const string &msg) {
 
 void Server::sendErrDown(const string &msg) {
 
-  BOOST_LOG_TRIVIAL(error) << msg;
+  L_ERROR(msg);
   sendDown({ 
     { "type", "err" }, 
     { "level", "fatal" }, 
@@ -548,7 +548,7 @@ void Server::sendErrDown(const string &msg) {
 
 void Server::sendWarning(const string &msg) {
 
-  BOOST_LOG_TRIVIAL(error) << msg;
+  L_ERROR(msg);
   send({ 
     { "type", "err" }, 
     { "level", "warning" }, 
@@ -583,7 +583,7 @@ void Server::sendAckDown(optional<string> result) {
 
 void Server::sendSecurity() {
 
-  BOOST_LOG_TRIVIAL(error) << "security error";
+  L_ERROR("security error");
   send({ 
     { "type", "err" }, 
     { "level", "security" }
@@ -600,7 +600,7 @@ bool Server::testModifyDate(json &j, const json &doc) {
       long mod = Date::fromISODate(Json::getString(doc, "modifyDate").value());
       long t = Date::fromISODate(time.value());
       if (mod <= t) {
-        BOOST_LOG_TRIVIAL(trace) << "not changed " << mod << " <= " << t;
+        L_TRACE("not changed " << mod << " <= " << t);
         return true;
       }
     }
@@ -616,7 +616,7 @@ bool Server::testCollectionChanged(json &j, const string &name) {
     if (time) {
       long changed = Storage::instance()->collectionChanged(name);
       if (changed <= time.value()) {
-        BOOST_LOG_TRIVIAL(trace) << "not changed " << changed << " <= " << time.value();
+        L_TRACE("not changed " << changed << " <= " << time.value());
         return true;
       }
     }
@@ -700,10 +700,10 @@ void Server::connectUpstream() {
 
   int major, minor, patch;
   zmq_version(&major, &minor, &patch);
-  BOOST_LOG_TRIVIAL(info) << "zmq version " << major << "." << minor << "." << patch;
+  L_INFO("zmq version " << major << "." << minor << "." << patch);
   
   if (!zmq_has("curve")) {
-    BOOST_LOG_TRIVIAL(info) << "no curve available";
+    L_INFO("no curve available");
     return;
   }
 
@@ -711,13 +711,13 @@ void Server::connectUpstream() {
   
   auto docs = Info().find({{ "type", { { "$in", {"serverId", "upstream", "upstreamPubKey", "privateKey", "pubKey"}}} }}, {"type", "text"}).values();
   if (!docs) {
-    BOOST_LOG_TRIVIAL(info) << "no infos.";
+    L_INFO("no infos.");
     return;
   }
   
   auto privateKey = Info::getInfo(docs.value(), "privateKey");
   if (!privateKey) {
-    BOOST_LOG_TRIVIAL(error) << "upstream, but no privateKey";
+    L_ERROR("upstream, but no privateKey");
     return;
   }
 
@@ -728,33 +728,33 @@ void Server::connectUpstream() {
 
   auto serverId = Info::getInfo(docs.value(), "serverId");
   if (!serverId) {
-    BOOST_LOG_TRIVIAL(info) << "no serverId.";
+    L_INFO("no serverId.");
     return;
   }
   _serverId = serverId.value();
 
   auto upstream = Info::getInfo(docs.value(), "upstream");
   if (!upstream) {
-    BOOST_LOG_TRIVIAL(info) << "no upstream.";
+    L_INFO("no upstream.");
     return;
   }
   auto upstreamPubKey = Info::getInfo(docs.value(), "upstreamPubKey");
   if (!upstreamPubKey) {
-    BOOST_LOG_TRIVIAL(error) << "upstream, but no upstreamPubKey";
+    L_ERROR("upstream, but no upstreamPubKey");
     return;
   }
   auto pubKey = Info::getInfo(docs.value(), "pubKey");
   if (!pubKey) {
-    BOOST_LOG_TRIVIAL(error) << "upstream, but no pubKey";
+    L_ERROR("upstream, but no pubKey");
     return;
   }
   
   _pubKey =  pubKey.value();
   
-	BOOST_LOG_TRIVIAL(trace) << "upstream: " << upstream.value();
-	BOOST_LOG_TRIVIAL(trace) << "upstreamPubKey: " << upstreamPubKey.value();
-	BOOST_LOG_TRIVIAL(trace) << "privateKey: " << privateKey.value();
-	BOOST_LOG_TRIVIAL(trace) << "_pubKey: " << _pubKey;
+	L_TRACE("upstream: " << upstream.value());
+	L_TRACE("upstreamPubKey: " << upstreamPubKey.value());
+	L_TRACE("privateKey: " << privateKey.value());
+	L_TRACE("_pubKey: " << _pubKey);
 
   _remoteDataReq.reset(new Upstream(this, *_context, ZMQ_REQ, "remoteDataReq", upstream.value(), _remoteDataReqPort, 
     upstreamPubKey.value(), privateKey.value(), _pubKey));
@@ -770,11 +770,11 @@ void Server::connectUpstream() {
 
 void Server::sendUpOnline() {
 
-  BOOST_LOG_TRIVIAL(trace) << "online";
+  L_TRACE("online");
 
   auto doc = Site().find({{}}, {}).value();
   if (!doc) {
-    BOOST_LOG_TRIVIAL(info) << "no site.";
+    L_INFO("no site.");
     return;
   }
   
@@ -817,13 +817,13 @@ bool Server::setInfo(const string &name, const string &text) {
 
   auto doc = Info().find({{ "type", name }}, {"text"}).value();
   if (doc) {
-    BOOST_LOG_TRIVIAL(trace) << "info old value " << doc.value().j();
+    L_TRACE("info old value " << doc.value().j());
     auto result = Info().update({{ "type", name }}, {{ "text", text }});
     if (!result) {
-      BOOST_LOG_TRIVIAL(error) << "could not update info";
+      L_ERROR("could not update info");
       return false;
     }
-    BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+    L_TRACE("updated " << result.value());
     return true;
   }
 
@@ -832,10 +832,10 @@ bool Server::setInfo(const string &name, const string &text) {
     { "text", text }
   });
   if (!result) {
-    BOOST_LOG_TRIVIAL(error) << "could not insert info";
+    L_ERROR("could not insert info");
     return false;
   }
-  BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
+  L_TRACE("inserted " << result.value());
   return true;
   
 }
@@ -846,7 +846,7 @@ bool Server::resetServer() {
   char seckey[41];
   int rc = zmq_curve_keypair(pubkey, seckey);
   if (rc != 0) {
-    BOOST_LOG_TRIVIAL(error) << "failed to generate key pair " << rc;
+    L_ERROR("failed to generate key pair " << rc);
     return false;
   }
   
@@ -941,7 +941,7 @@ void Server::sendUpDiscover() {
   for (auto o: Storage::instance()->_schema) {
     auto type = Json::getString(o, "type");
     if (!type) {
-      BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
+      L_ERROR("type missing in schema obj " << o);
       return;
     }
     
@@ -1031,7 +1031,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
     
     auto type = Json::getString(o, "type");
     if (!type) {
-      BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
+      L_ERROR("type missing in schema obj " << o);
       return;
     }
     
@@ -1043,7 +1043,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
     if (subobj) {
       auto field = Json::getString(subobj.value(), "field");
       if (!field) {
-        BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
+        L_ERROR("field missing in schema subobj " << subobj.value());
         return;
       }
       auto result = SchemaImpl::findGeneral(collname, json{ { "upstream", true } }, { "_id" });
@@ -1052,7 +1052,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
         if (upstreams) {
           auto subtype = Json::getString(subobj.value(), "type");
           if (!subtype) {
-            BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+            L_ERROR("type missing in schema subobj " << subobj.value());
             return;
           }
           string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
@@ -1091,7 +1091,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
     
     auto type = Json::getString(o, "type");
     if (!type) {
-      BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
+      L_ERROR("type missing in schema obj " << o);
       return;
     }
     
@@ -1103,7 +1103,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
     if (subobj) {
       auto field = Json::getString(subobj.value(), "field");
       if (!field) {
-        BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
+        L_ERROR("field missing in schema subobj " << subobj.value());
         return;
       }
       auto result = SchemaImpl::findGeneral(collname, json{{}}, { "_id" });
@@ -1112,7 +1112,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
         if (upstreams) {
           auto subtype = Json::getString(subobj.value(), "type");
           if (!subtype) {
-            BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+            L_ERROR("type missing in schema subobj " << subobj.value());
             return;
           }
           string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
@@ -1144,7 +1144,7 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
   string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "");
   
   if (hasInitialSync != "true") {
-    BOOST_LOG_TRIVIAL(trace) << "no initial sync, nothing to discover locally.";
+    L_TRACE("no initial sync, nothing to discover locally.");
     boost::json::array empty;
     boost::json::object msg = {
       { "type", "discoverLocal" },
@@ -1155,12 +1155,12 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
     return;
   }
   if (upstreamLastSeen == "") {
-    BOOST_LOG_TRIVIAL(error) << "initial sync, but no upstreamLastSeen?";
+    L_ERROR("initial sync, but no upstreamLastSeen?");
     return;
   }
 
   // use the schema to 
-  BOOST_LOG_TRIVIAL(trace) << "upstream since " << upstreamLastSeen;
+  L_TRACE("upstream since " << upstreamLastSeen);
   
   if (upstreamMirror == "true") {
     sendUpDiscoverLocalMirror(upstreamLastSeen, corr);
@@ -1201,7 +1201,7 @@ void Server::sendDownDiscoverResult(json &j) {
     
     auto type = Json::getString(o, "type");
     if (!type) {
-      BOOST_LOG_TRIVIAL(error) << "type missing in schema obj " << o;
+      L_ERROR("type missing in schema obj " << o);
       return;
     }
     
@@ -1210,10 +1210,10 @@ void Server::sendDownDiscoverResult(json &j) {
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
-    BOOST_LOG_TRIVIAL(trace) << lastname;
+    L_TRACE(lastname);
     
     auto objsname = collname;
-    BOOST_LOG_TRIVIAL(trace) << objsname;
+    L_TRACE(objsname);
 
     auto last = Json::getString(j, lastname, true);
     auto objs = Json::getArray(j, objsname, true);
@@ -1231,12 +1231,12 @@ void Server::sendDownDiscoverResult(json &j) {
       if (subobj) {
         auto field = Json::getString(subobj.value(), "field");
         if (!field) {
-          BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
+          L_ERROR("field missing in schema subobj " << subobj.value());
           return;
         }
         auto subtype = Json::getString(subobj.value(), "type");
         if (!subtype) {
-          BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+          L_ERROR("type missing in schema subobj " << subobj.value());
           return;
         }
         string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
@@ -1275,7 +1275,7 @@ void Server::sendDownDiscoverResult(json &j) {
 
 void Server::resetDB() {
  
-  BOOST_LOG_TRIVIAL(info) << "DB reset";
+  L_INFO("DB reset");
   Storage::instance()->allCollectionsChanged();
    
 }
@@ -1285,12 +1285,12 @@ void Server::importObjs(boost::json::array &msgs) {
   for (auto m: msgs) {
     auto type = Json::getString(m, "type");
     if (!type) {
-      BOOST_LOG_TRIVIAL(error) << "msg missing type";
+      L_ERROR("msg missing type");
       continue;
     }
     auto objs = Json::getArray(m, "objs");
     if (!objs) {
-      BOOST_LOG_TRIVIAL(error) << "msg missing objs";
+      L_ERROR("msg missing objs");
       continue;
     }
     
@@ -1303,7 +1303,7 @@ void Server::importObjs(boost::json::array &msgs) {
 
     auto more = Json::getBool(m, "more", true);
     if (more && more.value()) {
-      BOOST_LOG_TRIVIAL(info) << "ignoring more for " << type.value();
+      L_INFO("ignoring more for " << type.value());
       continue;
     }
   }
@@ -1321,7 +1321,7 @@ bool Server::validateId(boost::json::object &obj, const string &id) {
     return true;
   }
   if (objid.value() != id) {
-    BOOST_LOG_TRIVIAL(trace) << "skipping update, ids don't match " << objid.value() << " " << id;
+    L_TRACE("skipping update, ids don't match " << objid.value() << " " << id);
     return false;
   }
   return true;
@@ -1347,7 +1347,7 @@ vector<string> Server::getNodeIds(const string &type) {
       }
     }
   }
-  BOOST_LOG_TRIVIAL(trace) << "getNodeIds " << boost::algorithm::join(ids, ", ");
+  L_TRACE("getNodeIds " << boost::algorithm::join(ids, ", "));
   
   return ids;
 
@@ -1355,12 +1355,12 @@ vector<string> Server::getNodeIds(const string &type) {
 
 bool Server::hasValidNodes() {
 
-  BOOST_LOG_TRIVIAL(trace) << "hasValidNodes";
+  L_TRACE("hasValidNodes");
 
   if (_dataRep) {
     auto nodes = Node().find(json{ { "valid", true }}).values();
     if (!nodes || nodes.value().size() == 0) {
-      BOOST_LOG_TRIVIAL(trace) << "skipping send down mov nobody listening at all";
+      L_TRACE("skipping send down mov nobody listening at all");
       return false;
     }
     return true;
@@ -1372,21 +1372,21 @@ bool Server::hasValidNodes() {
 
 bool Server::anyNodesListening(const string &type, const string &id) {
 
-  BOOST_LOG_TRIVIAL(trace) << "anyNodesListening";
+  L_TRACE("anyNodesListening");
 
   // search for it.
   auto ids = getNodeIds(type);
   if (find(ids.begin(), ids.end(), "*") != ids.end() || find(ids.begin(), ids.end(), id) != ids.end()) {
     return true;
   }
-  BOOST_LOG_TRIVIAL(trace) << "skipping mov nobody listening " << type << " " << id;
+  L_TRACE("skipping mov nobody listening " << type << " " << id);
   return false;
 
 }
 
 bool Server::shouldSendDown(const string &action, const string &type, const string &id, boost::json::object &obj) {
 
-  BOOST_LOG_TRIVIAL(trace) << "shouldSendDown";
+  L_TRACE("shouldSendDown");
 
   if (action == "add") {
     // always send adds, people can't be listening to them.
@@ -1401,7 +1401,7 @@ bool Server::shouldSendDown(const string &action, const string &type, const stri
   if (Storage::instance()->parentInfo(type, &pfield, &ltype)) {
     auto iparent = Json::getString(obj, pfield);
     if (!iparent) {
-      BOOST_LOG_TRIVIAL(error) << "shouldSendDown obj has no parent field";
+      L_ERROR("shouldSendDown obj has no parent field");
       return false;
     }
     iid = iparent.value();
@@ -1417,14 +1417,14 @@ bool Server::shouldSendDown(const string &action, const string &type, const stri
 
 bool Server::isObjParentUpstream(const string &type, boost::json::object &obj) {
 
-  BOOST_LOG_TRIVIAL(trace) << "isObjParentUpstream";
+  L_TRACE("isObjParentUpstream");
 
   string ptype;
   string pfield;
   if (Storage::instance()->parentInfo(type, &pfield, &ptype)) {
     auto iparent = Json::getString(obj, pfield);
     if (!iparent) {
-      BOOST_LOG_TRIVIAL(error) << "obj is missing " << pfield;
+      L_ERROR("obj is missing " << pfield);
       return false;
     }
     string coll;
@@ -1434,7 +1434,7 @@ bool Server::isObjParentUpstream(const string &type, boost::json::object &obj) {
 
     auto result = SchemaImpl::findByIdGeneral(coll, iparent.value(), { "upstream" });
     if (!result) {
-      BOOST_LOG_TRIVIAL(error) << "Can't find " << iparent.value();
+      L_ERROR("Can't find " << iparent.value());
       return false;
     }
     
@@ -1450,7 +1450,7 @@ bool Server::isObjParentUpstream(const string &type, boost::json::object &obj) {
 
 bool Server::isParentUpstream(const string &ptype, const string &origparent) {
 
-  BOOST_LOG_TRIVIAL(trace) << "isParentUpstream";
+  L_TRACE("isParentUpstream");
 
   string coll;
   if (!Storage::instance()->collName(ptype, &coll)) {
@@ -1459,7 +1459,7 @@ bool Server::isParentUpstream(const string &ptype, const string &origparent) {
   
   auto result = SchemaImpl::findByIdGeneral(coll, origparent, { "upstream" });
   if (!result) {
-    BOOST_LOG_TRIVIAL(error) << "Can't find " << origparent;
+    L_ERROR("Can't find " << origparent);
     return false;
   }
   auto s = result->value();
@@ -1468,14 +1468,14 @@ bool Server::isParentUpstream(const string &ptype, const string &origparent) {
     return upstream && upstream.value();
   }
 
-  BOOST_LOG_TRIVIAL(trace) << "not sending up";
+  L_TRACE("not sending up");
   
   return false;
 }
 
 bool Server::hasUpstream() {
 
-  BOOST_LOG_TRIVIAL(trace) << "hasUpstream " << _upstreamId;
+  L_TRACE("hasUpstream " << _upstreamId);
 
   return _upstreamId != "";
   
@@ -1483,16 +1483,16 @@ bool Server::hasUpstream() {
 
 bool Server::isObjUpstream(boost::json::object &obj) {
 
-  BOOST_LOG_TRIVIAL(trace) << "isObjUpstream";
+  L_TRACE("isObjUpstream");
 
   string mirror = get1Info("upstreamMirror");
   if (mirror == "true") {
-    BOOST_LOG_TRIVIAL(trace) << "mirror sending up";
+    L_TRACE("mirror sending up");
     return true;
   }
   auto upstream = Json::getBool(obj, "upstream", true);
   if (upstream && upstream.value()) {
-    BOOST_LOG_TRIVIAL(trace) << "upstream sending up";
+    L_TRACE("upstream sending up");
     return true;
   }
 
@@ -1502,10 +1502,10 @@ bool Server::isObjUpstream(boost::json::object &obj) {
 
 void Server::sendUpd(const string &type, const string &id, boost::json::object &obj) {
 
-  BOOST_LOG_TRIVIAL(trace) << "sendUpd " << type;
+  L_TRACE("sendUpd " << type);
 
   if (!isValidId(id)) {
-    BOOST_LOG_TRIVIAL(warning) << "skipping upd, obj id is not valid" << id;
+    L_WARNING("skipping upd, obj id is not valid" << id);
     return;
   }
   if (!validateId(obj, id)) {
@@ -1526,7 +1526,7 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
   }
   
   if (!up && !down) {
-    BOOST_LOG_TRIVIAL(trace) << "not sending up or down";
+    L_TRACE("not sending up or down");
     return;
   }
   
@@ -1556,11 +1556,11 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
 
 void Server::sendAdd(const string &type, boost::json::object &obj) {
 
-  BOOST_LOG_TRIVIAL(trace) << "sendAdd " << type;
+  L_TRACE("sendAdd " << type);
 
   auto id = Json::getString(obj, "id");
   if (!id) {
-    BOOST_LOG_TRIVIAL(warning) << "skipping add, but obj id ";
+    L_WARNING("skipping add, but obj id ");
   }
     
   bool up = false;
@@ -1576,7 +1576,7 @@ void Server::sendAdd(const string &type, boost::json::object &obj) {
   }
   
   if (!up && !down) {
-    BOOST_LOG_TRIVIAL(trace) << "not sending";
+    L_TRACE("not sending");
     return;
   }
   
@@ -1606,10 +1606,10 @@ void Server::sendAdd(const string &type, boost::json::object &obj) {
 
 void Server::sendMov(const string &type, const string &id, boost::json::object &obj, const string &ptype, const string &origparent) {
 
-  BOOST_LOG_TRIVIAL(trace) << "sendMov" << type;
+  L_TRACE("sendMov" << type);
 
   if (!isValidId(id)) {
-    BOOST_LOG_TRIVIAL(warning) << "skipping mov, obj id is not valid" << id;
+    L_WARNING("skipping mov, obj id is not valid" << id);
     return;
   }
   if (!validateId(obj, id)) {
@@ -1635,7 +1635,7 @@ void Server::sendMov(const string &type, const string &id, boost::json::object &
   }
   
   if (!up && !down) {
-    BOOST_LOG_TRIVIAL(trace) << "not sending up or down";
+    L_TRACE("not sending up or down");
     return;
   }
   
@@ -1668,22 +1668,22 @@ bool Server::updateObject(json &j) {
 
   auto data = Json::getObject(j, "data");
   if (!data) {
-    BOOST_LOG_TRIVIAL(error) << "upd sub missing data";
+    L_ERROR("upd sub missing data");
     return false;
   }
   auto type = Json::getString(data.value(), "type");
   if (!type) {
-    BOOST_LOG_TRIVIAL(error) << "upd sub data missing type";
+    L_ERROR("upd sub data missing type");
     return false;
   }
   auto id = Json::getString(data.value(), "id");
   if (!id) {
-    BOOST_LOG_TRIVIAL(error) << "upd sub data missing id";
+    L_ERROR("upd sub data missing id");
     return false;
   }
   auto obj = Json::getObject(data.value(), "obj");
   if (!obj) {
-    BOOST_LOG_TRIVIAL(error) << "upd sub data missing obj";
+    L_ERROR("upd sub data missing obj");
     return false;
   }
   
@@ -1694,7 +1694,7 @@ bool Server::updateObject(json &j) {
 
   auto result = SchemaImpl::updateGeneralById(coll, id.value(), {{ "$set", obj.value() }});
   if (!result) {
-    BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
+    L_ERROR("upd sub failed to update db");
     return false;
   }
 
@@ -1706,17 +1706,17 @@ bool Server::addObject(json &j) {
 
   auto data = Json::getObject(j, "data");
   if (!data) {
-    BOOST_LOG_TRIVIAL(error) << "add sub missing data";
+    L_ERROR("add sub missing data");
     return false;
   }
   auto type = Json::getString(data.value(), "type");
   if (!type) {
-    BOOST_LOG_TRIVIAL(error) << "add sub data missing type";
+    L_ERROR("add sub data missing type");
     return false;
   }
   auto obj = Json::getObject(data.value(), "obj");
   if (!obj) {
-    BOOST_LOG_TRIVIAL(error) << "add sub data missing obj";
+    L_ERROR("add sub data missing obj");
     return false;
   }
   
@@ -1732,7 +1732,7 @@ bool Server::addObject(json &j) {
 
   auto result = SchemaImpl::insertGeneral(coll, obj2);
   if (!result) {
-    BOOST_LOG_TRIVIAL(error) << "upd sub failed to update db";
+    L_ERROR("upd sub failed to update db");
     return false;
   }
 
@@ -1764,7 +1764,7 @@ bool Server::shouldIgnoreAdd(json &msg) {
   }
 
   if (!isObjParentUpstream(type.value(), obj.value().as_object())) {
-    BOOST_LOG_TRIVIAL(trace) << type.value() << " parent upstream, ignoring add";
+    L_TRACE(type.value() << " parent upstream, ignoring add");
     return true;
   }
 

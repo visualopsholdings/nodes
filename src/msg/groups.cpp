@@ -15,7 +15,7 @@
 #include "json.hpp"
 #include "security.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -28,7 +28,7 @@ void groupsMsg(Server *server, json &j) {
       }
     }
   };
-  BOOST_LOG_TRIVIAL(trace) << query;
+  L_TRACE(query);
   auto docs = Security::instance()->withView(group, Json::getString(j, "me", true), query, 
     { "id", "policy", "modifyDate", "name", "upstream" }).values();
 

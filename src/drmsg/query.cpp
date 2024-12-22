@@ -15,13 +15,13 @@
 #include "storage/schema.hpp"
 #include "storage.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
 void queryDrMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "query (dr)" << j;
+  L_TRACE("query (dr)" << j);
        
   string src;
   if (!server->getSrc(j, &src)) {

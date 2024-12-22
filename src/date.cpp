@@ -10,11 +10,11 @@
 */
 
 #include "date.hpp"
+#include "log.hpp"
 
 #include <sstream>
 #include <ctime>
 #include <iomanip>
-#include <boost/log/trivial.hpp>
 #include <cstdlib>
 
 #define TIME_FORMAT "%Y-%m-%dT%H:%M:%S"
@@ -55,15 +55,15 @@ string Date::toISODate(long t) {
   time_t tnum = t / 1000;
   tm tm = *gmtime(&tnum);
   
-//   BOOST_LOG_TRIVIAL(trace) << "tm_sec " << tm.tm_sec;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_mon " << tm.tm_mon;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_year " << tm.tm_year;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_wday " << tm.tm_wday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_yday " << tm.tm_yday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
+//   L_TRACE("tm_sec " << tm.tm_sec);
+//   L_TRACE("tm_min " << tm.tm_min);
+//   L_TRACE("tm_hour " << tm.tm_hour);
+//   L_TRACE("tm_mday " << tm.tm_mday);
+//   L_TRACE("tm_mon " << tm.tm_mon);
+//   L_TRACE("tm_year " << tm.tm_year);
+//   L_TRACE("tm_wday " << tm.tm_wday);
+//   L_TRACE("tm_yday " << tm.tm_yday);
+//   L_TRACE("tm_isdst " << tm.tm_isdst);
 
   int ms = t - (tnum * 1000);
 
@@ -80,7 +80,7 @@ string Date::toISODate(long t) {
 
 long Date::fromISODate(const string &d) {
 
-//  BOOST_LOG_TRIVIAL(trace) << d;
+//  L_TRACE(d);
 
   if (d.rfind("T") == string::npos) {
     return fromRubyDate(d);
@@ -88,15 +88,15 @@ long Date::fromISODate(const string &d) {
   
   auto dot = d.rfind(".");
   if (dot == string::npos) {
-    BOOST_LOG_TRIVIAL(error) << "no dot in " << d;
+    L_ERROR("no dot in " << d);
     return 0;
   }
   
   string start = d.substr(0, dot);
-//  BOOST_LOG_TRIVIAL(trace) << start;
+//  L_TRACE(start);
   
   string rem = d.substr(dot+1);
-//  BOOST_LOG_TRIVIAL(trace) << rem;
+//  L_TRACE(rem);
   long ms = 0;
   auto plus = rem.rfind("+");
   if (plus != string::npos) {
@@ -105,29 +105,29 @@ long Date::fromISODate(const string &d) {
   }
   else {
     if (rem[rem.size()-1] != 'Z') {
-      BOOST_LOG_TRIVIAL(error) << "no plus in " << rem << " and not Zulu";
+      L_ERROR("no plus in " << rem << " and not Zulu");
       return 0;
     }
   }
-//  BOOST_LOG_TRIVIAL(trace) << "ms: " << ms;
+//  L_TRACE("ms: " << ms);
   
   tm tm = {};
   istringstream ss(start);
   // 2024-07-01T06:54:39
   ss >> get_time(&tm, TIME_FORMAT);
    
-//   BOOST_LOG_TRIVIAL(trace) << "tm_sec " << tm.tm_sec;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_mon " << tm.tm_mon;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_year " << tm.tm_year;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_wday " << tm.tm_wday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_yday " << tm.tm_yday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
+//   L_TRACE("tm_sec " << tm.tm_sec);
+//   L_TRACE("tm_min " << tm.tm_min);
+//   L_TRACE("tm_hour " << tm.tm_hour);
+//   L_TRACE("tm_mday " << tm.tm_mday);
+//   L_TRACE("tm_mon " << tm.tm_mon);
+//   L_TRACE("tm_year " << tm.tm_year);
+//   L_TRACE("tm_wday " << tm.tm_wday);
+//   L_TRACE("tm_yday " << tm.tm_yday);
+//   L_TRACE("tm_isdst " << tm.tm_isdst);
 
   auto t = timegm(&tm);
-//  BOOST_LOG_TRIVIAL(trace) << "t: " << t;
+//  L_TRACE("t: " << t);
   
   return (t * 1000) + ms;
   
@@ -137,46 +137,46 @@ long Date::fromRubyDate(const string &d) {
 
   auto spc = d.rfind(" ");
   if (spc == string::npos) {
-    BOOST_LOG_TRIVIAL(error) << "no space in " << d;
+    L_ERROR("no space in " << d);
     return 0;
   }
   
   string start = d.substr(0, spc);
-//  BOOST_LOG_TRIVIAL(trace) << start;
+//  L_TRACE(start);
   
   tm tm = {};
   istringstream ss(start);
   // 2024-07-01 06:54:39
   ss >> get_time(&tm, RUBY_TIME_FORMAT);
    
-//   BOOST_LOG_TRIVIAL(trace) << "tm_sec " << tm.tm_sec;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_min " << tm.tm_min;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_hour " << tm.tm_hour;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_mday " << tm.tm_mday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_mon " << tm.tm_mon;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_year " << tm.tm_year;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_wday " << tm.tm_wday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_yday " << tm.tm_yday;
-//   BOOST_LOG_TRIVIAL(trace) << "tm_isdst " << tm.tm_isdst;
+//   L_TRACE("tm_sec " << tm.tm_sec);
+//   L_TRACE("tm_min " << tm.tm_min);
+//   L_TRACE("tm_hour " << tm.tm_hour);
+//   L_TRACE("tm_mday " << tm.tm_mday);
+//   L_TRACE("tm_mon " << tm.tm_mon);
+//   L_TRACE("tm_year " << tm.tm_year);
+//   L_TRACE("tm_wday " << tm.tm_wday);
+//   L_TRACE("tm_yday " << tm.tm_yday);
+//   L_TRACE("tm_isdst " << tm.tm_isdst);
 
   auto t = timegm(&tm);
-//  BOOST_LOG_TRIVIAL(trace) << "t: " << t;
+//  L_TRACE("t: " << t);
   
   string rem = d.substr(spc+1);
-//  BOOST_LOG_TRIVIAL(trace) << rem;
+//  L_TRACE(rem);
   auto plus = rem.rfind("+");
   if (plus == string::npos) {
-    BOOST_LOG_TRIVIAL(error) << "no plus in " << rem;
+    L_ERROR("no plus in " << rem);
     return 0;
   }
 
   long hrs = atol(rem.substr(1).c_str()) / 100;
-//  BOOST_LOG_TRIVIAL(trace) << hrs;
+//  L_TRACE(hrs);
   long offs = hrs * 60 * 60;
   if (rem[0] == '-') {
     offs *= -1;
   }
-//  BOOST_LOG_TRIVIAL(trace) << offs;
+//  L_TRACE(offs);
 
   return (t + offs) * 1000;
   

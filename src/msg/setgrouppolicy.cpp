@@ -15,7 +15,7 @@
 #include "security.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -55,7 +55,7 @@ void setGroupPolicyMsg(Server *server, json &j) {
     server->sendErr("could not modify policy");
   }
   if (policy.value() == orig.value().policy()) {
-    BOOST_LOG_TRIVIAL(info) << "policy didn't change for " << id.value();
+    L_INFO("policy didn't change for " << id.value());
     server->sendAck();
   }
   
@@ -71,14 +71,14 @@ void setGroupPolicyMsg(Server *server, json &j) {
   }
   server->sendUpd("group", id.value(), obj2);
     
-  BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
+  L_TRACE("updating " << obj);
   auto result = groups.updateById(id.value(), obj);
   if (!result) {
     server->sendErr("could not update group");
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+  L_TRACE("updated " << result.value());
   server->sendAck(result.value());
 
 }

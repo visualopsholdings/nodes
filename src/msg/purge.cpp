@@ -15,7 +15,7 @@
 #include "json.hpp"
 #include "security.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 

@@ -14,13 +14,13 @@
 #include "json.hpp"
 #include "storage/schema.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
 void ackMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "ack";
+  L_TRACE("ack");
         
 }
 

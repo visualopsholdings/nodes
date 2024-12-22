@@ -16,7 +16,7 @@
 #include "security.hpp"
 #include "storage.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 bool Handler::add(Server *server, const string &type, const json &obj, optional<string> corr) {
 
@@ -73,7 +73,7 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
     return false;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << type << " old value " << orig.value();
+  L_TRACE(type << " old value " << orig.value());
   
   // make sure it can be edited. If it has a parent we use that field.
   string editcoll;
@@ -98,7 +98,7 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
   }
 
   if (!Security::instance()->canEdit(editcoll, me, editid)) {
-    BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
+    L_ERROR("no edit for " << type << " " << id);
     server->sendSecurity();
     return false;
   }
@@ -116,7 +116,7 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
   server->sendUpd(type, id, obj2);
     
   // update locally
-  BOOST_LOG_TRIVIAL(trace) << "updating " << (*obj);
+  L_TRACE("updating " << (*obj));
   auto r = SchemaImpl::updateGeneralById(coll, id, {
     { "$set", (*obj) }
   });
@@ -126,7 +126,7 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
   }
   
   // and reply back
-  BOOST_LOG_TRIVIAL(trace) << "updated " << r.value();
+  L_TRACE("updated " << r.value());
   server->sendAck();
 
   return true;
@@ -143,7 +143,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   }
   
   if (!Security::instance()->canEdit(coll, me, id)) {
-    BOOST_LOG_TRIVIAL(error) << "no edit for " << type << " " << id;
+    L_ERROR("no edit for " << type << " " << id);
     server->sendSecurity();
     return false;
   }
@@ -159,7 +159,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
     return false;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << type << " old value " << orig.value();
+  L_TRACE(type << " old value " << orig.value());
   
   boost::json::object obj = {
     { "deleted", true },
@@ -185,7 +185,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   server->sendUpd(type, id, obj2);
     
   // update locally
-  BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
+  L_TRACE("updating " << obj);
   auto r = SchemaImpl::updateGeneralById(coll, id, {
     { "$set", obj }
   });
@@ -195,7 +195,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   }
   
   // and reply back
-  BOOST_LOG_TRIVIAL(trace) << "updated " << r.value();
+  L_TRACE("updated " << r.value());
   server->sendAck();
 
   return true;

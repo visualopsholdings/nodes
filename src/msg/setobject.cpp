@@ -16,7 +16,7 @@
 #include "json.hpp"
 #include "handler.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -33,7 +33,7 @@ void setObjectMsg(Server *server, json &j) {
     return;
   }  
   
-//  BOOST_LOG_TRIVIAL(trace) << j;
+//  L_TRACE(j);
   
   // set on all fields passed in except name.
   boost::json::object obj = j.as_object();

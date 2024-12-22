@@ -15,7 +15,7 @@
 #include "storage.hpp"
 #include "security.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 #include <algorithm>
 
 namespace nodes {
@@ -24,7 +24,7 @@ void discoverResultMsg(Server *server, json &j) {
    
   auto msgs = Json::getArray(j, "msgs");
   if (!msgs) {
-    BOOST_LOG_TRIVIAL(error) << "discoverResult missing msgs";
+    L_ERROR("discoverResult missing msgs");
     return;
   }
   

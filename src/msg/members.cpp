@@ -15,7 +15,7 @@
 #include "json.hpp"
 #include "security.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -32,7 +32,7 @@ void membersMsg(Server *server, json &j) {
     json{ { "_id", { { "$oid", groupid.value() } } } }, 
     { "members", "modifyDate" }).value();
   if (!doc) {
-    BOOST_LOG_TRIVIAL(error) << "no group " + groupid.value();
+    L_ERROR("no group " + groupid.value());
     server->sendSecurity();
     return;
   }

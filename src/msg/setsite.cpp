@@ -15,7 +15,7 @@
 #include "security.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -29,7 +29,7 @@ void setsiteMsg(Server *server, json &j) {
   
   auto doc = Site().findById(id.value(), {}).value();
   if (doc) {
-    BOOST_LOG_TRIVIAL(trace) << "site old value " << doc.value().j();
+    L_TRACE("site old value " << doc.value().j());
     
     boost::json::object obj = {
       { "modifyDate", Storage::instance()->getNow() }
@@ -42,13 +42,13 @@ void setsiteMsg(Server *server, json &j) {
     if (streamBgColor) {
       obj["streamBgColor"] = streamBgColor.value();
     }
-    BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
+    L_TRACE("updating " << obj);
     auto result = Site().updateById(id.value(), obj);
     if (!result) {
       server->sendErr("could not update site");
       return;
     }
-    BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+    L_TRACE("updated " << result.value());
     server->sendAck();
     return;
   }
@@ -62,7 +62,7 @@ void setsiteMsg(Server *server, json &j) {
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << "inserted " << result.value();
+  L_TRACE("inserted " << result.value());
   server->sendAck();
   
 }

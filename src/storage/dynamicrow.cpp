@@ -13,7 +13,7 @@
 
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 string DynamicRow::getString(const string &name) const {
 

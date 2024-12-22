@@ -15,6 +15,7 @@ cmake_policy(SET CMP0169 OLD) # FetchContent
 
 project (nodes)
   find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread log_setup log json REQUIRED)
+#  find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread json REQUIRED)
   find_package(cppzmq REQUIRED)
   find_package(mongocxx REQUIRED)
   find_package(bsoncxx REQUIRED)
@@ -66,6 +67,7 @@ endif()
 set(LIBS zmq)
 set(MONGOLIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
 set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
+#set(BOOSTLIBS ${Boost_JSON_LIBRARY})
 set(CORE
   src/json.cpp
   src/date.cpp
@@ -76,6 +78,7 @@ set(UTILS
   src/upstream.cpp
   src/downstream.cpp
   src/encrypter.cpp
+  src/log.cpp
 )
 set(MESSAGES 
   src/msg/certs.cpp
@@ -157,13 +160,13 @@ add_library(StorageLib SHARED
 add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
     target_link_libraries(nodes StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS} ${OPENSSL_LIBRARIES})
 
-add_executable(Send test/send.cpp)
+add_executable(Send test/send.cpp src/log.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
-add_executable(Counts test/counts.cpp)
+add_executable(Counts test/counts.cpp src/log.cpp)
   target_link_libraries(Counts StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${MONGOLIBS})
 
-add_executable(nodesaggregate src/nodesaggregate.cpp)
+add_executable(nodesaggregate src/nodesaggregate.cpp src/log.cpp)
   target_link_libraries(nodesaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
 # Tests

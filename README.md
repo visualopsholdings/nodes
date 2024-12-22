@@ -206,7 +206,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Testing and release 
+### Boost dependance refactor
 
 ## License
 
@@ -394,6 +394,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 5 Dec 2024
 - Add many more move tests.
 - Implement ID lookup to cleanup all tests.
+
+### 22 Dec 2024
+- Make it really easy to remove logging or just log to stdout rather than
+  rely on Boost.
 
 
 

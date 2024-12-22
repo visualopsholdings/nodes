@@ -14,8 +14,7 @@
 #include "json.hpp"
 #include "storage/schema.hpp"
 #include "date.hpp"
-
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 using namespace bsoncxx::builder::basic;
 
@@ -23,7 +22,7 @@ namespace nodes {
 
 void discoverMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "discover " << j;
+  L_TRACE("discover " << j);
          
   server->sendDownDiscoverResult(j);
     

@@ -15,7 +15,7 @@
 #include "security.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -77,7 +77,7 @@ void setObjectPolicyMsg(Server *server, json &j) {
     server->sendErr("could not modify policy");
   }
   if (policy.value() == policyid.value()) {
-    BOOST_LOG_TRIVIAL(info) << "policy didn't change for " << id.value();
+    L_INFO("policy didn't change for " << id.value());
     server->sendAck();
   }
   
@@ -93,12 +93,12 @@ void setObjectPolicyMsg(Server *server, json &j) {
   }
   server->sendUpd(objtype.value(), id.value(), obj2);
     
-  BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
+  L_TRACE("updating " << obj);
   auto r = SchemaImpl::updateGeneralById(coll, id.value(), {
     { "$set", obj }
   });
   
-  BOOST_LOG_TRIVIAL(trace) << "updated " << r.value();
+  L_TRACE("updated " << r.value());
   server->sendAck(r.value());
 
 }

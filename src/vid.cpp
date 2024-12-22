@@ -10,12 +10,12 @@
 */
 
 #include "vid.hpp"
+#include "log.hpp"
 
 #include <base64.hpp>
 #include <boost/algorithm/hex.hpp>
 #include <boost/archive/iterators/dataflow_exception.hpp>
 #include <iostream>
-#include <boost/log/trivial.hpp>
 
 //  0123 	4 - 27 		28 29		30 - 
 //. 564f 	UID 		00 | 01		token or password
@@ -65,7 +65,7 @@ VID::VID(const string &vid) {
     _password = token;
   }
   else {
-    BOOST_LOG_TRIVIAL(trace) << "token needs hex";
+    L_TRACE("token needs hex");
     boost::algorithm::hex(token.begin(), token.end(), back_inserter(_password));
     transform(_password.begin(), _password.end(), _password.begin(), [](unsigned char c){ return tolower(c); });
  }
@@ -76,10 +76,10 @@ string VID::value() const {
   
   string hexuuid;
   transform(_uuid.begin(), _uuid.end(), back_inserter(hexuuid), [](unsigned char c){ return toupper(c); });
-  BOOST_LOG_TRIVIAL(trace) << hexuuid;
+  L_TRACE(hexuuid);
   string binuuid;
   boost::algorithm::unhex(hexuuid.begin(), hexuuid.end(), back_inserter(binuuid));
-  BOOST_LOG_TRIVIAL(trace) << binuuid.size();
+  L_TRACE(binuuid.size());
 
   stringstream ss;
   ss << _header << binuuid << '\0' << _password;

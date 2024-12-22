@@ -13,7 +13,7 @@
 
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -21,13 +21,13 @@ void upstreamMsg(Server *server, json &j) {
    
   auto msg = Json::getString(j, "msg", true);
   if (msg) {
-    BOOST_LOG_TRIVIAL(error) << "online err " << msg.value();
+    L_ERROR("online err " << msg.value());
     return;
   }
   
   auto type = Json::getString(j, "type");
   if (!type) {
-    BOOST_LOG_TRIVIAL(error) << "reply missing type";
+    L_ERROR("reply missing type");
     return;
   }
   
@@ -35,22 +35,22 @@ void upstreamMsg(Server *server, json &j) {
   
     auto id = Json::getString(j, "id");
     if (!id) {
-      BOOST_LOG_TRIVIAL(error) << "got upstream with no id";
+      L_ERROR("got upstream with no id");
       return;
     }
     
     if (server->_upstreamId == id.value()) {
-      BOOST_LOG_TRIVIAL(warning) << "ignoring second upstream with the same id";
+      L_WARNING("ignoring second upstream with the same id");
       return;
     }
 
     server->_upstreamId = id.value();
     server->_online = true;
-    BOOST_LOG_TRIVIAL(trace) << "upstream " << server->_upstreamId;
+    L_TRACE("upstream " << server->_upstreamId);
     
     auto valid = Json::getBool(j, "valid");
     if (!valid || !valid.value()) {
-      BOOST_LOG_TRIVIAL(info) << "we are not a valid node. Don't sync.";
+      L_INFO("we are not a valid node. Don't sync.");
       return;
     }
     
@@ -58,7 +58,7 @@ void upstreamMsg(Server *server, json &j) {
     return;
 
   }
-  BOOST_LOG_TRIVIAL(error) << "unknown msg type " << type.value();
+  L_ERROR("unknown msg type " << type.value());
      
 }
 

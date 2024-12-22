@@ -15,13 +15,13 @@
 #include "storage/schema.hpp"
 #include "date.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
 void heartbeatMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "heartbeat " << j;
+  L_TRACE("heartbeat " << j);
          
   string src;
   if (!server->getSrc(j, &src)) {
@@ -31,7 +31,7 @@ void heartbeatMsg(Server *server, json &j) {
   
   auto node = Node().find(json{ { "serverId", src } }, {}).value();
   if (!node) {
-    BOOST_LOG_TRIVIAL(error) << "heartbeat no node " << src;
+    L_ERROR("heartbeat no node " << src);
     server->sendAckDown();
     return;
   }

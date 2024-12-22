@@ -16,7 +16,7 @@
 #include "json.hpp"
 #include "handler.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -88,7 +88,7 @@ void addObjectMsg(Server *server, json &j) {
         server->sendErr("invalid " + parenttype);
         return;
       }
-      BOOST_LOG_TRIVIAL(trace) << doc.value();
+      L_TRACE(doc.value());
       auto policy = Json::getString(doc.value(), "policy");
       if (!policy) {
         server->sendErr(parenttype + " missing policy");

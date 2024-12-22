@@ -20,7 +20,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <iostream>
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 #include <bsoncxx/oid.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/hex.hpp>
@@ -41,23 +41,23 @@ Security::Security() {
 
   auto infos = Info().find({{ "type", { { "$in", {"tokenKey", "tokenIV"}}} }}, {"type", "text"}).values();
   if (!infos) {
-    BOOST_LOG_TRIVIAL(warning) << "missing infos. Running without can work.";
+    L_WARNING("missing infos. Running without can work.");
     return;
   }
   auto key = Info::getInfo(infos.value(), "tokenKey");
   if (!key) {
-    BOOST_LOG_TRIVIAL(error) << "missing key info";
+    L_ERROR("missing key info");
     return;
   }
   _key = key.value();
   auto iv = Info::getInfo(infos.value(), "tokenIV");
   if (!iv) {
-    BOOST_LOG_TRIVIAL(error) << "missing iv info";
+    L_ERROR("missing iv info");
     return;
   }
   _iv = key.value();
-  BOOST_LOG_TRIVIAL(trace) << "key " << _key.length();
-  BOOST_LOG_TRIVIAL(trace) << "iv " << _iv.length();
+  L_TRACE("key " << _key.length());
+  L_TRACE("iv " << _iv.length());
 }
 
 bool Security::valid(const VID &vid, const string &salt, const string &hash) {
@@ -91,7 +91,7 @@ Result<DynamicRow> Security::withView(const string &collection, optional<string>
 
   if (me) {
     if (!isValidId(me.value())) {
-      BOOST_LOG_TRIVIAL(error) << "me is not a valid Id.";
+      L_ERROR("me is not a valid Id.");
       return shared_ptr<ResultImpl>(0);
     }
     GroupViewPermissions groupviews;
@@ -107,7 +107,7 @@ Result<DynamicRow> Security::withEdit(const string &collection, optional<string>
 
   if (me) {
     if (!isValidId(me.value())) {
-      BOOST_LOG_TRIVIAL(error) << "me is not a valid Id.";
+      L_ERROR("me is not a valid Id.");
       return shared_ptr<ResultImpl>(0);
     }
     GroupEditPermissions groupedits;
@@ -123,14 +123,14 @@ bool Security::canEdit(const string &collection, optional<string> me, const stri
 
   if (me) {
     if (!isValidId(me.value())) {
-      BOOST_LOG_TRIVIAL(error) << "me is not a valid Id.";
+      L_ERROR("me is not a valid Id.");
       return false;
     }
     GroupEditPermissions groupedits;
     UserEditPermissions useredits;
     auto result = SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), json{ { "_id", { { "$oid", id } } } }), {});
     if (!result) {
-      BOOST_LOG_TRIVIAL(error) << "can't find in canEdit";
+      L_ERROR("can't find in canEdit");
       return false;
     }
     return result->value() != nullopt;
@@ -147,7 +147,7 @@ void Security::getPolicyUsers(const string &id, vector<string> *users) {
   
   auto policy = Policy().findById(id, { "accesses" }).value();
   if (!policy) {
-    BOOST_LOG_TRIVIAL(error) << "policy missing";
+    L_ERROR("policy missing");
     return;
   }
 
@@ -172,7 +172,7 @@ void Security::getPolicyGroups(const string &id, vector<string> *groups) {
 
   auto policy = Policy().findById(id, { "accesses" }).value();
   if (!policy) {
-    BOOST_LOG_TRIVIAL(error) << "policy missing";
+    L_ERROR("policy missing");
     return;
   }
 
@@ -200,7 +200,7 @@ void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inid
   
   auto indexes = schema.find(q).values();
   if (!indexes) {
-    BOOST_LOG_TRIVIAL(trace) << "indexes missing for " << schema.collName();
+    L_TRACE("indexes missing for " << schema.collName());
     return;
   }
   for (auto i: indexes.value()) {
@@ -233,7 +233,7 @@ json Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
     query,
     { { "policy", { { "$in", createArray(plist) } } } }
   } } };
-  BOOST_LOG_TRIVIAL(trace) << q;
+  L_TRACE(q);
 
   return q;
   
@@ -251,7 +251,7 @@ boost::json::object Security::makeLine(const string &type, int access, const str
   line["type"] = name;
   line["context"] = type;
   line["id"] = ids[index];
-  BOOST_LOG_TRIVIAL(trace) << ids[index];
+  L_TRACE(ids[index]);
   if (type == "user") {
     auto user = User().findById(ids[index], { "fullname" }).value();
     line["name"] = !user ? "???" : user.value().fullname();
@@ -268,7 +268,7 @@ optional<json> Security::getPolicyLines(const string &id) {
 
   auto policy = Policy().findById(id, { "accesses" }).value();
   if (!policy) {
-    BOOST_LOG_TRIVIAL(error) << "policy missing";
+    L_ERROR("policy missing");
     return nullopt;
   }
   
@@ -320,7 +320,7 @@ optional<string> Security::findPolicyForUser(const string &userid) {
       regenerate();
     }
     else {
-      BOOST_LOG_TRIVIAL(error) << "could not create new policy";
+      L_ERROR("could not create new policy");
     }
     return newpolicy;
   }
@@ -343,7 +343,7 @@ void Security::removeAt(json *obj, const string &fullpath) {
   // last being a numeric index.
   auto res = fullpath.rfind("/");
   if (res == string::npos) {
-    BOOST_LOG_TRIVIAL(warning) << "remove doesn't have correct syntax " << fullpath;
+    L_WARNING("remove doesn't have correct syntax " << fullpath);
     return;
   }
   
@@ -359,7 +359,7 @@ void Security::removeAt(json *obj, const string &fullpath) {
     lastindex = atoi(last.c_str());
   }
   catch (exception &e) {
-    BOOST_LOG_TRIVIAL(warning) << e.what();
+    L_WARNING(e.what());
     return;
   }
   
@@ -367,13 +367,13 @@ void Security::removeAt(json *obj, const string &fullpath) {
   error_code ec;
   json *node = obj->find_pointer(path, ec);
   if (ec) {
-    BOOST_LOG_TRIVIAL(error) << ec;
+    L_ERROR(ec);
     return;
   }
-  BOOST_LOG_TRIVIAL(trace) << path << ": " << *node;
+  L_TRACE(path << ": " << *node);
   
   if (!(*node).is_array()) {
-    BOOST_LOG_TRIVIAL(error) << "found node is not array";
+    L_ERROR("found node is not array");
     return;
   }
   
@@ -406,11 +406,11 @@ void Security::addPolicy(json *obj, const string &type, const string &context, c
     acc = 2;
   }
   else {
-    BOOST_LOG_TRIVIAL(error) << "invalid type " << type;
+    L_ERROR("invalid type " << type);
     return;
   }
   auto accnode = obj->at("accesses").as_array()[acc];
-//    BOOST_LOG_TRIVIAL(trace) << "access node " << accnode;
+//    L_TRACE("access node " << accnode);
   
   // get the array
   boost::json::array arr;
@@ -421,10 +421,10 @@ void Security::addPolicy(json *obj, const string &type, const string &context, c
     arr = accnode.at("users").as_array();
   }
   else {
-    BOOST_LOG_TRIVIAL(error) << "invalid context " << context;
+    L_ERROR("invalid context " << context);
     return;
   }
-//    BOOST_LOG_TRIVIAL(trace) << "array " << arr;
+//    L_TRACE("array " << arr);
 
   // copy over the existing array (transforming to strings)
   vector<string> newvec;
@@ -440,7 +440,7 @@ void Security::addPolicy(json *obj, const string &type, const string &context, c
   boost::json::array newarr;
   transform(newvec.begin(), newvec.end(), back_inserter(newarr), 
     [](auto e){ return boost::json::value_from(e); });
-//    BOOST_LOG_TRIVIAL(trace) << "new array " << newarr;
+//    L_TRACE("new array " << newarr);
   
   // and set it.
   if (context == "group") {
@@ -471,7 +471,7 @@ optional<string> Security::modifyPolicy(const string &id, const vector<addTupleT
 
   auto policy = Policy().findById(id).value();
   if (!policy) {
-    BOOST_LOG_TRIVIAL(error) << "existing policy not found";
+    L_ERROR("existing policy not found");
     return nullopt;
   }
 
@@ -486,7 +486,7 @@ optional<string> Security::modifyPolicy(const string &id, const vector<addTupleT
     addPolicy(&obj, get<0>(i), get<1>(i), get<2>(i));    
   }
   
-//  BOOST_LOG_TRIVIAL(trace) << "new policy" << obj;
+//  L_TRACE("new policy" << obj);
   
   // search for this query.
   auto existpolicy = Policy().find(policyToQuery(obj)).value();
@@ -504,7 +504,7 @@ optional<string> Security::modifyPolicy(const string &id, const vector<addTupleT
   
 void Security::regenerate() {
 
-  BOOST_LOG_TRIVIAL(debug) << "Building security...";
+  L_DEBUG("Building security...");
     
   string home = getHome();
   Policy().aggregate(home + "/scripts/groupeditpermissions.json");
@@ -515,7 +515,7 @@ void Security::regenerate() {
 
 void Security::regenerateGroups() {
 
-  BOOST_LOG_TRIVIAL(debug) << "Building groups...";
+  L_DEBUG("Building groups...");
 
   string home = getHome();
   Group().aggregate(home + "/scripts/useringroups.json");
@@ -533,17 +533,17 @@ optional<string> Security::generateShareLink(const string &me, const string &url
 
   auto result = SchemaImpl::findByIdGeneral(coll, objid, {});
   if (!result) {
-    BOOST_LOG_TRIVIAL(error) << "Can't find in " << coll;
+    L_ERROR("Can't find in " << coll);
     return nullopt;
   }
   auto obj = result->value();
   if (!obj) {
-    BOOST_LOG_TRIVIAL(error) << "Could not find in " << coll;
+    L_ERROR("Could not find in " << coll);
     return nullopt;
   }
   auto bits = Json::getNumber(obj.value(), bitsfield);
   if (!bits) {
-    BOOST_LOG_TRIVIAL(error) << "Obj had no " + bitsfield;
+    L_ERROR("Obj had no " + bitsfield);
     return nullopt;
   }
   
@@ -561,8 +561,8 @@ optional<string> Security::generateShareLink(const string &me, const string &url
 
 optional<string> Security::createShareToken(const string &collid, const string &me, const string &options, const string &groupid, const string &expires) {
 
-  BOOST_LOG_TRIVIAL(trace) << "share token will expire " << expires;
-  BOOST_LOG_TRIVIAL(trace) << "now " << Date::toISODate(Date::now());
+  L_TRACE("share token will expire " << expires);
+  L_TRACE("now " << Date::toISODate(Date::now()));
 
   json keyd = {
     { "id", collid },

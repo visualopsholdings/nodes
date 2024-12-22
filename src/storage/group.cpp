@@ -13,24 +13,24 @@
 
 #include "storage.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 bool Group::getMemberSet(const string &group, set<string> *mset) {
 
   auto doc = findById(group, { "members" }).value();
   if (!doc) {
-    BOOST_LOG_TRIVIAL(error) << "no group " + group;
+    L_ERROR("no group " + group);
     return false;
   }
   auto members = doc.value().j().at("members").as_array();
   
-//  BOOST_LOG_TRIVIAL(trace) << "old members " << members;
+//  L_TRACE("old members " << members);
 
   for (auto i: members) {
     mset->insert(i.at("user").as_string().c_str());
   }
   
-//  BOOST_LOG_TRIVIAL(trace) << "new set " << boost::algorithm::join(mset, ", ");
+//  L_TRACE("new set " << boost::algorithm::join(mset, ", "));
 
   return true;
   
@@ -50,7 +50,7 @@ bool Group::saveMemberSet(const string &group, const set<string> &mset) {
     { "members", newmembers }
   });
   if (!result) {
-    BOOST_LOG_TRIVIAL(error) << "can't update group " + group;
+    L_ERROR("can't update group " + group);
     return false;
   }
   

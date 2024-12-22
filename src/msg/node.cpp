@@ -15,7 +15,7 @@
 #include "security.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -29,7 +29,7 @@ void nodeMsg(Server *server, json &j) {
 
   auto doc = Node().findById(nodeid.value()).value();
   if (!doc) {
-    BOOST_LOG_TRIVIAL(error) << "no nodes to view";
+    L_ERROR("no nodes to view");
     server->sendSecurity();
     return;
   }

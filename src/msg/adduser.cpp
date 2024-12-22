@@ -18,7 +18,7 @@
 #include "date.hpp"
 #include "handler.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -58,11 +58,11 @@ void addUserMsg(Server *server, json &j) {
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << "token " << token.value();
+  L_TRACE("token " << token.value());
 
   auto expires = Json::getString(token.value(), "expires");
   if (!expires) {
-    BOOST_LOG_TRIVIAL(error) << "Expires must be specified in token";
+    L_ERROR("Expires must be specified in token");
     server->sendWarning("Invalid token.");
     return;
   }
@@ -70,23 +70,23 @@ void addUserMsg(Server *server, json &j) {
   auto tnow = Date::now();
   auto texpires = Date::fromISODate(expires.value());
   if (texpires < tnow) {
-    BOOST_LOG_TRIVIAL(error) << "Token expired";
-    BOOST_LOG_TRIVIAL(trace) << "token expires " << expires.value() << ": " << texpires;
-    BOOST_LOG_TRIVIAL(trace) << "now " << Date::toISODate(tnow) << ": " << tnow;
+    L_ERROR("Token expired");
+    L_TRACE("token expires " << expires.value() << ": " << texpires);
+    L_TRACE("now " << Date::toISODate(tnow) << ": " << tnow);
     server->sendWarning("Invalid token.");
     return;
   }
   
   auto user = Json::getString(token.value(), "user");
   if (!user) {
-    BOOST_LOG_TRIVIAL(error) << "User must be specified in token";
+    L_ERROR("User must be specified in token");
     server->sendWarning("Invalid token.");
     return;
   }
 
   auto id = Json::getString(token.value(), "id");
   if (!id) {
-    BOOST_LOG_TRIVIAL(error) << "Id must be specified in token";
+    L_ERROR("Id must be specified in token");
     server->sendWarning("Invalid token.");
     return;
   }
@@ -118,7 +118,7 @@ void addUserMsg(Server *server, json &j) {
   
   auto team = Json::getString(token.value(), "team");
   if (!team) {
-    BOOST_LOG_TRIVIAL(error) << "Security settings not supported";
+    L_ERROR("Security settings not supported");
     server->sendWarning("Invalid token.");
     return;
   }

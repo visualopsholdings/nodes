@@ -17,7 +17,7 @@
 #include "storage/resulti.hpp"
 #include "date.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 #include <sstream>
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/oid.hpp>
@@ -64,7 +64,7 @@ bool SchemaImpl::existsGeneral(const string &collection, const string &id) {
 
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const json &query, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find " << query << " in " << collection; 
+  L_TRACE("find " << query << " in " << collection); 
 
   stringstream ss;
   ss << query;
@@ -75,7 +75,7 @@ shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const j
 
 shared_ptr<ResultImpl> SchemaImpl::findByIdGeneral(const string &collection, const string &id, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find " << id << " in " << collection;
+  L_TRACE("find " << id << " in " << collection);
 
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
   return findGeneral(collection, q, fields);
@@ -84,7 +84,7 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdGeneral(const string &collection, con
 
 shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields) {
 
-  BOOST_LOG_TRIVIAL(trace) << "find ids " << ids.size() << " in " << collection;
+  L_TRACE("find ids " << ids.size() << " in " << collection);
   
   auto array = bsoncxx::builder::basic::array{};
   for (auto id: ids) {
@@ -98,7 +98,7 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, co
 
 void SchemaImpl::deleteManyGeneral(const string &collection, const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "deleteMany " << doc << " in " << collection;
+  L_TRACE("deleteMany " << doc << " in " << collection);
 
   if (!testInit()) {
     return;
@@ -116,7 +116,7 @@ void SchemaImpl::deleteManyGeneral(const string &collection, const json &doc) {
 bool SchemaImpl::testInit() {
 
   if (!Storage::instance()->_impl) {
-    BOOST_LOG_TRIVIAL(error) << "storage needs init";
+    L_ERROR("storage needs init");
     return false;
   }
   
@@ -125,7 +125,7 @@ bool SchemaImpl::testInit() {
 
 bool SchemaImpl::deleteById(const string &id) {
 
-  BOOST_LOG_TRIVIAL(trace) << "deleteById " << id << " in " << collName();
+  L_TRACE("deleteById " << id << " in " << collName());
 
   if (!testInit()) {
     return false;
@@ -145,7 +145,7 @@ bool SchemaImpl::deleteById(const string &id) {
 
 optional<string> SchemaImpl::insertGeneral(const string &collection, const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "insert " << doc << " in " << collection;
+  L_TRACE("insert " << doc << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
@@ -175,7 +175,7 @@ optional<string> SchemaImpl::insertGeneral(const string &collection, const json 
 
 optional<string> SchemaImpl::rawUpdate(const json &query, const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "update " << query << " in " << collName();
+  L_TRACE("update " << query << " in " << collName());
 
   if (!testInit()) {
     return nullopt;
@@ -209,7 +209,7 @@ optional<string> SchemaImpl::update(const json &query, const json &doc) {
 
 optional<string> SchemaImpl::updateGeneralById(const string &collection, const string &id, const json &doc) {
 
-  BOOST_LOG_TRIVIAL(trace) << "update " << id << " in " << collection;
+  L_TRACE("update " << id << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
@@ -247,13 +247,13 @@ void SchemaImpl::aggregate(const string &filename) {
 
   ifstream file(filename);
   if (!file) {
-    BOOST_LOG_TRIVIAL(error) << "file not found";
+    L_ERROR("file not found");
     return;    
   }
   string input(istreambuf_iterator<char>(file), {});
   json j = boost::json::parse(input);
   if (!j.is_array()) {
-    BOOST_LOG_TRIVIAL(error) << "file does not contain array";
+    L_ERROR("file does not contain array");
     return;    
   }
   
@@ -271,7 +271,7 @@ void SchemaImpl::aggregate(const string &filename) {
     }
     else {
       if (!value.is_object()) {
-        BOOST_LOG_TRIVIAL(error) << "key is not object " << key;
+        L_ERROR("key is not object " << key);
         return;
       }
       stringstream ss;
@@ -287,7 +287,7 @@ void SchemaImpl::aggregate(const string &filename) {
         p.match(d);
       }
       else {
-        BOOST_LOG_TRIVIAL(error) << "ignoring " << key;
+        L_ERROR("ignoring " << key);
       }
     }
   }
@@ -295,7 +295,7 @@ void SchemaImpl::aggregate(const string &filename) {
   // run aggregation.               
   auto cursor = Storage::instance()->_impl->coll(collName())._c.aggregate(p, mongocxx::options::aggregate{});
   if (cursor.begin() != cursor.end()) {
-    BOOST_LOG_TRIVIAL(info) << "aggregation had output";
+    L_INFO("aggregation had output");
   }
 }
 
@@ -314,7 +314,7 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::
         oids.append(bsoncxx::oid(u.as_string().c_str()));
       }
       catch (bsoncxx::exception &exc) {
-        BOOST_LOG_TRIVIAL(error) << "idRangeAfterDateQuery " << exc.what();
+        L_ERROR("idRangeAfterDateQuery " << exc.what());
       }
     }
     qs.append(make_document(kvp("_id", make_document(kvp("$in", oids)))));
@@ -322,9 +322,9 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::
   
   // make a query with modify date.
   auto t = Date::fromISODate(date);
-//  BOOST_LOG_TRIVIAL(trace) << t;
+//  L_TRACE(t);
   auto d = bsoncxx::types::b_date(chrono::milliseconds(t));
-//  BOOST_LOG_TRIVIAL(trace) << d;
+//  L_TRACE(d);
   qs.append(make_document(kvp("modifyDate", make_document(kvp("$gt", d)))));
   
   // make the overall query.
@@ -340,7 +340,7 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeQuery(const vector<string> &
       oids.append(bsoncxx::oid(u));
     }
     catch (bsoncxx::exception &exc) {
-      BOOST_LOG_TRIVIAL(error) << "idRangeQuery " << exc.what();
+      L_ERROR("idRangeQuery " << exc.what());
     }
   }
   

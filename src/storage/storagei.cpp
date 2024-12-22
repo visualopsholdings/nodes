@@ -16,7 +16,7 @@
 #include "storage/resulti.hpp"
 #include "date.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 StorageImpl::StorageImpl(const string &dbConn, const string &dbName) {
 

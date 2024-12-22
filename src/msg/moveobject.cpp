@@ -16,7 +16,7 @@
 #include "json.hpp"
 #include "handler.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -83,7 +83,7 @@ void moveObjectMsg(Server *server, json &j) {
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << objtype.value() << " old value " << orig.value();
+  L_TRACE(objtype.value() << " old value " << orig.value());
   
   auto origparent = Json::getString(orig.value(), parentfield);
   if (!origparent) {
@@ -92,7 +92,7 @@ void moveObjectMsg(Server *server, json &j) {
   }
 
   if (!Security::instance()->canEdit(pcoll, me, origparent.value())) {
-    BOOST_LOG_TRIVIAL(error) << "no edit for " << objtype.value() << " " << id.value();
+    L_ERROR("no edit for " << objtype.value() << " " << id.value());
     server->sendSecurity();
     return;
   }
@@ -112,7 +112,7 @@ void moveObjectMsg(Server *server, json &j) {
   server->sendMov(objtype.value(), id.value(), obj2, parenttype, origparent.value());
     
   // update locally
-  BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
+  L_TRACE("updating " << obj);
   auto r = SchemaImpl::updateGeneralById(coll, id.value(), {
     { "$set", obj }
   });
@@ -122,7 +122,7 @@ void moveObjectMsg(Server *server, json &j) {
   }
   
   // and reply back
-  BOOST_LOG_TRIVIAL(trace) << "updated " << r.value();
+  L_TRACE("updated " << r.value());
   server->sendAck();
 
 }

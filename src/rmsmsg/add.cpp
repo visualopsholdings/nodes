@@ -14,16 +14,16 @@
 #include "json.hpp"
 #include "storage/schema.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
 void addSubMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "add sub" << j;
+  L_TRACE("add sub" << j);
         
   if (server->wasFromUs(j)) {
-    BOOST_LOG_TRIVIAL(trace) << "ignoring, came from us";
+    L_TRACE("ignoring, came from us");
     return;
   }
   

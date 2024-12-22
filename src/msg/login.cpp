@@ -16,7 +16,7 @@
 #include "security.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -56,22 +56,22 @@ void loginMsg(Server *server, json &j) {
     }
     user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin", "active", "modifyDate"}).value();
     if (!user) {
-      BOOST_LOG_TRIVIAL(trace) << "couldn't find user";
+      L_TRACE("couldn't find user");
       server->sendErr("Username/Password incorrect");
       return;
     }
     if (!user->active()) {
-      BOOST_LOG_TRIVIAL(trace) << "user not acitve";
+      L_TRACE("user not acitve");
       server->sendErr("Username/Password incorrect");
       return;
     }
     if (!Security::instance()->valid(vid, user->salt(), user->hash())) {
-      BOOST_LOG_TRIVIAL(trace) << "password incorrect salt(" << user->salt()  << ") hash(" << user->hash() << ")";
+      L_TRACE("password incorrect salt(" << user->salt()  << ") hash(" << user->hash() << ")");
       server->sendErr("Username/Password incorrect");
       return;
     }
   }
-//  BOOST_LOG_TRIVIAL(trace) << user.value().j();
+//  L_TRACE(user.value().j();)
   
   server->send({
     { "type", "user" },

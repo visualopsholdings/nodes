@@ -14,13 +14,13 @@
 #include "json.hpp"
 #include "storage.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
 void discoverLocalMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "discoverLocal " << j;
+  L_TRACE("discoverLocal " << j);
  
   auto data = Json::getArray(j, "data");
   if (!data) {

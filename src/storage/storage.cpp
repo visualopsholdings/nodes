@@ -17,7 +17,7 @@
 #include "date.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 #include <fstream>
 #include <wordexp.h>
 #include <sstream>
@@ -29,7 +29,7 @@ string getHome();
 void Storage::init(const string &dbConn, const string &dbName, const string &schema) {
 
   if (_impl.get()) {
-    BOOST_LOG_TRIVIAL(trace) << "ignoring extra Storage::init";
+    L_TRACE("ignoring extra Storage::init");
     return;
   }
   _impl.reset(new StorageImpl(dbConn, dbName));
@@ -45,16 +45,16 @@ void Storage::init(const string &dbConn, const string &dbName, const string &sch
     try {
       auto json = boost::json::parse(input);
       if (!json.is_array()) {
-        BOOST_LOG_TRIVIAL(error) << "file does not contain array";
+        L_ERROR("file does not contain array");
       }
       _schema = json.as_array();
     }
     catch (exception &e) {
-      BOOST_LOG_TRIVIAL(error) << "error loading schema " << e.what();
+      L_ERROR("error loading schema " << e.what());
     }
   }
   else {
-    BOOST_LOG_TRIVIAL(error) << "schema file not found";
+    L_ERROR("schema file not found");
   }
   
 }
@@ -82,14 +82,14 @@ bool Storage::collName(const string &type, string *name, bool checkinternal) {
 
   optional<boost::json::object> scheme = searchSchema(type);
   if (!scheme) {
-    BOOST_LOG_TRIVIAL(trace) << type << " is not in schema";
+    L_TRACE(type << " is not in schema");
     return false;
   }
   
   if (checkinternal) {
     auto internal = Json::getBool(scheme.value(), "internal", true);
     if (internal && internal.value()) {
-      BOOST_LOG_TRIVIAL(trace) << type << " is internal. Use the Schema objects";
+      L_TRACE(type << " is internal. Use the Schema objects");
       return false;
     }
   }
@@ -109,13 +109,13 @@ bool Storage::parentInfo(const string &type, string *parentfield, optional<strin
     if (subobj) {
       auto subtype = Json::getString(subobj.value(), "type");
       if (!subtype) {
-        BOOST_LOG_TRIVIAL(error) << "type missing in schema subobj " << subobj.value();
+        L_ERROR("type missing in schema subobj " << subobj.value());
         return false;
       }
       if (subtype.value() == type) {
         auto field = Json::getString(subobj.value(), "field");
         if (!field) {
-          BOOST_LOG_TRIVIAL(error) << "field missing in schema subobj " << subobj.value();
+          L_ERROR("field missing in schema subobj " << subobj.value());
           return false;
         }
         *parentfield = field.value();
@@ -163,7 +163,7 @@ string getHome() {
     // use $HOME (like in production)
     home = expandVar("$HOME") + "/nodes";
   }
-  BOOST_LOG_TRIVIAL(trace) << "home=" << home;
+  L_TRACE("home=" << home);
   
   return home;
   
@@ -185,7 +185,7 @@ void Storage::allCollectionsChanged() {
 
 void Storage::collectionWasChanged(const string &name) {
   long now = Date::now();
-//  BOOST_LOG_TRIVIAL(trace) << "collectionWasChanged " << name << " " << now;
+//  L_TRACE("collectionWasChanged " << name << " " << now);
   _changed[name] = now;
 }
 
@@ -203,13 +203,13 @@ private:
 
 bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
 
-  BOOST_LOG_TRIVIAL(trace) << "bulkInsert to " << collName;
+  L_TRACE("bulkInsert to " << collName);
  
   auto schema = GenericSchema(collName);
   for (auto i: objs) {
     json obj = i;
     
-//    BOOST_LOG_TRIVIAL(trace) << "insert obj " << obj;
+//    L_TRACE("insert obj " << obj);
 
     string id;
     if (obj.as_object().if_contains("_id")) {
@@ -220,7 +220,7 @@ bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
       obj.as_object().erase("id");
     }
     else {
-      BOOST_LOG_TRIVIAL(error) << "no id or _id";
+      L_ERROR("no id or _id");
       return false;
     }
     
@@ -229,7 +229,7 @@ bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
     };
     
     if (obj.as_object().if_contains("modifyDate") && obj.at("modifyDate").is_string()) {
-      BOOST_LOG_TRIVIAL(trace) << "converting string modify date";
+      L_TRACE("converting string modify date");
       obj.as_object()["modifyDate"] = {
         { "$date", Date::fromISODate(obj.at("modifyDate").as_string().c_str()) }
       };
@@ -237,14 +237,14 @@ bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
     
     auto result = schema.insert(obj);
     if (!result) {
-      BOOST_LOG_TRIVIAL(error) << "insert failed";
+      L_ERROR("insert failed");
       return false;
     }
     if (result.value() == "exists") {
       obj.as_object().erase("_id");
       auto result = schema.updateById(id.c_str(), obj);
       if (!result) {
-        BOOST_LOG_TRIVIAL(error) << "update failed";
+        L_ERROR("update failed");
         return false;
       }
     }

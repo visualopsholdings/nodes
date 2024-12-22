@@ -14,8 +14,8 @@
 #include "storage/resulti.hpp"
 #include "storage/schemai.hpp"
 #include "json.hpp"
+#include "log.hpp"
 
-#include <boost/log/trivial.hpp>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/options/find.hpp>
 #include <sstream>
@@ -42,12 +42,12 @@ mongocxx::cursor ResultImpl::find() {
 
 json ResultImpl::fixObject(const json &j) {
 
-//  BOOST_LOG_TRIVIAL(trace) << "fixing " << j;
+//  L_TRACE("fixing " << j);
 
   boost::json::object o;
   for (auto i: j.as_object()) {
   
-//    BOOST_LOG_TRIVIAL(trace) << "fixing " << i.key();
+//    L_TRACE("fixing " << i.key());
     
     if (i.value().is_object()) {
       if (i.key() == "_id" && i.value().as_object().if_contains("$oid")) {
@@ -85,7 +85,7 @@ json ResultImpl::fixObject(const json &j) {
 
 json ResultImpl::fixObjects(const json &j) {
 
-//  BOOST_LOG_TRIVIAL(trace) << "fixObjects " << j;
+//  L_TRACE("fixObjects " << j);
 
   return fixObject(j);
 
@@ -99,14 +99,14 @@ optional<json> ResultImpl::value() {
   
   mongocxx::cursor cursor = find();
   if (cursor.begin() == cursor.end()) {
-    BOOST_LOG_TRIVIAL(trace) << "empty";
+    L_TRACE("empty");
     return {};
   }
   auto first = cursor.begin();
   auto jsons = bsoncxx::to_json(*first);
-//  BOOST_LOG_TRIVIAL(trace) << "raw json " << jsons;
+//  L_TRACE("raw json " << jsons);
   auto json = boost::json::parse(jsons);
-//  BOOST_LOG_TRIVIAL(trace) << "parsed json " << json;
+//  L_TRACE("parsed json " << json);
   
   return fixObjects(json);
   
@@ -120,15 +120,15 @@ optional<boost::json::array> ResultImpl::values() {
   
   mongocxx::cursor cursor = find();
   if (cursor.begin() == cursor.end()) {
-    BOOST_LOG_TRIVIAL(trace) << "empty";
+    L_TRACE("empty");
     return {};
   }
   boost::json::array val;
   for (auto i: cursor) {
     auto jsons = bsoncxx::to_json(i);
-//    BOOST_LOG_TRIVIAL(trace) << "raw json " << jsons;
+//    L_TRACE("raw json " << jsons);
     auto json = boost::json::parse(jsons);
-//    BOOST_LOG_TRIVIAL(trace) << "parsed json " << json;
+//    L_TRACE("parsed json " << json);
     val.push_back(fixObjects(json));
   }
   return val;

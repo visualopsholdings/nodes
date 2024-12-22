@@ -15,7 +15,7 @@
 #include "security.hpp"
 #include "json.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
@@ -33,7 +33,7 @@ void setuserMsg(Server *server, json &j) {
     return;
   }
   
-  BOOST_LOG_TRIVIAL(trace) << "user old value " << doc.value().j();
+  L_TRACE("user old value " << doc.value().j());
   
   auto fullname = Json::getString(j, "fullname", true);
   auto name = Json::getString(j, "name", true);
@@ -64,13 +64,13 @@ void setuserMsg(Server *server, json &j) {
   server->sendUpd("user", id.value(), obj2);
   
   // update this node.
-  BOOST_LOG_TRIVIAL(trace) << "updating " << obj;
+  L_TRACE("updating " << obj);
   auto result = User().updateById(id.value(), obj);
   if (!result) {
     server->sendErr("could not update user");
     return;
   }
-  BOOST_LOG_TRIVIAL(trace) << "updated " << result.value();
+  L_TRACE("updated " << result.value());
   
   server->sendAck(result.value());
   

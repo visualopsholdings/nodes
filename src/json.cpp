@@ -12,8 +12,7 @@
 #include "json.hpp"
 
 #include "date.hpp"
-
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 string Json::toISODate(json &date) {
 
@@ -33,7 +32,7 @@ json Json::getMember(const json &j, const string &name, bool silent) {
 
   if (!j.is_object()) {
     if (!silent) {
-      BOOST_LOG_TRIVIAL(error) << "json is not object";
+      L_ERROR("json is not object");
     }
     return {};
   }
@@ -55,7 +54,7 @@ optional<string> Json::getString(const json &j, const string &name, bool silent)
   auto obj = getMember(j, name, silent);
   if (!obj.is_string()) {
     if (!silent) {
-      BOOST_LOG_TRIVIAL(error) << "obj is not string " << j << " " << name;
+      L_ERROR("obj is not string " << j << " " << name);
     }
     return {};
   }
@@ -68,7 +67,7 @@ optional<boost::json::array> Json::getArray(json &j, const string &name, bool si
   auto obj = getMember(j, name, silent);
   if (!obj.is_array()) {
     if (!silent) {
-      BOOST_LOG_TRIVIAL(error) << "obj is not array " << j << " " << name;
+      L_ERROR("obj is not array " << j << " " << name);
     }
     return {};
   }
@@ -81,7 +80,7 @@ optional<json> Json::getObject(const json &j, const string &name, bool silent) {
   auto obj = getMember(j, name, silent);
   if (!obj.is_object()) {
     if (!silent) {
-      BOOST_LOG_TRIVIAL(error) << "obj is not object " << j << " " << name;
+      L_ERROR("obj is not object " << j << " " << name);
     }
     return {};
   }
@@ -94,7 +93,7 @@ optional<bool> Json::getBool(const json &j, const string &name, bool silent) {
   auto obj = getMember(j, name, silent);
   if (!obj.is_bool()) {
     if (!silent) {
-      BOOST_LOG_TRIVIAL(error) << "obj is not bool " << j << " " << name;
+      L_ERROR("obj is not bool " << j << " " << name);
     }
     return {};
   }
@@ -107,7 +106,7 @@ optional<long> Json::getNumber(const json &j, const string &name, bool silent) {
   auto obj = getMember(j, name, silent);
   if (!obj.is_int64()) {
     if (!silent) {
-      BOOST_LOG_TRIVIAL(error) << "obj is not number " << j << " " << name;
+      L_ERROR("obj is not number " << j << " " << name);
     }
     return {};
   }

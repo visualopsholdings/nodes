@@ -16,7 +16,7 @@
 #include "json.hpp"
 #include "handler.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 

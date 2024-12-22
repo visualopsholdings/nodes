@@ -14,13 +14,13 @@
 #include "json.hpp"
 #include "storage/schema.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
 void onlineMsg(Server *server, json &j) {
    
-  BOOST_LOG_TRIVIAL(trace) << "online " << j;
+  L_TRACE("online " << j);
        
   string src;
   if (!server->getSrc(j, &src)) {

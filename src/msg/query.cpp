@@ -15,7 +15,7 @@
 #include "json.hpp"
 #include "upstream.hpp"
 
-#include <boost/log/trivial.hpp>
+#include "log.hpp"
 
 namespace nodes {
 
