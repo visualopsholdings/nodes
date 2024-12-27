@@ -22,6 +22,8 @@
 using namespace std;
 using json = boost::json::value;
 
+namespace nodes {
+
 class SchemaImpl {
 
 public:
@@ -88,5 +90,7 @@ private:
   static bool testInit();
 
 };
+
+} // nodes
 
 #endif // H_schemai

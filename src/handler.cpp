@@ -15,8 +15,9 @@
 #include "json.hpp"
 #include "security.hpp"
 #include "storage.hpp"
-
 #include "log.hpp"
+
+namespace nodes {
 
 bool Handler::add(Server *server, const string &type, const json &obj, optional<string> corr) {
 
@@ -53,7 +54,12 @@ bool Handler::add(Server *server, const string &type, const json &obj, optional<
   
 }
 
-bool Handler::update(Server *server, const string &type, const string &id, optional<string> me, optional<string> name, boost::json::object *obj) {
+bool Handler::update(Server *server, const string &type, const string &id, optional<string> me, optional<string> name, const json &obj) {
+
+  if (!obj.is_object()) {
+    L_ERROR("json passed in is not object");
+    return false;
+  }
 
   // get the collection name.
   string coll;
@@ -103,22 +109,24 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
     return false;
   }
   
-  (*obj)["modifyDate"] = Storage::instance()->getNow();
+  boost::json::object obj1 = obj.as_object();
+
+  obj1["modifyDate"] = Storage::instance()->getNow();
   if (name) {
-    (*obj)["name"] = name.value();
+    obj1["name"] = name.value();
   }
   
   // send to other nodes.
-  boost::json::object obj2 = (*obj);
+  boost::json::object obj2 = obj1;
   if (orig.value().as_object().if_contains("upstream")) {
     obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
   }
   server->sendUpd(type, id, obj2);
     
   // update locally
-  L_TRACE("updating " << (*obj));
+  L_TRACE("updating " << obj1);
   auto r = SchemaImpl::updateGeneralById(coll, id, {
-    { "$set", (*obj) }
+    { "$set", obj1 }
   });
   if (!r) {
     server->sendErr("could not update " + type);
@@ -253,3 +261,5 @@ bool Handler::upstream(Server *server, const string &type, const string &id, con
   return true;
 
 }
+
+} // nodes

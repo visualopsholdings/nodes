@@ -22,6 +22,8 @@
 using namespace std;
 using json = boost::json::value;
 
+namespace nodes {
+
 class DynamicRow;
 class InfoRow;
 class Upstream;
@@ -163,5 +165,7 @@ private:
   bool isObjUpstream(boost::json::object &obj);
   bool hasUpstream();
 };
+
+} // nodes
 
 #endif // H_server

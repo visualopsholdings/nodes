@@ -24,6 +24,8 @@
 
 using namespace std;
 
+namespace nodes {
+
 class StorageImpl;
 
 class Storage {
@@ -80,5 +82,7 @@ private:
   optional<boost::json::object> searchSchema(const string &type);
 
 };
+
+} // nodes
 
 #endif // H_storage

@@ -18,6 +18,8 @@
 
 using namespace std;
 
+namespace nodes {
+
 class CollectionImpl {
 
 public:
@@ -28,5 +30,7 @@ public:
   mongocxx::collection _c;
   
 };
+
+} // nodes
 
 #endif // H_collectioni

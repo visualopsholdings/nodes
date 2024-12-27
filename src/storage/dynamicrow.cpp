@@ -12,8 +12,9 @@
 #include "storage/dynamicrow.hpp"
 
 #include "json.hpp"
-
 #include "log.hpp"
+
+using namespace nodes;
 
 string DynamicRow::getString(const string &name) const {
 

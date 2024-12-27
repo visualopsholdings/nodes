@@ -24,6 +24,8 @@
 using namespace std;
 using json = boost::json::value;
 
+namespace nodes {
+
 class VID;
 
 typedef tuple<string, string, string> addTupleType;
@@ -148,5 +150,7 @@ private:
   bool isValidId(const string &id);
   
 };
+
+} // nodes
 
 #endif // H_security

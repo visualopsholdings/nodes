@@ -14,6 +14,8 @@
 #include "server.hpp"
 #include "log.hpp"
 
+namespace nodes {
+
 Downstream::Downstream(Server *server, zmq::context_t &context, int type, const string &name, int port, 
     const string &privateKey) : 
       _socket(context, type) {
@@ -37,3 +39,5 @@ Downstream::Downstream(Server *server, zmq::context_t &context, int type, const 
 	L_INFO("Bind to ZMQ " << name << " at "<< url);
 	
 }
+
+} // nodes

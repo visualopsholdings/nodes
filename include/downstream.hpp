@@ -18,6 +18,8 @@
 
 using namespace std;
 
+namespace nodes {
+
 class Server;
 
 class Downstream {
@@ -32,5 +34,7 @@ private:
   zmq::socket_t _socket;
   
 };
+
+} // nodes
 
 #endif // H_upstream

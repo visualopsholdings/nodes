@@ -15,8 +15,11 @@
 #include "storage/collectioni.hpp"
 #include "storage/resulti.hpp"
 #include "date.hpp"
-
 #include "log.hpp"
+
+using namespace nodes;
+
+namespace nodes {
 
 StorageImpl::StorageImpl(const string &dbConn, const string &dbName) {
 
@@ -34,3 +37,4 @@ CollectionImpl StorageImpl::coll(const string &name) {
   
 }
 
+} // nodes

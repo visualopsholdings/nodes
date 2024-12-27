@@ -33,6 +33,8 @@
 #define SHA1_LEN    128
 #define ITERATIONS  12000
 
+namespace nodes {
+
 shared_ptr<Security> Security::_instance;
 
 string getHome();
@@ -618,3 +620,4 @@ bool Security::isValidId(const string &id) {
   return id.size() == 24;
 }
 
+} // nodes

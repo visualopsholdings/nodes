@@ -15,7 +15,6 @@
 #include "security.hpp"
 #include "json.hpp"
 #include "handler.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -28,10 +27,9 @@ void setGroupMsg(Server *server, json &j) {
     return;
   }  
   
-  boost::json::object obj;
   Handler::update(server, "group", id.value(), 
-    Json::getString(j, "me", true), Json::getString(j, "name", true), &obj);
-
+    Json::getString(j, "me", true), Json::getString(j, "name", true), {{}});
+  
 }
 
 };

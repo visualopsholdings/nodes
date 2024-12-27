@@ -399,6 +399,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Make it really easy to remove logging or just log to stdout rather than
   rely on Boost.
 
+### 27 Dec 2024
+- Use nodes namespace everywhere
+- Better exception handling for exceptions thrown from handlers.
+
 
 
 

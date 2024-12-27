@@ -25,6 +25,7 @@
 #include <fstream>
 
 using namespace bsoncxx::builder::basic;
+using namespace nodes;
 
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx::document::view_or_value query, const vector<string> &fields) {
 

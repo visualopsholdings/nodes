@@ -19,6 +19,8 @@
 
 using namespace std;
 
+namespace nodes {
+
 class CollectionImpl;
 
 class StorageImpl {
@@ -36,5 +38,6 @@ private:
   
 };
 
+} // nodes
 
 #endif // H_storagei

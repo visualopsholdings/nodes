@@ -13,6 +13,8 @@
 
 #include <boost/algorithm/string.hpp>
 
+namespace nodes {
+
 vector<AccessRow> PolicyRow::accesses() { 
 
   vector<AccessRow> rows;
@@ -64,3 +66,5 @@ string Info::getInfoSafe(optional<vector<InfoRow> > infos, const string &type, c
   return def;
   
 }
+
+} // nodes

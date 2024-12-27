@@ -25,9 +25,12 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp> 
 #include <boost/algorithm/string.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 #include <cctype>
 
 #define HEARTBEAT_INTERVAL 5 // in seconds
+
+using namespace nodes;
 
 namespace nodes {
 
@@ -388,7 +391,14 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
       L_ERROR("unknown msg type " << type.value() << " for " << name);
       return false;
     }
-    handler->second(doc);
+    try {
+      handler->second(doc);
+    }
+    catch (exception &exc) {
+      L_ERROR("what: " << exc.what());
+      L_ERROR("location: " << boost::get_throw_location(exc));
+      return false;
+    }
   }
   catch (zmq::error_t &e) {
     L_WARNING("got exc with " << name << " recv" << e.what() << "(" << e.num() << ")");

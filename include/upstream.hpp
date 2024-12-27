@@ -19,6 +19,8 @@
 
 using namespace std;
 
+namespace nodes {
+
 class Server;
 
 class Monitor : public zmq::monitor_t {
@@ -53,5 +55,7 @@ private:
   shared_ptr<Monitor> _monitor;
   
 };
+
+} // nodes
 
 #endif // H_upstream

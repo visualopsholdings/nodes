@@ -19,10 +19,10 @@
 #define H_date
 
 #include <string>
-#include <boost/json.hpp>
 
 using namespace std;
-using json = boost::json::value;
+
+namespace nodes {
 
 class Date {
  
@@ -35,5 +35,7 @@ public:
   static long fromRubyDate(const string &d);
 
 };
+
+} // nodes
 
 #endif // H_date

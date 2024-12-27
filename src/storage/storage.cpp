@@ -22,6 +22,8 @@
 #include <wordexp.h>
 #include <sstream>
 
+namespace nodes {
+
 shared_ptr<Storage> Storage::_instance;
 
 string getHome();
@@ -258,3 +260,5 @@ json Storage::getNow() {
   return { { "$date", Date::now() } };
   
 }
+
+} // nodes

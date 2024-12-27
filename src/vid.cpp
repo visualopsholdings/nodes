@@ -17,6 +17,8 @@
 #include <boost/archive/iterators/dataflow_exception.hpp>
 #include <iostream>
 
+namespace nodes {
+
 //  0123 	4 - 27 		28 29		30 - 
 //. 564f 	UID 		00 | 01		token or password
 //  "564f" == "VO" as hex :=)
@@ -98,3 +100,5 @@ void VID::describe() {
   cout << "password: " << _password << endl;
 
 }
+
+} // nodes

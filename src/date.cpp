@@ -20,6 +20,8 @@
 #define TIME_FORMAT "%Y-%m-%dT%H:%M:%S"
 #define RUBY_TIME_FORMAT "%Y-%m-%d %H:%M:%S"
 
+namespace nodes {
+
 long Date::now() {
 
   auto now = chrono::system_clock::now();
@@ -182,3 +184,4 @@ long Date::fromRubyDate(const string &d) {
   
 }
 
+} // nodes

@@ -22,6 +22,8 @@
 using namespace std;
 using json = boost::json::value;
 
+namespace nodes {
+
 template <typename RowType>
 class Result {
 
@@ -56,5 +58,7 @@ private:
   shared_ptr<ResultImpl> _impl;
   
 };
+
+} // nodes
 
 #endif // H_result

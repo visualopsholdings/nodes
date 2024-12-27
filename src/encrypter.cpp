@@ -17,6 +17,8 @@
 #include "log.hpp"
 #include <boost/algorithm/hex.hpp>
 
+namespace nodes {
+
 Encrypter::Encrypter(const string &key, const string &iv) {
 
   if (!(_ctx = EVP_CIPHER_CTX_new())) {
@@ -105,3 +107,5 @@ string Encrypter::makeIV() {
   RAND_bytes(iv, sizeof(iv));
   return boost::algorithm::hex(string((const char *)iv, sizeof(iv)));
 }
+
+} // nodes

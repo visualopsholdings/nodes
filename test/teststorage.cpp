@@ -20,6 +20,7 @@
 
 using namespace std;
 using namespace bsoncxx::builder::basic;
+using namespace nodes;
 
 string tracy = "667d0baedfb1ed18430d8ed3";
 string leanne = "667d0baedfb1ed18430d8ed4";

@@ -18,6 +18,8 @@
 
 #include <set>
 
+namespace nodes {
+
 template <typename RowType>
 class Schema: public SchemaImpl {
 
@@ -237,5 +239,7 @@ public:
   virtual string collName() { return "usereditpermissions"; };
   
 };
+
+} // nodes
 
 #endif // H_schema

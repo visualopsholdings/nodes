@@ -25,6 +25,7 @@
 
 using namespace std;
 namespace po = boost::program_options;
+using namespace nodes;
 
 int main(int argc, char *argv[]) {
 

@@ -18,6 +18,8 @@
 
 using namespace std;
 
+namespace nodes {
+
 class VID {
 
 public:
@@ -39,5 +41,7 @@ private:
   string _password;
     
 };
+
+} // nodes
 
 #endif // H_vid

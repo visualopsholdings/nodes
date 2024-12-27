@@ -20,6 +20,8 @@
 using namespace std;
 using json = boost::json::value;
 
+namespace nodes {
+
 class Server;
 
 class Handler {
@@ -30,7 +32,7 @@ public:
     // add a new object.
     
   static bool update(Server *server, const string &type, const string &id, 
-                optional<string> me, optional<string> name, boost::json::object *obj);
+                optional<string> me, optional<string> name, const json &obj);
     // update an existing object.
     
   static bool remove(Server *server, const string &type, const string &id, optional<string> me);
@@ -40,5 +42,7 @@ public:
     // get an object from the upstream server.
     
 };
+
+} // nodes
 
 #endif // H_handler

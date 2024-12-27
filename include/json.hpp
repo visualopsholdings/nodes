@@ -20,6 +20,8 @@
 using namespace std;
 using json = boost::json::value;
 
+namespace nodes {
+
 class Json {
 
 public:
@@ -51,5 +53,7 @@ private:
   static bool hasArrayValue(const boost::json::array &arr, const string &val);
  
 };
+
+} // nodes
 
 #endif // H_json

@@ -20,6 +20,8 @@
 using namespace std;
 using json = boost::json::value;
 
+namespace nodes {
+
 class ResultImpl {
 
 public:
@@ -44,5 +46,6 @@ private:
 
 };
 
+} // nodes
 
 #endif // H_resulti

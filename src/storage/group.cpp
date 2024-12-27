@@ -12,8 +12,9 @@
 #include "storage/schema.hpp"
 
 #include "storage.hpp"
-
 #include "log.hpp"
+
+using namespace nodes;
 
 bool Group::getMemberSet(const string &group, set<string> *mset) {
 

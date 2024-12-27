@@ -68,7 +68,7 @@ void moveObjectMsg(Server *server, json &j) {
   // get the collection name.
   string coll;
   if (!Storage::instance()->collName(objtype.value(), &coll, false)) {
-    server->sendErr("Could not get collection name for Handler::update");
+    server->sendErr("Could not get collection name for moveObjectMsg");
     return;
   }
   

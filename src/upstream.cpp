@@ -12,8 +12,9 @@
 #include "upstream.hpp"
 
 #include "server.hpp"
-
 #include "log.hpp"
+
+namespace nodes {
 
 Upstream::Upstream(Server *_server, zmq::context_t &context, int type, const string &name, const string &upstream, int port, const string &upstreamPubKey, 
     const string &privateKey, const string &pubKey) : 
@@ -69,3 +70,5 @@ void Monitor::on_event_disconnected(const zmq_event_t& event, const char* addr) 
   L_WARNING("disconnected from " << _name);
   _connected = false;
 }
+
+} // nodes

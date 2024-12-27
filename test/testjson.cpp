@@ -18,6 +18,7 @@
 
 using namespace std;
 using json = boost::json::value;
+using namespace nodes;
 
 BOOST_AUTO_TEST_CASE( goodString )
 {

@@ -21,6 +21,8 @@ typedef struct evp_cipher_ctx_st EVP_CIPHER_CTX;
 
 using namespace std;
 
+namespace nodes {
+
 class Encrypter {
 
 public:
@@ -39,5 +41,7 @@ private:
   string _iv;
 
 };
+
+} // nodes
 
 #endif // H_encrypter

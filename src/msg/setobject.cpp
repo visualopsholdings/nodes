@@ -35,16 +35,23 @@ void setObjectMsg(Server *server, json &j) {
   
 //  L_TRACE(j);
   
+  auto name = Json::getString(j, "name", true);
+  
+  json obj2 = j;
+
   // set on all fields passed in except name.
-  boost::json::object obj = j.as_object();
+  boost::json::object obj = obj2.as_object();
   obj.erase("type");
   obj.erase("objtype");
   obj.erase("me");
   obj.erase("id");
   obj.erase("name");
 
+  L_TRACE("setting name " << (name ? name.value() : "(not)"));
+  L_TRACE("setting obj " << obj2);
+  
   Handler::update(server, objtype.value(),  id.value(), 
-    Json::getString(j, "me", true), Json::getString(j, "name", true), &obj);
+    Json::getString(j, "me", true), name, obj2);
 
 }
 

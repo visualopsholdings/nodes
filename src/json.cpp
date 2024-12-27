@@ -14,6 +14,8 @@
 #include "date.hpp"
 #include "log.hpp"
 
+namespace nodes {
+
 string Json::toISODate(json &date) {
 
   if (!date.is_object()) {
@@ -174,4 +176,5 @@ bool Json::arrayTail(const boost::json::object &obj, const string &name, string 
   
 }
 
+} // nodes
 

@@ -19,6 +19,8 @@
 using namespace std;
 using json = boost::json::value;
 
+namespace nodes {
+
 class DynamicRow {
 
 public:
@@ -37,5 +39,7 @@ protected:
 private:
   json _json;
 };
+
+} // nodes
 
 #endif // H_dynamicrow
