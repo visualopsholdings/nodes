@@ -15,14 +15,13 @@
 #include "security.hpp"
 #include "json.hpp"
 #include "handler.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
 
-void moveObjectMsg(Server *server, json &j) {
+void moveObjectMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
@@ -42,7 +41,7 @@ void moveObjectMsg(Server *server, json &j) {
     return;
   }
   
-  auto pcollid = Json::getString(j, "coll");
+  auto pcollid = j.getString("coll");
   if (!pcollid) {
     server->sendErr("no coll");
     return;
@@ -53,13 +52,13 @@ void moveObjectMsg(Server *server, json &j) {
     return;
   }
   
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id");
     return;
   }
 
-  auto me = Json::getString(j, "me");
+  auto me = j.getString("me");
   if (!me) {
     server->sendErr("no me");
     return;
@@ -98,16 +97,16 @@ void moveObjectMsg(Server *server, json &j) {
   }
   
   // Set the parent field of the object.
-  boost::json::object obj = {
+  Data obj = {
     { parentfield, pcollid.value() }
   };
 
-  obj["modifyDate"] = Storage::instance()->getNow();
+  obj.setObj("modifyDate", Storage::instance()->getNow());
   
   // send to other nodes.
-  boost::json::object obj2 = obj;
+  Data obj2 = obj;
   if (orig.value().as_object().if_contains("upstream")) {
-    obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
+    obj2.setBool("upstream", Json::getBool(orig.value(), "upstream").value());
   }
   server->sendMov(objtype.value(), id.value(), obj2, parenttype, origparent.value());
     

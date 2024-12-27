@@ -10,19 +10,17 @@
 */
 
 #include "server.hpp"
-
-#include "json.hpp"
 #include "storage/schema.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void updDrMsg(Server *server, json &j) {
+void updDrMsg(Server *server, Data &j) {
    
   L_TRACE("upd or mov (dr) " << j);
        
-  auto dest = Json::getString(j, "dest");
+  auto dest = j.getString("dest");
   if (!dest) {
     server->sendErrDown("upd missing dest");
     return;

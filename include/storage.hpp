@@ -27,6 +27,7 @@ using namespace std;
 namespace nodes {
 
 class StorageImpl;
+class Data;
 
 class Storage {
 
@@ -45,7 +46,7 @@ public:
   bool bulkInsert(const string &collName, boost::json::array &objs);
     // Insert all of the objects into the collection with that name.
 
-  json getNow();
+  Data getNow();
     // return the correct JSON for a date that is now.
     
   void collectionWasChanged(const string &name);

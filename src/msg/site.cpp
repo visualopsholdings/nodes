@@ -13,12 +13,12 @@
 
 #include "storage.hpp"
 #include "json.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void siteMsg(Server *server, json &j) {
+void siteMsg(Server *server, Data &j) {
 
   auto doc = Site().find(json{{}}, {}).value();
 

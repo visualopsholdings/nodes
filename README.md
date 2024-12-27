@@ -402,6 +402,7 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 27 Dec 2024
 - Use nodes namespace everywhere
 - Better exception handling for exceptions thrown from handlers.
+- Start to remove internal dependancy on JSON.
 
 
 

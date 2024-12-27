@@ -19,7 +19,7 @@
 
 namespace nodes {
 
-void infosMsg(Server *server, json &j) {
+void infosMsg(Server *server, Data &j) {
 
   auto docs = Info().find(json{{}}, {"type", "text"}).values();
 

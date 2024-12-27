@@ -15,24 +15,23 @@
 #define H_handler
 
 #include <string>
-#include <boost/json.hpp>
 
 using namespace std;
-using json = boost::json::value;
 
 namespace nodes {
 
 class Server;
+class Data;
 
 class Handler {
 
 public:
 
-  static bool add(Server *server, const string &type, const json &obj, optional<string> corr);
+  static bool add(Server *server, const string &type, const Data &obj, optional<string> corr);
     // add a new object.
     
   static bool update(Server *server, const string &type, const string &id, 
-                optional<string> me, optional<string> name, const json &obj);
+                optional<string> me, optional<string> name, const Data &obj);
     // update an existing object.
     
   static bool remove(Server *server, const string &type, const string &id, optional<string> me);

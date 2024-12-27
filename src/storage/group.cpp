@@ -13,6 +13,7 @@
 
 #include "storage.hpp"
 #include "log.hpp"
+#include "data.hpp"
 
 using namespace nodes;
 

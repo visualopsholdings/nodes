@@ -20,14 +20,14 @@
 
 namespace nodes {
 
-void loginMsg(Server *server, json &j) {
+void loginMsg(Server *server, Data &j) {
 
-  auto session = Json::getString(j, "session");
+  auto session = j.getString("session");
   if (!session) {
     server->sendErr("no session");
     return;
   }
-  auto password = Json::getString(j, "password");
+  auto password = j.getString("password");
   if (!password) {
     server->sendErr("no password");
     return;

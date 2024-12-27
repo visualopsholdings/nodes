@@ -14,14 +14,14 @@
 #include "storage.hpp"
 #include "json.hpp"
 #include "date.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void userMsg(Server *server, json &j) {
+void userMsg(Server *server, Data &j) {
 
-  auto userid = Json::getString(j, "user");
+  auto userid = j.getString("user");
   if (!userid) {
     server->sendErr("no userid");
     return;

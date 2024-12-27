@@ -10,18 +10,16 @@
 */
 
 #include "server.hpp"
-
-#include "json.hpp"
-#include "storage/schema.hpp"
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void addDrMsg(Server *server, json &j) {
+void addDrMsg(Server *server, Data &data) {
    
-  L_TRACE("add (dr) " << j);
+  L_TRACE("add (dr) " << data);
        
-  auto dest = Json::getString(j, "dest");
+  auto dest = data.getString("dest");
   if (!dest) {
     server->sendErrDown("add missing dest");
     return;
@@ -33,8 +31,8 @@ void addDrMsg(Server *server, json &j) {
    return;
   }
   
-  server->addObject(j);
-  server->sendOn(j);
+  server->addObject(data);
+  server->sendOn(data);
   server->sendAckDown();
 
   

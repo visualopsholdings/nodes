@@ -79,6 +79,7 @@ set(UTILS
   src/downstream.cpp
   src/encrypter.cpp
   src/log.cpp
+  src/data.cpp
 )
 set(MESSAGES 
   src/msg/certs.cpp
@@ -210,3 +211,9 @@ add_executable(TestEncrypter test/testencrypter.cpp src/encrypter.cpp)
   target_link_libraries(TestEncrypter ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${OPENSSL_LIBRARIES})
 
 add_test(TestEncrypter TestEncrypter)
+
+add_executable(TestData test/testdata.cpp src/data.cpp)
+  target_link_libraries(TestData ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
+
+add_test(TestData TestData)
+

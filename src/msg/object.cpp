@@ -19,14 +19,14 @@
 
 namespace nodes {
 
-void objectMsg(Server *server, json &j) {
+void objectMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
   }
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no " + objtype.value());
     return;
@@ -39,7 +39,7 @@ void objectMsg(Server *server, json &j) {
     return;
   }
   
-  auto doc = Security::instance()->withView(coll, Json::getString(j, "me", true), 
+  auto doc = Security::instance()->withView(coll, j.getString("me", true), 
     {{ { "_id", { { "$oid", id.value() } } } }}).value();
   if (!doc) {
     L_ERROR("no object to view");

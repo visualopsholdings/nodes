@@ -13,19 +13,18 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
 #include "handler.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void addGroupMsg(Server *server, json &j) {
+void addGroupMsg(Server *server, Data &j) {
 
-  auto upstream = Json::getBool(j, "upstream", true);
+  auto upstream = j.getBool("upstream", true);
   if (upstream && upstream.value()) {
   
-    auto id = Json::getString(j, "id");
+    auto id = j.getString("id");
     if (!id) {
       server->sendErr("no group id");
       return;
@@ -35,12 +34,12 @@ void addGroupMsg(Server *server, json &j) {
     return;
   }
   
-  auto me = Json::getString(j, "me");
+  auto me = j.getString("me");
   if (!me) {
     server->sendErr("no me");
     return;
   }
-  auto name = Json::getString(j, "name");
+  auto name = j.getString("name");
   if (!name) {
     server->sendErr("no name");
     return;
@@ -52,14 +51,14 @@ void addGroupMsg(Server *server, json &j) {
     return;
   }
 
-  json obj = {
+  Data obj = {
     { "name", name.value() },
     { "policy", policy.value() },
     { "modifyDate", Storage::instance()->getNow() },
     { "active", true }
   };
 
-  if (Handler::add(server, "group", obj, Json::getString(j, "corr", true))) {
+  if (Handler::add(server, "group", obj, j.getString("corr", true))) {
     Security::instance()->regenerateGroups();
   }
 

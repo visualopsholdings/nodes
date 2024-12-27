@@ -12,12 +12,11 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
 
-void certsMsg(Server *server, json &j) {
+void certsMsg(Server *server, Data &j) {
 
   if (server->_certFile.empty()) {
     server->send({

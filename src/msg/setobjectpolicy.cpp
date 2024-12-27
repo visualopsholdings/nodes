@@ -19,14 +19,14 @@
 
 namespace nodes {
 
-void setObjectPolicyMsg(Server *server, json &j) {
+void setObjectPolicyMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
   }
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id in " + objtype.value());
     return;
@@ -39,7 +39,7 @@ void setObjectPolicyMsg(Server *server, json &j) {
     return;
   }
   
-  if (!Security::instance()->canEdit(coll, Json::getString(j, "me", true), id.value())) {
+  if (!Security::instance()->canEdit(coll, j.getString("me", true), id.value())) {
     server->sendErr("no edit for " + objtype.value() + " " + id.value());
     return;
   }
@@ -81,15 +81,15 @@ void setObjectPolicyMsg(Server *server, json &j) {
     server->sendAck();
   }
   
-  boost::json::object obj = {
+  Data obj = {
     { "modifyDate", Storage::instance()->getNow() },
     { "policy", policy.value() }
   };
 
   // send to other nodes.
-  boost::json::object obj2 = obj;
+  Data obj2 = obj;
   if (orig.value().as_object().if_contains("upstream")) {
-    obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
+    obj2.setBool("upstream", Json::getBool(orig.value(), "upstream").value());
   }
   server->sendUpd(objtype.value(), id.value(), obj2);
     

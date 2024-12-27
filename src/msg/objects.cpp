@@ -14,19 +14,19 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "json.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void objectsMsg(Server *server, json &j) {
+void objectsMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
   }
-  boost::json::object query = {
+  Data query = {
     { "deleted", {
       { "$ne", true }
       }
@@ -36,12 +36,12 @@ void objectsMsg(Server *server, json &j) {
   // add in any parent query.
   string parent;
   if (Storage::instance()->parentInfo(objtype.value(), &parent)) {
-    auto pid = Json::getString(j, parent);
+    auto pid = j.getString(parent);
     if (!pid) {
       server->sendErr("no " + parent);
       return;
     }
-    query[parent] = pid.value();
+    query.setString(parent, pid.value());
   }
   
   // get the collection name.
@@ -52,7 +52,7 @@ void objectsMsg(Server *server, json &j) {
   }
   
   // make sure it can be viewed.
-  auto docs = Security::instance()->withView(coll, Json::getString(j, "me", true), query).values();
+  auto docs = Security::instance()->withView(coll, j.getString("me", true), query).values();
   
   // copy out all the data to return;
   boost::json::array s;

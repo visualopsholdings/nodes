@@ -19,9 +19,9 @@
 
 namespace nodes {
 
-void purgeCountMsg(Server *server, json &j) {
+void purgeCountMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
@@ -34,7 +34,7 @@ void purgeCountMsg(Server *server, json &j) {
   // add in any parent query.
   string parent;
   if (Storage::instance()->parentInfo(objtype.value(), &parent)) {
-    auto pid = Json::getString(j, parent);
+    auto pid = j.getString(parent);
     if (!pid) {
       server->sendErr("no " + parent);
       return;

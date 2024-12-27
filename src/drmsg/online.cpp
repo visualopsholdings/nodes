@@ -10,15 +10,13 @@
 */
 
 #include "server.hpp"
-
-#include "json.hpp"
 #include "storage/schema.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void onlineMsg(Server *server, json &j) {
+void onlineMsg(Server *server, Data &j) {
    
   L_TRACE("online " << j);
        
@@ -28,29 +26,29 @@ void onlineMsg(Server *server, json &j) {
     return;
   }
   
-  auto pubKey = Json::getString(j, "pubKey");
+  auto pubKey = j.getString("pubKey");
   if (!pubKey) {
     server->sendErrDown("online missing pubKey");
     return;
   }
   
-  boost::json::object obj;
+  Data obj = {{}};
   
-  auto headerTitle = Json::getString(j, "headerTitle", true);
+  auto headerTitle = j.getString("headerTitle", true);
   if (headerTitle) {
-    obj["headerTitle"] = headerTitle.value();
+    obj.setString("headerTitle", headerTitle.value());
   }
-  auto streamBgColor = Json::getString(j, "streamBgColor", true);
+  auto streamBgColor = j.getString("streamBgColor", true);
   if (streamBgColor) {
-    obj["streamBgColor"] = streamBgColor.value();
+    obj.setString("streamBgColor", streamBgColor.value());
   }
-  auto mirror = Json::getString(j, "mirror", true);
+  auto mirror = j.getString("mirror", true);
   if (mirror) {
-    obj["mirror"] = mirror.value();
+    obj.setString("mirror", mirror.value());
   }
-  auto synced = Json::getString(j, "synced", true);
+  auto synced = j.getString("synced", true);
   if (synced) {
-    obj["synced"] = synced.value();
+    obj.setString("synced", synced.value());
   }
 
   // is the node valid?
@@ -58,14 +56,14 @@ void onlineMsg(Server *server, json &j) {
   auto node = Node().find(json{ { "serverId", src } }, {}).value();
   if (node) {
     if (node.value().pubKey() == pubKey.value()) {
-      obj["valid"] = true;
+      obj.setBool("valid", true);
       Node().updateById(node.value().id(), obj);
       valid = true;
     }
   }
   else {
-    obj["serverId"] = src;
-    obj["pubKey"] = pubKey.value();
+    obj.setString("serverId", src);
+    obj.setString("pubKey", pubKey.value());
     
     // create a new node.
     auto result = Node().insert(obj);

@@ -19,9 +19,9 @@
 
 namespace nodes {
 
-void deleteNodeMsg(Server *server, json &j) {
+void deleteNodeMsg(Server *server, Data &j) {
 
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id");
     return;

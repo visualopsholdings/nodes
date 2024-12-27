@@ -14,22 +14,22 @@
 #include "storage.hpp"
 #include "json.hpp"
 #include "security.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void groupsMsg(Server *server, json &j) {
+void groupsMsg(Server *server, Data &j) {
 
   Group group;
-  json query = {
+  Data query = {
     { "deleted", {
       { "$ne", true }
       }
     }
   };
   L_TRACE(query);
-  auto docs = Security::instance()->withView(group, Json::getString(j, "me", true), query, 
+  auto docs = Security::instance()->withView(group, j.getString("me", true), query, 
     { "id", "policy", "modifyDate", "name", "upstream" }).values();
 
   boost::json::array s;

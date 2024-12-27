@@ -14,22 +14,22 @@
 #include "storage.hpp"
 #include "json.hpp"
 #include "security.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void membersMsg(Server *server, json &j) {
+void membersMsg(Server *server, Data &j) {
 
-  auto groupid = Json::getString(j, "group");
+  auto groupid = j.getString("group");
   if (!groupid) {
     server->sendErr("no group");
     return;
   }
 
   Group groups;
-  auto doc = Security::instance()->withView(groups, Json::getString(j, "me", true), 
-    json{ { "_id", { { "$oid", groupid.value() } } } }, 
+  auto doc = Security::instance()->withView(groups, j.getString("me", true), 
+    Data{ { "_id", { { "$oid", groupid.value() } } } }, 
     { "members", "modifyDate" }).value();
   if (!doc) {
     L_ERROR("no group " + groupid.value());

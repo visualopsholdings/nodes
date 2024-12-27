@@ -19,16 +19,16 @@
 
 namespace nodes {
 
-void setGroupPolicyMsg(Server *server, json &j) {
+void setGroupPolicyMsg(Server *server, Data &j) {
 
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id in group");
     return;
   }  
   
   Group groups;
-  if (!Security::instance()->canEdit(groups, Json::getString(j, "me", true), id.value())) {
+  if (!Security::instance()->canEdit(groups, j.getString("me", true), id.value())) {
     server->sendErr("no edit for groups " + id.value());
     return;
   }
@@ -59,15 +59,15 @@ void setGroupPolicyMsg(Server *server, json &j) {
     server->sendAck();
   }
   
-  boost::json::object obj = {
+  Data obj = {
     { "modifyDate", Storage::instance()->getNow() },
     { "policy", policy.value() }
   };
 
   // send to other nodes.
-  boost::json::object obj2 = obj;
+  Data obj2 = obj;
   if (orig.value().upstream()) {
-    obj2["upstream"] = true;
+    obj2.setBool("upstream", true);
   }
   server->sendUpd("group", id.value(), obj2);
     

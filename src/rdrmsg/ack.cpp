@@ -18,7 +18,7 @@
 
 namespace nodes {
 
-void ackMsg(Server *server, json &j) {
+void ackMsg(Server *server, Data &j) {
    
   L_TRACE("ack");
         

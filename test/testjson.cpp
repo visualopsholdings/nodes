@@ -210,4 +210,17 @@ BOOST_AUTO_TEST_CASE( arrayTail )
   
 }
 
+BOOST_AUTO_TEST_CASE( setIndexString )
+{
+  cout << "=== setIndexString ===" << endl;
+
+  boost::json::object j = {
+    { "num", 42 }
+  };
+  j["parent"] = "a string";
+  auto str = Json::getString(j, "parent");
+  BOOST_CHECK(str);
+  BOOST_CHECK_EQUAL(str.value(), "a string");
+  
+}
 

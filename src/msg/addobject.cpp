@@ -13,25 +13,25 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
 #include "handler.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
+#include "json.hpp"
 
 namespace nodes {
 
-void addObjectMsg(Server *server, json &j) {
+void addObjectMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
   }
 
-  auto upstream = Json::getBool(j, "upstream", true);
+  auto upstream = j.getBool("upstream", true);
   if (upstream && upstream.value()) {
 
-    auto id = Json::getString(j, "id");
+    auto id = j.getString("id");
     if (!id) {
       server->sendErr("no id");
       return;
@@ -41,25 +41,25 @@ void addObjectMsg(Server *server, json &j) {
     return;
   }
 
-  auto me = Json::getString(j, "me");
+  auto me = j.getString("me");
   if (!me) {
     server->sendErr("no me");
     return;
   }
   
-  json obj;
+  Data obj = {{}};
 
   // if the object has a parent, then we use the security of the parent.
   string parentfield;
   string parenttype;
   string namefield;
   if (Storage::instance()->parentInfo(objtype.value(), &parentfield, &parenttype, &namefield)) {
-    auto name = Json::getString(j, namefield);
+    auto name = j.getString(namefield);
     if (!name) {
       server->sendErr("no " + namefield);
       return;
     }
-    auto parentid = Json::getString(j, parentfield);
+    auto parentid = j.getString(parentfield);
     if (!parentid) {
       server->sendErr("no " + parentfield);
       return;
@@ -74,8 +74,8 @@ void addObjectMsg(Server *server, json &j) {
       return;
     }
     string policyid;
-    if (Json::has(j, "policy")) {
-      policyid = Json::getString(j, "policy").value();
+    if (j.has("policy")) {
+      policyid = j.getString("policy").value();
     }
     else {
       auto result = SchemaImpl::findByIdGeneral(pcoll, parentid.value(), {"policy"});
@@ -107,7 +107,7 @@ void addObjectMsg(Server *server, json &j) {
     };
   }
   else {
-    auto name = Json::getString(j, "name");
+    auto name = j.getString("name");
     if (!name) {
       server->sendErr("no name");
       return;
@@ -126,7 +126,7 @@ void addObjectMsg(Server *server, json &j) {
     };
   }
   
-  Handler::add(server, objtype.value(), obj, Json::getString(j, "corr", true));
+  Handler::add(server, objtype.value(), obj, j.getString("corr", true));
 
 }
 

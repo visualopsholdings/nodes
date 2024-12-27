@@ -14,6 +14,7 @@
 #include "storage.hpp"
 #include "json.hpp"
 #include "date.hpp"
+#include "data.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>

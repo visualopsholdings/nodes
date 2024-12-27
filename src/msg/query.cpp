@@ -14,14 +14,14 @@
 #include "storage.hpp"
 #include "json.hpp"
 #include "upstream.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void queryMsg(Server *server, json &j) {
+void queryMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("require objtype");
     return;
@@ -32,7 +32,7 @@ void queryMsg(Server *server, json &j) {
     return;
   }
   string fieldname = objtype.value() == "user" ? "fullname" : "name";
-  auto fieldval = Json::getString(j, fieldname);
+  auto fieldval = j.getString(fieldname);
   if (!fieldval) {
     server->sendErr("require " + fieldname + " for " + objtype.value() + " query");
     return;
@@ -44,7 +44,7 @@ void queryMsg(Server *server, json &j) {
     { "fieldval", fieldval.value() }
   };
   server->setSrc(&msg);
-  server->sendDataReq(Json::getString(j, "corr", true), msg);
+  server->sendDataReq(j.getString("corr", true), msg);
     
   server->sendAck();
   

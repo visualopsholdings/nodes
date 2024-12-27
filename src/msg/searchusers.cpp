@@ -13,14 +13,14 @@
 
 #include "storage.hpp"
 #include "json.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void searchUsersMsg(Server *server, json &j) {
+void searchUsersMsg(Server *server, Data &j) {
 
-  auto q = Json::getString(j, "q");
+  auto q = j.getString("q");
   if (!q) {
     server->sendErr("no q");
     return;

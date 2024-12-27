@@ -15,14 +15,15 @@
 #define H_security
 
 #include "storage/schema.hpp"
+#include "data.hpp"
 
 #include <string>
-#include <boost/json.hpp>
+//#include <boost/json.hpp>
 #include <memory>
 #include <tuple>
 
 using namespace std;
-using json = boost::json::value;
+//using json = boost::json::value;
 
 namespace nodes {
 
@@ -58,10 +59,10 @@ public:
   void getPolicyGroups(const string &id, vector<string> *groups);
     // get a list of groups that are in this policy.
   
-  Result<DynamicRow> withView(const string &collection, optional<string> me, const json &query, const vector<string> &fields = {});
+  Result<DynamicRow> withView(const string &collection, optional<string> me, const Data &query, const vector<string> &fields = {});
     // execute a query ensuring that the user can view the results, using the name of the collection.
 
-  Result<DynamicRow> withEdit(const string &collection, optional<string> me, const json &query, const vector<string> &fields = {});
+  Result<DynamicRow> withEdit(const string &collection, optional<string> me, const Data &query, const vector<string> &fields = {});
     //execute a query ensuring that the user can edit the results, using the name of the collection.
 
   bool canEdit(const string &collection, optional<string> me, const string &id);
@@ -69,7 +70,7 @@ public:
     
   // execute a query ensuring that the user can view the results.
   template <typename RowType>
-  Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
+  Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const Data &query, const vector<string> &fields = {}) {
   
     if (me) {
       GroupViewPermissions groupviews;
@@ -87,15 +88,15 @@ public:
   }
     
   // Users can always be edited and viewed
-  Result<User> withView(Schema<User> &schema, optional<string> me, const json &query, const vector<string> &fields = {}) {
+  Result<User> withView(Schema<User> &schema, optional<string> me, const Data &query, const vector<string> &fields = {}) {
     return schema.find(query, fields);    
   }
   bool canEdit(Schema<User> &schema, optional<string> me, const string &id) {
     return true;
   }
   
-  optional<json> getPolicyLines(const string &id);
-    // get a json array of policy lines.
+  optional<Data> getPolicyLines(const string &id);
+    // get a data array of policy lines.
   
   optional<string> findPolicyForUser(const string &userid);
     // find the policy for this user, if it doesn't exist create it.
@@ -116,7 +117,7 @@ public:
     // for expires ours.
     
   optional<string> createShareToken(const string &collid, const string &me, const string &options, const string &groupid, const string &expires);
-  optional<json> expandShareToken(const string &token);
+  optional<Data> expandShareToken(const string &token);
     // public for testing.
   
   string newSalt();
@@ -128,7 +129,7 @@ public:
   string newHash(const string &password, const string &salt);
     // generate a new user salt value.
     
-  json policyToQuery(const json &obj);
+  Data policyToQuery(const Data &obj);
     // convert a policy to a query for that policy.
     
 private:
@@ -142,11 +143,11 @@ private:
 
   void addTo(vector<string> *v, const string &val);
   void queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids);
-  boost::json::array createArray(const vector<string> &list);
-  json withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const json &query);
-  boost::json::object makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
-  void removeAt(json *obj, const string &fullpath);
-  void addPolicy(json *obj, const string &type, const string &context, const string &id);
+  Data createArray(const vector<string> &list);
+  Data withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const Data &query);
+  Data makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
+//  void removeAt(json *obj, const string &fullpath);
+//  void addPolicy(Data *obj, const string &type, const string &context, const string &id);
   bool isValidId(const string &id);
   
 };

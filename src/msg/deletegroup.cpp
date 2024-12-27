@@ -20,15 +20,15 @@
 
 namespace nodes {
 
-void deleteGroupMsg(Server *server, json &j) {
+void deleteGroupMsg(Server *server, Data &j) {
 
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id");
     return;
   }
 
-  Handler::remove(server, "group", id.value(), Json::getString(j, "me", true));
+  Handler::remove(server, "group", id.value(), j.getString("me", true));
 
   Security::instance()->regenerateGroups();
 

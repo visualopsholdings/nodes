@@ -16,19 +16,20 @@
 #include "json.hpp"
 #include "handler.hpp"
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void setGroupMsg(Server *server, json &j) {
+void setGroupMsg(Server *server, Data &j) {
 
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id in group");
     return;
   }  
   
   Handler::update(server, "group", id.value(), 
-    Json::getString(j, "me", true), Json::getString(j, "name", true), {{}});
+    j.getString("me", true), j.getString("name", true), {{}});
   
 }
 

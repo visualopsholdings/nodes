@@ -10,19 +10,18 @@
 */
 
 #include "server.hpp"
-
 #include "json.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void sendOnMsg(Server *server, json &j) {
+void sendOnMsg(Server *server, Data &j) {
    
   // old servers (NodeJS) still use socket id
-  auto corr = Json::getString(j, "socketid", true);
+  auto corr = j.getString("socketid", true);
   if (!corr) {
-    corr = Json::getString(j, "corr", true);
+    corr = j.getString("corr", true);
   }
   server->publish(corr, j);
   

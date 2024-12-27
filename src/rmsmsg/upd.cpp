@@ -10,15 +10,14 @@
 */
 
 #include "server.hpp"
-
 #include "json.hpp"
 #include "storage/schema.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void updSubMsg(Server *server, json &j) {
+void updSubMsg(Server *server, Data &j) {
    
   L_TRACE("upd or mov sub" << j);
         

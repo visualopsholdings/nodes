@@ -19,7 +19,7 @@
 
 namespace nodes {
 
-void purgeCountGroupsMsg(Server *server, json &j) {
+void purgeCountGroupsMsg(Server *server, Data &j) {
 
   server->send({
     { "type", "count" },

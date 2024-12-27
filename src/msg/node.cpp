@@ -19,9 +19,9 @@
 
 namespace nodes {
 
-void nodeMsg(Server *server, json &j) {
+void nodeMsg(Server *server, Data &j) {
 
-  auto nodeid = Json::getString(j, "node");
+  auto nodeid = j.getString("node");
   if (!nodeid) {
     server->sendErr("no node");
     return;

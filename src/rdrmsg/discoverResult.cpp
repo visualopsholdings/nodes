@@ -20,9 +20,9 @@
 
 namespace nodes {
 
-void discoverResultMsg(Server *server, json &j) {
+void discoverResultMsg(Server *server, Data &j) {
    
-  auto msgs = Json::getArray(j, "msgs");
+  auto msgs = j.getArray("msgs");
   if (!msgs) {
     L_ERROR("discoverResult missing msgs");
     return;

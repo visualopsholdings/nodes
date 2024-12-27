@@ -16,6 +16,7 @@
 #include "storage/resulti.hpp"
 #include "date.hpp"
 #include "json.hpp"
+#include "data.hpp"
 
 #include "log.hpp"
 #include <fstream>
@@ -255,7 +256,7 @@ bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
   
 }
 
-json Storage::getNow() {
+Data Storage::getNow() {
 
   return { { "$date", Date::now() } };
   

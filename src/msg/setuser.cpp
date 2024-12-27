@@ -13,15 +13,14 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void setuserMsg(Server *server, json &j) {
+void setuserMsg(Server *server, Data &j) {
 
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id in user");
     return;
@@ -35,31 +34,31 @@ void setuserMsg(Server *server, json &j) {
   
   L_TRACE("user old value " << doc.value().j());
   
-  auto fullname = Json::getString(j, "fullname", true);
-  auto name = Json::getString(j, "name", true);
-  auto admin = Json::getBool(j, "admin", true);
-  auto active = Json::getBool(j, "active", true);
+  auto fullname = j.getString("fullname", true);
+  auto name = j.getString("name", true);
+  auto admin = j.getBool("admin", true);
+  auto active = j.getBool("active", true);
 
-  boost::json::object obj = {
+  Data obj = {
     { "modifyDate", Storage::instance()->getNow() },
   };
   if (fullname) {
-    obj["fullname"] = fullname.value();
+    obj.setString("fullname", fullname.value());
   }    
   if (name) {
-    obj["name"] = name.value();
+    obj.setString("name", name.value());
   }    
   if (active) {
-    obj["active"] = active.value();
+    obj.setBool("active", active.value());
   }    
   if (admin) {
-    obj["admin"] = admin.value();
+    obj.setBool("admin", admin.value());
   }
   
   // send to other nodes.
-  boost::json::object obj2 = obj;
+  Data obj2 = obj;
   if (doc.value().upstream()) {
-    obj2["upstream"] = true;
+    obj2.setBool("upstream", true);
   }
   server->sendUpd("user", id.value(), obj2);
   

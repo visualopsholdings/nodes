@@ -13,45 +13,43 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
 
-void shareLinkMsg(Server *server, json &j) {
+void shareLinkMsg(Server *server, Data &data) {
 
-  auto group = Json::getString(j, "group");
+  auto group = data.getString("group");
   if (!group) {
     server->sendErr("no group");
     return;
   }
-  auto expires = Json::getNumber(j, "expires");
+  auto expires = data.getNumber("expires");
   if (!group) {
     server->sendErr("no expires");
     return;
   }
-  auto me = Json::getString(j, "me");
+  auto me = data.getString("me");
   if (!me) {
     server->sendErr("no me");
     return;
   }
-  auto coll = Json::getString(j, "collection");
+  auto coll = data.getString("collection");
   if (!coll) {
     server->sendErr("no collection");
     return;
   }
-  auto id = Json::getString(j, "id");
+  auto id = data.getString("id");
   if (!id) {
     server->sendErr("no id");
     return;
   }
-  auto bitsfield = Json::getString(j, "bitsfield");
+  auto bitsfield = data.getString("bitsfield");
   if (!bitsfield) {
     server->sendErr("no bitsfield");
     return;
   }
-  auto urlpostfix = Json::getString(j, "urlpostfix");
+  auto urlpostfix = data.getString("urlpostfix");
   if (!urlpostfix) {
     server->sendErr("no urlpostfix");
     return;

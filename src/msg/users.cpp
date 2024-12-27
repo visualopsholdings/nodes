@@ -12,12 +12,12 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void usersMsg(Server *server, json &j) {
+void usersMsg(Server *server, Data &j) {
 
   json query = {
     { "deleted", {

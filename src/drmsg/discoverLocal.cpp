@@ -10,19 +10,16 @@
 */
 
 #include "server.hpp"
-
-#include "json.hpp"
-#include "storage.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void discoverLocalMsg(Server *server, json &j) {
+void discoverLocalMsg(Server *server, Data &j) {
    
   L_TRACE("discoverLocal " << j);
  
-  auto data = Json::getArray(j, "data");
+  auto data = j.getArray("data");
   if (!data) {
     server->sendErrDown("discoverLocal missing data");
     return;

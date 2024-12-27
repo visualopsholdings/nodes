@@ -16,6 +16,7 @@
 #include "json.hpp"
 #include "encrypter.hpp"
 #include "date.hpp"
+#include "data.hpp"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -89,7 +90,7 @@ void Security::addTo(vector<string> *v, const string &val) {
 
 }
 
-Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const json &query, const vector<string> &fields) {
+Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const Data &query, const vector<string> &fields) {
 
   if (me) {
     if (!isValidId(me.value())) {
@@ -105,7 +106,7 @@ Result<DynamicRow> Security::withView(const string &collection, optional<string>
   
 }
 
-Result<DynamicRow> Security::withEdit(const string &collection, optional<string> me, const json &query, const vector<string> &fields) {
+Result<DynamicRow> Security::withEdit(const string &collection, optional<string> me, const Data &query, const vector<string> &fields) {
 
   if (me) {
     if (!isValidId(me.value())) {
@@ -130,7 +131,7 @@ bool Security::canEdit(const string &collection, optional<string> me, const stri
     }
     GroupEditPermissions groupedits;
     UserEditPermissions useredits;
-    auto result = SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), json{ { "_id", { { "$oid", id } } } }), {});
+    auto result = SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), Data{ { "_id", { { "$oid", id } } } }), {});
     if (!result) {
       L_ERROR("can't find in canEdit");
       return false;
@@ -186,7 +187,7 @@ void Security::getPolicyGroups(const string &id, vector<string> *groups) {
  
 }
 
-boost::json::array Security::createArray(const vector<string> &list) {
+Data Security::createArray(const vector<string> &list) {
 
   boost::json::array a;
   for (auto i: list) {
@@ -198,7 +199,7 @@ boost::json::array Security::createArray(const vector<string> &list) {
 
 void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids) {
 
-  json q = { { "_id", {{ "$in", createArray(inids) }}}};
+  Data q = { { "_id", {{ "$in", createArray(inids) }}}};
   
   auto indexes = schema.find(q).values();
   if (!indexes) {
@@ -214,7 +215,7 @@ void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inid
 
 }
 
-json Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const json &query) {
+Data Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const Data &query) {
 
   // collect all the groups the user is in.
   UserInGroups useringroups;
@@ -231,7 +232,7 @@ json Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
   // add all the policies just for this user.
   queryIndexes(uperm, { userid }, &plist);
 
-  json q = { { "$and", { 
+  Data q = { { "$and", { 
     query,
     { { "policy", { { "$in", createArray(plist) } } } }
   } } };
@@ -241,7 +242,7 @@ json Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
   
 }
 
-boost::json::object Security::makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index) {
+Data Security::makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index) {
 
   // Lines have this simple format so they can be easily edited in a visual editor.
 
@@ -266,7 +267,7 @@ boost::json::object Security::makeLine(const string &type, int access, const str
   
 }
 
-optional<json> Security::getPolicyLines(const string &id) {
+optional<Data> Security::getPolicyLines(const string &id) {
 
   auto policy = Policy().findById(id, { "accesses" }).value();
   if (!policy) {
@@ -289,14 +290,14 @@ optional<json> Security::getPolicyLines(const string &id) {
     }
   }
   
-  return lines;
+  return Data(lines);
   
 }
 
 optional<string> Security::findPolicyForUser(const string &userid) {
   
   boost::json::array empty;
-  json obj = {
+  Data obj = {
     { "accesses", {
       { { "name", "view" }, 
         { "groups", empty },
@@ -331,7 +332,7 @@ optional<string> Security::findPolicyForUser(const string &userid) {
   
 }
 
-void Security::removeAt(json *obj, const string &fullpath) {
+void removeAt(boost::json::value *obj, const string &fullpath) {
 
   // this is the code that was needed in NodeJS to do this:
   // var spdb = spahql.db(policy);
@@ -394,7 +395,7 @@ void Security::removeAt(json *obj, const string &fullpath) {
 
 }
 
-void Security::addPolicy(json *obj, const string &type, const string &context, const string &id) {
+void addPolicy(boost::json::value *obj, const string &type, const string &context, const string &id) {
 
   // get the index for the access
   int acc;
@@ -454,7 +455,7 @@ void Security::addPolicy(json *obj, const string &type, const string &context, c
 
 }
 
-json Security::policyToQuery(const json &obj) {
+Data Security::policyToQuery(const Data &obj) {
 
   return { 
     { "accesses.0.name", "view" },
@@ -581,12 +582,13 @@ optional<string> Security::createShareToken(const string &collid, const string &
   
 }
 
-optional<json> Security::expandShareToken(const string &token) {
+optional<Data> Security::expandShareToken(const string &token) {
 
   Encrypter encrypter(_key, _iv);
   auto dec = encrypter.decryptText(token);
   if (dec) {
-    return boost::json::parse(dec.value());
+    auto val = boost::json::parse(dec.value());
+    return Data(val);
   }
   return nullopt;
   

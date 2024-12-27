@@ -19,9 +19,9 @@
 
 namespace nodes {
 
-void setinfoMsg(Server *server, json &j) {
+void setinfoMsg(Server *server, Data &j) {
 
-  auto serverId = Json::getString(j, "serverId");
+  auto serverId = j.getString("serverId");
   if (serverId) {
     if (serverId.value() == "none") {
       L_TRACE("reset server");
@@ -39,9 +39,9 @@ void setinfoMsg(Server *server, json &j) {
     return;
   }
 
-  auto upstream = Json::getString(j, "upstream");
+  auto upstream = j.getString("upstream");
   if (upstream) {
-    auto upstreamPubKey = Json::getString(j, "upstreamPubKey");
+    auto upstreamPubKey = j.getString("upstreamPubKey");
     if (!upstreamPubKey) {
       server->sendErr("missing upstreamPubKey");
       return;
@@ -60,7 +60,7 @@ void setinfoMsg(Server *server, json &j) {
       server->sendErr("could not set upstreamPubKey");
       return;
     }
-    auto upstreamMirror = Json::getString(j, "upstreamMirror", true);
+    auto upstreamMirror = j.getString("upstreamMirror", true);
     if (!server->setInfo("upstreamMirror", upstreamMirror ? upstreamMirror.value() : "false")) {
       server->sendErr("could not set upstreamMirror");
       return;

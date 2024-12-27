@@ -19,14 +19,14 @@
 
 namespace nodes {
 
-void policyMsg(Server *server, json &j) {
+void policyMsg(Server *server, Data &j) {
 
-  auto objid = Json::getString(j, "id");
+  auto objid = j.getString("id");
   if (!objid) {
     server->sendErr("no object id");
     return;
   }
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
@@ -39,7 +39,7 @@ void policyMsg(Server *server, json &j) {
     return;
   }
 
-  auto doc = Security::instance()->withView(collname, Json::getString(j, "me", true), 
+  auto doc = Security::instance()->withView(collname, j.getString("me", true), 
     {{ { "_id", { { "$oid", objid.value() } } } }}, { "policy" }).value();
   if (!doc) {
     server->sendErr("DB Error (no policy)");

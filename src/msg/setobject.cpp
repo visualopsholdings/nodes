@@ -15,19 +15,19 @@
 #include "security.hpp"
 #include "json.hpp"
 #include "handler.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void setObjectMsg(Server *server, json &j) {
+void setObjectMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
   }
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id in set object");
     return;
@@ -35,9 +35,9 @@ void setObjectMsg(Server *server, json &j) {
   
 //  L_TRACE(j);
   
-  auto name = Json::getString(j, "name", true);
+  auto name = j.getString("name", true);
   
-  json obj2 = j;
+  Data obj2 = j;
 
   // set on all fields passed in except name.
   boost::json::object obj = obj2.as_object();
@@ -51,7 +51,7 @@ void setObjectMsg(Server *server, json &j) {
   L_TRACE("setting obj " << obj2);
   
   Handler::update(server, objtype.value(),  id.value(), 
-    Json::getString(j, "me", true), name, obj2);
+    j.getString("me", true), name, obj2);
 
 }
 

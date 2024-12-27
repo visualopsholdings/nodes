@@ -19,7 +19,7 @@
 
 namespace nodes {
 
-void purgeUsersMsg(Server *server, json &j) {
+void purgeUsersMsg(Server *server, Data &j) {
 
   User().deleteMany({ { "deleted", true } });
   server->sendAck();

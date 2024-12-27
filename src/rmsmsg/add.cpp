@@ -10,15 +10,14 @@
 */
 
 #include "server.hpp"
-
 #include "json.hpp"
 #include "storage/schema.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void addSubMsg(Server *server, json &j) {
+void addSubMsg(Server *server, Data &j) {
    
   L_TRACE("add sub" << j);
         

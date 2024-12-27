@@ -19,9 +19,9 @@
 
 namespace nodes {
 
-void setsiteMsg(Server *server, json &j) {
+void setsiteMsg(Server *server, Data &j) {
 
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id in site");
     return;
@@ -34,8 +34,8 @@ void setsiteMsg(Server *server, json &j) {
     boost::json::object obj = {
       { "modifyDate", Storage::instance()->getNow() }
     };
-    auto headerTitle = Json::getString(j, "headerTitle");
-    auto streamBgColor = Json::getString(j, "streamBgColor");
+    auto headerTitle = j.getString("headerTitle");
+    auto streamBgColor = j.getString("streamBgColor");
     if (headerTitle) {
       obj["headerTitle"] = headerTitle.value();
     }
@@ -54,8 +54,8 @@ void setsiteMsg(Server *server, json &j) {
   }
 
   auto result = Site().insert({
-    { "headerTitle", Json::getString(j, "headerTitle").value() },
-    { "streamBgColor", Json::getString(j, "streamBgColor").value() }
+    { "headerTitle", j.getString("headerTitle").value() },
+    { "streamBgColor", j.getString("streamBgColor").value() }
   });
   if (!result) {
     server->sendErr("could not insert site");

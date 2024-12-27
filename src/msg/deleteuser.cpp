@@ -20,15 +20,15 @@
 
 namespace nodes {
 
-void deleteUserMsg(Server *server, json &j) {
+void deleteUserMsg(Server *server, Data &j) {
 
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id");
     return;
   }
 
-  Handler::remove(server, "user", id.value(), Json::getString(j, "me", true));
+  Handler::remove(server, "user", id.value(), j.getString("me", true));
 
 }
 

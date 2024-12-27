@@ -10,21 +10,18 @@
 */
 
 #include "server.hpp"
-
-#include "json.hpp"
-#include "storage/schema.hpp"
-#include "date.hpp"
 #include "log.hpp"
+#include "data.hpp"
 
 using namespace bsoncxx::builder::basic;
 
 namespace nodes {
 
-void discoverMsg(Server *server, json &j) {
+void discoverMsg(Server *server, Data &data) {
    
-  L_TRACE("discover " << j);
+  L_TRACE("discover " << data);
          
-  server->sendDownDiscoverResult(j);
+  server->sendDownDiscoverResult(data);
     
 }
 

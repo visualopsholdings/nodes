@@ -13,21 +13,19 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
 
-void addNodeMsg(Server *server, json &j) {
+void addNodeMsg(Server *server, Data &j) {
 
-  auto serverId = Json::getString(j, "serverId");
+  auto serverId = j.getString("serverId");
   if (!serverId) {
     server->sendErr("no serverId");
     return;
   }
   
-  auto pubKey = Json::getString(j, "pubKey");
+  auto pubKey = j.getString("pubKey");
   if (!pubKey) {
     server->sendErr("no pubKey");
     return;

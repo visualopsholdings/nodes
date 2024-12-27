@@ -19,9 +19,9 @@
 
 namespace nodes {
 
-void policyUsersMsg(Server *server, json &j) {
+void policyUsersMsg(Server *server, Data &j) {
 
-  auto policyid = Json::getString(j, "policy");
+  auto policyid = j.getString("policy");
   if (!policyid) {
     server->sendErr("no policy");
     return;

@@ -19,7 +19,7 @@
 
 namespace nodes {
 
-void nodesMsg(Server *server, json &j) {
+void nodesMsg(Server *server, Data &j) {
 
   auto docs = Node().find({{}}).values();
   

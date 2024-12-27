@@ -20,21 +20,21 @@
 
 namespace nodes {
 
-void deleteObjectMsg(Server *server, json &j) {
+void deleteObjectMsg(Server *server, Data &j) {
 
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErr("no object type");
     return;
   }
 
-  auto id = Json::getString(j, "id");
+  auto id = j.getString("id");
   if (!id) {
     server->sendErr("no id");
     return;
   }
 
-  Handler::remove(server, objtype.value(), id.value(), Json::getString(j, "me", true));
+  Handler::remove(server, objtype.value(), id.value(), j.getString("me", true));
 
 }
 

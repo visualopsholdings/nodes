@@ -22,14 +22,12 @@
 
 namespace nodes {
 
-void discoverLocalResultMsg(Server *server, json &);
-
-void addUserMsg(Server *server, json &j) {
+void addUserMsg(Server *server, Data &j) {
   
-  auto upstream = Json::getBool(j, "upstream", true);
+  auto upstream = j.getBool("upstream", true);
   if (upstream && upstream.value()) {
   
-    auto id = Json::getString(j, "id");
+    auto id = j.getString("id");
     if (!id) {
       server->sendErr("no user id");
       return;
@@ -39,18 +37,18 @@ void addUserMsg(Server *server, json &j) {
     return;
   }
   
-  auto coll = Json::getString(j, "collection");
+  auto coll = j.getString("collection");
   if (!coll) {
     server->sendErr("no collection");
     return;
   }
 
-  auto vopsidtoken = Json::getString(j, "vopsidtoken");
+  auto vopsidtoken = j.getString("vopsidtoken");
   if (!vopsidtoken) {
     server->sendErr("only upstream or having a token.");
     return;
   }
-  auto fullname = Json::getString(j, "fullname");
+  auto fullname = j.getString("fullname");
 
   auto token = Security::instance()->expandShareToken(vopsidtoken.value());
   if (!token) {
@@ -101,19 +99,19 @@ void addUserMsg(Server *server, json &j) {
     return;
   }
 
-  boost::json::object obj = {
+  Data obj = {
     { "invitedBy", user.value() },
     { "active", true },
     { "modifyDate", Storage::instance()->getNow() }
   };
 
-  auto options = Json::getString(token.value(), "options");
+  auto options = token.value().getString("options");
   if (options && options.value() == "mustName") {
     if (!fullname || fullname.value().size() == 0) {
       server->sendWarning("Must specify full name." );
       return;
     }
-    obj["fullname"] = fullname.value();
+    obj.setString("fullname", fullname.value());
   }
   
   auto team = Json::getString(token.value(), "team");
@@ -127,8 +125,8 @@ void addUserMsg(Server *server, json &j) {
   string password = Security::instance()->newPassword();
   string hash = Security::instance()->newHash(password, salt);
 
-  obj["salt"] = salt;
-  obj["hash"] = hash;
+  obj.setString("salt", salt);
+  obj.setString("hash", hash);
 
   auto userid = User().insert(obj);
   if (!userid) {
@@ -137,7 +135,7 @@ void addUserMsg(Server *server, json &j) {
   }
 
   // send to other nodes.
-  obj["id"] = userid.value();
+  obj.setString("id", userid.value());
   server->sendAdd("user", obj);
     
   VID vid;

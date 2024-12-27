@@ -20,6 +20,7 @@
 #include "security.hpp"
 #include "date.hpp"
 #include "log.hpp"
+#include "data.hpp"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -35,72 +36,72 @@ using namespace nodes;
 namespace nodes {
 
 // handlers
-void loginMsg(Server *server, json &json);
-void policyUsersMsg(Server *server, json &json);
-void policyGroupsMsg(Server *server, json &json);
-void certsMsg(Server *server, json &json);
-void usersMsg(Server *server, json &json);
-void userMsg(Server *server, json &json);
-void objectsMsg(Server *server, json &json);
-void objectMsg(Server *server, json &json);
-void infosMsg(Server *server, json &json);
-void setinfoMsg(Server *server, json &json);
-void siteMsg(Server *server, json &json);
-void setsiteMsg(Server *server, json &json);
-void queryMsg(Server *server, json &json);
-void addUserMsg(Server *server, json &json);
-void reloadMsg(Server *server, json &json);
-void groupsMsg(Server *server, json &json);
-void groupMsg(Server *server, json &json);
-void membersMsg(Server *server, json &json);
-void searchUsersMsg(Server *server, json &json);
-void addMemberMsg(Server *server, json &json);
-void deleteMemberMsg(Server *server, json &json);
-void setuserMsg(Server *server, json &json);
-void policyMsg(Server *server, json &json);
-void addObjectMsg(Server *server, json &json);
-void deleteObjectMsg(Server *server, json &json);
-void moveObjectMsg(Server *server, json &json);
-void addGroupMsg(Server *server, json &json);
-void setGroupMsg(Server *server, json &json);
-void setObjectMsg(Server *server, json &json);
-void deleteGroupMsg(Server *server, json &json);
-void setObjectPolicyMsg(Server *server, json &json);
-void setGroupPolicyMsg(Server *server, json &json);
-void shareLinkMsg(Server *server, json &json);
-void canRegisterMsg(Server *server, json &json);
-void deleteUserMsg(Server *server, json &json);
-void nodesMsg(Server *server, json &json);
-void nodeMsg(Server *server, json &json);
-void addNodeMsg(Server *server, json &json);
-void deleteNodeMsg(Server *server, json &json);
-void purgeCountGroupsMsg(Server *server, json &json);
-void purgeGroupsMsg(Server *server, json &json);
-void purgeCountMsg(Server *server, json &json);
-void purgeMsg(Server *server, json &json);
-void purgeCountUsersMsg(Server *server, json &json);
-void purgeUsersMsg(Server *server, json &json);
+void loginMsg(Server *server, Data &data);
+void policyUsersMsg(Server *server, Data &data);
+void policyGroupsMsg(Server *server, Data &data);
+void certsMsg(Server *server, Data &data);
+void usersMsg(Server *server, Data &data);
+void userMsg(Server *server, Data &data);
+void objectsMsg(Server *server, Data &data);
+void objectMsg(Server *server, Data &data);
+void infosMsg(Server *server, Data &data);
+void setinfoMsg(Server *server, Data &data);
+void siteMsg(Server *server, Data &data);
+void setsiteMsg(Server *server, Data &data);
+void queryMsg(Server *server, Data &data);
+void addUserMsg(Server *server, Data &data);
+void reloadMsg(Server *server, Data &data);
+void groupsMsg(Server *server, Data &data);
+void groupMsg(Server *server, Data &data);
+void membersMsg(Server *server, Data &data);
+void searchUsersMsg(Server *server, Data &data);
+void addMemberMsg(Server *server, Data &data);
+void deleteMemberMsg(Server *server, Data &data);
+void setuserMsg(Server *server, Data &data);
+void policyMsg(Server *server, Data &data);
+void addObjectMsg(Server *server, Data &data);
+void deleteObjectMsg(Server *server, Data &data);
+void moveObjectMsg(Server *server, Data &data);
+void addGroupMsg(Server *server, Data &data);
+void setGroupMsg(Server *server, Data &data);
+void setObjectMsg(Server *server, Data &data);
+void deleteGroupMsg(Server *server, Data &data);
+void setObjectPolicyMsg(Server *server, Data &data);
+void setGroupPolicyMsg(Server *server, Data &data);
+void shareLinkMsg(Server *server, Data &data);
+void canRegisterMsg(Server *server, Data &data);
+void deleteUserMsg(Server *server, Data &data);
+void nodesMsg(Server *server, Data &data);
+void nodeMsg(Server *server, Data &data);
+void addNodeMsg(Server *server, Data &data);
+void deleteNodeMsg(Server *server, Data &data);
+void purgeCountGroupsMsg(Server *server, Data &data);
+void purgeGroupsMsg(Server *server, Data &data);
+void purgeCountMsg(Server *server, Data &data);
+void purgeMsg(Server *server, Data &data);
+void purgeCountUsersMsg(Server *server, Data &data);
+void purgeUsersMsg(Server *server, Data &data);
 
 // remoteDataReq handlers
-void upstreamMsg(Server *server, json &json);
-void dateMsg(Server *server, json &json);
-void sendOnMsg(Server *server, json &json);
-void discoverLocalResultMsg(Server *server, json &json);
-void discoverResultMsg(Server *server, json &json);
-void ackMsg(Server *server, json &json);
+void upstreamMsg(Server *server, Data &data);
+void dateMsg(Server *server, Data &data);
+void sendOnMsg(Server *server, Data &data);
+void discoverLocalResultMsg(Server *server, Data &data);
+void discoverResultMsg(Server *server, Data &data);
+void ackMsg(Server *server, Data &data);
 
 // remoteMsgSub handlers
-void updSubMsg(Server *server, json &json);
-void addSubMsg(Server *server, json &json);
+void updSubMsg(Server *server, Data &data);
+void addSubMsg(Server *server, Data &data);
 
 // dataRep handles
-void onlineMsg(Server *server, json &json);
-void discoverLocalMsg(Server *server, json &json);
-void heartbeatMsg(Server *server, json &json);
-void discoverMsg(Server *server, json &json);
-void queryDrMsg(Server *server, json &json);
-void updDrMsg(Server *server, json &json);
-void addDrMsg(Server *server, json &json);
+void onlineMsg(Server *server, Data &data);
+void discoverLocalMsg(Server *server, Data &data);
+void heartbeatMsg(Server *server, Data &data);
+void discoverMsg(Server *server, Data &data);
+void queryDrMsg(Server *server, Data &data);
+void updDrMsg(Server *server, Data &data);
+void addDrMsg(Server *server, Data &data);
 
 }
 
@@ -375,7 +376,7 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
 #endif
     // convert to JSON
     string r((const char *)reply.data(), reply.size());
-    json doc = boost::json::parse(r);
+    Data doc(r);
 
     L_DEBUG(name << " " << doc);
 
@@ -1290,9 +1291,14 @@ void Server::resetDB() {
    
 }
 
-void Server::importObjs(boost::json::array &msgs) {
+void Server::importObjs(Data &msgs) {
 
-  for (auto m: msgs) {
+  if (!msgs.is_array()) {
+    L_ERROR("objects is not an array");
+    return;
+  }
+  boost::json::array a = msgs.as_array();
+  for (auto m: a) {
     auto type = Json::getString(m, "type");
     if (!type) {
       L_ERROR("msg missing type");
@@ -1510,7 +1516,7 @@ bool Server::isObjUpstream(boost::json::object &obj) {
   
 }
 
-void Server::sendUpd(const string &type, const string &id, boost::json::object &obj) {
+void Server::sendUpd(const string &type, const string &id, Data &data) {
 
   L_TRACE("sendUpd " << type);
 
@@ -1518,6 +1524,13 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
     L_WARNING("skipping upd, obj id is not valid" << id);
     return;
   }
+  if (!data.is_object()) {
+    L_WARNING("skipping upd, data is not an object");
+    return;
+  }
+  
+  auto obj = data.as_object();
+  
   if (!validateId(obj, id)) {
     return;
   }
@@ -1564,9 +1577,16 @@ void Server::sendUpd(const string &type, const string &id, boost::json::object &
 
 }
 
-void Server::sendAdd(const string &type, boost::json::object &obj) {
+void Server::sendAdd(const string &type, Data &data) {
 
   L_TRACE("sendAdd " << type);
+
+  if (!data.is_object()) {
+    L_WARNING("skipping add, data is not an object");
+    return;
+  }
+  
+  auto obj = data.as_object();
 
   auto id = Json::getString(obj, "id");
   if (!id) {
@@ -1614,7 +1634,7 @@ void Server::sendAdd(const string &type, boost::json::object &obj) {
 
 }
 
-void Server::sendMov(const string &type, const string &id, boost::json::object &obj, const string &ptype, const string &origparent) {
+void Server::sendMov(const string &type, const string &id, Data &data, const string &ptype, const string &origparent) {
 
   L_TRACE("sendMov" << type);
 
@@ -1622,6 +1642,13 @@ void Server::sendMov(const string &type, const string &id, boost::json::object &
     L_WARNING("skipping mov, obj id is not valid" << id);
     return;
   }
+  if (!data.is_object()) {
+    L_WARNING("skipping mov, data is not an object");
+    return;
+  }
+  
+  auto obj = data.as_object();
+  
   if (!validateId(obj, id)) {
     return;
   }

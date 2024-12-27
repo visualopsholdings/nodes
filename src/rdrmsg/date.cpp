@@ -10,14 +10,13 @@
 */
 
 #include "server.hpp"
-
 #include "json.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void dateMsg(Server *server, json &j) {
+void dateMsg(Server *server, Data &j) {
    
   L_TRACE("date " << j);
      
@@ -25,7 +24,7 @@ void dateMsg(Server *server, json &j) {
     server->sendUpOnline();
   }
   
-  auto date = Json::getString(j, "date");
+  auto date = j.getString("date");
   if (date) {
     server->publish(nullopt, {
       { "type", "nodeSeen" },

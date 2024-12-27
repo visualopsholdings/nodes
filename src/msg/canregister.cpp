@@ -14,14 +14,13 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
 
-void canRegisterMsg(Server *server, json &j) {
+void canRegisterMsg(Server *server, Data &j) {
 
-  auto token = Json::getString(j, "token");
+  auto token = j.getString("token");
   if (!token) {
     server->sendErr("Missing token");
     return;

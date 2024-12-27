@@ -11,15 +11,14 @@
 
 #include "server.hpp"
 
-#include "json.hpp"
 #include "storage/schema.hpp"
 #include "date.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void heartbeatMsg(Server *server, json &j) {
+void heartbeatMsg(Server *server, Data &j) {
    
   L_TRACE("heartbeat " << j);
          

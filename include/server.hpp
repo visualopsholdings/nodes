@@ -28,8 +28,9 @@ class DynamicRow;
 class InfoRow;
 class Upstream;
 class Downstream;
+class Data;
 
-typedef function<void (json &json)> msgHandler;
+typedef function<void (Data &data)> msgHandler;
 
 class Server {
 
@@ -74,9 +75,9 @@ public:
   void sendDataReq(optional<string> corr, const json &m);
   
   // notifying other nodes.
-  void sendUpd(const string &type, const string &id, boost::json::object &obj);
-  void sendAdd(const string &type, boost::json::object &obj);
-  void sendMov(const string &type, const string &id, boost::json::object &obj, const string &ptype, const string &origparent);
+  void sendUpd(const string &type, const string &id, Data &data);
+  void sendAdd(const string &type, Data &data);
+  void sendMov(const string &type, const string &id, Data &obj, const string &ptype, const string &origparent);
   
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
@@ -91,7 +92,7 @@ public:
   bool testModifyDate(json &j, const json &doc);
     // test for the modifyDate to be the latest.
     
-  void importObjs(boost::json::array &msgs);
+  void importObjs(Data &msgs);
     // given msgs in the format of { "type": "user", "objs": [obj, obj] }
     // import them.
     

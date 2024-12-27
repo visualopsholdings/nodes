@@ -16,10 +16,11 @@
 #include "security.hpp"
 #include "storage.hpp"
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-bool Handler::add(Server *server, const string &type, const json &obj, optional<string> corr) {
+bool Handler::add(Server *server, const string &type, const Data &obj, optional<string> corr) {
 
   // get the collection name.
   string coll;
@@ -35,9 +36,9 @@ bool Handler::add(Server *server, const string &type, const json &obj, optional<
     return false;
   }
   
-  boost::json::object obj2 = obj.as_object();
-  obj2["id"] = id.value();
-  obj2["type"] = type;
+  Data obj2 = obj;
+  obj2.setString("id", id.value());
+  obj2.setString("type", type);
 
   // send to other nodes.
   server->sendAdd(type, obj2);
@@ -54,7 +55,7 @@ bool Handler::add(Server *server, const string &type, const json &obj, optional<
   
 }
 
-bool Handler::update(Server *server, const string &type, const string &id, optional<string> me, optional<string> name, const json &obj) {
+bool Handler::update(Server *server, const string &type, const string &id, optional<string> me, optional<string> name, const Data &obj) {
 
   if (!obj.is_object()) {
     L_ERROR("json passed in is not object");
@@ -109,17 +110,17 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
     return false;
   }
   
-  boost::json::object obj1 = obj.as_object();
+  Data obj1 = obj;
 
-  obj1["modifyDate"] = Storage::instance()->getNow();
+  obj1.setObj("modifyDate", Storage::instance()->getNow());
   if (name) {
-    obj1["name"] = name.value();
+    obj1.setString("name", name.value());
   }
   
   // send to other nodes.
-  boost::json::object obj2 = obj1;
+  Data obj2 = obj1;
   if (orig.value().as_object().if_contains("upstream")) {
-    obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
+    obj2.setBool("upstream", Json::getBool(orig.value(), "upstream").value());
   }
   server->sendUpd(type, id, obj2);
     
@@ -169,7 +170,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   
   L_TRACE(type << " old value " << orig.value());
   
-  boost::json::object obj = {
+  Data obj = {
     { "deleted", true },
     { "modifyDate", Storage::instance()->getNow() }
   };
@@ -182,13 +183,13 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
       server->sendErr("missing " + parent + " in " + id);
       return false;
     }
-    obj[parent] = pid.value();
+    obj.setString(parent, pid.value());
   }
   
   // send to other nodes.
-  boost::json::object obj2 = obj;
+  Data obj2 = obj;
   if (orig.value().as_object().if_contains("upstream")) {
-    obj2["upstream"] = Json::getBool(orig.value(), "upstream").value();
+    obj2.setBool("upstream", Json::getBool(orig.value(), "upstream").value());
   }
   server->sendUpd(type, id, obj2);
     

@@ -19,7 +19,7 @@
 
 namespace nodes {
 
-void purgeGroupsMsg(Server *server, json &j) {
+void purgeGroupsMsg(Server *server, Data &j) {
 
   Group().deleteMany({ { "deleted", true } });
   Security::instance()->regenerateGroups();

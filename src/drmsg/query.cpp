@@ -10,16 +10,14 @@
 */
 
 #include "server.hpp"
-
-#include "json.hpp"
 #include "storage/schema.hpp"
 #include "storage.hpp"
-
 #include "log.hpp"
+#include "data.hpp"
 
 namespace nodes {
 
-void queryDrMsg(Server *server, json &j) {
+void queryDrMsg(Server *server, Data &j) {
    
   L_TRACE("query (dr)" << j);
        
@@ -29,25 +27,25 @@ void queryDrMsg(Server *server, json &j) {
     return;
   }
   
-  auto corr = Json::getString(j, "corr");
+  auto corr = j.getString("corr");
   if (!corr) {
     server->sendErrDown("query missing corr");
     return;
   }
   
-  auto objtype = Json::getString(j, "objtype");
+  auto objtype = j.getString("objtype");
   if (!objtype) {
     server->sendErrDown("query missing objtype");
     return;
   }
   
-  auto fieldname = Json::getString(j, "fieldname");
+  auto fieldname = j.getString("fieldname");
   if (!fieldname) {
     server->sendErrDown("query missing fieldname");
     return;
   }
   
-  auto fieldval = Json::getString(j, "fieldval");
+  auto fieldval = j.getString("fieldval");
   if (!fieldval) {
     server->sendErrDown("query missing fieldval");
     return;
