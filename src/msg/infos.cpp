@@ -13,19 +13,17 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
 
 void infosMsg(Server *server, Data &j) {
 
-  auto docs = Info().find(json{{}}, {"type", "text"}).values();
+  auto docs = Info().find({{}}, {"type", "text"}).values();
 
   boost::json::array s;
   if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.d(); });
   }
 
   server->sendCollection(j, "infos", s);

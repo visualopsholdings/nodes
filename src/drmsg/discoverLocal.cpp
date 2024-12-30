@@ -19,7 +19,7 @@ void discoverLocalMsg(Server *server, Data &j) {
    
   L_TRACE("discoverLocal " << j);
  
-  auto data = j.getArray("data");
+  auto data = j.getData("data");
   if (!data) {
     server->sendErrDown("discoverLocal missing data");
     return;

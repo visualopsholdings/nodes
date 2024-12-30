@@ -13,8 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -66,7 +64,7 @@ void setObjectPolicyMsg(Server *server, Data &j) {
   arr = j.at("remove").as_array();
   transform(arr.begin(), arr.end(), back_inserter(remove), [](auto e) { return e.as_string().c_str(); });
   
-  auto policyid = Json::getString(orig.value(), "policy");
+  auto policyid = orig.value().getString("policy");
   if (!policyid) {
     server->sendErr(objtype.value() + " no policy id");
     return;
@@ -88,8 +86,8 @@ void setObjectPolicyMsg(Server *server, Data &j) {
 
   // send to other nodes.
   Data obj2 = obj;
-  if (orig.value().as_object().if_contains("upstream")) {
-    obj2.setBool("upstream", Json::getBool(orig.value(), "upstream").value());
+  if (orig.value().has("upstream")) {
+    obj2.setBool("upstream", orig.value().getBool("upstream").value());
   }
   server->sendUpd(objtype.value(), id.value(), obj2);
     

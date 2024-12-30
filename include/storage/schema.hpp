@@ -20,13 +20,15 @@
 
 namespace nodes {
 
+class Data;
+
 template <typename RowType>
 class Schema: public SchemaImpl {
 
 public:
 
   // find documents with the query.
-  Result<RowType> find(const json &query, const vector<string> &fields = {}) {
+  Result<RowType> find(const Data &query, const vector<string> &fields = {}) {
     return Result<RowType>(findResult(query, fields));
   }
     
@@ -45,7 +47,7 @@ public:
 class UserRow: public DynamicRow {
 
 public:
-  UserRow(json json): DynamicRow(json) {}
+  UserRow(Data data): DynamicRow(data) {}
   
   string name() { return getString("name"); }
   string fullname() { return getString("fullname"); }
@@ -70,7 +72,7 @@ public:
 class AccessRow: public DynamicRow {
 
 public:
-  AccessRow(json json): DynamicRow(json) {}
+  AccessRow(Data data): DynamicRow(data) {}
   
   string name() { return getString("name"); }
   vector<string> users() { return getStringArray("users"); }
@@ -81,7 +83,7 @@ public:
 class PolicyRow: public DynamicRow {
 
 public:
-  PolicyRow(json json): DynamicRow(json) {}
+  PolicyRow(Data data): DynamicRow(data) {}
   
   vector<AccessRow> accesses();
   
@@ -98,7 +100,7 @@ public:
 class MemberRow: public DynamicRow {
 
 public:
-  MemberRow(json json): DynamicRow(json) {}
+  MemberRow(Data data): DynamicRow(data) {}
   
   string user() { return getString("user"); }
   
@@ -107,7 +109,7 @@ public:
 class GroupRow: public DynamicRow {
 
 public:
-  GroupRow(json json): DynamicRow(json) {}
+  GroupRow(Data data): DynamicRow(data) {}
   
   string name() { return getString("name"); }
   string policy() { return getString("policy"); }
@@ -136,7 +138,7 @@ private:
 class InfoRow: public DynamicRow {
 
 public:
-  InfoRow(json json): DynamicRow(json) {}
+  InfoRow(Data data): DynamicRow(data) {}
   
   string type() const { return getString("type"); }
   string text() const { return getString("text"); }
@@ -157,7 +159,7 @@ public:
 class SiteRow: public DynamicRow {
 
 public:
-  SiteRow(json json): DynamicRow(json) {}
+  SiteRow(Data data): DynamicRow(data) {}
   
   string headerTitle() const { return getString("headerTitle"); }
   string streamBgColor() const { return getString("streamBgColor"); }
@@ -175,7 +177,7 @@ public:
 class NodeRow: public DynamicRow {
 
 public:
-  NodeRow(json json): DynamicRow(json) {}
+  NodeRow(Data data): DynamicRow(data) {}
   
   string serverId() const { return getString("serverId"); }
   string pubKey() const { return getString("pubKey"); }
@@ -194,7 +196,7 @@ public:
 class IndexRow: public DynamicRow {
 
 public:
-  IndexRow(json json): DynamicRow(json) {}
+  IndexRow(Data data): DynamicRow(data) {}
   
   vector<string> values();
   

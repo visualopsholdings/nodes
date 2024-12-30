@@ -21,13 +21,13 @@
 
 #include "storage/result.hpp"
 #include "storage/schema.hpp"
+#include "data.hpp"
 
 using namespace std;
 
 namespace nodes {
 
 class StorageImpl;
-class Data;
 
 class Storage {
 
@@ -43,11 +43,11 @@ public:
   
   shared_ptr<StorageImpl> _impl;
 
-  bool bulkInsert(const string &collName, boost::json::array &objs);
+  bool bulkInsert(const string &collName, Data &objs);
     // Insert all of the objects into the collection with that name.
 
   Data getNow();
-    // return the correct JSON for a date that is now.
+    // return the correct Data for a date that is now.
     
   void collectionWasChanged(const string &name);
     // return the last date a collection was changed.
@@ -68,7 +68,7 @@ public:
   bool parentInfo(const string &type, string *parentfield, optional<string *> parenttype = nullopt, optional<string *> namefield = nullopt);
     // if the type has a parent field, then return that.
     
-  boost::json::array _schema;
+  Data _schema;
     // the loaded schema
 
 private:
@@ -80,7 +80,7 @@ private:
   map<string, long> _changed;
     // a map of collection names, along with when they were last changed.
     
-  optional<boost::json::object> searchSchema(const string &type);
+  optional<Data> searchSchema(const string &type);
 
 };
 

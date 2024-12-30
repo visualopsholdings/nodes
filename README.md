@@ -404,6 +404,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Better exception handling for exceptions thrown from handlers.
 - Start to remove internal dependancy on JSON.
 
+### 30 Dec 2024
+- Use "Data" as abstraction for the JSON code.
+
+
 
 
 

@@ -12,7 +12,6 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "log.hpp"
 #include "data.hpp"
 
@@ -20,16 +19,16 @@ namespace nodes {
 
 void siteMsg(Server *server, Data &j) {
 
-  auto doc = Site().find(json{{}}, {}).value();
+  auto doc = Site().find({{}}, {}).value();
 
   if (doc) {
-    server->sendObject(j, "site", doc.value().j());
+    server->sendObject(j, "site", doc.value().d());
     return;
   }
   
   server->send({
     { "type", "site" },
-    { "site", json{{}} }
+    { "site", {{}} }
   });
   
 }

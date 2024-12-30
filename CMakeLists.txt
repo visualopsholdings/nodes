@@ -71,6 +71,7 @@ set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
 set(CORE
   src/json.cpp
   src/date.cpp
+  src/data.cpp
 )
 set(UTILS
   src/vid.cpp 
@@ -79,10 +80,8 @@ set(UTILS
   src/downstream.cpp
   src/encrypter.cpp
   src/log.cpp
-  src/data.cpp
 )
 set(MESSAGES 
-  src/msg/certs.cpp
   src/msg/login.cpp 
   src/msg/policyusers.cpp
   src/msg/objects.cpp
@@ -130,13 +129,10 @@ set(MESSAGES
   src/rdrmsg/upstream.cpp
   src/rdrmsg/date.cpp
   src/rdrmsg/sendOn.cpp
-  src/rdrmsg/discoverLocalResult.cpp
   src/rdrmsg/discoverResult.cpp
-  src/rdrmsg/ack.cpp
   src/drmsg/online.cpp
   src/drmsg/discoverLocal.cpp
   src/drmsg/heartbeat.cpp
-  src/drmsg/discover.cpp
   src/drmsg/query.cpp
   src/drmsg/upd.cpp
   src/drmsg/add.cpp

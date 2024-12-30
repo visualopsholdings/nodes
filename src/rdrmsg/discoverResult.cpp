@@ -14,15 +14,15 @@
 #include "json.hpp"
 #include "storage.hpp"
 #include "security.hpp"
-
 #include "log.hpp"
+
 #include <algorithm>
 
 namespace nodes {
 
 void discoverResultMsg(Server *server, Data &j) {
    
-  auto msgs = j.getArray("msgs");
+  auto msgs = j.getData("msgs");
   if (!msgs) {
     L_ERROR("discoverResult missing msgs");
     return;
@@ -32,7 +32,7 @@ void discoverResultMsg(Server *server, Data &j) {
   server->importObjs(msgs.value());
    
   server->setInfo("hasInitialSync", "true");
-  json date = Storage::instance()->getNow();
+  Data date = Storage::instance()->getNow();
   server->setInfo("upstreamLastSeen", Json::toISODate(date));
   server->systemStatus("Discovery complete");
 

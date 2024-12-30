@@ -13,7 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
 #include "log.hpp"
 
 namespace nodes {
@@ -32,8 +31,8 @@ void canRegisterMsg(Server *server, Data &j) {
     return;
   }
 
-  auto id = Json::getString(exptoken.value(), "id");
-  auto options = Json::getString(exptoken.value(), "options");
+  auto id = exptoken.value().getString("id");
+  auto options = exptoken.value().getString("options");
   
   server->send({
     { "type", "canreg" },

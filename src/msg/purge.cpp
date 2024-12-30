@@ -12,9 +12,7 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "security.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -27,7 +25,7 @@ void purgeMsg(Server *server, Data &j) {
     return;
   }
   
-  boost::json::object query = { 
+  Data query = { 
     { "deleted", true } 
   };
   
@@ -39,7 +37,7 @@ void purgeMsg(Server *server, Data &j) {
       server->sendErr("no " + parent);
       return;
     }
-    query[parent] = pid.value();
+    query.setString(parent, pid.value());
   }
   
   // get the collection name.

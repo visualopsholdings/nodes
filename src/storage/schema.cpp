@@ -18,7 +18,7 @@ namespace nodes {
 vector<AccessRow> PolicyRow::accesses() { 
 
   vector<AccessRow> rows;
-  for (auto a: getArray("accesses")) {
+  for (auto a: getData("accesses")) {
     rows.push_back(AccessRow(a));
   }
   return rows;
@@ -28,7 +28,7 @@ vector<AccessRow> PolicyRow::accesses() {
 vector<MemberRow> GroupRow::members() { 
 
   vector<MemberRow> rows;
-  for (auto a: getArray("members")) {
+  for (auto a: getData("members")) {
     rows.push_back(MemberRow(a));
   }
   return rows;

@@ -14,30 +14,29 @@
 #ifndef H_dynamicrow
 #define H_dynamicrow
 
-#include <boost/json.hpp>
+#include "data.hpp"
 
 using namespace std;
-using json = boost::json::value;
 
 namespace nodes {
+
+class Data;
 
 class DynamicRow {
 
 public:
-  DynamicRow(json j): _json(j) {}
+  DynamicRow(Data data): _data(data) {}
   
-  json j() { return _json; }
+  Data d() { return _data; }
   string id() { return getString("id"); }
-
-protected:
   string getString(const string &name) const;
   vector<string> getStringArray(const string &name);
-  boost::json::array getArray(const string &name);
+  Data getData(const string &name);
   bool getBool(const string &name, bool silent=false) const;
   int getNumber(const string &name) const;
   
 private:
-  json _json;
+  Data _data;
 };
 
 } // nodes

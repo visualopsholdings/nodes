@@ -13,8 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -47,7 +45,7 @@ void policyMsg(Server *server, Data &j) {
   }
   
   // get the policy out of the JSON.
-  string policy = boost::json::value_to<string>(doc.value().j().at("policy"));
+  string policy = boost::json::value_to<string>(doc.value().d().at("policy"));
 
   auto lines = Security::instance()->getPolicyLines(policy);
   if (!lines) {

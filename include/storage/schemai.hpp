@@ -17,10 +17,7 @@
 #include "result.hpp"
 #include "dynamicrow.hpp"
 
-#include <boost/json.hpp>
-
 using namespace std;
-using json = boost::json::value;
 
 namespace nodes {
 
@@ -28,7 +25,7 @@ class SchemaImpl {
 
 public:
  
-  void deleteMany(const json &doc) {
+  void deleteMany(const Data &doc) {
     deleteManyGeneral(collName(), doc);
   }
     // delete all documents that match the query.
@@ -36,21 +33,21 @@ public:
   bool deleteById(const string &id);
     // delete the document that has this id.
     
-  optional<string> insert(const json &doc) {
+  optional<string> insert(const Data &doc) {
     return insertGeneral(collName(), doc);
   }
     // insert a new document.
     
-  optional<string> update(const json &query, const json &doc);
+  optional<string> update(const Data &query, const Data &doc);
     // update an existing document (inserts $set around the doc).
     
-  optional<string> rawUpdate(const json &query, const json &doc);
+  optional<string> rawUpdate(const Data &query, const Data &doc);
     // update an existing document.
     
-  optional<string> updateById(const string &id, const json &doc);
+  optional<string> updateById(const string &id, const Data &doc);
     // update an existing document when you know the ID  (inserts $set around the doc).
     
-  optional<string> rawUpdateById(const string &id, const json &doc) {
+  optional<string> rawUpdateById(const string &id, const Data &doc) {
     return updateGeneralById(collName(), id, doc);
   }
     // update an existing document when you know the ID.
@@ -60,17 +57,17 @@ public:
 
   virtual string collName() = 0;
   
-  static shared_ptr<ResultImpl> findGeneral(const string &collection, const json &query, const vector<string> &fields);
+  static shared_ptr<ResultImpl> findGeneral(const string &collection, const Data &query, const vector<string> &fields);
   static shared_ptr<ResultImpl> findGeneral(const string &collection, bsoncxx::document::view_or_value query, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
-  static int countGeneral(const string &collection, const json &query);
-  static optional<string> updateGeneralById(const string &collection, const string &id, const json &doc);
-  static optional<string> insertGeneral(const string &collection, const json &doc);
-  static void deleteManyGeneral(const string &collection, const json &doc);
+  static int countGeneral(const string &collection, const Data &query);
+  static optional<string> updateGeneralById(const string &collection, const string &id, const Data &doc);
+  static optional<string> insertGeneral(const string &collection, const Data &doc);
+  static void deleteManyGeneral(const string &collection, const Data &doc);
   static bool existsGeneral(const string &collection, const string &id);
     
-  shared_ptr<ResultImpl> findResult(const json &query, const vector<string> &fields) {
+  shared_ptr<ResultImpl> findResult(const Data &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);
   }
   shared_ptr<ResultImpl> findByIdResult(const string &id, const vector<string> &fields) {
@@ -80,7 +77,7 @@ public:
     return findByIdsGeneral(collName(), ids, fields);
   }
   
-  static bsoncxx::document::view_or_value idRangeAfterDateQuery(const boost::json::array &ids, const string &date);
+  static bsoncxx::document::view_or_value idRangeAfterDateQuery(const Data &ids, const string &date);
   static bsoncxx::document::view_or_value stringFieldEqualAfterDateQuery(const string &field, const string &id, const string &date);
   static bsoncxx::document::view_or_value boolFieldEqualAfterDateQuery(const string &field, bool value, const string &date);
   static bsoncxx::document::view_or_value afterDateQuery(const string &date);

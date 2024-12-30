@@ -15,8 +15,8 @@
 #include "storage/collectioni.hpp"
 #include "storage/resulti.hpp"
 #include "date.hpp"
-#include "json.hpp"
 #include "data.hpp"
+#include "json.hpp"
 
 #include "log.hpp"
 #include <fstream>
@@ -62,18 +62,18 @@ void Storage::init(const string &dbConn, const string &dbName, const string &sch
   
 }
 
-optional<boost::json::object> Storage::searchSchema(const string &type) {
+optional<Data> Storage::searchSchema(const string &type) {
 
   for (auto s: _schema) {
     auto t = Json::getString(s, "type");
     if (t && t.value() == type) {
-      return s.as_object();
+      return Data(s.as_object());
     }
     auto subobj = Json::getObject(s, "subobj", true);
     if (subobj) {
       t = Json::getString(subobj.value(), "type");
       if (t && t.value() == type) {
-        return subobj.value().as_object();
+        return Data(subobj.value().as_object());
       }
     }
   }
@@ -83,7 +83,7 @@ optional<boost::json::object> Storage::searchSchema(const string &type) {
 
 bool Storage::collName(const string &type, string *name, bool checkinternal) {
 
-  optional<boost::json::object> scheme = searchSchema(type);
+  auto scheme = searchSchema(type);
   if (!scheme) {
     L_TRACE(type << " is not in schema");
     return false;
@@ -204,13 +204,13 @@ private:
   
 };
 
-bool Storage::bulkInsert(const string &collName, boost::json::array &objs) {
+bool Storage::bulkInsert(const string &collName, Data &objs) {
 
   L_TRACE("bulkInsert to " << collName);
  
   auto schema = GenericSchema(collName);
   for (auto i: objs) {
-    json obj = i;
+    Data obj = i;
     
 //    L_TRACE("insert obj " << obj);
 

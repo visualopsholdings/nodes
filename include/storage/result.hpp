@@ -16,11 +16,9 @@
 
 #include "storage/resulti.hpp"
 
-#include <boost/json.hpp>
 #include <memory>
 
 using namespace std;
-using json = boost::json::value;
 
 namespace nodes {
 
@@ -29,24 +27,24 @@ class Result {
 
 public:
   
-  // return the value of the query as a JSON object.
+  // return the value of the query as a Data object.
   optional<RowType> value() {
-    auto j = _impl->value();
-    if (!j) {
+    auto v = _impl->value();
+    if (!v) {
       return {};
     }
-    return RowType(j.value());
+    return RowType(v.value());
   }
     
-  // return the value of the query as a JSON array.
+  // return the value of the query as a DataArray array.
   optional<vector<RowType >> values() {
-    auto j = _impl->values();
-    if (!j) {
+    auto v = _impl->values();
+    if (!v) {
       return {};
     }
     vector<RowType > ret;
-    for (auto i: j.value()) {
-      ret.push_back(i);
+    for (auto i: v.value()) {
+      ret.push_back(Data(i));
     }
     return ret;
   }

@@ -14,8 +14,6 @@
 #include "storage.hpp"
 #include "vid.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -37,7 +35,7 @@ void loginMsg(Server *server, Data &j) {
   // even if the server is in test mode, if the password seems like
   // a VID then try that out.
   if (server->_test && password.value().rfind("Vk9", 0) == string::npos) {
-    json q = { { "$or", { 
+    Data q = { { "$or", { 
       { { "name", password.value() } },
       { { "fullname", password.value() } }
     } } };

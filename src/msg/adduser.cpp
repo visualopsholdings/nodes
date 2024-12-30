@@ -12,12 +12,10 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "security.hpp"
 #include "vid.hpp"
 #include "date.hpp"
 #include "handler.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -58,7 +56,7 @@ void addUserMsg(Server *server, Data &j) {
   
   L_TRACE("token " << token.value());
 
-  auto expires = Json::getString(token.value(), "expires");
+  auto expires = token.value().getString("expires");
   if (!expires) {
     L_ERROR("Expires must be specified in token");
     server->sendWarning("Invalid token.");
@@ -75,14 +73,14 @@ void addUserMsg(Server *server, Data &j) {
     return;
   }
   
-  auto user = Json::getString(token.value(), "user");
+  auto user = token.value().getString("user");
   if (!user) {
     L_ERROR("User must be specified in token");
     server->sendWarning("Invalid token.");
     return;
   }
 
-  auto id = Json::getString(token.value(), "id");
+  auto id = token.value().getString("id");
   if (!id) {
     L_ERROR("Id must be specified in token");
     server->sendWarning("Invalid token.");
@@ -114,7 +112,7 @@ void addUserMsg(Server *server, Data &j) {
     obj.setString("fullname", fullname.value());
   }
   
-  auto team = Json::getString(token.value(), "team");
+  auto team = token.value().getString("team");
   if (!team) {
     L_ERROR("Security settings not supported");
     server->sendWarning("Invalid token.");

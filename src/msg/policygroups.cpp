@@ -13,8 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -34,7 +32,7 @@ void policyGroupsMsg(Server *server, Data &j) {
   for (auto i: groupids) {
     auto group = Group().findById(i, { "id", "name" }).value();
     if (group) {
-      groups.push_back(group.value().j());
+      groups.push_back(group.value().d());
     }
   }
 

@@ -110,8 +110,6 @@ public:
   bool wasFromUs(json &msg);
     // the message was send from us.
 
-  string _certFile;
-  string _chainFile;
   string _hostName;
   bool _test;
   bool _online;
@@ -140,6 +138,8 @@ private:
   string _pubKey;
   time_t _lastHeartbeat;
   bool _noupstream;
+  string _certFile;
+  string _chainFile;
   
   void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
@@ -149,7 +149,7 @@ private:
   void runStandalone();
   void runUpstreamDownstream();
   void runDownstreamOnly();
-  string getLastDate(optional<boost::json::array> objs, const string &hasInitialSync, const string &upstreamLastSeen);
+  string getLastDate(optional<Data> objs, const string &hasInitialSync, const string &upstreamLastSeen);
   void sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr);
   void sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr);
   void collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies);

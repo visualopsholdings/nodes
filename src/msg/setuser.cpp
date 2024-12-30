@@ -32,7 +32,7 @@ void setuserMsg(Server *server, Data &j) {
     return;
   }
   
-  L_TRACE("user old value " << doc.value().j());
+  L_TRACE("user old value " << doc.value().d());
   
   auto fullname = j.getString("fullname", true);
   auto name = j.getString("name", true);

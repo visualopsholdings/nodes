@@ -12,7 +12,6 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "log.hpp"
 #include "data.hpp"
 
@@ -26,12 +25,12 @@ void searchUsersMsg(Server *server, Data &j) {
     return;
   }
 
-  auto docs = User().find(json{ { "fullname", { { "$regex", q.value() }, { "$options", "i" } } } }, { "id", "modifyDate", "name", "fullname", "admin" }).values();
+  auto docs = User().find({ { "fullname", { { "$regex", q.value() }, { "$options", "i" } } } }, { "id", "modifyDate", "name", "fullname", "admin" }).values();
 
   boost::json::array s;
   if (docs) {
     for (auto i: docs.value()) {
-      s.push_back(i.j());
+      s.push_back(i.d());
     }
   }
 

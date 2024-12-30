@@ -14,11 +14,11 @@
 #ifndef H_resulti
 #define H_resulti
 
+#include "data.hpp"
+
 #include <mongocxx/collection.hpp>
-#include <boost/json.hpp>
 
 using namespace std;
-using json = boost::json::value;
 
 namespace nodes {
 
@@ -29,10 +29,10 @@ public:
     _c(coll), _q(query), _f(fields) {};
 
   // public for testing.
-  json fixObjects(const json &json);
+  Data fixObjects(const Data &data);
 
-  optional<json> value();
-  optional<boost::json::array> values();
+  optional<Data> value();
+  optional<Data> values();
   
   mongocxx::cursor find();
   
@@ -42,7 +42,7 @@ public:
   
 private:
 
-  json fixObject(const json &j);
+  Data fixObject(const Data &j);
 
 };
 

@@ -13,8 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -34,7 +32,7 @@ void policyUsersMsg(Server *server, Data &j) {
   for (auto i: userids) {
     auto user = User().findById(i, { "id", "name", "fullname" }).value();
     if (user) {
-      users.push_back(user.value().j());
+      users.push_back(user.value().d());
     }
   }
 

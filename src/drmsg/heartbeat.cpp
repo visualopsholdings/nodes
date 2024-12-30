@@ -28,7 +28,7 @@ void heartbeatMsg(Server *server, Data &j) {
     return;
   }
   
-  auto node = Node().find(json{ { "serverId", src } }, {}).value();
+  auto node = Node().find({ { "serverId", src } }, {}).value();
   if (!node) {
     L_ERROR("heartbeat no node " << src);
     server->sendAckDown();

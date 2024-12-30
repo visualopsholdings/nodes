@@ -37,7 +37,7 @@ shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx
 
 }
 
-int SchemaImpl::countGeneral(const string &collection, const json &query) {
+int SchemaImpl::countGeneral(const string &collection, const Data &query) {
 
   if (!testInit()) {
     return 0;
@@ -63,7 +63,7 @@ bool SchemaImpl::existsGeneral(const string &collection, const string &id) {
   
 }
 
-shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const json &query, const vector<string> &fields) {
+shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const Data &query, const vector<string> &fields) {
 
   L_TRACE("find " << query << " in " << collection); 
 
@@ -97,7 +97,7 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, co
   
 }
 
-void SchemaImpl::deleteManyGeneral(const string &collection, const json &doc) {
+void SchemaImpl::deleteManyGeneral(const string &collection, const Data &doc) {
 
   L_TRACE("deleteMany " << doc << " in " << collection);
 
@@ -144,7 +144,7 @@ bool SchemaImpl::deleteById(const string &id) {
     
 }
 
-optional<string> SchemaImpl::insertGeneral(const string &collection, const json &doc) {
+optional<string> SchemaImpl::insertGeneral(const string &collection, const Data &doc) {
 
   L_TRACE("insert " << doc << " in " << collection);
 
@@ -174,7 +174,7 @@ optional<string> SchemaImpl::insertGeneral(const string &collection, const json 
 
 }
 
-optional<string> SchemaImpl::rawUpdate(const json &query, const json &doc) {
+optional<string> SchemaImpl::rawUpdate(const Data &query, const Data &doc) {
 
   L_TRACE("update " << query << " in " << collName());
 
@@ -200,7 +200,7 @@ optional<string> SchemaImpl::rawUpdate(const json &query, const json &doc) {
 
 }
 
-optional<string> SchemaImpl::update(const json &query, const json &doc) {
+optional<string> SchemaImpl::update(const Data &query, const Data &doc) {
 
   return rawUpdate(query, {
     { "$set", doc }
@@ -208,7 +208,7 @@ optional<string> SchemaImpl::update(const json &query, const json &doc) {
 
 }
 
-optional<string> SchemaImpl::updateGeneralById(const string &collection, const string &id, const json &doc) {
+optional<string> SchemaImpl::updateGeneralById(const string &collection, const string &id, const Data &doc) {
 
   L_TRACE("update " << id << " in " << collection);
 
@@ -232,7 +232,7 @@ optional<string> SchemaImpl::updateGeneralById(const string &collection, const s
 
 }
 
-optional<string> SchemaImpl::updateById(const string &id, const json &doc) {
+optional<string> SchemaImpl::updateById(const string &id, const Data &doc) {
 
   return rawUpdateById(id, {
     { "$set", doc }
@@ -252,7 +252,7 @@ void SchemaImpl::aggregate(const string &filename) {
     return;    
   }
   string input(istreambuf_iterator<char>(file), {});
-  json j = boost::json::parse(input);
+  Data j(input);
   if (!j.is_array()) {
     L_ERROR("file does not contain array");
     return;    
@@ -300,12 +300,12 @@ void SchemaImpl::aggregate(const string &filename) {
   }
 }
 
-bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const boost::json::array &ids, const string &date) {
+bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const Data &ids, const string &date) {
 
   auto qs = bsoncxx::builder::basic::array{};
   
   // convert all the user ids to oids.
-  if (ids.size() == 1 && ids[0] == "*") {
+  if (ids.size() == 1 && *ids.begin() == "*") {
     // don't include in the query, it's everything.
   }
   else {

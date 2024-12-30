@@ -39,7 +39,6 @@ namespace nodes {
 void loginMsg(Server *server, Data &data);
 void policyUsersMsg(Server *server, Data &data);
 void policyGroupsMsg(Server *server, Data &data);
-void certsMsg(Server *server, Data &data);
 void usersMsg(Server *server, Data &data);
 void userMsg(Server *server, Data &data);
 void objectsMsg(Server *server, Data &data);
@@ -86,9 +85,7 @@ void purgeUsersMsg(Server *server, Data &data);
 void upstreamMsg(Server *server, Data &data);
 void dateMsg(Server *server, Data &data);
 void sendOnMsg(Server *server, Data &data);
-void discoverLocalResultMsg(Server *server, Data &data);
 void discoverResultMsg(Server *server, Data &data);
-void ackMsg(Server *server, Data &data);
 
 // remoteMsgSub handlers
 void updSubMsg(Server *server, Data &data);
@@ -98,7 +95,6 @@ void addSubMsg(Server *server, Data &data);
 void onlineMsg(Server *server, Data &data);
 void discoverLocalMsg(Server *server, Data &data);
 void heartbeatMsg(Server *server, Data &data);
-void discoverMsg(Server *server, Data &data);
 void queryDrMsg(Server *server, Data &data);
 void updDrMsg(Server *server, Data &data);
 void addDrMsg(Server *server, Data &data);
@@ -125,7 +121,23 @@ Server::Server(bool test, bool noupstream,
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
 	L_INFO("Bound to ZMQ as Local REP on " << rep);
 
-  _messages["certs"] = bind(&nodes::certsMsg, this, placeholders::_1);
+  _messages["certs"] =  [&](Data &) {
+    if (_certFile.empty()) {
+      send({
+        { "type", "certs" }, 
+        { "ssl", false }
+      });
+    }
+    else {
+      send({
+        { "type", "certs" }, 
+        { "ssl", true },
+        { "certFile", _certFile }, 
+        { "chainFile",_chainFile }
+      });
+    }
+  };
+  
   _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
   _messages["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
   _messages["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
@@ -174,9 +186,14 @@ Server::Server(bool test, bool noupstream,
   _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
   _remoteDataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
-  _remoteDataReqMessages["discoverLocalResult"] =  bind(&nodes::discoverLocalResultMsg, this, placeholders::_1);
+  _remoteDataReqMessages["discoverLocalResult"] =  [&](Data &) {
+    // the server has inserted all the local stuff, discover what's out there.
+    sendUpDiscover();
+  };
   _remoteDataReqMessages["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
-  _remoteDataReqMessages["ack"] =  bind(&nodes::ackMsg, this, placeholders::_1);
+  _remoteDataReqMessages["ack"] =  [&](Data &) {
+    L_TRACE("ack");
+  };
 
   _remoteMsgSubMessages["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
   _remoteMsgSubMessages["mov"] =  bind(&nodes::updSubMsg, this, placeholders::_1); // same handler as upd
@@ -185,7 +202,10 @@ Server::Server(bool test, bool noupstream,
   _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
   _dataRepMessages["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
   _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
-  _dataRepMessages["discover"] =  bind(&nodes::discoverMsg, this, placeholders::_1);
+  _dataRepMessages["discover"] =  [&](Data &data) {
+    sendDownDiscoverResult(data);
+  };
+
   _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
   _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
   _dataRepMessages["mov"] =  bind(&nodes::updDrMsg, this, placeholders::_1); // same handler as upd
@@ -828,7 +848,7 @@ bool Server::setInfo(const string &name, const string &text) {
 
   auto doc = Info().find({{ "type", name }}, {"text"}).value();
   if (doc) {
-    L_TRACE("info old value " << doc.value().j());
+    L_TRACE("info old value " << doc.value().d());
     auto result = Info().update({{ "type", name }}, {{ "text", text }});
     if (!result) {
       L_ERROR("could not update info");
@@ -914,7 +934,7 @@ void Server::systemStatus(const string &msg) {
   
 }
 
-string Server::getLastDate(optional<boost::json::array> rows, const string &hasInitialSync, const string &upstreamLastSeen) {
+string Server::getLastDate(optional<Data> rows, const string &hasInitialSync, const string &upstreamLastSeen) {
 
   string zd = Date::toISODate(0);
   
@@ -968,7 +988,7 @@ void Server::sendUpDiscover() {
       msg[lastname] = getLastDate(nullopt, hasInitialSync, upstreamLastSeen);
     }
     else {
-      auto objs = SchemaImpl::findGeneral(collname, json{{ "upstream", true }}, { "_id", "modifyDate" })->values();
+      auto objs = SchemaImpl::findGeneral(collname, {{ "upstream", true }}, { "_id", "modifyDate" })->values();
       if (objs) {
         transform(objs.value().begin(), objs.value().end(), back_inserter(ids), [](auto e) {
           return e.as_object().at("id").as_string().c_str(); 
@@ -1057,7 +1077,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
         L_ERROR("field missing in schema subobj " << subobj.value());
         return;
       }
-      auto result = SchemaImpl::findGeneral(collname, json{ { "upstream", true } }, { "_id" });
+      auto result = SchemaImpl::findGeneral(collname, { { "upstream", true } }, { "_id" });
       if (result) {
         auto upstreams = result->values();
         if (upstreams) {
@@ -1117,7 +1137,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
         L_ERROR("field missing in schema subobj " << subobj.value());
         return;
       }
-      auto result = SchemaImpl::findGeneral(collname, json{{}}, { "_id" });
+      auto result = SchemaImpl::findGeneral(collname, Data{{}}, { "_id" });
       if (result) {
         auto upstreams = result->values();
         if (upstreams) {
@@ -1189,7 +1209,7 @@ void Server::sendDownDiscoverResult(json &j) {
     return;
   }
 
-  auto node = Node().find(json{ { "serverId", src } }, {}).value();
+  auto node = Node().find({ { "serverId", src } }, {}).value();
   if (!node) {
     sendErrDown("discover no node");
     return;
@@ -1253,7 +1273,7 @@ void Server::sendDownDiscoverResult(json &j) {
         string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
         if (objs.value().size() == 1 && objs.value()[0] == "*") {
           // collect ALL sub objects after the date.
-          auto objs = SchemaImpl::findGeneral(collname, json{{}}, { "_id" })->values();
+          auto objs = SchemaImpl::findGeneral(collname, Data{{}}, { "_id" })->values();
           for (auto o: objs.value()) {
             collectObjs(subtype.value(), subcollname, 
               SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), Json::getString(o, "id").value(), last.value()), &msgs, &policies);
@@ -1297,14 +1317,17 @@ void Server::importObjs(Data &msgs) {
     L_ERROR("objects is not an array");
     return;
   }
-  boost::json::array a = msgs.as_array();
-  for (auto m: a) {
-    auto type = Json::getString(m, "type");
+  for (auto a: msgs) {
+  
+    // would be so cool if this was implicit.
+    auto m = Data(a);
+    
+    auto type = m.getString("type");
     if (!type) {
       L_ERROR("msg missing type");
       continue;
     }
-    auto objs = Json::getArray(m, "objs");
+    auto objs = m.getData("objs");
     if (!objs) {
       L_ERROR("msg missing objs");
       continue;
@@ -1345,21 +1368,18 @@ bool Server::validateId(boost::json::object &obj, const string &id) {
 
 vector<string> Server::getNodeIds(const string &type) {
 
-  auto nodes = Node().find(json{{ "valid", true }}).values();
+  auto nodes = Node().find({{ "valid", true }}).values();
   if (!nodes || nodes.value().size() == 0) {
     return {};
   }
   string field = type + "s";
   vector<string> ids;
   for (auto n: nodes.value()) {
-    auto nj = n.j();
-    auto a = Json::getArray(nj, field);
-    if (a) {
-      for (auto i: a.value()) {
-        string id(i.as_string());
-        if (find(ids.begin(), ids.end(), id) == ids.end()) {
-          ids.push_back(id);
-        }
+    auto a = n.getData(field);
+    for (auto i: a) {
+      string id(i.as_string());
+      if (find(ids.begin(), ids.end(), id) == ids.end()) {
+        ids.push_back(id);
       }
     }
   }
@@ -1374,7 +1394,7 @@ bool Server::hasValidNodes() {
   L_TRACE("hasValidNodes");
 
   if (_dataRep) {
-    auto nodes = Node().find(json{ { "valid", true }}).values();
+    auto nodes = Node().find({ { "valid", true }}).values();
     if (!nodes || nodes.value().size() == 0) {
       L_TRACE("skipping send down mov nobody listening at all");
       return false;

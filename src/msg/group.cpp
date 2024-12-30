@@ -12,7 +12,6 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "security.hpp"
 #include "log.hpp"
 #include "data.hpp"
@@ -37,7 +36,7 @@ void groupMsg(Server *server, Data &j) {
     return;
   }
 
-  server->sendObject(j, "group", doc.value().j());
+  server->sendObject(j, "group", doc.value().d());
   
 }
 

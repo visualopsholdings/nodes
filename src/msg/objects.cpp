@@ -13,7 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
 #include "log.hpp"
 #include "data.hpp"
 
@@ -57,7 +56,7 @@ void objectsMsg(Server *server, Data &j) {
   // copy out all the data to return;
   boost::json::array s;
   if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.d(); });
   }
   
   server->sendCollection(j, coll, s);

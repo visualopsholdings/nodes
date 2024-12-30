@@ -58,7 +58,7 @@ void queryDrMsg(Server *server, Data &j) {
     return;
   }
 
-  auto result = SchemaImpl::findGeneral(coll, json{ { fieldname.value(), 
+  auto result = SchemaImpl::findGeneral(coll, { { fieldname.value(), 
     { { "$regex", fieldval.value() }, { "$options", "i" } } } }, { fieldname.value() });
   if (!result) {
     server->sendErrDown("find failed");
@@ -66,10 +66,11 @@ void queryDrMsg(Server *server, Data &j) {
   }
       
   auto docs = result->values();
+  Data empty;
   server->sendDown({
     { "type", "queryResult" },
     { "objtype", objtype.value() },
-    { "result", docs ? docs.value() : boost::json::array() },
+    { "result", docs ? docs.value() : empty },
     { "corr", corr.value() },
     { "dest", src }   
   });

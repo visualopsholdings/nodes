@@ -24,7 +24,7 @@ bool Group::getMemberSet(const string &group, set<string> *mset) {
     L_ERROR("no group " + group);
     return false;
   }
-  auto members = doc.value().j().at("members").as_array();
+  auto members = doc.value().d().at("members").as_array();
   
 //  L_TRACE("old members " << members);
 
@@ -42,7 +42,7 @@ bool Group::saveMemberSet(const string &group, const set<string> &mset) {
 
   boost::json::array newmembers;
   for (auto i: mset) {
-    newmembers.push_back(json{
+    newmembers.push_back(Data{
       { "user", i }
     });
   }

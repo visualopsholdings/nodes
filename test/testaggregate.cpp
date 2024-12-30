@@ -45,8 +45,8 @@ BOOST_AUTO_TEST_CASE( userInGroups )
   
   auto doc = UserInGroups().find({{ "_id", "u2"}}, {"value"}).value();
   BOOST_CHECK(doc);
-  BOOST_CHECK(doc.value().j().is_object());
-  BOOST_CHECK(doc.value().j().at("value").is_string());
-  BOOST_CHECK_EQUAL(doc.value().j().at("value").as_string().size(), 24);
+  BOOST_CHECK(doc.value().d().is_object());
+  BOOST_CHECK(doc.value().d().at("value").is_string());
+  BOOST_CHECK_EQUAL(doc.value().d().at("value").as_string().size(), 24);
 
 }

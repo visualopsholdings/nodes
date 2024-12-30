@@ -19,7 +19,7 @@ namespace nodes {
 
 void usersMsg(Server *server, Data &j) {
 
-  json query = {
+  Data query = {
     { "deleted", {
       { "$ne", true }
       }
@@ -29,7 +29,7 @@ void usersMsg(Server *server, Data &j) {
 
   boost::json::array s;
   if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.d(); });
   }
 
   server->sendCollection(j, "users", s);

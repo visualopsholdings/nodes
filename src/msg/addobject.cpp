@@ -16,7 +16,6 @@
 #include "handler.hpp"
 #include "log.hpp"
 #include "data.hpp"
-#include "json.hpp"
 
 namespace nodes {
 
@@ -89,7 +88,7 @@ void addObjectMsg(Server *server, Data &j) {
         return;
       }
       L_TRACE(doc.value());
-      auto policy = Json::getString(doc.value(), "policy");
+      auto policy = doc.value().getString("policy");
       if (!policy) {
         server->sendErr(parenttype + " missing policy");
         return;

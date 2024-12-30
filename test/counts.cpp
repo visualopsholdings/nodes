@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
   
   Storage::instance()->init(dbConn, dbName);
 
-  boost::json::array lines;
+  DataArray a;
+  Data lines(a);
   if (users >= 0) {
     lines.push_back({ 
       { "type", "users" }, 
@@ -167,24 +168,27 @@ int main(int argc, char *argv[]) {
   }
 
   bool success = true;
-  for (auto o: lines) {
-    boost::json::object q;
-    auto type = Json::getString(o, "type");
+  for (auto l: lines) {
+  
+    Data o = l;
+    Data q = {{}};
+    
+    auto type = o.getString("type");
     if (!type) {
       continue;
     }
-    auto expected = Json::getNumber(o, "expected");
+    auto expected = o.getNumber("expected");
     if (!expected) {
       continue;
     }
-    auto field = Json::getString(o, "field", true);
+    auto field = o.getString("field", true);
     if (Json::getBool(o, "full", true)) {
-      q[field.value()] = {
+      q.setObj(field.value(), {
         { "$ne", "Waiting discovery" }
-      };
+      });
     }
-    else if (Json::getBool(o, "waiting", true)) {
-      q[field.value()] = "Waiting discovery";
+    else if (o.getBool("waiting", true)) {
+      q.setString(field.value(), "Waiting discovery");
     }
     
     int count = SchemaImpl::countGeneral(type.value(), q);

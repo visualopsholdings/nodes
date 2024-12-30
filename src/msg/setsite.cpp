@@ -13,8 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -29,18 +27,18 @@ void setsiteMsg(Server *server, Data &j) {
   
   auto doc = Site().findById(id.value(), {}).value();
   if (doc) {
-    L_TRACE("site old value " << doc.value().j());
+    L_TRACE("site old value " << doc.value().d());
     
-    boost::json::object obj = {
+    Data obj = {
       { "modifyDate", Storage::instance()->getNow() }
     };
     auto headerTitle = j.getString("headerTitle");
     auto streamBgColor = j.getString("streamBgColor");
     if (headerTitle) {
-      obj["headerTitle"] = headerTitle.value();
+      obj.setString("headerTitle", headerTitle.value());
     }
     if (streamBgColor) {
-      obj["streamBgColor"] = streamBgColor.value();
+      obj.setString("streamBgColor", streamBgColor.value());
     }
     L_TRACE("updating " << obj);
     auto result = Site().updateById(id.value(), obj);

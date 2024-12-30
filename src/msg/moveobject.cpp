@@ -13,7 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
 #include "handler.hpp"
 #include "log.hpp"
 
@@ -84,7 +83,7 @@ void moveObjectMsg(Server *server, Data &j) {
   
   L_TRACE(objtype.value() << " old value " << orig.value());
   
-  auto origparent = Json::getString(orig.value(), parentfield);
+  auto origparent = orig.value().getString(parentfield);
   if (!origparent) {
     server->sendErr("parent field not found");
     return;
@@ -105,8 +104,8 @@ void moveObjectMsg(Server *server, Data &j) {
   
   // send to other nodes.
   Data obj2 = obj;
-  if (orig.value().as_object().if_contains("upstream")) {
-    obj2.setBool("upstream", Json::getBool(orig.value(), "upstream").value());
+  if (orig.value().has("upstream")) {
+    obj2.setBool("upstream", orig.value().getBool("upstream").value());
   }
   server->sendMov(objtype.value(), id.value(), obj2, parenttype, origparent.value());
     

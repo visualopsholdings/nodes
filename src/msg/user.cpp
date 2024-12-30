@@ -12,7 +12,6 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "date.hpp"
 #include "log.hpp"
 #include "data.hpp"
@@ -27,14 +26,14 @@ void userMsg(Server *server, Data &j) {
     return;
   }
 
-  auto doc = User().find(json{ { "_id", { { "$oid", userid.value() } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).value();
+  auto doc = User().find({ { "_id", { { "$oid", userid.value() } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).value();
 
   if (!doc) {
     server->sendErr("no user " + userid.value());
     return;
   }
   
-  server->sendObject(j, "user", doc.value().j());
+  server->sendObject(j, "user", doc.value().d());
   
 }
 

@@ -10,8 +10,6 @@
 */
 
 #include "server.hpp"
-#include "json.hpp"
-#include "storage/schema.hpp"
 #include "log.hpp"
 #include "data.hpp"
 

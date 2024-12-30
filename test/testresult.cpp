@@ -19,7 +19,7 @@
 using namespace std;
 using namespace nodes;
 
-void checkId(json &j) {
+void checkId(boost::json::value &j) {
 
   BOOST_CHECK(j.is_object());
   BOOST_CHECK(j.as_object().if_contains("id"));
@@ -33,13 +33,13 @@ BOOST_AUTO_TEST_CASE( goodIds )
   
   ResultImpl impl({}, {}, {});
 
-  json obj = {
+  Data obj = {
     { "_id", {
         { "$oid", "yyyy" }
       }
     }
   };
-  boost::json::array arr =
+  Data arr =
   {
     {
       { "_id", {

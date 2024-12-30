@@ -42,7 +42,7 @@ mongocxx::cursor ResultImpl::find() {
 
 }
 
-json ResultImpl::fixObject(const json &j) {
+Data ResultImpl::fixObject(const Data &j) {
 
 //  L_TRACE("fixing " << j);
 
@@ -73,7 +73,7 @@ json ResultImpl::fixObject(const json &j) {
         if (e.is_object()) {
           return fixObject(e); 
         }
-        return e;
+        return Data(e);
       });
       o[i.key()] = newarray;
       continue;
@@ -85,7 +85,7 @@ json ResultImpl::fixObject(const json &j) {
 
 }
 
-json ResultImpl::fixObjects(const json &j) {
+Data ResultImpl::fixObjects(const Data &j) {
 
 //  L_TRACE("fixObjects " << j);
 
@@ -93,7 +93,7 @@ json ResultImpl::fixObjects(const json &j) {
 
 }
 
-optional<json> ResultImpl::value() {
+optional<Data> ResultImpl::value() {
   
   if (!_c) {
     return {};
@@ -114,7 +114,7 @@ optional<json> ResultImpl::value() {
   
 }
 
-optional<boost::json::array> ResultImpl::values() {
+optional<Data> ResultImpl::values() {
   
   if (!_c) {
     return {};
@@ -133,7 +133,7 @@ optional<boost::json::array> ResultImpl::values() {
 //    L_TRACE("parsed json " << json);
     val.push_back(fixObjects(json));
   }
-  return val;
+  return Data(val);
   
 }
 

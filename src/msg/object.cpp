@@ -13,8 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
-
 #include "log.hpp"
 
 namespace nodes {
@@ -47,7 +45,7 @@ void objectMsg(Server *server, Data &j) {
     return;
   }
 
-  server->sendObject(j, objtype.value(), doc.value().j());
+  server->sendObject(j, objtype.value(), doc.value().d());
 
 }
 

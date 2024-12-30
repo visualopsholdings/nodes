@@ -13,7 +13,6 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-#include "json.hpp"
 
 #include "log.hpp"
 
@@ -25,7 +24,7 @@ void nodesMsg(Server *server, Data &j) {
   
   boost::json::array s;
   if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.j(); });
+    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.d(); });
   }
   
   server->sendCollection(j, "nodes", s);

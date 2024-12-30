@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE( findAll )
   
   dbSetup();
 
-  auto doc = User().find(json{{}}, {"id"}).values();
+  auto doc = User().find({{}}, {"id"}).values();
   BOOST_CHECK(doc);
 //  cout << doc.value().j() << endl;
   BOOST_CHECK_EQUAL(doc.value().size(), 2);
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE( bulkInsert )
   
   dbSetup();
 
-  boost::json::array a =
+  Data a =
   {
     {
       { "_id", tracy },
@@ -233,7 +233,7 @@ BOOST_AUTO_TEST_CASE( findByIdRangeBeforeDate )
 
   auto t = Date::fromISODate("2024-07-26T00:00:00.0+00:00");
 //  cout << t << endl;
-  auto q = SchemaImpl::idRangeAfterDateQuery({ tracy }, "2024-07-24T00:00:00.0+00:00");
+  auto q = SchemaImpl::idRangeAfterDateQuery({{ tracy }}, "2024-07-24T00:00:00.0+00:00");
 
   auto results = SchemaImpl::findGeneral("users", q, {});
   BOOST_CHECK(results);

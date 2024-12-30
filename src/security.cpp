@@ -478,7 +478,7 @@ optional<string> Security::modifyPolicy(const string &id, const vector<addTupleT
     return nullopt;
   }
 
-  auto obj = policy.value().j();
+  auto obj = policy.value().d();
   obj.as_object().erase("id");
   
   // do removes first.

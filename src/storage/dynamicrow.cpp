@@ -11,14 +11,13 @@
 
 #include "storage/dynamicrow.hpp"
 
-#include "json.hpp"
 #include "log.hpp"
 
 using namespace nodes;
 
 string DynamicRow::getString(const string &name) const {
 
-  auto value = Json::getString(_json, name);
+  auto value = _data.getString(name);
   if (!value) {
     return "";
   }
@@ -27,9 +26,9 @@ string DynamicRow::getString(const string &name) const {
 
 }
 
-boost::json::array DynamicRow::getArray(const string &name) {
+Data DynamicRow::getData(const string &name) {
 
-  auto value = Json::getArray(_json, name);
+  auto value = _data.getData(name);
   if (!value) {
     return {};
   }
@@ -41,7 +40,7 @@ boost::json::array DynamicRow::getArray(const string &name) {
 vector<string> DynamicRow::getStringArray(const string &name) {
 
   vector<string> a;
-  auto value = Json::getArray(_json, name);
+  auto value = _data.getData(name);
   if (!value) {
     return a;
   }
@@ -56,7 +55,7 @@ vector<string> DynamicRow::getStringArray(const string &name) {
 
 bool DynamicRow::getBool(const string &name, bool silent) const {
   
-  auto value = Json::getBool(_json, name, silent);
+  auto value = _data.getBool(name, silent);
   if (!value) {
     return false;
   }
@@ -67,7 +66,7 @@ bool DynamicRow::getBool(const string &name, bool silent) const {
 
 int DynamicRow::getNumber(const string &name) const {
   
-  auto value = Json::getNumber(_json, name);
+  auto value = _data.getNumber(name);
   if (!value) {
     return false;
   }

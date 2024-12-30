@@ -12,7 +12,6 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "security.hpp"
 #include "log.hpp"
 #include "data.hpp"
@@ -37,7 +36,7 @@ void membersMsg(Server *server, Data &j) {
     return;
   }
 
-  if (server->testModifyDate(j, doc.value().j())) {
+  if (server->testModifyDate(j, doc.value().d())) {
     server->send({
       { "type", "members" },
       { "test", {
@@ -49,7 +48,7 @@ void membersMsg(Server *server, Data &j) {
   }
   
   boost::json::array newmembers;
-  auto members = doc.value().j().at("members").as_array();
+  auto members = doc.value().d().at("members").as_array();
   for (auto i: members) {
     boost::json::object newmember = i.as_object();
     auto user = User().findById(i.at("user").as_string().c_str(), { "fullname" }).value();

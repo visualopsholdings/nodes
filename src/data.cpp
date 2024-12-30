@@ -44,7 +44,7 @@ boost::json::value getMember(const boost::json::value &j, const string &name, bo
 }
 
 
-optional<string> Data::getString(const string &name, bool silent) {
+optional<string> Data::getString(const string &name, bool silent) const {
 
   auto obj = getMember(*this, name, silent);
   if (!obj.is_string()) {
@@ -57,7 +57,7 @@ optional<string> Data::getString(const string &name, bool silent) {
 
 }
 
-optional<long> Data::getNumber(const string &name, bool silent) {
+optional<long> Data::getNumber(const string &name, bool silent) const {
 
   auto obj = getMember(*this, name, silent);
   if (!obj.is_int64()) {
@@ -70,7 +70,7 @@ optional<long> Data::getNumber(const string &name, bool silent) {
 
 }
 
-optional<bool> Data::getBool(const string &name, bool silent) {
+optional<bool> Data::getBool(const string &name, bool silent) const {
 
   auto obj = getMember(*this, name, silent);
   if (!obj.is_bool()) {
@@ -83,23 +83,24 @@ optional<bool> Data::getBool(const string &name, bool silent) {
 
 }
 
-optional<Data> Data::getArray(const string &name, bool silent) {
+optional<Data> Data::getData(const string &name, bool silent) {
 
   auto obj = getMember(*this, name, silent);
-  if (!obj.is_array()) {
+  if (!obj.is_array() && !obj.is_object()) {
     if (!silent) {
-      L_ERROR("obj is not array " << *this << " " << name);
+      L_ERROR("obj is not array or object " << *this << " " << name);
     }
     return nullopt;
   }
-  return Data(obj.as_array());
+  
+  return Data(obj);
   
 }
 
 void Data::setString(const string &name, const string &val) {
 
   if (!is_object()) {
-    L_ERROR("obj an object for setString " << name << "=" << val);
+    L_ERROR("obj not an object for setString " << name << "=" << val);
     return;
   }
   
@@ -110,7 +111,7 @@ void Data::setString(const string &name, const string &val) {
 void Data::setBool(const string &name, bool val) {
 
   if (!is_object()) {
-    L_ERROR("obj an object for setBool " << name << "=" << val);
+    L_ERROR("obj not an object for setBool " << name << "=" << val);
     return;
   }
   
@@ -121,11 +122,67 @@ void Data::setBool(const string &name, bool val) {
 void Data::setObj(const string &name, const Data &val) {
 
   if (!is_object()) {
-    L_ERROR("obj an object for setObj " << name << "=" << val);
+    L_ERROR("obj not an object for setObj " << name << "=" << val);
     return;
   }
   
   as_object()[name] = val;
+  
+}
+
+boost::json::array::iterator Data::begin() {
+
+  if (!is_array()) {
+    L_ERROR("obj an array for begin");
+    return 0;
+  }
+  
+  return as_array().begin();
+}
+
+boost::json::array::iterator Data::end() {
+
+  if (!is_array()) {
+    L_ERROR("obj an array for end");
+    return 0;
+  }
+  
+  return as_array().end();
+}
+
+boost::json::array::const_iterator Data::begin() const {
+
+  if (!is_array()) {
+    L_ERROR("obj not an array for begin");
+    return 0;
+  }
+  
+  return as_array().begin();
+}
+
+boost::json::array::const_iterator Data::end() const {
+
+  if (!is_array()) {
+    L_ERROR("obj not an array for end");
+    return 0;
+  }
+  
+  return as_array().end();
+}
+
+size_t Data::size() const {
+
+  if (!is_array()) {
+    return 0;
+  }
+  
+  return as_array().size();
+  
+}
+
+void Data::push_back(const Data &data) {
+
+  as_array().push_back(data);
   
 }
 
