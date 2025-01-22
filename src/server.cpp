@@ -927,6 +927,8 @@ string Server::get1Info(const string &type) {
 
 void Server::systemStatus(const string &msg) {
 
+  L_INFO(msg);
+  
   publish(nullopt, {
     { "type", "status" },
     { "text", msg }

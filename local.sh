@@ -12,7 +12,7 @@
 #   NODES_REMOTE_DATA_PORT  (8810)    the place to connect to upstream for DATA
 #   NODES_REMOTE_MSG_PORT   (8811)    the place to connect to upstream for MSG
 
-export LOG=debug
+export LOG=info
 
 if [ "$MONGO_PORT_27017_DB" == "" ]; then
 	export MONGO_PORT_27017_DB=dev

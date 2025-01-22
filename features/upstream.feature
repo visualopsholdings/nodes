@@ -50,8 +50,8 @@ Feature: Upstream Test
          | Count 1         | Sep 2 2021   | p1     | Collection 2       | tracy  | $Count 1 |
          | Shared Obj 1    |              | p1     | Shared Collection  | tracy  | $Shared Obj 1 |
 
-      And there are 20 generated objs in collection "Collection 1" from "tracy" with policy "p1"
-      And there are 10 generated objs in collection "Shared Collection" from "tracy" with policy "p1"
+      And there are 500 generated objs in collection "Collection 1" from "tracy" with policy "p1"
+      And there are 100 generated objs in collection "Shared Collection" from "tracy" with policy "p1"
 
       And the server has id "4ecaf2b6-42f2-49fe-b0ef-123758a3a4db"
       And the server has privateKey "t5R[&?W.8-mjIc]cs#<T(5AW7sCJYHo^<2k-]!2!"

@@ -7,10 +7,10 @@ export NODES_REP_PORT=3013
 
 if [ "$1" != "noreset" ];
 then
-  ci/upstreamdb.sh
+  ci/massiveupdb.sh
   [ "$?" != "0" ] && exit 1
 
-  build/Counts --dbName=$MONGO_PORT_27017_DB --users=4 --groups=2 --collections=4 --objs=602 --policies=4
+  build/Counts --dbName=$MONGO_PORT_27017_DB --users=1 --groups=1 --collections=1 --objs=10000 --policies=1
   [ "$?" != "0" ] && exit 1
   
 fi

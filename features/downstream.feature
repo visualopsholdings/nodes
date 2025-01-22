@@ -84,29 +84,36 @@ Feature: Downstream Test
 
    @javascript
    Scenario: Downstreams have synced
-     When she sends collections
+      When she sends collections
       Then she receives 3 collections
-     When she sends objs for "Collection 1" as "tracy"
-      Then she receives 20 objs
+      When she sends objs for "Collection 1" as "tracy"
+      Then she receives 500 objs
 
       When she sends collections to downstream 2
       Then she receives 3 collections
-     When she sends objs for "$Shared Collection" to downstream 2
-      Then she receives 16 objs
+      When she sends objs for "$Shared Collection" to downstream 2
+      Then she receives 106 objs
       
       When she sends collections to downstream 3
       Then she receives 2 collections
-     When she sends objs for "$Shared Collection" to downstream 3
-      Then she receives 16 objs
+      When she sends objs for "$Shared Collection" to downstream 3
+      Then she receives 106 objs
 
       When she sends collections to downstream 4
       Then she receives 5 collections
-     When she sends objs for "$Collection 1" to downstream 4
-      Then she receives 20 objs
-     When she sends objs for "$Collection 2" to downstream 4
+      When she sends objs for "$Collection 1" to downstream 4
+      Then she receives 500 objs
+      When she sends objs for "$Collection 2" to downstream 4
       Then she receives 1 objs
-     When she sends objs for "$Shared Collection" to downstream 4
-      Then she receives 11 objs
+      When she sends objs for "$Shared Collection" to downstream 4
+      Then she receives 101 objs
+
+   @javascript
+   Scenario: Massive servers are synched
+      When she sends collections
+      Then she receives 3 collections
+      When she sends objs for "Shared Collection" as "tracy"
+      Then she receives 10000 objs
 
   @javascript
    Scenario: Change to a user is reflected in the downstream servers
@@ -195,17 +202,20 @@ Feature: Downstream Test
     @javascript
    Scenario: A new collection created on upstream appears on downstream mirrors
 
-     When she sends collections to downstream 4
+      When she sends collections to downstream 4
       And she receives 5 collections
      
       And she sends add collection "New Collection" as "$tracy" to upstream
-     And she sends collections to upstream
+      And she sends collections to upstream
       And she receives 5 collections
-       
-     And she sends collections to downstream 4
+      
+      # wait for the downstreams 2 sync
+      And she waits 1 seconds
+      
+      And she sends collections to downstream 4
       And she receives 6 collections
      
-     And she sends collections to downstream 6
+      And she sends collections to downstream 6
       Then she receives 6 collections
      
     @javascript
@@ -301,14 +311,14 @@ Feature: Downstream Test
       # make sure nothing came down.
       When she sends collections
       And she receives 3 collections
-      Then eventually there are 31 objs in the DB
+      Then eventually there are 601 objs in the DB
       
       # get the collection from upstream.
       When she sends add collection from upstream with saved collection
       And she receives ack
       And she sends collections
       And she receives 4 collections
-      Then eventually there are 33 objs in the DB
+      Then eventually there are 603 objs in the DB
       
       # add a new obj to this upstream collection.
       When she sends obj "I know" as "tracy" to "New Collection"
@@ -321,22 +331,22 @@ Feature: Downstream Test
    Scenario: A deleted obj is reflected upstream and downstream servers
    
       When she sends objs for "Shared Collection" as "tracy"
-      And she receives 11 objs
+      And she receives 101 objs
 	   And she sends delete obj "Obj 5" as "tracy" in "Shared Collection"
       And she sends objs for "Shared Collection" as "tracy"
-      And she receives 10 objs
+      And she receives 100 objs
 
       And she sends objs for "$Shared Collection" to upstream
-      And she receives 10 objs
+      And she receives 100 objs
 
       And she sends objs for "$Shared Collection" to downstream 2
-      And she receives 15 objs
+      And she receives 105 objs
 
       And she sends objs for "$Shared Collection" to downstream 3
-      And she receives 15 objs
+      And she receives 105 objs
 
       And she sends objs for "$Shared Collection" to downstream 4
-      And she receives 10 objs
+      And she receives 100 objs
 
    @javascript
    Scenario: An obj can be moved from one collection to another on a mirror
@@ -347,7 +357,7 @@ Feature: Downstream Test
       And she receives 1 objs
       # new collection is Shared Collection
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 11 objs
+      And she receives 101 objs
       
       # move Count 1
       When she sends move obj "$Count 1" to "$Shared Collection" as "$tracy" to downstream 4
@@ -356,30 +366,30 @@ Feature: Downstream Test
       And she sends objs for "$Collection 2" as "$tracy" to downstream 4
       And she receives 0 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 12 objs
+      And she receives 102 objs
 
       # reflected in the upstream
       And she sends objs for "$Collection 2" as "$tracy" to upstream
       And she receives 0 objs
       And she sends objs for "$Shared Collection" as "$tracy" to upstream
-      And she receives 12 objs
+      And she receives 102 objs
 
    @javascript
    Scenario: An obj can be moved from a shared collection to a non shared collection on downstream
    
       And she sends objs for "Shared Collection" as "tracy"
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 5
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 6
-      And she receives 11 objs
+      And she receives 101 objs
 
       # downstream2
       # old collection is Shared Collection
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 11 objs
+      And she receives 101 objs
       # new collection is Collection 4
       And she sends objs for "$Collection 4" as "$tracy" to downstream 2
       And she receives 0 objs
@@ -387,33 +397,36 @@ Feature: Downstream Test
       # move Shared Obj 1
       When she sends move obj "$Shared Obj 1" to "$Collection 4" as "$tracy" to downstream 2
       And she receives ack
-
+      
+      # wait for downstreams to catch up
+      And she waits 1 second
+      
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 4" as "$tracy" to downstream 2
       And she receives 1 objs
 
       # downstream4
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 4" as "$tracy" to downstream 4
       And she receives 1 objs
 
       # downstream5
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 5
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 4" as "$tracy" to downstream 5
       And she receives 1 objs
 
       # downstream6
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 6
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 4" as "$tracy" to downstream 6
       And she receives 1 objs
 
       # upstream
       And she sends objs for "$Shared Collection" as "$tracy" to upstream
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 4" as "$tracy" to upstream
       And she receives 1 objs
 
@@ -422,31 +435,31 @@ Feature: Downstream Test
       And she receives ack
 
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 4" as "$tracy" to downstream 2
       And she receives 0 objs
 
       # downstream4
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 4" as "$tracy" to downstream 4
       And she receives 0 objs
 
       # downstream5
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 5
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 4" as "$tracy" to downstream 5
       And she receives 0 objs
 
       # downstream6
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 6
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 4" as "$tracy" to downstream 6
       And she receives 0 objs
 
       # upstream
       And she sends objs for "$Shared Collection" as "$tracy" to upstream
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 4" as "$tracy" to upstream
       And she receives 0 objs
       
@@ -454,26 +467,26 @@ Feature: Downstream Test
    Scenario: An obj can be moved from a shared collection to a non shared collection on mirror
    
       And she sends objs for "$Shared Collection" as "$tracy" to upstream
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 2" as "$tracy" to upstream
       And she receives 1 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 2
       And she receives 0 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 5
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 5
       And she receives 0 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 6
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 6
       And she receives 1 objs
 
        # downstream4
       # old collection is Shared Collection
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 11 objs
+      And she receives 101 objs
       # new collection is Collection 2
       And she sends objs for "$Collection 2" as "$tracy" to downstream 4
       And she receives 1 objs
@@ -483,31 +496,31 @@ Feature: Downstream Test
       And she receives ack
 
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 4
       And she receives 2 objs
 
       # upstream
       And she sends objs for "$Shared Collection" as "$tracy" to upstream
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to upstream
       And she receives 2 objs
 
       # downstream 2
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 2
       And she receives 1 objs
 
       # downstream 5
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 5
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 5
       And she receives 1 objs
 
       # downstream 6
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 6
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 6
       And she receives 2 objs
       
@@ -520,7 +533,7 @@ Feature: Downstream Test
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 4
       And she receives 0 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 5
       And she receives 0 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 6
@@ -529,7 +542,7 @@ Feature: Downstream Test
       # downstream2
       # old collection is Shared Collection
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 11 objs
+      And she receives 101 objs
       # new collection is Shared 2 Collection
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 2
       And she receives 0 objs
@@ -538,26 +551,29 @@ Feature: Downstream Test
       When she sends move obj "$Shared Obj 1" to "$Shared 2 Collection" as "$tracy" to downstream 2
       And she receives ack
 
+      # wait for downstreams to catch up
+      And she waits 1 second
+      
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 2
       And she receives 1 objs
 
       # downstream4
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 4
       And she receives 1 objs
 
       # downstream5
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 5
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 5
       And she receives 1 objs
 
       # downstream6
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 6
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 6
       And she receives 1 objs
 
@@ -566,25 +582,25 @@ Feature: Downstream Test
       And she receives ack
 
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 2
       And she receives 0 objs
 
       # downstream4
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 4
       And she receives 0 objs
 
       # downstream5
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 5
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 5
       And she receives 0 objs
 
       # downstream6
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 6
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 6
       And she receives 0 objs
       
@@ -592,17 +608,17 @@ Feature: Downstream Test
    Scenario: An obj can be moved from a non shared collection to a shared collection on upstream
    
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 2
       And she receives 0 objs
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 11 objs
+      And she receives 101 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 4
       And she receives 1 objs
 
       # upstream old collection is Shared Collection
       And she sends objs for "$Shared Collection" as "$tracy" to upstream
-      And she receives 11 objs
+      And she receives 101 objs
       # new collection is Collection 2
       And she sends objs for "$Collection 2" as "$tracy" to upstream
       And she receives 1 objs
@@ -612,18 +628,18 @@ Feature: Downstream Test
       And she receives ack
 
       And she sends objs for "$Shared Collection" as "$tracy" to upstream
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to upstream
       And she receives 2 objs
 
       # downstream2
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 2
       And she receives 1 objs
 
       # downstream4
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
-      And she receives 10 objs
+      And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 4
       And she receives 2 objs

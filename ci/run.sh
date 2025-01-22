@@ -9,11 +9,16 @@ echo "Running up $1"
 ci/$1.sh > $1.log 2>&1 &
 echo "$!" > $1.pid
 
-timeout=5
+if [ "$2" == "" ]; then
+  timeout=5
+else
+  timeout=$2
+fi
+
 start=$(date +%s)
 while [ 1 ]
 do
-	if [ "$1" == "upstream" ]; then
+	if [ "$1" == "upstream" ] || [ "$1" == "massiveup" ]; then
     cat $1.log | grep "init nodes"
     if [ "$?" == "0" ]; then
       echo "Ready."
