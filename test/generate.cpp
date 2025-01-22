@@ -78,7 +78,6 @@ int main(int argc, char *argv[]) {
   stringstream ds;
   ds << date << "T00:00.000+0000";
   long d = Date::fromISODate(ds.str());
-//  d -= 11 * 60 * 60 * 1000;
   
   for (int i=1; i<count+1; i++) {
     d += 5 * 60 * 1000;
