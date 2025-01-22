@@ -166,6 +166,9 @@ add_executable(Counts test/counts.cpp src/log.cpp)
 add_executable(nodesaggregate src/nodesaggregate.cpp src/log.cpp)
   target_link_libraries(nodesaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
 
+add_executable(Generate test/generate.cpp src/log.cpp)
+  target_link_libraries(Generate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${MONGOLIBS})
+
 # Tests
 
 add_executable(TestStorage test/teststorage.cpp)

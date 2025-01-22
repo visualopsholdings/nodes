@@ -25,7 +25,7 @@ fail() {
 # in case we run on a failed build.
 finish
 
-ci/run.sh massiveup 360
+ci/run.sh massiveup 30
 [ "$?" != "0" ] && exit 1
 
 ci/nodestest.sh "Massive servers are synched"

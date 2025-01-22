@@ -28,7 +28,7 @@ Feature: Massive Upstream Test
          | name                  | policy | id                         | modifyDate   |
          | Shared Collection     | p1     | $Shared Collection       | 4 Jan 2022   |
 
-      And there are 10000 generated objs in collection "Shared Collection" from "tracy" with policy "p1"
+      And there are 100000 generated objs in collection "Shared Collection" from "tracy" with policy "p1"
 
       And the server has id "4ecaf2b6-42f2-49fe-b0ef-123758a3a4db"
       And the server has privateKey "t5R[&?W.8-mjIc]cs#<T(5AW7sCJYHo^<2k-]!2!"

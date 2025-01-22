@@ -113,7 +113,7 @@ Feature: Downstream Test
       When she sends collections
       Then she receives 3 collections
       When she sends objs for "Shared Collection" as "tracy"
-      Then she receives 10000 objs
+      Then she receives 100000 objs
 
   @javascript
    Scenario: Change to a user is reflected in the downstream servers
@@ -399,7 +399,7 @@ Feature: Downstream Test
       And she receives ack
       
       # wait for downstreams to catch up
-      And she waits 1 second
+      And she waits 1 seconds
       
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
       And she receives 100 objs
@@ -552,7 +552,7 @@ Feature: Downstream Test
       And she receives ack
 
       # wait for downstreams to catch up
-      And she waits 1 second
+      And she waits 1 seconds
       
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
       And she receives 100 objs

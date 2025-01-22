@@ -60,17 +60,9 @@ When("there are {int} generated objs in collection {string} from {string} with p
    user = User.where(name: u).first._id.to_s
    policy = Policy.where(name: p).first._id.to_s
    date = Date.today.at_beginning_of_month
+   dbName = ENV['MONGO_PORT_27017_DB']
    
-   for i in 1..count do
-      date = date + 5.minutes
-      obj = FactoryBot.build(:obj)     
-      obj.user = user
-      obj.text = "Obj " + i.to_s
-      obj.policy = policy
-      obj.coll = collection
-      obj.modifyDate = date
-      obj.save
-   end
+   `build/Generate --dbName=#{dbName} --count=#{count} --collectionValue=#{collection} --user=#{user} --policy=#{policy} --date=#{date}`
    
 end
 

@@ -10,7 +10,7 @@ then
   ci/massiveupdb.sh
   [ "$?" != "0" ] && exit 1
 
-  build/Counts --dbName=$MONGO_PORT_27017_DB --users=1 --groups=1 --collections=1 --objs=10000 --policies=1
+  build/Counts --dbName=$MONGO_PORT_27017_DB --users=1 --groups=1 --collections=1 --objs=100000 --policies=1
   [ "$?" != "0" ] && exit 1
   
 fi

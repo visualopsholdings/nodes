@@ -10,7 +10,7 @@ ci/$1.sh > $1.log 2>&1 &
 echo "$!" > $1.pid
 
 if [ "$2" == "" ]; then
-  timeout=5
+  timeout=10
 else
   timeout=$2
 fi
