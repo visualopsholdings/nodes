@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
   json j = boost::json::parse(jsonstr);
   send(req, j);
   json jr = receive(req);
-  L_INFO("<- " << jr);
+  L_DEBUG("<- " << jr);
   stringstream ss;
   ss << jr;
   cout << ss.str();
