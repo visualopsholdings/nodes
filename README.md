@@ -206,7 +206,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Boost dependance refactor
+### Messages at scale
 
 ## License
 
