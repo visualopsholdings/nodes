@@ -411,6 +411,11 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 - Add tests for much larger scale.
 - Generating objs is now done in C++. Too slow in ruby.
 
+### 24 Jan 2024
+- rework to record last object dates for sub objects.
+
+
+
 
 
 

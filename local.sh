@@ -11,7 +11,10 @@
 #   NODES_MSG_PORT                    the place to bind to for MSG
 #   NODES_REMOTE_DATA_PORT  (8810)    the place to connect to upstream for DATA
 #   NODES_REMOTE_MSG_PORT   (8811)    the place to connect to upstream for MSG
-
+#
+# info - general messages
+# debug - outputs JOSN being transferred
+# trace - deep debugging
 export LOG=info
 
 if [ "$MONGO_PORT_27017_DB" == "" ]; then

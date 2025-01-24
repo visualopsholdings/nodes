@@ -249,7 +249,7 @@ BOOST_AUTO_TEST_CASE( countGeneral )
 
   dbSetup();
 
-  BOOST_CHECK_EQUAL(SchemaImpl::countGeneral("users", {{}}), 2);
+  BOOST_CHECK_EQUAL(SchemaImpl::countGeneral("users", Data{{}}), 2);
   
 }
 
@@ -263,6 +263,37 @@ BOOST_AUTO_TEST_CASE( existsGeneral )
   BOOST_CHECK(!SchemaImpl::existsGeneral("users", "667d0baedfb1ed18430d8eda"));
   
 }
+
+BOOST_AUTO_TEST_CASE( findWithLimit )
+{
+  cout << "=== findWithLimit ===" << endl;
+
+  dbSetup();
+
+  auto results = SchemaImpl::findGeneral("users", Data{{}}, {}, 1);
+  BOOST_CHECK(results);
+  auto users = results->values();
+  BOOST_CHECK(users);
+  BOOST_CHECK_EQUAL(users.value().size(), 1);
+  
+}
+
+BOOST_AUTO_TEST_CASE( findLatest )
+{
+  cout << "=== findLatest ===" << endl;
+
+  dbSetup();
+
+  auto results = SchemaImpl::findGeneral("users", Data{{}}, {}, 1, Data{{ "modifyDate", -1 }});
+  BOOST_CHECK(results);
+  auto users = results->values();
+  BOOST_CHECK(users);
+  BOOST_CHECK_EQUAL(users.value().size(), 1);
+  Data n = users.value().getIterator(users.value().begin());
+  BOOST_CHECK_EQUAL(n.getString("name").value(), "leanne");
+  
+}
+
 
 
 

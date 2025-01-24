@@ -938,9 +938,11 @@ void Server::systemStatus(const string &msg) {
 
 string Server::getLastDate(optional<Data> rows, const string &hasInitialSync, const string &upstreamLastSeen) {
 
+  L_TRACE("getLastDate");
+  
   string zd = Date::toISODate(0);
   
-  if (rows) {
+  if (rows && rows.value().size() > 0) {
     // does any of the rows have a null date?
     bool hasNullDate = find_if(rows.value().begin(), rows.value().end(), [zd](auto e) { 
       return Json::getString(e, "modifyDate") == zd;
@@ -956,6 +958,40 @@ string Server::getLastDate(optional<Data> rows, const string &hasInitialSync, co
 string Server::getCollName(const string &type, optional<string> coll) {
 
   return coll ? coll.value() : (type + "s");
+  
+}
+
+optional<Data> Server::getSubobjsLatest(const Data &subobj, const vector<string> &ids, const string &hasInitialSync, const string &upstreamLastSeen) {
+
+  L_TRACE("getSubobjsLatest");
+  
+  auto type = Json::getString(subobj, "type");
+  if (!type) {
+    L_ERROR("type missing in schema obj " << subobj);
+    return {};
+  }
+  string collname = getCollName(type.value(), Json::getString(subobj, "coll", true));
+  auto field = Json::getString(subobj, "field");
+  DataArray a;
+  Data d(a);
+  for (auto id: ids) {
+    auto objs = SchemaImpl::findGeneral(collname, Data{{ field.value(), id }}, { "_id", "modifyDate" }, 1, Data{{ "modifyDate", -1 }});
+    if (!objs) {
+      L_ERROR("couldn't find subobjs");
+      return {};
+    }
+    string lastseen = getLastDate(objs->value(), hasInitialSync, upstreamLastSeen);
+    string lastname = type.value();
+    lastname[0] = toupper(lastname[0]);
+    lastname = "last" + lastname;
+    d.push_back({
+      { "id", id },
+      { lastname, lastseen }
+    });
+  }
+  
+  L_TRACE("returning " << d.size());
+  return d;
   
 }
 
@@ -998,7 +1034,17 @@ void Server::sendUpDiscover() {
       }
       msg[lastname] = getLastDate(objs, hasInitialSync, upstreamLastSeen);
     }
-    msg[collname] =  boost::json::value_from(ids);
+    auto subobj = Json::getObject(o, "subobj", true);
+    if (subobj) {
+      auto d = getSubobjsLatest(subobj.value(), ids, hasInitialSync, upstreamLastSeen);
+      if (!d) {
+        return;
+      }
+      msg[collname] =  d.value();
+    }
+    else {
+      msg[collname] =  boost::json::value_from(ids);
+    }
   }
   setSrc(&msg);
   
@@ -1006,20 +1052,35 @@ void Server::sendUpDiscover() {
 
 }
 
-void Server::collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies) {
+bool Server::collectObjs(const string &type, const string &collname, 
+  bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies, 
+  optional<int> limit) {
 
-  auto result = SchemaImpl::findGeneral(collname, q, {});
+  // fetch 1 more than the limit.
+  optional<int> fetchlimit;
+  if (limit) {
+    fetchlimit = limit.value() + 1;
+  }
+  
+  bool more = false;
+  auto result = SchemaImpl::findGeneral(collname, q, {}, fetchlimit);
   if (result) {
     auto vals = result->values();
     if (vals) {
+      auto val = vals.value();
+      if (limit && val.size() > limit.value()) {
+        more = true;
+        // remove the last 1 since only 1 extra
+        val.pop_back();
+      }
       json obj = {
         { "type", type },
-        { "objs", vals.value() }
+        { "objs", val }
       };
       data->push_back(obj);
       
       // collect all the policies of the objects
-      for (auto i: vals.value()) {
+      for (auto i: val) {
         auto p = Json::getString(i, "policy", true);
         if (p) {
           if (find(policies->begin(), policies->end(), p.value()) == policies->end()) {
@@ -1030,6 +1091,8 @@ void Server::collectObjs(const string &type, const string &collname, bsoncxx::do
     }
   }
 
+  return more;
+  
 }
 
 void Server::collectPolicies(const vector<string> &policies, boost::json::array *data) {
@@ -1203,6 +1266,30 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
   }
 }
 
+void Server::collectIds(const Data &ids, vector<string> *vids) {
+
+  // convert all the user ids to oids.
+  // ids are an array of strings or an array of objects with "id"
+  for  (auto u: ids) {
+    if (u.is_string()) {
+      vids->push_back(u.as_string().c_str());
+    }
+    else if (u.is_object()) {
+      if (!u.as_object().if_contains("id")) {
+        L_ERROR("idRangeAfterDateQuery id missing fro obj");
+        continue;
+      }
+      auto id = u.at("id");
+      if (!id.is_string()) {
+        L_ERROR("idRangeAfterDateQuery id is not string");
+        continue;
+      }
+      vids->push_back(id.as_string().c_str());
+    }
+  }
+  
+}
+
 void Server::sendDownDiscoverResult(json &j) {
 
   string src;
@@ -1222,6 +1309,10 @@ void Server::sendDownDiscoverResult(json &j) {
     return;
   }
 
+  bool hasMore = false;
+//  int limit = 20;
+  int limit = 1000000;
+    
   boost::json::array msgs;
   boost::json::object obj;
   vector<string> policies;
@@ -1258,8 +1349,16 @@ void Server::sendDownDiscoverResult(json &j) {
     }
     
     if (last && objs && objs.value().size() > 0) {
-      collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(objs.value(), last.value()), &msgs, &policies);
+    
+      // collect all the ids.
+      vector<string> ids;
+      collectIds(objs.value(), &ids);
       
+      // collect all the objects 
+      bool more = collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(ids, last.value()), &msgs, &policies, limit);
+      if (more) {
+        hasMore = true;
+      }
       auto subobj = Json::getObject(o, "subobj", true);
       if (subobj) {
         auto field = Json::getString(subobj.value(), "field");
@@ -1273,18 +1372,24 @@ void Server::sendDownDiscoverResult(json &j) {
           return;
         }
         string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
-        if (objs.value().size() == 1 && objs.value()[0] == "*") {
+        if (ids.size() == 1 && *(ids.begin()) == "*") {
           // collect ALL sub objects after the date.
           auto objs = SchemaImpl::findGeneral(collname, Data{{}}, { "_id" })->values();
           for (auto o: objs.value()) {
-            collectObjs(subtype.value(), subcollname, 
-              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), Json::getString(o, "id").value(), last.value()), &msgs, &policies);
+            more = collectObjs(subtype.value(), subcollname, 
+              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), Json::getString(o, "id").value(), last.value()), &msgs, &policies, limit);
+            if (more) {
+              hasMore = true;
+            }
           }
         }
         else {
-          for (auto s: objs.value()) {
-            collectObjs(subtype.value(), subcollname, 
-              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), s.as_string().c_str(), last.value()), &msgs, &policies);
+          for (auto id: ids) {
+            more = collectObjs(subtype.value(), subcollname, 
+              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id, last.value()), &msgs, &policies, limit);
+            if (more) {
+              hasMore = true;
+            }
           }
         }
       }
@@ -1297,12 +1402,16 @@ void Server::sendDownDiscoverResult(json &j) {
   // update the node where we are.  
   Node().updateById(node.value().id(), obj);
 
-  // and send the result on.
-  sendDown({
+  Data msg = {
     { "type", "discoverResult" },
     { "msgs", msgs },
-    
-  });
+  };
+  
+  if (hasMore) {
+    msg.setBool("more", true);
+  }
+  // and send the result on.
+  sendDown(msg);
 
 }
 
@@ -1378,8 +1487,9 @@ vector<string> Server::getNodeIds(const string &type) {
   vector<string> ids;
   for (auto n: nodes.value()) {
     auto a = n.getData(field);
-    for (auto i: a) {
-      string id(i.as_string());
+    vector<string> nids;
+    collectIds(a, &nids);
+    for (auto id: nids) {
       if (find(ids.begin(), ids.end(), id) == ids.end()) {
         ids.push_back(id);
       }

@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "data.hpp"
+#include "json.hpp"
 
 #include <boost/json.hpp>
 
@@ -58,5 +59,30 @@ BOOST_AUTO_TEST_CASE( setString )
   auto str = d.getString("parent");
   BOOST_CHECK(str);
   BOOST_CHECK_EQUAL(str.value(), "a string");
+  
+}
+
+BOOST_AUTO_TEST_CASE( pop_back )
+{
+  cout << "=== pop_back ===" << endl;
+
+  DataArray a;
+  Data d(a);
+  d.push_back({
+    { "num", 1 }
+  });
+  d.push_back({
+    { "num", 2 }
+  });
+  d.push_back({
+    { "num", 3 }
+  });
+  BOOST_CHECK_EQUAL(d.size(), 3);
+  Data n = d.getIterator(d.end()-1);
+  BOOST_CHECK_EQUAL(n.getNumber("num").value(), 3);
+  d.pop_back();
+  BOOST_CHECK_EQUAL(d.size(), 2);
+  n = d.getIterator(d.end()-1);
+  BOOST_CHECK_EQUAL(n.getNumber("num").value(), 2);
   
 }

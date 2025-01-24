@@ -25,8 +25,9 @@ namespace nodes {
 class ResultImpl {
 
 public:
-  ResultImpl(mongocxx::collection coll, bsoncxx::document::view_or_value query, const vector<string> &fields): 
-    _c(coll), _q(query), _f(fields) {};
+  ResultImpl(mongocxx::collection coll, bsoncxx::document::view_or_value query, const vector<string> &fields, 
+      optional<int> limit=nullopt, optional<bsoncxx::document::view_or_value> sort=nullopt): 
+    _c(coll), _q(query), _f(fields), _limit(limit), _sort(sort) {};
 
   // public for testing.
   Data fixObjects(const Data &data);
@@ -39,7 +40,9 @@ public:
   vector<string> _f;
   mongocxx::collection _c;
   bsoncxx::document::view_or_value _q;
-  
+  optional<int> _limit;
+  optional<bsoncxx::document::view_or_value> _sort;
+
 private:
 
   Data fixObject(const Data &j);

@@ -133,7 +133,7 @@ void Data::setObj(const string &name, const Data &val) {
 boost::json::array::iterator Data::begin() {
 
   if (!is_array()) {
-    L_ERROR("obj an array for begin");
+    L_ERROR("obj not an array for begin");
     return 0;
   }
   
@@ -143,7 +143,7 @@ boost::json::array::iterator Data::begin() {
 boost::json::array::iterator Data::end() {
 
   if (!is_array()) {
-    L_ERROR("obj an array for end");
+    L_ERROR("obj not an array for end");
     return 0;
   }
   
@@ -185,5 +185,19 @@ void Data::push_back(const Data &data) {
   as_array().push_back(data);
   
 }
+
+Data Data::getIterator(boost::json::array::iterator i) {
+
+  Data d(*i);
+  return d;
+  
+}
+
+void Data::pop_back() {
+  
+  as_array().pop_back();
+  
+}
+
 
 } // nodes

@@ -95,7 +95,7 @@ optional<bool> Json::getBool(const json &j, const string &name, bool silent) {
   auto obj = getMember(j, name, silent);
   if (!obj.is_bool()) {
     if (!silent) {
-      L_ERROR("obj is not bool " << j << " " << name);
+      L_ERROR("obj is not bool " << name << " in " << j);
     }
     return {};
   }

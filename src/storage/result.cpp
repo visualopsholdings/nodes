@@ -37,6 +37,12 @@ mongocxx::cursor ResultImpl::find() {
     ss << j;
     opts.projection(bsoncxx::from_json(ss.str()));
   }
+  if (_limit) {
+    opts.limit(_limit.value());
+  }
+  if (_sort) {
+    opts.sort(_sort.value());
+  }
   
   return _c.find(_q, opts);
 

@@ -152,7 +152,8 @@ private:
   string getLastDate(optional<Data> objs, const string &hasInitialSync, const string &upstreamLastSeen);
   void sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr);
   void sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr);
-  void collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies);
+  bool collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
+    boost::json::array *data, vector<string> *policies, optional<int> limit=nullopt);
   void collectPolicies(const vector<string> &policies, boost::json::array *data);
   bool isValidId(const string &id);
   bool validateId(boost::json::object &obj, const string &id);
@@ -165,6 +166,8 @@ private:
   bool isParentUpstream(const string &ptype, const string &origparent);
   bool isObjUpstream(boost::json::object &obj);
   bool hasUpstream();
+  optional<Data> getSubobjsLatest(const Data &subobj, const vector<string> &ids, const string &hasInitialSync, const string &upstreamLastSeen);
+  void collectIds(const Data &ids, vector<string> *vids);
 };
 
 } // nodes

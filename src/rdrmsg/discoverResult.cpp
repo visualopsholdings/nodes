@@ -31,15 +31,22 @@ void discoverResultMsg(Server *server, Data &j) {
   // import everything.
   server->importObjs(msgs.value());
    
-  server->setInfo("hasInitialSync", "true");
-  Data date = Storage::instance()->getNow();
-  server->setInfo("upstreamLastSeen", Json::toISODate(date));
-  server->systemStatus("Discovery complete");
-
-  // make sure everything is regenerated
-  Security::instance()->regenerateGroups();
-  Security::instance()->regenerate();
-
+  auto more = j.getBool("more", true);
+  if (more && more.value()) {
+    // go again.
+    server->sendUpDiscover();
+  }
+  else {
+    server->setInfo("hasInitialSync", "true");
+    Data date = Storage::instance()->getNow();
+    server->setInfo("upstreamLastSeen", Json::toISODate(date));
+    server->systemStatus("Discovery complete");
+  
+    // make sure everything is regenerated
+    Security::instance()->regenerateGroups();
+    Security::instance()->regenerate();
+  }
+ 
 }
 
 };

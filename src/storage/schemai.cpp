@@ -27,14 +27,25 @@
 using namespace bsoncxx::builder::basic;
 using namespace nodes;
 
-shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx::document::view_or_value query, const vector<string> &fields) {
+shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx::document::view_or_value query, 
+          const vector<string> &fields, optional<int> limit, optional<bsoncxx::document::view_or_value> sort) {
 
   if (!testInit()) {
     return 0;
   }
 
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields));
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, sort));
 
+}
+
+int SchemaImpl::countGeneral(const string &collection, bsoncxx::document::view_or_value query) {
+
+  if (!testInit()) {
+    return 0;
+  }
+
+  return Storage::instance()->_impl->coll(collection)._c.count_documents(query);
+  
 }
 
 int SchemaImpl::countGeneral(const string &collection, const Data &query) {
@@ -47,7 +58,7 @@ int SchemaImpl::countGeneral(const string &collection, const Data &query) {
   ss << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
 
-  return Storage::instance()->_impl->coll(collection)._c.count_documents(q);
+  return countGeneral(collection, q);
   
 }
 
@@ -63,14 +74,22 @@ bool SchemaImpl::existsGeneral(const string &collection, const string &id) {
   
 }
 
-shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const Data &query, const vector<string> &fields) {
+shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const Data &query, 
+          const vector<string> &fields, optional<int> limit, optional<Data> sort) {
 
   L_TRACE("find " << query << " in " << collection); 
 
-  stringstream ss;
-  ss << query;
-  bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
-  return findGeneral(collection, q, fields);
+  stringstream sq;
+  sq << query;
+  bsoncxx::document::view_or_value q = bsoncxx::from_json(sq.str());
+  
+  if (sort) {
+    stringstream ss;
+    ss << sort.value();
+    return findGeneral(collection, q, fields, limit, bsoncxx::from_json(ss.str()));
+  }
+
+  return findGeneral(collection, q, fields, limit);
   
 }
 
@@ -300,19 +319,20 @@ void SchemaImpl::aggregate(const string &filename) {
   }
 }
 
-bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const Data &ids, const string &date) {
+bsoncxx::document::view_or_value SchemaImpl::idRangeAfterDateQuery(const vector<string> &ids, const string &date) {
 
+  L_TRACE("idRangeAfterDateQuery");
+  
   auto qs = bsoncxx::builder::basic::array{};
   
-  // convert all the user ids to oids.
-  if (ids.size() == 1 && *ids.begin() == "*") {
+  if (ids.size() == 1 && *(ids.begin()) == "*") {
     // don't include in the query, it's everything.
   }
   else {
     auto oids = bsoncxx::builder::basic::array{};
     for (auto u: ids) {
       try {
-        oids.append(bsoncxx::oid(u.as_string().c_str()));
+        oids.append(bsoncxx::oid(u));
       }
       catch (bsoncxx::exception &exc) {
         L_ERROR("idRangeAfterDateQuery " << exc.what());

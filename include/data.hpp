@@ -72,9 +72,11 @@ public:
   boost::json::array::iterator end();
   boost::json::array::const_iterator begin() const;
   boost::json::array::const_iterator end() const;
+  Data getIterator(boost::json::array::iterator);
   size_t size() const;
   void push_back(const Data &data);
-  
+  void pop_back();
+   
 private:
 
    friend class Security;
