@@ -46,12 +46,12 @@ Feature: Upstream Test
          | Shared 2 Collection | p1     | $Shared 2 Collection       | 2 Jan 2022   |
 
       And there are objs:
-         | name            | modifyDate   | policy | collection         | by     | id                       |
-         | Count 1         | Sep 2 2021   | p1     | Collection 2       | tracy  | $Count 1 |
-         | Shared Obj 1    |              | p1     | Shared Collection  | tracy  | $Shared Obj 1 |
+         | name            | modifyDate   | policy | collection         | by     | id              |
+         | Count 1         | Dec 24 2022  | p1     | Collection 2       | tracy  | $Count 1        |
+         | Shared Obj X    | Dec 25 2022  | p1     | Shared Collection  | tracy  | $Shared Obj X   |
 
-      And there are 500 generated objs in collection "Collection 1" from "tracy" with policy "p1"
-      And there are 100 generated objs in collection "Shared Collection" from "tracy" with policy "p1"
+      And there are 500 generated objs in collection "Collection 1" with prefix "Obj " from "tracy" with policy "p1" at "2022-7-25"
+      And there are 100 generated objs in collection "Shared Collection" with prefix "Shared Obj " from "tracy" with policy "p1" at "2022-8-25"
 
       And the server has id "4ecaf2b6-42f2-49fe-b0ef-123758a3a4db"
       And the server has privateKey "t5R[&?W.8-mjIc]cs#<T(5AW7sCJYHo^<2k-]!2!"

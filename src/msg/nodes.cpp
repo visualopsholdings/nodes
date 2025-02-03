@@ -20,7 +20,7 @@ namespace nodes {
 
 void nodesMsg(Server *server, Data &j) {
 
-  auto docs = Node().find({{}}).values();
+  auto docs = Node().find({{}}).all();
   
   boost::json::array s;
   if (docs) {

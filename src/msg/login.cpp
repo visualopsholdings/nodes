@@ -39,7 +39,7 @@ void loginMsg(Server *server, Data &j) {
       { { "name", password.value() } },
       { { "fullname", password.value() } }
     } } };
-    user = User().find(q, {"name", "fullname", "admin", "modifyDate"}).value();
+    user = User().find(q, {"name", "fullname", "admin", "modifyDate"}).one();
     if (!user) {
       server->sendErr("Username/Password incorrect");
       return;
@@ -52,7 +52,7 @@ void loginMsg(Server *server, Data &j) {
       server->sendErr("Invalid VID");
       return;
     }
-    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin", "active", "modifyDate"}).value();
+    user = User().findById(vid.uuid(), {"name", "fullname", "salt", "hash", "admin", "active", "modifyDate"}).one();
     if (!user) {
       L_TRACE("couldn't find user");
       server->sendErr("Username/Password incorrect");

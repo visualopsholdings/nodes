@@ -25,7 +25,7 @@ void nodeMsg(Server *server, Data &j) {
     return;
   }
 
-  auto doc = Node().findById(nodeid.value()).value();
+  auto doc = Node().findById(nodeid.value()).one();
   if (!doc) {
     L_ERROR("no nodes to view");
     server->sendSecurity();

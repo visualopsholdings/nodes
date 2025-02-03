@@ -29,7 +29,7 @@ void membersMsg(Server *server, Data &j) {
   Group groups;
   auto doc = Security::instance()->withView(groups, j.getString("me", true), 
     Data{ { "_id", { { "$oid", groupid.value() } } } }, 
-    { "members", "modifyDate" }).value();
+    { "members", "modifyDate" }).one();
   if (!doc) {
     L_ERROR("no group " + groupid.value());
     server->sendSecurity();
@@ -51,7 +51,7 @@ void membersMsg(Server *server, Data &j) {
   auto members = doc.value().d().at("members").as_array();
   for (auto i: members) {
     boost::json::object newmember = i.as_object();
-    auto user = User().findById(i.at("user").as_string().c_str(), { "fullname" }).value();
+    auto user = User().findById(i.at("user").as_string().c_str(), { "fullname" }).one();
     if (user) {
       newmember["fullname"] = user.value().fullname();
     }

@@ -8,8 +8,8 @@
   
   Use like:
   
-    auto doc = User(storage).find({{"name", "tracy"}}).value();
-    auto alldocs = User(storage).find().values();
+    auto doc = User(storage).find({{"name", "tracy"}}).one();
+    auto alldocs = User(storage).find().all();
 
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  

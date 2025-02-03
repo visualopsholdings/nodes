@@ -25,9 +25,9 @@ Feature: Downstream 2 Test
  
       And there are collections:
          | name                  | id                    | upstream  | modifyDate   | policy |
-         | Shared Collection     | $Shared Collection    | true      | 1 Jan 2022   | p1     |
+         | Shared Collection     | $Shared Collection    | true      | 2 Jan 2022   | p1     |
          | Shared 2 Collection   | $Shared 2 Collection  | true      | 2 Jan 2022   | p1     |
-         | Collection 4          | $Collection 4         |           | 2 Jan 2022   | p1     |
+         | Collection 4          | $Collection 4         |           | 4 Jan 2022   | p1     |
 
       And the server has id "14ee64a1-d68f-4f6f-862a-d1ea23210010"
       And the server has privateKey "ul(R&i4F6yjAI8+iZD&8*/2p4Uk7VESxs9NnwdLB"

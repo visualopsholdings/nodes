@@ -30,7 +30,7 @@ void policyUsersMsg(Server *server, Data &j) {
 
   boost::json::array users;
   for (auto i: userids) {
-    auto user = User().findById(i, { "id", "name", "fullname" }).value();
+    auto user = User().findById(i, { "id", "name", "fullname" }).one();
     if (user) {
       users.push_back(user.value().d());
     }

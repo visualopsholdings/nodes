@@ -206,7 +206,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Messages at scale
+### Exctensions to allow other types of messages (like binary)
 
 ## License
 
@@ -414,6 +414,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 24 Jan 2024
 - rework to record last object dates for sub objects.
 
+### 3 Feb 2024
+- Do chunking (100 objects at a time)
 
 
 

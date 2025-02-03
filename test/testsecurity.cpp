@@ -250,39 +250,39 @@ BOOST_AUTO_TEST_CASE( with )
 
   {
     // tracy is in the team that can view.
-    auto doc = Security::instance()->withView("collections", tracy, {{ "name", "Collection 1" }}).value();
+    auto doc = Security::instance()->withView("collections", tracy, {{ "name", "Collection 1" }}).one();
     BOOST_CHECK(doc);
   }
   
   {
     // leanne can only edit.
-    auto docs = Security::instance()->withView("collections", leanne, {{ "name", "Collection 1" }}).values();
+    auto docs = Security::instance()->withView("collections", leanne, {{ "name", "Collection 1" }}).all();
     BOOST_CHECK(!docs);
   }
   
   {
     // leanne is in the team that can edit.
-    auto docs = Security::instance()->withEdit("collections", leanne, {{ "name", "Collection 1" }}).values();
+    auto docs = Security::instance()->withEdit("collections", leanne, {{ "name", "Collection 1" }}).all();
     BOOST_CHECK(docs);
     BOOST_CHECK_EQUAL(docs.value().size(), 1);
   }
   
   {
     // tracy can only view.
-    auto docs = Security::instance()->withEdit("collections", tracy, {{ "name", "Collection 1" }}).values();
+    auto docs = Security::instance()->withEdit("collections", tracy, {{ "name", "Collection 1" }}).all();
     BOOST_CHECK(!docs);
   }
 
   {
     // admin can see them all.
-    auto docs = Security::instance()->withView("collections", nullopt, {{ "name", "Collection 1" }}).values();
+    auto docs = Security::instance()->withView("collections", nullopt, {{ "name", "Collection 1" }}).all();
     BOOST_CHECK(docs);
     BOOST_CHECK_EQUAL(docs.value().size(), 1);
   }
   
   {
     // even tracy can't see a collection not there.
-    auto docs = Security::instance()->withView("collections", tracy, {{ "name", "Collection 2" }}).values();
+    auto docs = Security::instance()->withView("collections", tracy, {{ "name", "Collection 2" }}).all();
     BOOST_CHECK(!docs);
   }
   
@@ -506,7 +506,7 @@ BOOST_AUTO_TEST_CASE( modifyPolicy )
   BOOST_CHECK(newpolicy);
   BOOST_CHECK(newpolicy.value() != policy);
 
-  auto policy = Policy().findById(newpolicy.value()).value();
+  auto policy = Policy().findById(newpolicy.value()).one();
   BOOST_CHECK(policy);
   BOOST_CHECK_EQUAL(policy.value().accesses().size(), 3);
   BOOST_CHECK_EQUAL(policy.value().accesses()[0].users().size(), 2); // 1 added

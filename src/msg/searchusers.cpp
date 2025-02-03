@@ -25,7 +25,7 @@ void searchUsersMsg(Server *server, Data &j) {
     return;
   }
 
-  auto docs = User().find({ { "fullname", { { "$regex", q.value() }, { "$options", "i" } } } }, { "id", "modifyDate", "name", "fullname", "admin" }).values();
+  auto docs = User().find({ { "fullname", { { "$regex", q.value() }, { "$options", "i" } } } }, { "id", "modifyDate", "name", "fullname", "admin" }).all();
 
   boost::json::array s;
   if (docs) {

@@ -32,10 +32,10 @@ Feature: Downstream 3 Test
  
       And there are collections:
          | name               | id                    | upstream  | modifyDate   | policy |
-         | Shared Collection  | $Shared Collection    | true      | 1 Jan 2022   | p1     |
+         | Shared Collection  | $Shared Collection    | true      | 2 Jan 2022   | p1     |
          | Collection 4       | $Collection 4         | true      | 4 Jan 2022   | p1     |
 
-      And there are 5 generated objs in collection "Shared Collection" from "fred" with policy "p1"
+      And there are 5 generated objs in collection "Shared Collection" with prefix "DS3 Shared Obj " from "fred" with policy "p1" at "2023-07-25"
 
       And the server has id "e4448086-8a22-4db0-9dcf-c95a56418d77"
       And the server has privateKey "RHVqBD^IzF.?]i&*Y{&)0bWz@PZai>[]D8)62x-N"
@@ -43,7 +43,7 @@ Feature: Downstream 3 Test
       And the server has upstream "localhost"
       And the server has upstreamPubKey "Oz-z+wnZOA{T^aVV{i7HHuCc0Bk}N/1G)*IApiP?"
       And the server has hasInitialSync
-      And the server has upstreamLastSeen "25 Dec 2022"
+      And the server has upstreamLastSeen "3 Jan 2022"
 
       And there are sites:
          | name      | headerTitle     | streamBgColor   |

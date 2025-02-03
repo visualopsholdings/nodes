@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
   string dbConn;
   int count;
   string collection;
+  string prefix;
   string collectionValue;
   string collectionField;
   string user;
@@ -48,6 +49,7 @@ int main(int argc, char *argv[]) {
   desc.add_options()
     ("count", po::value<int>(&count)->default_value(5), "Count")
     ("collection", po::value<string>(&collection)->default_value("objs"), "Collection Name")
+    ("prefix", po::value<string>(&prefix)->default_value("Obj "), "Prefix for text")
     ("collectionField", po::value<string>(&collectionField)->default_value("coll"), "Parent Collection Field Name")
     ("collectionValue", po::value<string>(&collectionValue)->required(), "Parent Collection Value")
     ("user", po::value<string>(&user)->required(), "User")
@@ -82,13 +84,13 @@ int main(int argc, char *argv[]) {
   for (int i=1; i<count+1; i++) {
     d += 5 * 60 * 1000;
     stringstream text;
-    text << "Obj " << i;
+    text << prefix << i;
     Data obj = {
       { collectionField, collectionValue },
       { "policy", policy },
       { "user", user },
       { "modifyDate", { { "$date", d } } },
-      { "text", text.str() }
+      { "text",  text.str() }
     };
     auto res = SchemaImpl::insertGeneral(collection, obj);
     if (!res) {

@@ -38,7 +38,7 @@ void policyMsg(Server *server, Data &j) {
   }
 
   auto doc = Security::instance()->withView(collname, j.getString("me", true), 
-    {{ { "_id", { { "$oid", objid.value() } } } }}, { "policy" }).value();
+    {{ { "_id", { { "$oid", objid.value() } } } }}, { "policy" }).one();
   if (!doc) {
     server->sendErr("DB Error (no policy)");
     return;

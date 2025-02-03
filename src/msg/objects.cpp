@@ -51,7 +51,7 @@ void objectsMsg(Server *server, Data &j) {
   }
   
   // make sure it can be viewed.
-  auto docs = Security::instance()->withView(coll, j.getString("me", true), query).values();
+  auto docs = Security::instance()->withView(coll, j.getString("me", true), query).all();
   
   // copy out all the data to return;
   boost::json::array s;

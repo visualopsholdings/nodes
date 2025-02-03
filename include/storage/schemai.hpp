@@ -38,10 +38,10 @@ public:
   }
     // insert a new document.
     
-  optional<string> update(const Data &query, const Data &doc);
+  optional<int> update(const Data &query, const Data &doc);
     // update an existing document (inserts $set around the doc).
     
-  optional<string> rawUpdate(const Data &query, const Data &doc);
+  optional<int> rawUpdate(const Data &query, const Data &doc);
     // update an existing document.
     
   optional<string> updateById(const string &id, const Data &doc);
@@ -60,11 +60,12 @@ public:
   static shared_ptr<ResultImpl> findGeneral(const string &collection, const Data &query, 
           const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
   static shared_ptr<ResultImpl> findGeneral(const string &collection, bsoncxx::document::view_or_value query, 
-          const vector<string> &fields, optional<int> limit=nullopt, optional<bsoncxx::document::view_or_value> sort=nullopt);
+          const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
   static int countGeneral(const string &collection, const Data &query);
   static int countGeneral(const string &collection, bsoncxx::document::view_or_value query);
+  static optional<int> updateGeneral(const string &collection, const Data &query, const Data &doc);
   static optional<string> updateGeneralById(const string &collection, const string &id, const Data &doc);
   static optional<string> insertGeneral(const string &collection, const Data &doc);
   static void deleteManyGeneral(const string &collection, const Data &doc);

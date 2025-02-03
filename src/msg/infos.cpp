@@ -19,7 +19,7 @@ namespace nodes {
 
 void infosMsg(Server *server, Data &j) {
 
-  auto docs = Info().find({{}}, {"type", "text"}).values();
+  auto docs = Info().find({{}}, {"type", "text"}).all();
 
   boost::json::array s;
   if (docs) {

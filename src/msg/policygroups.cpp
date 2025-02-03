@@ -30,7 +30,7 @@ void policyGroupsMsg(Server *server, Data &j) {
 
   boost::json::array groups;
   for (auto i: groupids) {
-    auto group = Group().findById(i, { "id", "name" }).value();
+    auto group = Group().findById(i, { "id", "name" }).one();
     if (group) {
       groups.push_back(group.value().d());
     }

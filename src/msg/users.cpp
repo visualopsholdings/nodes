@@ -25,7 +25,7 @@ void usersMsg(Server *server, Data &j) {
       }
     }
   };
-  auto docs = User().find(query, { "id", "modifyDate", "name", "fullname", "admin", "active", "upstream" }).values();
+  auto docs = User().find(query, { "id", "modifyDate", "name", "fullname", "admin", "active", "upstream" }).all();
 
   boost::json::array s;
   if (docs) {

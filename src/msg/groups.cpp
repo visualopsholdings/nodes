@@ -29,7 +29,7 @@ void groupsMsg(Server *server, Data &j) {
   };
   L_TRACE(query);
   auto docs = Security::instance()->withView(group, j.getString("me", true), query, 
-    { "id", "policy", "modifyDate", "name", "upstream" }).values();
+    { "id", "policy", "modifyDate", "name", "upstream" }).all();
 
   boost::json::array s;
   if (docs) {

@@ -29,7 +29,7 @@ void groupMsg(Server *server, Data &j) {
   Group group;
   auto doc = Security::instance()->withView(group, j.getString("me", true),  
     Data{ { "_id", { { "$oid", groupid.value() } } } }, 
-    { "id", "name", "modifyDate" }).value();
+    { "id", "name", "modifyDate" }).one();
   if (!doc) {
     L_ERROR("no group " + groupid.value());
     server->sendSecurity();

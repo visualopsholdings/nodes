@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE( user )
   
   dbSetup();
   
-  auto doc = User().find({{ "name", "tracy" }}, {"id", "name"}).value();
+  auto doc = User().find({{ "name", "tracy" }}, {"id", "name"}).one();
 //  cout << doc.value().j() << endl;
   BOOST_CHECK(doc);
   BOOST_CHECK_EQUAL(doc->name(), "tracy");
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE( findAll )
   
   dbSetup();
 
-  auto doc = User().find({{}}, {"id"}).values();
+  auto doc = User().find({{}}, {"id"}).all();
   BOOST_CHECK(doc);
 //  cout << doc.value().j() << endl;
   BOOST_CHECK_EQUAL(doc.value().size(), 2);
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE( findById )
   
   dbSetup();
 
-  auto doc = User().findById(tracy, {"name"}).value();
+  auto doc = User().findById(tracy, {"name"}).one();
   BOOST_CHECK(doc);
 //  cout << doc.value().j() << endl;
   BOOST_CHECK_EQUAL(doc->name(), "tracy");
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE( findByIds )
   
   dbSetup();
 
-  auto docs = User().findByIds({tracy, leanne}, {"name"}).values();
+  auto docs = User().findByIds({tracy, leanne}, {"name"}).all();
   BOOST_CHECK(docs);
 //  cout << doc.value() << endl;
   BOOST_CHECK_EQUAL(docs.value().size(), 2);
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE( findByIdRangeBeforeDate )
 
   auto results = SchemaImpl::findGeneral("users", q, {});
   BOOST_CHECK(results);
-  auto users = results->values();
+  auto users = results->all();
   BOOST_CHECK(users);
   BOOST_CHECK_EQUAL(users.value().size(), 1);
   
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE( findWithLimit )
 
   auto results = SchemaImpl::findGeneral("users", Data{{}}, {}, 1);
   BOOST_CHECK(results);
-  auto users = results->values();
+  auto users = results->all();
   BOOST_CHECK(users);
   BOOST_CHECK_EQUAL(users.value().size(), 1);
   
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE( findLatest )
 
   auto results = SchemaImpl::findGeneral("users", Data{{}}, {}, 1, Data{{ "modifyDate", -1 }});
   BOOST_CHECK(results);
-  auto users = results->values();
+  auto users = results->all();
   BOOST_CHECK(users);
   BOOST_CHECK_EQUAL(users.value().size(), 1);
   Data n = users.value().getIterator(users.value().begin());

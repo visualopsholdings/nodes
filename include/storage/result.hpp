@@ -28,7 +28,7 @@ class Result {
 public:
   
   // return the value of the query as a Data object.
-  optional<RowType> value() {
+  optional<RowType> one() {
     auto v = _impl->value();
     if (!v) {
       return {};
@@ -37,8 +37,8 @@ public:
   }
     
   // return the value of the query as a DataArray array.
-  optional<vector<RowType >> values() {
-    auto v = _impl->values();
+  optional<vector<RowType >> all() {
+    auto v = _impl->all();
     if (!v) {
       return {};
     }

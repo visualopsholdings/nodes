@@ -26,7 +26,7 @@ void userMsg(Server *server, Data &j) {
     return;
   }
 
-  auto doc = User().find({ { "_id", { { "$oid", userid.value() } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).value();
+  auto doc = User().find({ { "_id", { { "$oid", userid.value() } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).one();
 
   if (!doc) {
     server->sendErr("no user " + userid.value());

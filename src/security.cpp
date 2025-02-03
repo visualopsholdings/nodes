@@ -42,7 +42,7 @@ string getHome();
 
 Security::Security() {
 
-  auto infos = Info().find({{ "type", { { "$in", {"tokenKey", "tokenIV"}}} }}, {"type", "text"}).values();
+  auto infos = Info().find({{ "type", { { "$in", {"tokenKey", "tokenIV"}}} }}, {"type", "text"}).all();
   if (!infos) {
     L_WARNING("missing infos. Running without can work.");
     return;
@@ -148,7 +148,7 @@ void Security::getPolicyUsers(const string &id, vector<string> *users) {
   // This is so much simpler than the Visual Ops version which determines the role of
   // each user.
   
-  auto policy = Policy().findById(id, { "accesses" }).value();
+  auto policy = Policy().findById(id, { "accesses" }).one();
   if (!policy) {
     L_ERROR("policy missing");
     return;
@@ -163,7 +163,7 @@ void Security::getPolicyUsers(const string &id, vector<string> *users) {
  
   // add all the users in all the groups.
   if (grps.size() > 0) {
-    auto groups = Group().findByIds(grps, { "members" }).values();
+    auto groups = Group().findByIds(grps, { "members" }).all();
     for (auto g: groups.value()) {
       for (auto u: g.members()) addTo(users, u.user());
     }
@@ -173,7 +173,7 @@ void Security::getPolicyUsers(const string &id, vector<string> *users) {
 
 void Security::getPolicyGroups(const string &id, vector<string> *groups) {
 
-  auto policy = Policy().findById(id, { "accesses" }).value();
+  auto policy = Policy().findById(id, { "accesses" }).one();
   if (!policy) {
     L_ERROR("policy missing");
     return;
@@ -201,13 +201,13 @@ void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inid
 
   Data q = { { "_id", {{ "$in", createArray(inids) }}}};
   
-  auto indexes = schema.find(q).values();
+  auto indexes = schema.find(q).all();
   if (!indexes) {
     L_TRACE("indexes missing for " << schema.collName());
     return;
   }
   for (auto i: indexes.value()) {
-    for (auto j: i.values()) {
+    for (auto j: i.all()) {
       addTo(ids, j);
     }
   }
@@ -219,10 +219,10 @@ Data Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
 
   // collect all the groups the user is in.
   UserInGroups useringroups;
-  auto indexes = useringroups.find({{ "_id", userid }}, {"value"}).value();
+  auto indexes = useringroups.find({{ "_id", userid }}, {"value"}).one();
   vector<string> glist;
   if (indexes) {
-    glist = indexes.value().values();
+    glist = indexes.value().all();
   }
   
   // collect all the policies for those groips
@@ -256,11 +256,11 @@ Data Security::makeLine(const string &type, int access, const string &name, cons
   line["id"] = ids[index];
   L_TRACE(ids[index]);
   if (type == "user") {
-    auto user = User().findById(ids[index], { "fullname" }).value();
+    auto user = User().findById(ids[index], { "fullname" }).one();
     line["name"] = !user ? "???" : user.value().fullname();
   }
   else {
-    auto group = Group().findById(ids[index], { "name" }).value();
+    auto group = Group().findById(ids[index], { "name" }).one();
     line["name"] = !group ? "???" : group.value().name();
   }
   return line;
@@ -269,7 +269,7 @@ Data Security::makeLine(const string &type, int access, const string &name, cons
 
 optional<Data> Security::getPolicyLines(const string &id) {
 
-  auto policy = Policy().findById(id, { "accesses" }).value();
+  auto policy = Policy().findById(id, { "accesses" }).one();
   if (!policy) {
     L_ERROR("policy missing");
     return nullopt;
@@ -316,7 +316,7 @@ optional<string> Security::findPolicyForUser(const string &userid) {
     { "modifyDate", Storage::instance()->getNow() }
   };
     
-  auto policy = Policy().find(policyToQuery(obj)).value();
+  auto policy = Policy().find(policyToQuery(obj)).one();
   if (!policy) {
     auto newpolicy = Policy().insert(obj);
     if (newpolicy) {
@@ -472,7 +472,7 @@ Data Security::policyToQuery(const Data &obj) {
 
 optional<string> Security::modifyPolicy(const string &id, const vector<addTupleType> &add, const vector<string> &remove) {
 
-  auto policy = Policy().findById(id).value();
+  auto policy = Policy().findById(id).one();
   if (!policy) {
     L_ERROR("existing policy not found");
     return nullopt;
@@ -492,7 +492,7 @@ optional<string> Security::modifyPolicy(const string &id, const vector<addTupleT
 //  L_TRACE("new policy" << obj);
   
   // search for this query.
-  auto existpolicy = Policy().find(policyToQuery(obj)).value();
+  auto existpolicy = Policy().find(policyToQuery(obj)).one();
   if (!existpolicy) {
     auto result = Policy().insert(obj);
     if (result) {

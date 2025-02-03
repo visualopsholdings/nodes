@@ -29,7 +29,8 @@
 #include <boost/exception/diagnostic_information.hpp>
 #include <cctype>
 
-#define HEARTBEAT_INTERVAL 5 // in seconds
+#define HEARTBEAT_INTERVAL  5 // in seconds
+#define MAX_OBJECTS         50 // maximum objects at a time.
 
 using namespace nodes;
 
@@ -740,7 +741,7 @@ void Server::connectUpstream() {
 
   stopUpstream();
   
-  auto docs = Info().find({{ "type", { { "$in", {"serverId", "upstream", "upstreamPubKey", "privateKey", "pubKey"}}} }}, {"type", "text"}).values();
+  auto docs = Info().find({{ "type", { { "$in", {"serverId", "upstream", "upstreamPubKey", "privateKey", "pubKey"}}} }}, {"type", "text"}).all();
   if (!docs) {
     L_INFO("no infos.");
     return;
@@ -803,13 +804,13 @@ void Server::sendUpOnline() {
 
   L_TRACE("online");
 
-  auto doc = Site().find({{}}, {}).value();
+  auto doc = Site().find({{}}, {}).one();
   if (!doc) {
     L_INFO("no site.");
     return;
   }
   
-  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamMirror"}}} }}, {"type", "text"}).values();
+  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamMirror"}}} }}, {"type", "text"}).all();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
   string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "false");
 
@@ -846,7 +847,7 @@ void Server::sendUpHeartbeat() {
 
 bool Server::setInfo(const string &name, const string &text) {
 
-  auto doc = Info().find({{ "type", name }}, {"text"}).value();
+  auto doc = Info().find({{ "type", name }}, {"text"}).one();
   if (doc) {
     L_TRACE("info old value " << doc.value().d());
     auto result = Info().update({{ "type", name }}, {{ "text", text }});
@@ -913,7 +914,7 @@ bool Server::resetServer() {
 
 string Server::get1Info(const string &type) {
 
-  auto docs = Info().find({{ "type", type }}).values();
+  auto docs = Info().find({{ "type", type }}).all();
   if (!docs) {
     return "";
   }
@@ -936,22 +937,40 @@ void Server::systemStatus(const string &msg) {
   
 }
 
-string Server::getLastDate(optional<Data> rows, const string &hasInitialSync, const string &upstreamLastSeen) {
+string Server::zeroDate() {
 
-  L_TRACE("getLastDate");
+  // return a date representing the start of all time.
+  return Date::toISODate(0);
   
-  string zd = Date::toISODate(0);
+}
+
+string Server::getLastDate(optional<Data> rows, const string &hasInitialSync, const string &date, bool all) {
+
+  L_TRACE("getLastDate rows " << (rows ? rows.value().size() : 0) << " all " << all);
+  
+  string zd = zeroDate();
   
   if (rows && rows.value().size() > 0) {
-    // does any of the rows have a null date?
-    bool hasNullDate = find_if(rows.value().begin(), rows.value().end(), [zd](auto e) { 
-      return Json::getString(e, "modifyDate") == zd;
-    }) != rows.value().end();
-    return (hasInitialSync == "true") ? (hasNullDate ? zd : upstreamLastSeen) : zd;
+    if (hasInitialSync == "true" || all) {
+      // does any of the rows have a null date?
+      bool hasNullDate = find_if(rows.value().begin(), rows.value().end(), [zd](auto e) { 
+        return Json::getString(e, "modifyDate") == zd;
+      }) != rows.value().end();
+      if (hasNullDate) {
+        return zd;
+      }
+      auto d = Json::getString(*(rows.value().begin()), "modifyDate");
+      if (d) {
+        L_TRACE("returning " << d.value());
+        return d.value();
+      }
+    }
+    L_TRACE("returning zd");
+    return zd;
   }
   
   // no rows
-  return (hasInitialSync == "true") ? upstreamLastSeen : zd;
+  return (hasInitialSync == "true") ? date : zd;
   
 }
 
@@ -961,7 +980,7 @@ string Server::getCollName(const string &type, optional<string> coll) {
   
 }
 
-optional<Data> Server::getSubobjsLatest(const Data &subobj, const vector<string> &ids, const string &hasInitialSync, const string &upstreamLastSeen) {
+optional<Data> Server::getSubobjsLatest(const Data &subobj, const vector<string> &ids, const string &hasInitialSync, const string &upstreamLastSeen, bool collzd) {
 
   L_TRACE("getSubobjsLatest");
   
@@ -975,12 +994,17 @@ optional<Data> Server::getSubobjsLatest(const Data &subobj, const vector<string>
   DataArray a;
   Data d(a);
   for (auto id: ids) {
-    auto objs = SchemaImpl::findGeneral(collname, Data{{ field.value(), id }}, { "_id", "modifyDate" }, 1, Data{{ "modifyDate", -1 }});
+    // make sure to ignore all locally new objects when getting the latest.
+    Data q = {{ "localNew", {{ "$ne", true }}}};
+    if (id != "*") {
+      q.setString(field.value(), id);
+    }
+    auto objs = SchemaImpl::findGeneral(collname, q, { "_id", "modifyDate" }, 1, Data{{ "modifyDate", -1 }});
     if (!objs) {
       L_ERROR("couldn't find subobjs");
       return {};
     }
-    string lastseen = getLastDate(objs->value(), hasInitialSync, upstreamLastSeen);
+    string lastseen = getLastDate(objs->all(), hasInitialSync, collzd ? zeroDate() : upstreamLastSeen, id == "*");
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
@@ -990,14 +1014,14 @@ optional<Data> Server::getSubobjsLatest(const Data &subobj, const vector<string>
     });
   }
   
-  L_TRACE("returning " << d.size());
+  L_TRACE("returning " << d.size() << " objs");
   return d;
   
 }
 
 void Server::sendUpDiscover() {
 
-  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).values();
+  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).all();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
   string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
   string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "");
@@ -1020,23 +1044,27 @@ void Server::sendUpDiscover() {
     lastname = "last" + lastname;
 
     vector<string> ids;
+    string colldate;
     if (upstreamMirror == "true") {
       // "*" means ALL objects.
       ids.push_back("*");
-      msg[lastname] = getLastDate(nullopt, hasInitialSync, upstreamLastSeen);
+      colldate = getLastDate(nullopt, hasInitialSync, upstreamLastSeen, true);
     }
     else {
-      auto objs = SchemaImpl::findGeneral(collname, {{ "upstream", true }}, { "_id", "modifyDate" })->values();
+      auto objs = SchemaImpl::findGeneral(collname, {{ "upstream", true }}, { "_id", "modifyDate" }, nullopt)->all();
       if (objs) {
         transform(objs.value().begin(), objs.value().end(), back_inserter(ids), [](auto e) {
           return e.as_object().at("id").as_string().c_str(); 
         });
       }
-      msg[lastname] = getLastDate(objs, hasInitialSync, upstreamLastSeen);
+      colldate = getLastDate(objs, hasInitialSync, upstreamLastSeen, false);
     }
+    
+    msg[lastname] = colldate;
+    
     auto subobj = Json::getObject(o, "subobj", true);
     if (subobj) {
-      auto d = getSubobjsLatest(subobj.value(), ids, hasInitialSync, upstreamLastSeen);
+      auto d = getSubobjsLatest(subobj.value(), ids, hasInitialSync, upstreamLastSeen, colldate == zeroDate());
       if (!d) {
         return;
       }
@@ -1052,9 +1080,42 @@ void Server::sendUpDiscover() {
 
 }
 
-bool Server::collectObjs(const string &type, const string &collname, 
-  bsoncxx::document::view_or_value q, boost::json::array *data, vector<string> *policies, 
-  optional<int> limit) {
+void Server::unmarkAll(const json &obj) {
+
+  auto type = Json::getString(obj, "type");
+  if (!type) {
+    L_ERROR("type missing in schema obj " << obj);
+    return;
+  }
+  string collname = getCollName(type.value(), Json::getString(obj, "coll", true));
+
+  if (!SchemaImpl::updateGeneral(collname, {{ "localNew", true }}, {{ "$unset", {{ "localNew", "" }} }})) {
+    L_ERROR("unable to unmark object");
+  }
+
+}
+
+void Server::discoveryComplete() {
+  
+  systemStatus("Discovery complete");
+  
+  // make sure everything is regenerated
+  Security::instance()->regenerateGroups();
+  Security::instance()->regenerate();
+  
+  // noce to have a pattern for this.
+  for (auto o: Storage::instance()->_schema) {
+    unmarkAll(o);
+    auto subobj = Json::getObject(o, "subobj", true);
+    if (subobj) {
+      unmarkAll(subobj.value());
+    }
+  }
+  
+}
+
+bool Server::collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
+    boost::json::array *data, vector<string> *policies, optional<int> limit, bool mark) {
 
   // fetch 1 more than the limit.
   optional<int> fetchlimit;
@@ -1063,9 +1124,9 @@ bool Server::collectObjs(const string &type, const string &collname,
   }
   
   bool more = false;
-  auto result = SchemaImpl::findGeneral(collname, q, {}, fetchlimit);
+  auto result = SchemaImpl::findGeneral(collname, q, {}, fetchlimit, Data{{ "modifyDate", 1 }});
   if (result) {
-    auto vals = result->values();
+    auto vals = result->all();
     if (vals) {
       auto val = vals.value();
       if (limit && val.size() > limit.value()) {
@@ -1079,8 +1140,14 @@ bool Server::collectObjs(const string &type, const string &collname,
       };
       data->push_back(obj);
       
-      // collect all the policies of the objects
+      // collect all the policies of the objects, and mark if necessary
       for (auto i: val) {
+        if (mark) {
+          // we mark all objects to ignore when querying locally for changes.
+          if (!SchemaImpl::updateGeneralById(collname, Json::getString(i, "id").value(), {{ "$set", {{ "localNew", true }} }})) {
+            L_ERROR("unable to mark object");
+          }
+        }
         auto p = Json::getString(i, "policy", true);
         if (p) {
           if (find(policies->begin(), policies->end(), p.value()) == policies->end()) {
@@ -1100,7 +1167,7 @@ void Server::collectPolicies(const vector<string> &policies, boost::json::array 
   auto q = SchemaImpl::idRangeQuery(policies);
   auto result = SchemaImpl::findGeneral("policies", q, {});
   if (result) {
-    auto vals = result->values();
+    auto vals = result->all();
     if (vals) {
       json obj = {
         { "type", "policy" },
@@ -1114,6 +1181,8 @@ void Server::collectPolicies(const vector<string> &policies, boost::json::array 
 
 void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr) {
     
+  L_TRACE("sendUpDiscoverLocalUpstream");
+  
   auto q = SchemaImpl::boolFieldEqualAfterDateQuery("upstream", true, upstreamLastSeen);
 
   boost::json::array data;
@@ -1133,7 +1202,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
     
     string collname = getCollName(type.value(), Json::getString(o, "coll", true));
     
-    collectObjs(type.value(), collname, q, &data, &policies);
+    collectObjs(type.value(), collname, q, &data, &policies, nullopt, false);
     
     auto subobj = Json::getObject(o, "subobj", true);
     if (subobj) {
@@ -1144,7 +1213,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
       }
       auto result = SchemaImpl::findGeneral(collname, { { "upstream", true } }, { "_id" });
       if (result) {
-        auto upstreams = result->values();
+        auto upstreams = result->all();
         if (upstreams) {
           auto subtype = Json::getString(subobj.value(), "type");
           if (!subtype) {
@@ -1154,7 +1223,8 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
           string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
           for (auto o: upstreams.value()) {
             auto id = Json::getString(o, "id");
-            collectObjs(subtype.value(), subcollname, SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data, &policies);
+            collectObjs(subtype.value(), subcollname, 
+              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data, &policies, nullopt, true);
           }
         }
       }
@@ -1174,6 +1244,8 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
 
 void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr) {
     
+  L_TRACE("sendUpDiscoverLocalMirror");
+
   auto q = SchemaImpl::afterDateQuery(upstreamLastSeen);
 
   boost::json::array data;
@@ -1193,7 +1265,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
     
     string collname = getCollName(type.value(), Json::getString(o, "coll", true));
     
-    collectObjs(type.value(), collname, q, &data, &policies);
+    collectObjs(type.value(), collname, q, &data, &policies, nullopt, false);
     
     auto subobj = Json::getObject(o, "subobj", true);
     if (subobj) {
@@ -1204,7 +1276,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
       }
       auto result = SchemaImpl::findGeneral(collname, Data{{}}, { "_id" });
       if (result) {
-        auto upstreams = result->values();
+        auto upstreams = result->all();
         if (upstreams) {
           auto subtype = Json::getString(subobj.value(), "type");
           if (!subtype) {
@@ -1214,7 +1286,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
           string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
           for (auto o: upstreams.value()) {
             auto id = Json::getString(o, "id");
-            collectObjs(subtype.value(), subcollname, SchemaImpl::afterDateQuery(upstreamLastSeen), &data, &policies);
+            collectObjs(subtype.value(), subcollname, SchemaImpl::afterDateQuery(upstreamLastSeen), &data, &policies, nullopt, false);
           }
         }
       }
@@ -1234,7 +1306,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
 
 void Server::sendUpDiscoverLocal(optional<string> corr) {
 
-  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).values();
+  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).all();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
   string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
   string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "");
@@ -1298,7 +1370,7 @@ void Server::sendDownDiscoverResult(json &j) {
     return;
   }
 
-  auto node = Node().find({ { "serverId", src } }, {}).value();
+  auto node = Node().find({ { "serverId", src } }, {}).one();
   if (!node) {
     sendErrDown("discover no node");
     return;
@@ -1310,8 +1382,7 @@ void Server::sendDownDiscoverResult(json &j) {
   }
 
   bool hasMore = false;
-//  int limit = 20;
-  int limit = 1000000;
+  int limit = MAX_OBJECTS;
     
   boost::json::array msgs;
   boost::json::object obj;
@@ -1355,7 +1426,7 @@ void Server::sendDownDiscoverResult(json &j) {
       collectIds(objs.value(), &ids);
       
       // collect all the objects 
-      bool more = collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(ids, last.value()), &msgs, &policies, limit);
+      bool more = collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(ids, last.value()), &msgs, &policies, limit, false);
       if (more) {
         hasMore = true;
       }
@@ -1371,22 +1442,26 @@ void Server::sendDownDiscoverResult(json &j) {
           L_ERROR("type missing in schema subobj " << subobj.value());
           return;
         }
+        string lastname = subtype.value();
+        lastname[0] = toupper(lastname[0]);
+        lastname = "last" + lastname;
+        L_TRACE(lastname);
         string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
         if (ids.size() == 1 && *(ids.begin()) == "*") {
-          // collect ALL sub objects after the date.
-          auto objs = SchemaImpl::findGeneral(collname, Data{{}}, { "_id" })->values();
-          for (auto o: objs.value()) {
-            more = collectObjs(subtype.value(), subcollname, 
-              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), Json::getString(o, "id").value(), last.value()), &msgs, &policies, limit);
-            if (more) {
-              hasMore = true;
-            }
+          auto last = Json::getString(*(objs.value().begin()), lastname).value();
+          more = collectObjs(subtype.value(), subcollname, 
+            SchemaImpl::afterDateQuery(last), &msgs, &policies, limit, false);
+          if (more) {
+            hasMore = true;
           }
         }
         else {
-          for (auto id: ids) {
+          for (auto o: objs.value()) {
+            auto id = Json::getString(o, "id").value();
+            auto last = Json::getString(o, lastname).value();
+            L_TRACE(id << " " << last);
             more = collectObjs(subtype.value(), subcollname, 
-              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id, last.value()), &msgs, &policies, limit);
+              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id, last), &msgs, &policies, limit, false);
             if (more) {
               hasMore = true;
             }
@@ -1479,7 +1554,7 @@ bool Server::validateId(boost::json::object &obj, const string &id) {
 
 vector<string> Server::getNodeIds(const string &type) {
 
-  auto nodes = Node().find({{ "valid", true }}).values();
+  auto nodes = Node().find({{ "valid", true }}).all();
   if (!nodes || nodes.value().size() == 0) {
     return {};
   }
@@ -1506,7 +1581,7 @@ bool Server::hasValidNodes() {
   L_TRACE("hasValidNodes");
 
   if (_dataRep) {
-    auto nodes = Node().find({ { "valid", true }}).values();
+    auto nodes = Node().find({ { "valid", true }}).all();
     if (!nodes || nodes.value().size() == 0) {
       L_TRACE("skipping send down mov nobody listening at all");
       return false;

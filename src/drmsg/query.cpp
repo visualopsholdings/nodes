@@ -65,7 +65,7 @@ void queryDrMsg(Server *server, Data &j) {
     return;
   }
       
-  auto docs = result->values();
+  auto docs = result->all();
   Data empty;
   server->sendDown({
     { "type", "queryResult" },

@@ -120,7 +120,7 @@ optional<Data> ResultImpl::value() {
   
 }
 
-optional<Data> ResultImpl::values() {
+optional<Data> ResultImpl::all() {
   
   if (!_c) {
     return {};

@@ -55,7 +55,7 @@ void shareLinkMsg(Server *server, Data &data) {
     return;
   }
 
-  auto doc = Security::instance()->withEdit(coll.value(), me, {{ { "_id", { { "$oid", id.value() } } } }}).value();
+  auto doc = Security::instance()->withEdit(coll.value(), me, {{ { "_id", { { "$oid", id.value() } } } }}).one();
   if (!doc) {
     server->sendErr("DB Error (no " + coll.value() + ")");
     return;

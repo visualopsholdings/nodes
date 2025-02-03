@@ -26,7 +26,7 @@ void setuserMsg(Server *server, Data &j) {
     return;
   }  
   
-  auto doc = User().findById(id.value(), {}).value();
+  auto doc = User().findById(id.value(), {}).one();
   if (!doc) {
     server->sendErr("could not find user " + id.value());
     return;

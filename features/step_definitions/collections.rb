@@ -54,15 +54,16 @@ When('she sends set collection name of {string} to {string} as {string}') do |na
    $lastResult = Send({ "type": "setobject", "objtype": "collection", "me": u, "id": s, "name": newname })
 end
 
-When("there are {int} generated objs in collection {string} from {string} with policy {string}") do |count, s, u, p|
+When("there are {int} generated objs in collection {string} with prefix {string} from {string} with policy {string} at {string}") do |count, s, pref, u, p, date|
 
    collection = Collection.where(name: s).first._id.to_s
    user = User.where(name: u).first._id.to_s
    policy = Policy.where(name: p).first._id.to_s
-   date = Date.today.at_beginning_of_month
+#   date = Date.today.at_beginning_of_month
+#    date = DateTime.now
    dbName = ENV['MONGO_PORT_27017_DB']
    
-   `build/Generate --dbName=#{dbName} --count=#{count} --collectionValue=#{collection} --user=#{user} --policy=#{policy} --date=#{date}`
+   `build/Generate --dbName=#{dbName} --count=#{count} --collectionValue=#{collection} --prefix="#{pref}" --user=#{user} --policy=#{policy} --date=#{date}`
    
 end
 

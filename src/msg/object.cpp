@@ -38,7 +38,7 @@ void objectMsg(Server *server, Data &j) {
   }
   
   auto doc = Security::instance()->withView(coll, j.getString("me", true), 
-    {{ { "_id", { { "$oid", id.value() } } } }}).value();
+    {{ { "_id", { { "$oid", id.value() } } } }}).one();
   if (!doc) {
     L_ERROR("no object to view");
     server->sendSecurity();

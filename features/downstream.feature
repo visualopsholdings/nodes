@@ -283,7 +283,7 @@ Feature: Downstream Test
       And she receives ack
       And eventually the collection "Collection 2" has 1 objs in the DB
       
-     And she sends collections
+      And she sends collections
       And she receives 4 collections
 
       And she sends obj "My Obj" as "tracy" to "Collection 2"
@@ -324,7 +324,7 @@ Feature: Downstream Test
    
       When she sends objs for "Shared Collection" as "tracy"
       And she receives 101 objs
-	   And she sends delete obj "Obj 5" as "tracy" in "Shared Collection"
+	   And she sends delete obj "Shared Obj 5" as "tracy" in "Shared Collection"
       And she sends objs for "Shared Collection" as "tracy"
       And she receives 100 objs
 
@@ -378,7 +378,7 @@ Feature: Downstream Test
       And she sends objs for "$Collection 4" as "$tracy" to downstream 2
       And she receives 0 objs
 
-      When she sends move obj "$Shared Obj 1" to "$Collection 4" as "$tracy" to downstream 2
+      When she sends move obj "$Shared Obj X" to "$Collection 4" as "$tracy" to downstream 2
       And she receives ack
       
        And she waits 1 seconds
@@ -408,7 +408,7 @@ Feature: Downstream Test
       And she sends objs for "$Collection 4" as "$tracy" to upstream
       And she receives 1 objs
 
-      When she sends move obj "$Shared Obj 1" to "$Shared Collection" as "$tracy" to downstream 2
+      When she sends move obj "$Shared Obj X" to "$Shared Collection" as "$tracy" to downstream 2
       And she receives ack
 
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
@@ -461,7 +461,7 @@ Feature: Downstream Test
       And she sends objs for "$Collection 2" as "$tracy" to downstream 4
       And she receives 1 objs
 
-      When she sends move obj "$Shared Obj 1" to "$Collection 2" as "$tracy" to downstream 4
+      When she sends move obj "$Shared Obj X" to "$Collection 2" as "$tracy" to downstream 4
       And she receives ack
 
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 4
@@ -508,7 +508,7 @@ Feature: Downstream Test
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 2
       And she receives 0 objs
 
-      When she sends move obj "$Shared Obj 1" to "$Shared 2 Collection" as "$tracy" to downstream 2
+      When she sends move obj "$Shared Obj X" to "$Shared 2 Collection" as "$tracy" to downstream 2
       And she receives ack
 
       And she waits 1 seconds
@@ -533,7 +533,7 @@ Feature: Downstream Test
       And she sends objs for "$Shared 2 Collection" as "$tracy" to downstream 6
       And she receives 1 objs
 
-      When she sends move obj "$Shared Obj 1" to "$Shared Collection" as "$tracy" to downstream 2
+      When she sends move obj "$Shared Obj X" to "$Shared Collection" as "$tracy" to downstream 2
       And she receives ack
 
       And she sends objs for "$Shared Collection" as "$tracy" to downstream 2
@@ -573,7 +573,7 @@ Feature: Downstream Test
       And she sends objs for "$Collection 2" as "$tracy" to upstream
       And she receives 1 objs
 
-      When she sends move obj "$Shared Obj 1" to "$Collection 2" as "$tracy" to upstream
+      When she sends move obj "$Shared Obj X" to "$Collection 2" as "$tracy" to upstream
       And she receives ack
 
       And she sends objs for "$Shared Collection" as "$tracy" to upstream

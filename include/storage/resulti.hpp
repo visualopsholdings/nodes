@@ -33,7 +33,7 @@ public:
   Data fixObjects(const Data &data);
 
   optional<Data> value();
-  optional<Data> values();
+  optional<Data> all();
   
   mongocxx::cursor find();
   

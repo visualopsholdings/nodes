@@ -25,7 +25,7 @@ void setsiteMsg(Server *server, Data &j) {
     return;
   }  
   
-  auto doc = Site().findById(id.value(), {}).value();
+  auto doc = Site().findById(id.value(), {}).one();
   if (doc) {
     L_TRACE("site old value " << doc.value().d());
     

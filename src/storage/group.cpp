@@ -19,7 +19,7 @@ using namespace nodes;
 
 bool Group::getMemberSet(const string &group, set<string> *mset) {
 
-  auto doc = findById(group, { "members" }).value();
+  auto doc = findById(group, { "members" }).one();
   if (!doc) {
     L_ERROR("no group " + group);
     return false;

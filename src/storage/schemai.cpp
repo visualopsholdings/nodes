@@ -28,13 +28,19 @@ using namespace bsoncxx::builder::basic;
 using namespace nodes;
 
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx::document::view_or_value query, 
-          const vector<string> &fields, optional<int> limit, optional<bsoncxx::document::view_or_value> sort) {
+          const vector<string> &fields, optional<int> limit, optional<Data> sort) {
 
   if (!testInit()) {
     return 0;
   }
 
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, sort));
+  if (sort) {
+    stringstream ss;
+    ss << sort.value();
+    return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, bsoncxx::from_json(ss.str())));
+  }
+
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit));
 
 }
 
@@ -83,13 +89,7 @@ shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const D
   sq << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(sq.str());
   
-  if (sort) {
-    stringstream ss;
-    ss << sort.value();
-    return findGeneral(collection, q, fields, limit, bsoncxx::from_json(ss.str()));
-  }
-
-  return findGeneral(collection, q, fields, limit);
+  return findGeneral(collection, q, fields, limit, sort);
   
 }
 
@@ -193,9 +193,9 @@ optional<string> SchemaImpl::insertGeneral(const string &collection, const Data 
 
 }
 
-optional<string> SchemaImpl::rawUpdate(const Data &query, const Data &doc) {
+optional<int> SchemaImpl::updateGeneral(const string &collection, const Data &query, const Data &doc) {
 
-  L_TRACE("update " << query << " in " << collName());
+  L_TRACE("update " << query << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
@@ -209,17 +209,23 @@ optional<string> SchemaImpl::rawUpdate(const Data &query, const Data &doc) {
   ss << doc;
   bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
   
-  auto result = Storage::instance()->_impl->coll(collName())._c.update_one(q, d);
+  auto result = Storage::instance()->_impl->coll(collection)._c.update_many(q, d);
   if (result) {
-    Storage::instance()->collectionWasChanged(collName());
-    return "1";
+   Storage::instance()->collectionWasChanged(collection);
+    return result->modified_count();
   }
   
   return nullopt;
 
 }
 
-optional<string> SchemaImpl::update(const Data &query, const Data &doc) {
+optional<int> SchemaImpl::rawUpdate(const Data &query, const Data &doc) {
+
+  return updateGeneral(collName(), query, doc);
+
+}
+
+optional<int> SchemaImpl::update(const Data &query, const Data &doc) {
 
   return rawUpdate(query, {
     { "$set", doc }
@@ -371,6 +377,8 @@ bsoncxx::document::view_or_value SchemaImpl::idRangeQuery(const vector<string> &
 
 bsoncxx::document::view_or_value SchemaImpl::stringFieldEqualAfterDateQuery(const string &field, const string &id, const string &date) {
 
+  L_TRACE("stringFieldEqualAfterDateQuery " << field << " " << id << " " << date);
+  
   auto qs = bsoncxx::builder::basic::array{};
   
   qs.append(make_document(kvp(field, id)));
@@ -378,6 +386,7 @@ bsoncxx::document::view_or_value SchemaImpl::stringFieldEqualAfterDateQuery(cons
   // make a query with modify date.
   auto t = Date::fromISODate(date);
   auto d = bsoncxx::types::b_date(chrono::milliseconds(t));
+  L_TRACE("d " << d);
   qs.append(make_document(kvp("modifyDate", make_document(kvp("$gt", d)))));
   
   // make the overall query.

@@ -31,7 +31,7 @@ void setGroupPolicyMsg(Server *server, Data &j) {
     return;
   }
 
-  auto orig = groups.findById(id.value(), {}).value();
+  auto orig = groups.findById(id.value(), {}).one();
   if (!orig) {
     server->sendErr("group not found");
     return;

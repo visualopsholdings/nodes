@@ -198,7 +198,7 @@ class IndexRow: public DynamicRow {
 public:
   IndexRow(Data data): DynamicRow(data) {}
   
-  vector<string> values();
+  vector<string> all();
   
 };
 

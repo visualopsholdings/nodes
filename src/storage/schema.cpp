@@ -35,7 +35,7 @@ vector<MemberRow> GroupRow::members() {
   
 }
 
-vector<string> IndexRow::values() {
+vector<string> IndexRow::all() {
   
   string value = getString("value");
   vector<string> values;
