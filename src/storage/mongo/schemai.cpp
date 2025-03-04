@@ -43,7 +43,7 @@ shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx
     return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, bsoncxx::from_json(ss.str())));
   }
 
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit));
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, nullopt));
 
 }
 

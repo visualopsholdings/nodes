@@ -17,7 +17,9 @@
 #include "data.hpp"
 #include "json.hpp"
 
+#include <bsoncxx/oid.hpp>
 #include <fstream>
+#include <sstream>
 
 using namespace nodes;
 
@@ -27,28 +29,44 @@ namespace nodes {
 
 string CollectionImpl::getCollectionFolder() {
 
-  return getHome() + "/data/" + _name;
-
+  string folder = getHome() + "/data/" + _name;
+  if (!filesystem::exists(folder)) {
+    filesystem::create_directories(folder);
+  }
+  return folder;
 }
 
 optional<string> CollectionImpl::insert_one(const Data &doc) {
   
   L_TRACE("insert_one " << doc);
   
-  auto id = doc.getData("_id");
-  if (!id) {
-    L_ERROR("no _id");
-    return nullopt;
+  string newid;
+  Data newdoc = doc;
+  auto id = doc.getData("_id", true);
+  if (id) {
+    auto oid = id->getString("$oid", true);
+    if (!oid) {
+      L_ERROR("no _id.$oid");
+      return nullopt;
+    }
+    newid = oid.value();
   }
-  
-  auto oid = id->getString("$oid");
-  if (!oid) {
-    L_ERROR("no _id.$oid");
-    return nullopt;
+  else {
+    bsoncxx::oid oid = bsoncxx::oid();
+    newid = oid.to_string();
+    Data id = {
+      { "$oid", newid }
+    };
+    newdoc.setObj("_id", id);
   }
 
-  string fn = getCollectionFolder() + "/" + oid.value() + ".json";
+  string fn = getCollectionFolder() + "/" + newid + ".json";
+  L_TRACE(fn);
   
+  if (filesystem::exists(fn)) {
+    return "exists";
+  }
+
   // and write the object out.
   ofstream file(fn);
   if (!file) {
@@ -57,9 +75,9 @@ optional<string> CollectionImpl::insert_one(const Data &doc) {
   }
 
   // and write the object out.
-  doc.pretty_print(file);
+  newdoc.pretty_print(file);
 
-  return oid.value();
+  return newid;
   
 }
 
@@ -91,6 +109,8 @@ bool CollectionImpl::match(const Data &json, const Data &query) {
 
 Data CollectionImpl::find(const Data &query, optional<const Data> &sort) {
 
+  L_TRACE("find " << query);
+
   for (auto const& e : filesystem::directory_iterator{getCollectionFolder()}) {
   
     if (!e.is_regular_file() || e.path().extension() != ".json") {
@@ -105,7 +125,7 @@ Data CollectionImpl::find(const Data &query, optional<const Data> &sort) {
     string input(istreambuf_iterator<char>(f), {});
     Data j(input);
     if (match(j, query)) {
-      return j;
+      return fixObjects(j);
     }
     
   }
@@ -116,6 +136,8 @@ Data CollectionImpl::find(const Data &query, optional<const Data> &sort) {
 
 Data CollectionImpl::findAll(const Data &query, optional<const Data> &sort) {
 
+  L_TRACE("findAll");
+  
   boost::json::array a;
   for (auto const& e : filesystem::directory_iterator{getCollectionFolder()}) {
   
@@ -138,6 +160,45 @@ Data CollectionImpl::findAll(const Data &query, optional<const Data> &sort) {
         
   return a;
 
+}
+
+Data CollectionImpl::findByIds(const vector<string> &ids) {
+
+  L_TRACE("findByIds " << ids.size());
+  
+  boost::json::array a;
+  for (auto id: ids) {
+    string fn = getCollectionFolder() + "/" + *ids.begin() + ".json";
+    L_TRACE(fn);
+  
+    ifstream f(fn);
+    if (!f) {
+      L_ERROR("could not open file " <<fn);
+      return {{}};
+    }
+    string input(istreambuf_iterator<char>(f), {});
+    Data j(input);
+    a.push_back(fixObjects(j));
+  }
+  
+  if (a.size() == 1) {
+    return Data(*a.begin());
+  }
+  
+  return Data(a);
+  
+}
+
+void CollectionImpl::delete_many(const Data &doc) {
+
+  L_TRACE("delete_many " << doc);
+  
+  if (doc.size() == 0) {
+    filesystem::remove_all(getCollectionFolder());
+    return;
+  }
+
+  L_ERROR("can only delete everything");
 }
 
 #endif

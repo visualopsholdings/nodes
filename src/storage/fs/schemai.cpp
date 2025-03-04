@@ -46,7 +46,7 @@ shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const D
 
   L_TRACE("find " << query << " in " << collection); 
 
-  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection), query, fields, limit));
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection), query, fields, limit, nullopt));
   
 }
 
@@ -54,7 +54,7 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdGeneral(const string &collection, con
 
   L_TRACE("find " << id << " in " << collection);
 
-  return 0;
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection), {id}, fields));
   
 }
 
@@ -62,7 +62,7 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, co
 
   L_TRACE("find ids " << ids.size() << " in " << collection);
   
-  return 0;
+  return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection), ids, fields));
   
 }
 
@@ -74,7 +74,7 @@ void SchemaImpl::deleteManyGeneral(const string &collection, const Data &doc) {
     return;
   }
 
-  // TBD
+  Storage::instance()->_impl->coll(collection).delete_many(doc);
   
 }
 

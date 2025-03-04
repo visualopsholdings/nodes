@@ -26,11 +26,13 @@ class ResultImpl {
 public:
 #ifdef MONGO_DB
   ResultImpl(CollectionImpl coll, bsoncxx::document::view_or_value query, const vector<string> &fields, 
-      optional<int> limit=nullopt, optional<bsoncxx::document::view_or_value> sort=nullopt): 
+      optional<int> limit, optional<bsoncxx::document::view_or_value> sort): 
     _c(coll), _mc(coll._c), _q(query), _f(fields), _limit(limit), _sort(sort) {};
 #else
+  ResultImpl(CollectionImpl coll, const vector<string> &ids, const vector<string> &fields): 
+    _c(coll), _ids(ids), _f(fields) {};
   ResultImpl(CollectionImpl coll, const Data &query, const vector<string> &fields, 
-      optional<int> limit=nullopt, optional<const Data> sort=nullopt): 
+      optional<int> limit, optional<const Data> sort): 
     _c(coll), _q(query), _f(fields), _limit(limit), _sort(sort) {};
 #endif
 
@@ -53,6 +55,7 @@ private:
   mongocxx::cursor find();
 #else
   Data _q;
+  optional< vector<string> > _ids;
   optional<const Data> _sort;
 #endif
 };

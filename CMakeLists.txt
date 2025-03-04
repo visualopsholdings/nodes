@@ -25,9 +25,9 @@ project (nodes)
   
 if (USE_MONGO)
   find_package(mongocxx REQUIRED)
-  find_package(bsoncxx REQUIRED)
   add_definitions(-DMONGO_DB)
 endif ()
+  find_package(bsoncxx REQUIRED)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 17)
@@ -158,9 +158,13 @@ set(STORAGE
   src/storage/collectioni.cpp
 )
 
+# we always use BSON
+include_directories(${LIBBSONCXX_INCLUDE_DIR})
+set(BSONLIBS mongo::bsoncxx_shared)
+
 if (USE_MONGO)
-  include_directories(${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
-  set(STORAGEILIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
+  include_directories(${LIBMONGOCXX_INCLUDE_DIR})
+  set(STORAGEILIBS mongo::mongocxx_shared)
   set(STORAGEI
     src/storage/mongo/schemai.cpp 
     src/storage/mongo/resulti.cpp 
@@ -179,7 +183,7 @@ add_library(StorageLib SHARED
   ${STORAGE}
   ${STORAGEI}
   ${CORE})
-    target_link_libraries(StorageLib ${BOOSTLIBS} ${STORAGEILIBS})
+    target_link_libraries(StorageLib ${BOOSTLIBS} ${STORAGEILIBS} ${BSONLIBS})
 
 add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
     target_link_libraries(nodes StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${STORAGEILIBS} ${OPENSSL_LIBRARIES})

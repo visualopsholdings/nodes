@@ -40,8 +40,10 @@ public:
   mongocxx::collection _c;
 #else
   optional<string> insert_one(const Data &doc);
+  void delete_many(const Data &doc);
   Data findAll(const Data &query, optional<const Data> &sort);
   Data find(const Data &query, optional<const Data> &sort);
+  Data findByIds(const vector<string> &ids);
 #endif
 
   // public for testing.

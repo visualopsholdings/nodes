@@ -17,13 +17,18 @@ using namespace nodes;
 
 optional<Data> ResultImpl::value() {
   
-  auto json = _c.find(_q, _sort);  
-  return _c.fixObjects(json);
+  if (_ids) {
+    return _c.findByIds(_ids.value());
+  }
+  return _c.find(_q, _sort);
   
 }
 
 optional<Data> ResultImpl::all() {
   
+  if (_ids) {
+    return _c.findByIds(_ids.value());
+  }
   return _c.findAll(_q, _sort);
   
 }
