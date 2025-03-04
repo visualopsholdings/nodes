@@ -66,4 +66,16 @@ Then('she receives {int} count') do |count|
    expect($lastResult["count"]).to eq(count)
 end
 
+When('she sends request build') do
+   $lastResult = Send({ "type": "requestbuild", "build": "1.0.0", "mode": "test", "platform": "test" })
+end
+
+When('she sends build') do
+   $lastResult = Send({ "type": "build" })
+end
+
+When('she receives {string}') do |build|
+   expect($lastResult["type"]).to eq("build")
+   expect($lastResult["build"]).to eq(build)
+end
 

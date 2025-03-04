@@ -206,7 +206,8 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Exctensions to allow other types of messages (like binary)
+### Extensions to allow other types of messages (like binary)
+### Really low end file system store instead of MongoDB
 
 ## License
 
@@ -414,8 +415,11 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 24 Jan 2024
 - rework to record last object dates for sub objects.
 
-### 3 Feb 2024
+### 3 Feb 2025
 - Do chunking (100 objects at a time)
+
+### 4 Mar 2025
+- Start in on binary build downloads.
 
 
 

@@ -126,6 +126,8 @@ set(MESSAGES
   src/msg/purge.cpp
   src/msg/purgecountusers.cpp
   src/msg/purgeusers.cpp
+  src/msg/requestbuild.cpp
+  src/msg/build.cpp
   src/rdrmsg/upstream.cpp
   src/rdrmsg/date.cpp
   src/rdrmsg/sendOn.cpp

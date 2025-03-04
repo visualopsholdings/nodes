@@ -30,7 +30,6 @@ def calcPort(n)
    return 3002 + (n * 10)
 end
 
-
 def getDownstreamPort(n)
    return calcPort(n)
 end

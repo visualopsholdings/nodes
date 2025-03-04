@@ -590,3 +590,12 @@ Feature: Downstream Test
       And she receives 100 objs
       And she sends objs for "$Collection 2" as "$tracy" to downstream 4
       And she receives 2 objs
+
+   @javascript
+   Scenario: A build can be downloaded
+   
+      When she sends request build
+      And she receives ack
+      And she waits 1 seconds
+      And she sends build
+      And she receives "2"
