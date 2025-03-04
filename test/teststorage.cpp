@@ -20,7 +20,6 @@
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
-using namespace bsoncxx::builder::basic;
 using namespace nodes;
 
 string tracy = "667d0baedfb1ed18430d8ed3";
@@ -225,6 +224,7 @@ BOOST_AUTO_TEST_CASE( deleteById )
   
 }
 
+#ifdef MONGO_DB
 BOOST_AUTO_TEST_CASE( findByIdRangeBeforeDate )
 {
   cout << "=== findByIdRangeBeforeDate ===" << endl;
@@ -242,6 +242,7 @@ BOOST_AUTO_TEST_CASE( findByIdRangeBeforeDate )
   BOOST_CHECK_EQUAL(users.value().size(), 1);
   
 }
+#endif
 
 BOOST_AUTO_TEST_CASE( countGeneral )
 {

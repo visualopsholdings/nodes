@@ -2,12 +2,14 @@
   storagei.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
-  Date: 23-May-2024
+  Date: 4-Mar-2025
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
   https://github.com/visualopsholdings/nodes
 */
+
+#ifdef MONGO_DB
 
 #include "storage.hpp"
 
@@ -34,7 +36,9 @@ StorageImpl::StorageImpl(const string &dbConn, const string &dbName) {
 CollectionImpl StorageImpl::coll(const string &name) {
 
   return CollectionImpl(_db[name]);
-  
+
 }
 
 } // nodes
+
+#endif

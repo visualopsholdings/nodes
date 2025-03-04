@@ -22,6 +22,7 @@
 #include "storage/result.hpp"
 #include "storage/schema.hpp"
 #include "data.hpp"
+#include <map>
 
 using namespace std;
 

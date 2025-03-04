@@ -97,6 +97,20 @@ optional<Data> Data::getData(const string &name, bool silent) {
   
 }
 
+optional<const Data> Data::getData(const string &name, bool silent) const {
+
+  auto obj = getMember(*this, name, silent);
+  if (!obj.is_array() && !obj.is_object()) {
+    if (!silent) {
+      L_ERROR("obj is not array or object " << *this << " " << name);
+    }
+    return nullopt;
+  }
+  
+  return Data(obj);
+  
+}
+
 void Data::setString(const string &name, const string &val) {
 
   if (!is_object()) {
@@ -172,11 +186,14 @@ boost::json::array::const_iterator Data::end() const {
 
 size_t Data::size() const {
 
-  if (!is_array()) {
-    return 0;
+  if (is_array()) {
+    return as_array().size();
+  }
+  if (is_object()) {
+    return as_object().size();
   }
   
-  return as_array().size();
+  return 0;
   
 }
 
@@ -199,5 +216,100 @@ void Data::pop_back() {
   
 }
 
+boost::json::object Data::getObject() const {
+
+  if (!this->is_object()) {
+    L_ERROR("obj not object");
+    return {{}};
+  }
+  return this->as_object();
+}
+
+void Data::pretty_print(ostream& os) const {
+
+  pretty_print(os, *this, nullptr);
+  
+}
+
+void Data::pretty_print(ostream& os, boost::json::value const& jv, string* indent) const {
+
+  std::string indent_;
+  if(! indent)
+      indent = &indent_;
+  switch(jv.kind())
+  {
+  case boost::json::kind::object:
+  {
+      os << "{\n";
+      indent->append(4, ' ');
+      auto const& obj = jv.get_object();
+      if(! obj.empty())
+      {
+          auto it = obj.begin();
+          for(;;)
+          {
+              os << *indent << boost::json::serialize(it->key()) << " : ";
+              pretty_print(os, it->value(), indent);
+              if(++it == obj.end())
+                  break;
+              os << ",\n";
+          }
+      }
+      os << "\n";
+      indent->resize(indent->size() - 4);
+      os << *indent << "}";
+      break;
+  }
+
+  case boost::json::kind::array:
+  {
+      os << "[\n";
+      indent->append(4, ' ');
+      auto const& arr = jv.get_array();
+      if(! arr.empty())
+      {
+          auto it = arr.begin();
+          for(;;)
+          {
+              os << *indent;
+              pretty_print( os, *it, indent);
+              if(++it == arr.end())
+                  break;
+              os << ",\n";
+          }
+      }
+      os << "\n";
+      indent->resize(indent->size() - 4);
+      os << *indent << "]";
+      break;
+  }
+
+  case boost::json::kind::string:
+  {
+      os << boost::json::serialize(jv.get_string());
+      break;
+  }
+
+  case boost::json::kind::uint64:
+  case boost::json::kind::int64:
+  case boost::json::kind::double_:
+      os << jv;
+      break;
+
+  case boost::json::kind::bool_:
+      if(jv.get_bool())
+          os << "true";
+      else
+          os << "false";
+      break;
+
+  case boost::json::kind::null:
+      os << "null";
+      break;
+  }
+
+  if(indent->empty())
+      os << "\n";
+}
 
 } // nodes

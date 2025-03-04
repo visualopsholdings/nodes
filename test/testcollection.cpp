@@ -1,8 +1,8 @@
 /*
-  testresult.cpp
+  testcollection.cpp
   
   Author: Paul Hamilton (paul@visualops.com)
-  Date: 11-Jun-2024
+  Date: 4-Mar-2025
   
   Licensed under [version 3 of the GNU General Public License] contained in LICENSE.
  
@@ -11,7 +11,8 @@
 
 #include <iostream>
 
-#include "storage/resulti.hpp"
+#include "storage/collectioni.hpp"
+#include "data.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -31,7 +32,7 @@ BOOST_AUTO_TEST_CASE( goodIds )
 {
   cout << "=== goodIds ===" << endl;
   
-  ResultImpl impl({}, {}, {});
+  CollectionImpl impl;
 
   Data obj = {
     { "_id", {
@@ -91,7 +92,7 @@ BOOST_AUTO_TEST_CASE( badIds )
 {
   cout << "=== badIds ===" << endl;
   
-  ResultImpl impl({}, {}, {});
+  CollectionImpl impl;
 
   auto doc = impl.fixObjects({
     { "_id", "xxxx" }
@@ -107,7 +108,7 @@ BOOST_AUTO_TEST_CASE( noOID )
 {
   cout << "=== noOID ===" << endl;
   
-  ResultImpl impl({}, {}, {});
+  CollectionImpl impl;
 
   auto doc = impl.fixObjects({
     { "_id", {
@@ -125,7 +126,7 @@ BOOST_AUTO_TEST_CASE( goodDate )
 {
   cout << "=== goodDate ===" << endl;
   
-  ResultImpl impl({}, {}, {});
+  CollectionImpl impl;
 
   auto doc = impl.fixObjects({
     { "modifyDate", {
@@ -144,7 +145,7 @@ BOOST_AUTO_TEST_CASE( number )
 {
   cout << "=== number ===" << endl;
   
-  ResultImpl impl({}, {}, {});
+  CollectionImpl impl;
 
   auto doc = impl.fixObjects({
     { "_id", {

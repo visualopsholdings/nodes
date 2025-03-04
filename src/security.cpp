@@ -22,7 +22,6 @@
 #include <openssl/rand.h>
 #include <iostream>
 #include "log.hpp"
-#include <bsoncxx/oid.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>

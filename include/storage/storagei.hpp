@@ -14,8 +14,11 @@
 #ifndef H_storagei
 #define H_storagei
 
+#ifdef MONGO_DB
 #include <mongocxx/client.hpp>
 #include <mongocxx/instance.hpp>
+#endif
+#include <string>
 
 using namespace std;
 
@@ -25,17 +28,21 @@ class CollectionImpl;
 
 class StorageImpl {
 
-public:  
+public:
+#ifdef MONGO_DB
   StorageImpl(const string &dbConn, const string &dbName);
-
+#else
+  StorageImpl();
+#endif
   CollectionImpl coll(const string &name);
 
 private:
 
+#ifdef MONGO_DB
   shared_ptr<mongocxx::v_noabi::instance> _instance;
   shared_ptr<mongocxx::client> _client;
   mongocxx::database _db;
-  
+#endif  
 };
 
 } // nodes

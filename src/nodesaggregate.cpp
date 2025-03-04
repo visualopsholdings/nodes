@@ -23,9 +23,6 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <fstream>
 
-#include <bsoncxx/json.hpp>
-#include <mongocxx/collection.hpp>
-
 using namespace std;
 namespace po = boost::program_options;
 using namespace nodes;

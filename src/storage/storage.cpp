@@ -35,7 +35,11 @@ void Storage::init(const string &dbConn, const string &dbName, const string &sch
     L_TRACE("ignoring extra Storage::init");
     return;
   }
+#ifdef MONGO_DB
   _impl.reset(new StorageImpl(dbConn, dbName));
+#else
+  _impl.reset(new StorageImpl());
+#endif
 
   allCollectionsChanged();
   

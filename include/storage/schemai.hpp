@@ -59,18 +59,15 @@ public:
   
   static shared_ptr<ResultImpl> findGeneral(const string &collection, const Data &query, 
           const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
-  static shared_ptr<ResultImpl> findGeneral(const string &collection, bsoncxx::document::view_or_value query, 
-          const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
   static int countGeneral(const string &collection, const Data &query);
-  static int countGeneral(const string &collection, bsoncxx::document::view_or_value query);
   static optional<int> updateGeneral(const string &collection, const Data &query, const Data &doc);
   static optional<string> updateGeneralById(const string &collection, const string &id, const Data &doc);
   static optional<string> insertGeneral(const string &collection, const Data &doc);
   static void deleteManyGeneral(const string &collection, const Data &doc);
   static bool existsGeneral(const string &collection, const string &id);
-    
+
   shared_ptr<ResultImpl> findResult(const Data &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);
   }
@@ -81,11 +78,16 @@ public:
     return findByIdsGeneral(collName(), ids, fields);
   }
   
+#ifdef MONGO_DB
+  static shared_ptr<ResultImpl> findGeneral(const string &collection, bsoncxx::document::view_or_value query, 
+          const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
+  static int countGeneral(const string &collection, bsoncxx::document::view_or_value query);
   static bsoncxx::document::view_or_value idRangeAfterDateQuery(const vector<string> &ids, const string &date);
   static bsoncxx::document::view_or_value stringFieldEqualAfterDateQuery(const string &field, const string &id, const string &date);
   static bsoncxx::document::view_or_value boolFieldEqualAfterDateQuery(const string &field, bool value, const string &date);
   static bsoncxx::document::view_or_value afterDateQuery(const string &date);
   static bsoncxx::document::view_or_value idRangeQuery(const vector<string> &ids);
+#endif
 
 private:
   static bool testInit();

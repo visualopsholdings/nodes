@@ -17,7 +17,9 @@
 #include <zmq.hpp>
 #include <boost/json.hpp>
 #include <map>
+#ifdef MONGO_DB
 #include <mongocxx/collection.hpp>
+#endif
 
 using namespace std;
 using json = boost::json::value;
@@ -153,8 +155,10 @@ private:
   string getLastDate(optional<Data> rows, const string &hasInitialSync, const string &date, bool all);
   void sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr);
   void sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr);
+#ifdef MONGO_DB
   bool collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
     boost::json::array *data, vector<string> *policies, optional<int> limit, bool mark);
+#endif
   void collectPolicies(const vector<string> &policies, boost::json::array *data);
   bool isValidId(const string &id);
   bool validateId(boost::json::object &obj, const string &id);

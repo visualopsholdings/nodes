@@ -63,6 +63,7 @@ public:
   optional<long> getNumber(const string &name, bool silent=false) const;
   optional<bool> getBool(const string &name, bool silent=false) const;
   optional<Data> getData(const string &name, bool silent=false);
+  optional<const Data> getData(const string &name, bool silent=false) const;
   void setString(const string &name, const string &val);
   void setBool(const string &name, bool val);
   void setObj(const string &name, const Data &val);
@@ -77,18 +78,25 @@ public:
   void push_back(const Data &data);
   void pop_back();
    
+  void pretty_print(ostream& os) const;
+
 private:
 
-   friend class Security;
-   friend class ResultImpl;
-   friend class Storage;
-   friend class Server;
+  friend class Security;
+  friend class ResultImpl;
+  friend class Storage;
+  friend class Server;
+  friend class CollectionImpl;
   
   Data(boost::json::array &init) :
     boost::json::value(init) {}
   Data(boost::json::object &init) :
     boost::json::value(init) {}
 
+  boost::json::object getObject() const;
+
+  void pretty_print(ostream& os, boost::json::value const& jv, string *indent) const;
+  
 };
 
 } // nodes

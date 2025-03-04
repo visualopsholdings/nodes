@@ -13,15 +13,21 @@ cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0167 NEW) # Boost
 cmake_policy(SET CMP0169 OLD) # FetchContent
 
+set(USE_MONGO ON)
+
 project (nodes)
   find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread log_setup log json REQUIRED)
 #  find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread json REQUIRED)
   find_package(cppzmq REQUIRED)
-  find_package(mongocxx REQUIRED)
-  find_package(bsoncxx REQUIRED)
   find_package(OpenSSL REQUIRED)
   add_definitions(-DBOOST_ALL_DYN_LINK) 
   enable_testing()
+  
+if (USE_MONGO)
+  find_package(mongocxx REQUIRED)
+  find_package(bsoncxx REQUIRED)
+  add_definitions(-DMONGO_DB)
+endif ()
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 17)
@@ -65,9 +71,7 @@ if(NOT base64_POPULATED)
 endif()
 
 set(LIBS zmq)
-set(MONGOLIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
 set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
-#set(BOOSTLIBS ${Boost_JSON_LIBRARY})
 set(CORE
   src/json.cpp
   src/date.cpp
@@ -143,45 +147,66 @@ set(MESSAGES
   src/handler.cpp
 )
 
-include_directories(include ${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
+include_directories(include)
 
-add_library(StorageLib SHARED 
+set(STORAGE
   src/storage/storage.cpp 
-  src/storage/storagei.cpp 
-  src/storage/schemai.cpp 
-  src/storage/result.cpp 
   src/storage/dynamicrow.cpp 
   src/storage/schema.cpp 
   src/storage/group.cpp 
+  src/storage/schemai.cpp 
+  src/storage/collectioni.cpp
+)
+
+if (USE_MONGO)
+  include_directories(${LIBMONGOCXX_INCLUDE_DIR} ${LIBBSONCXX_INCLUDE_DIR})
+  set(STORAGEILIBS mongo::mongocxx_shared mongo::bsoncxx_shared)
+  set(STORAGEI
+    src/storage/mongo/schemai.cpp 
+    src/storage/mongo/resulti.cpp 
+    src/storage/mongo/storagei.cpp 
+  )
+else ()
+  set(STORAGEI
+    src/storage/fs/collectioni.cpp 
+    src/storage/fs/schemai.cpp 
+    src/storage/fs/resulti.cpp 
+    src/storage/fs/storagei.cpp 
+  )
+endif ()
+
+add_library(StorageLib SHARED 
+  ${STORAGE}
+  ${STORAGEI}
   ${CORE})
-    target_link_libraries(StorageLib ${BOOSTLIBS} ${MONGOLIBS})
+    target_link_libraries(StorageLib ${BOOSTLIBS} ${STORAGEILIBS})
 
 add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
-    target_link_libraries(nodes StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${MONGOLIBS} ${OPENSSL_LIBRARIES})
+    target_link_libraries(nodes StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${STORAGEILIBS} ${OPENSSL_LIBRARIES})
 
 add_executable(Send test/send.cpp src/log.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
 add_executable(Counts test/counts.cpp src/log.cpp)
-  target_link_libraries(Counts StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${MONGOLIBS})
+  target_link_libraries(Counts StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${STORAGEILIBS})
 
 add_executable(nodesaggregate src/nodesaggregate.cpp src/log.cpp)
-  target_link_libraries(nodesaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+  target_link_libraries(nodesaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
 
 add_executable(Generate test/generate.cpp src/log.cpp)
-  target_link_libraries(Generate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${MONGOLIBS})
+  target_link_libraries(Generate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${STORAGEILIBS})
 
 # Tests
 
 add_executable(TestStorage test/teststorage.cpp)
-  target_link_libraries(TestStorage StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+  target_link_libraries(TestStorage StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
 
 add_test(TestStorage TestStorage)
 
-add_executable(TestResult test/testresult.cpp src/storage/result.cpp ${CORE})
-  target_link_libraries(TestResult ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+add_executable(TestCollection test/testcollection.cpp src/storage/collectioni.cpp ${CORE})
+  target_link_libraries(TestCollection ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
 
-add_test(TestResult TestResult)
+add_test(TestCollection TestCollection)
 
 add_executable(TestVID test/testvid.cpp src/vid.cpp)
   target_link_libraries(TestVID ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
@@ -189,12 +214,12 @@ add_executable(TestVID test/testvid.cpp src/vid.cpp)
 add_test(TestVID TestVID)
 
 add_executable(TestSecurity test/testsecurity.cpp src/security.cpp src/vid.cpp src/encrypter.cpp)
-  target_link_libraries(TestSecurity StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${OPENSSL_LIBRARIES} ${BOOSTLIBS} ${MONGOLIBS})
+  target_link_libraries(TestSecurity StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${OPENSSL_LIBRARIES} ${BOOSTLIBS} ${STORAGEILIBS})
 
 add_test(TestSecurity TestSecurity)
 
 add_executable(TestAggregate test/testaggregate.cpp)
-  target_link_libraries(TestAggregate StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${MONGOLIBS})
+  target_link_libraries(TestAggregate StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
 
 add_test(TestAggregate TestAggregate)
 

@@ -15,8 +15,7 @@
 #define H_resulti
 
 #include "data.hpp"
-
-#include <mongocxx/collection.hpp>
+#include "collectioni.hpp"
 
 using namespace std;
 
@@ -25,9 +24,15 @@ namespace nodes {
 class ResultImpl {
 
 public:
-  ResultImpl(mongocxx::collection coll, bsoncxx::document::view_or_value query, const vector<string> &fields, 
+#ifdef MONGO_DB
+  ResultImpl(CollectionImpl coll, bsoncxx::document::view_or_value query, const vector<string> &fields, 
       optional<int> limit=nullopt, optional<bsoncxx::document::view_or_value> sort=nullopt): 
+    _c(coll), _mc(coll._c), _q(query), _f(fields), _limit(limit), _sort(sort) {};
+#else
+  ResultImpl(CollectionImpl coll, const Data &query, const vector<string> &fields, 
+      optional<int> limit=nullopt, optional<const Data> sort=nullopt): 
     _c(coll), _q(query), _f(fields), _limit(limit), _sort(sort) {};
+#endif
 
   // public for testing.
   Data fixObjects(const Data &data);
@@ -35,18 +40,21 @@ public:
   optional<Data> value();
   optional<Data> all();
   
-  mongocxx::cursor find();
-  
-  vector<string> _f;
-  mongocxx::collection _c;
-  bsoncxx::document::view_or_value _q;
-  optional<int> _limit;
-  optional<bsoncxx::document::view_or_value> _sort;
-
 private:
 
-  Data fixObject(const Data &j);
+  CollectionImpl _c;
+  vector<string> _f;
+  optional<int> _limit;
 
+#ifdef MONGO_DB
+  mongocxx::collection _mc;
+  bsoncxx::document::view_or_value _q;
+  optional<bsoncxx::document::view_or_value> _sort;
+  mongocxx::cursor find();
+#else
+  Data _q;
+  optional<const Data> _sort;
+#endif
 };
 
 } // nodes

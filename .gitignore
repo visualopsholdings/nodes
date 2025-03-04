@@ -5,3 +5,4 @@ frontend/apps
 mongodb/dump
 *.log
 *.pid
+data

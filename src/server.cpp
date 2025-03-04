@@ -1118,6 +1118,7 @@ void Server::discoveryComplete() {
   
 }
 
+#ifdef MONGO_DB
 bool Server::collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
     boost::json::array *data, vector<string> *policies, optional<int> limit, bool mark) {
 
@@ -1165,9 +1166,11 @@ bool Server::collectObjs(const string &type, const string &collname, bsoncxx::do
   return more;
   
 }
+#endif
 
 void Server::collectPolicies(const vector<string> &policies, boost::json::array *data) {
 
+#ifdef MONGO_DB
   auto q = SchemaImpl::idRangeQuery(policies);
   auto result = SchemaImpl::findGeneral("policies", q, {});
   if (result) {
@@ -1180,6 +1183,7 @@ void Server::collectPolicies(const vector<string> &policies, boost::json::array 
       data->push_back(obj);
     }
   }
+#endif
 
 }
 
@@ -1187,6 +1191,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
     
   L_TRACE("sendUpDiscoverLocalUpstream");
   
+#ifdef MONGO_DB
   auto q = SchemaImpl::boolFieldEqualAfterDateQuery("upstream", true, upstreamLastSeen);
 
   boost::json::array data;
@@ -1243,6 +1248,8 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
   };
   setSrc(&msg);  
   sendDataReq(corr, msg);
+
+#endif
   
 }
 
@@ -1250,6 +1257,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
     
   L_TRACE("sendUpDiscoverLocalMirror");
 
+#ifdef MONGO_DB
   auto q = SchemaImpl::afterDateQuery(upstreamLastSeen);
 
   boost::json::array data;
@@ -1305,7 +1313,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
   };
   setSrc(&msg);  
   sendDataReq(corr, msg);
-
+#endif
 }
 
 void Server::sendUpDiscoverLocal(optional<string> corr) {
@@ -1368,6 +1376,7 @@ void Server::collectIds(const Data &ids, vector<string> *vids) {
 
 void Server::sendDownDiscoverResult(json &j) {
 
+#ifdef MONGO_DB
   string src;
   if (!getSrc(j, &src)) {
     sendErrDown("discover missing src");
@@ -1491,7 +1500,7 @@ void Server::sendDownDiscoverResult(json &j) {
   }
   // and send the result on.
   sendDown(msg);
-
+#endif
 }
 
 void Server::resetDB() {

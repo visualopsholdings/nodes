@@ -420,7 +420,9 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 4 Mar 2025
 - Start in on binary build downloads.
-
+- Start in on an FS version of the storage.
+  - To use this, comment out set(USE_MONGO ON) in CMakeLists.txt but don't yet
+    because it isn't implemented completely.
 
 
 
