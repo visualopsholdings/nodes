@@ -37,8 +37,8 @@ if (UNIX AND NOT APPLE)
   add_definitions(-funwind-tables) 
 endif ()
 if (APPLE)
-  include_directories(/usr/local/include /opt/homebrew/Cellar/zeromq/4.3.5_1/include /opt/homebrew/Cellar/openssl@3/3.4.0/include )
-  LINK_DIRECTORIES(/opt/homebrew/Cellar/zeromq/4.3.5_1/lib)
+  include_directories(/usr/local/include /opt/homebrew/Cellar/zeromq/4.3.5_2/include /opt/homebrew/Cellar/openssl@3/3.5.2/include )
+  LINK_DIRECTORIES(/opt/homebrew/Cellar/zeromq/4.3.5_2/lib)
 endif ()
 
 # fetch from other repos.
