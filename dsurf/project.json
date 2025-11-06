@@ -1,0 +1,245 @@
+{
+    "project": {
+        "name": "Nodes Project",
+        "objects": [
+            {
+                "name": "Collections",
+                "zmq": {
+                    "library": [
+                        {
+                            "name": "userId",
+                            "result": {
+                                "string": "6121bdfaec9e5a059715739c"
+                            }
+                        },
+                        {
+                            "name": "objectsMsg",
+                            "result": {
+                                "apply": [
+                                    [
+                                        [
+                                            "type",
+                                            "objects"
+                                        ],
+                                        [
+                                            "objtype",
+                                            "collection"
+                                        ],
+                                        [
+                                            "me",
+                                            {
+                                                "userId": {}
+                                            }
+                                        ]
+                                    ],
+                                    {
+                                        "dict": {}
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "getObjects",
+                            "result": {
+                                "apply": [
+                                    {
+                                        "cur": {}
+                                    },
+                                    {
+                                        "getmember": {
+                                            "name": "collections"
+                                        }
+                                    },
+                                    {
+                                        "map": [
+                                            [
+                                                [
+                                                    "name",
+                                                    {
+                                                        "getmember": {
+                                                            "name": "name"
+                                                        }
+                                                    }
+                                                ],
+                                                [
+                                                    "zmq",
+                                                    {
+                                                        "getZMQ": {}
+                                                    }
+                                                ]
+                                            ],
+                                            {
+                                                "dict": {}
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "getZMQ",
+                            "result": {
+                                "apply": [
+                                    [
+                                        [
+                                            "remote",
+                                            {
+                                                "apply": [
+                                                    [
+                                                        [
+                                                            "dict",
+                                                            {
+                                                                "getRemote": {}
+                                                            }
+                                                        ]
+                                                    ],
+                                                    {
+                                                        "dict": {}
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        [
+                                            "send",
+                                            {
+                                                "apply": [
+                                                    [
+                                                        [
+                                                            "dict",
+                                                            {
+                                                                "objsMsg": {}
+                                                            }
+                                                        ]
+                                                    ],
+                                                    {
+                                                        "dict": {}
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    ],
+                                    {
+                                        "dict": {}
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "getRemote",
+                            "result": {
+                                "dict": {
+                                    "address": "localhost",
+                                    "port": 3013
+                                }
+                            }
+                        },
+                        {
+                            "name": "objsMsg",
+                            "result": {
+                                "apply": [
+                                    [
+                                        [
+                                            "type",
+                                            "objects"
+                                        ],
+                                        [
+                                            "objtype",
+                                            "obj"
+                                        ],
+                                        [
+                                            "me",
+                                            {
+                                                "userId": {}
+                                            }
+                                        ],
+                                        [
+                                            "coll",
+                                            {
+                                                "apply": [
+                                                    {
+                                                        "cur": {}
+                                                    },
+                                                    {
+                                                        "getmember": {
+                                                            "name": "id"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    ],
+                                    {
+                                        "dict": {}
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "remote": {
+                        "getRemote": {}
+                    },
+                    "local": {},
+                    "send": {
+                        "objectsMsg": {}
+                    },
+                    "next": {
+                        "apply": [
+                            [
+                                [
+                                    "project",
+                                    {
+                                        "apply": [
+                                            [
+                                                [
+                                                    "name",
+                                                    "Collections"
+                                                ],
+                                                [
+                                                    "objects",
+                                                    {
+                                                        "getObjects": {}
+                                                    }
+                                                ]
+                                            ],
+                                            {
+                                                "dict": {}
+                                            }
+                                        ]
+                                    }
+                                ]
+                            ],
+                            {
+                                "dict": {}
+                            }
+                        ]
+                    },
+                    "scenarios": [
+                        {
+                            "path": "/next",
+                            "input": {
+                                "type": "collections",
+                                "user": "6121bdfaec9e5a059715739c",
+                                "collections": [
+                                    {
+                                      "id":"690c4d8182d0822dbc147f17",
+                                      "modifyDate":"2025-11-06T07:25:53.44+00:00",
+                                      "name":"My Collection 1",
+                                      "policy":"690c4d8082d0822dbc147f09",
+                                      "active":true
+                                    },
+                                    {
+                                      "id":"690c4d8182d0822dbc147f18",
+                                      "modifyDate":"2025-11-06T07:25:53.46+00:00",
+                                      "name":"My Collection 2",
+                                      "policy":"690c4d8082d0822dbc147f09",
+                                      "active":true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

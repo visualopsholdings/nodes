@@ -46,7 +46,7 @@ void objectsMsg(Server *server, Data &j) {
   // get the collection name.
   string coll;
   if (!Storage::instance()->collName(objtype.value(), &coll)) {
-    server->sendErr("Could not get collection name for objects");
+    server->sendErr("Could not get collection name for " + objtype.value());
     return;
   }
   
