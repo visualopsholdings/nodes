@@ -31,9 +31,9 @@ void groupsMsg(Server *server, Data &j) {
   auto docs = Security::instance()->withView(group, j.getString("me", true), query, 
     { "id", "policy", "modifyDate", "name", "upstream" }).all();
 
-  boost::json::array s;
+  DictV s;
   if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.d(); });
+    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
 
   server->sendCollection(j, "groups", s);

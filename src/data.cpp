@@ -13,6 +13,8 @@
 
 #include "log.hpp"
 
+using namespace vops;
+
 namespace nodes {
 
 Data::Data(const string &s) {
@@ -310,6 +312,18 @@ void Data::pretty_print(ostream& os, boost::json::value const& jv, string* inden
 
   if(indent->empty())
       os << "\n";
+}
+
+DictG Data::dict() {
+
+  stringstream ss;
+  ss << *this;
+  auto g = Dict::parseStream(ss);
+  if (g) {
+    return *g;
+  }
+  return DictG(); 
+
 }
 
 } // nodes

@@ -33,7 +33,7 @@ public:
   void describe();
   string value() const;
   
-  bool operator == (const VID &vid);
+  friend bool operator==(VID const&, VID const&);
   
 private:
   string _header;
@@ -41,6 +41,8 @@ private:
   string _password;
     
 };
+
+
 
 } // nodes
 

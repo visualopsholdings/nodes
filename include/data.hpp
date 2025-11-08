@@ -24,9 +24,12 @@
 #ifndef H_data
 #define H_data
 
+#include "dict.hpp"
+
 #include <boost/json.hpp>
 
 using namespace std;
+using vops::DictG;
 
 namespace nodes {
 
@@ -80,6 +83,9 @@ public:
    
   void pretty_print(ostream& os) const;
 
+  DictG dict();
+    // convert to a newstyle dict.
+    
 private:
 
   friend class Security;
@@ -88,9 +94,9 @@ private:
   friend class Server;
   friend class CollectionImpl;
   
-  Data(boost::json::array &init) :
+  Data(const boost::json::array &init) :
     boost::json::value(init) {}
-  Data(boost::json::object &init) :
+  Data(const boost::json::object &init) :
     boost::json::value(init) {}
 
   boost::json::object getObject() const;

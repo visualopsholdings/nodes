@@ -45,7 +45,7 @@ void objectMsg(Server *server, Data &j) {
     return;
   }
 
-  server->sendObject(j, objtype.value(), doc.value().d());
+  server->sendObject(j, objtype.value(), doc.value().d().dict());
 
 }
 

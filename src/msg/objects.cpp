@@ -16,6 +16,8 @@
 #include "log.hpp"
 #include "data.hpp"
 
+using namespace vops;
+
 namespace nodes {
 
 void objectsMsg(Server *server, Data &j) {
@@ -54,9 +56,9 @@ void objectsMsg(Server *server, Data &j) {
   auto docs = Security::instance()->withView(coll, j.getString("me", true), query).all();
   
   // copy out all the data to return;
-  boost::json::array s;
+  DictV s;
   if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.d(); });
+    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
   
   server->sendCollection(j, coll, s);

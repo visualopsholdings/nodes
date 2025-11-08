@@ -38,8 +38,8 @@ void VID::reset(const string &uuid, const string &password) {
   
 }
 
-bool VID::operator == (const VID &vid) {
-  return vid._uuid == _uuid && vid._password == _password;
+bool operator==(VID const &vid1, VID const &vid2) {
+  return vid1._uuid == vid2._uuid && vid1._password == vid2._password;
 }
 
 VID::VID(const string &vid) {

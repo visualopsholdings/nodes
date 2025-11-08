@@ -33,7 +33,7 @@ void userMsg(Server *server, Data &j) {
     return;
   }
   
-  server->sendObject(j, "user", doc.value().d());
+  server->sendObject(j, "user", doc.value().d().dict());
   
 }
 

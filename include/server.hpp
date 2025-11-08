@@ -14,6 +14,8 @@
 #ifndef H_server
 #define H_server
 
+#include "dict.hpp"
+
 #include <zmq.hpp>
 #include <boost/json.hpp>
 #include <map>
@@ -23,6 +25,9 @@
 
 using namespace std;
 using json = boost::json::value;
+using vops::DictV;
+using vops::DictG;
+using vops::DictO;
 
 namespace nodes {
 
@@ -64,9 +69,13 @@ public:
   void send(const json &m) {
     sendTo(*_rep, m, "-> ", nullopt);
   }
+  void send(const std::string &s) {
+    sendTo(*_rep, s, "-> ");
+  }
   void setSrc(boost::json::object *m);
   bool getSrc(json &msg, string *s);
   void sendDown(const json &m);
+  void sendDown(const std::string &s);
   void pubDown(const json &m);
   void sendOn(const json &m);
   void sendErr(const string &msg);
@@ -86,13 +95,14 @@ public:
   string get1Info(const string &type);
     // dealing with the "infos"
     
-  void sendCollection(json &j, const string &name, const boost::json::array &array);
+  void sendCollection(json &j, const string &name, const DictV &array);
     //. send a collection back, taking care of the test for latest
     
-  void sendObject(json &j, const string &name, const json &doc);
+  void sendObject(json &j, const string &name, const DictG &obj);
     // send an object back, taking care of the test for latest
     
   bool testModifyDate(json &j, const json &doc);
+  bool testModifyDate(json &j, const DictG &obj);
     // test for the modifyDate to be the latest.
     
   void importObjs(Data &msgs);
@@ -145,6 +155,7 @@ private:
   string _chainFile;
   
   void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
+  void sendTo(zmq::socket_t &socket, const std::string &j, const string &type);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
   bool testCollectionChanged(json &j, const string &name);
@@ -171,10 +182,16 @@ private:
   bool isParentUpstream(const string &ptype, const string &origparent);
   bool isObjUpstream(boost::json::object &obj);
   bool hasUpstream();
-  optional<Data> getSubobjsLatest(const Data &subobj, const vector<string> &ids, const string &hasInitialSync, const string &upstreamLastSeen, bool collzd);
+  optional<Data> getSubobjsLatest(const Data &subobj, const vector<string> &ids, 
+    const string &hasInitialSync, const string &upstreamLastSeen, bool collzd);
   void collectIds(const Data &ids, vector<string> *vids);
   void unmarkAll(const json &obj);
   string zeroDate();
+  std::string buildErrJson(const std::string &level, const std::string &msg);
+  std::string buildAckJson(std::optional<std::string> result);
+  std::string buildCollResultJson(json &j, const std::string &name, const DictV &array);
+  std::string buildObjResultJson(json &j, const std::string &name, const DictG &obj);
+ 
 };
 
 } // nodes

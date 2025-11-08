@@ -28,11 +28,13 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <cctype>
+#include <rfl/json.hpp>
 
 #define HEARTBEAT_INTERVAL  5 // in seconds
 #define MAX_OBJECTS         50 // maximum objects at a time.
 
 using namespace nodes;
+using namespace vops;
 
 namespace nodes {
 
@@ -450,6 +452,12 @@ void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type, op
   ss << j2;
   string m = ss.str();
   
+  sendTo(socket, m, type);
+
+}
+
+void Server::sendTo(zmq::socket_t &socket, const string &m, const string &type) {
+
   L_DEBUG(type << " " << m);
 
 	zmq::message_t msg(m.length());
@@ -507,6 +515,12 @@ void Server::sendDown(const json &m) {
   
 }
 
+void Server::sendDown(const std::string &m) {
+
+  sendTo(_dataRep->socket(), m, "dr-> ");
+  
+}
+
 void Server::pubDown(const json &m) {
 
   // no destination for publishes.
@@ -560,70 +574,131 @@ void Server::sendOn(const json &origm) {
   }
 }
 
+string Server::buildErrJson(const string &level, const string &msg) {
+
+  struct ErrMsg {
+    string type = "err";
+    string level = level;
+    string msg = msg;
+  } m{};
+  return rfl::json::write(m, rfl::json::pretty);
+  
+}
+
+string Server::buildAckJson(optional<string> result) {
+
+  // it might look ok to simply assign the result but
+  // that doesn't work. We must explicitly do it.
+  struct AckMsg {
+    string type = "ack";
+    optional<string> result;
+  } m{};
+  if (result) {
+    m.result = *result;
+  }
+  return rfl::json::write(m, rfl::json::pretty);
+  
+}
+
+string Server::buildCollResultJson(json &j, const string &name, const DictV &array) {
+
+  struct CollResult {
+    string type;
+    struct {
+      optional<bool> latest;
+      optional<long> time;
+    } test;
+    // the collection name is variable.
+    rfl::ExtraFields<DictV> extra_fields;
+  };
+  
+  if (testCollectionChanged(j, name)) {
+    CollResult m{
+      .type = name, 
+      .test={
+        .latest = true
+      }
+    };
+    return rfl::json::write(m, rfl::json::pretty);
+  }
+
+  CollResult m{
+    .type = name, 
+    .test={
+      .time = Storage::instance()->collectionChanged(name)
+    }
+  };
+  m.extra_fields[name] = array; 
+  return rfl::json::write(m, rfl::json::pretty);
+  
+}
+
+string Server::buildObjResultJson(json &j, const string &name, const DictG &obj) {
+
+  struct ObjResult {
+    string type;
+    struct {
+      optional<bool> latest;
+    } test;
+    // the collection name is variable.
+    rfl::ExtraFields<DictG> extra_fields;
+  };
+  
+  if (testModifyDate(j, obj)) {
+    ObjResult m{
+      .type = name, 
+      .test={
+        .latest = true
+      }
+    };
+    return rfl::json::write(m, rfl::json::pretty);
+  }
+
+  ObjResult m{
+    .type = name
+  };
+  m.extra_fields[name] = obj; 
+  return rfl::json::write(m, rfl::json::pretty);
+  
+}
+
 void Server::sendErr(const string &msg) {
 
   L_ERROR(msg);
-  send({ 
-    { "type", "err" }, 
-    { "level", "fatal" }, 
-    { "msg", msg } 
-  });
+  send(buildErrJson("fatal", msg));
   
 }
 
 void Server::sendErrDown(const string &msg) {
 
   L_ERROR(msg);
-  sendDown({ 
-    { "type", "err" }, 
-    { "level", "fatal" }, 
-    { "msg", msg } 
-  });
+  sendDown(buildErrJson("fatal", msg));
   
 }
 
 void Server::sendWarning(const string &msg) {
 
   L_ERROR(msg);
-  send({ 
-    { "type", "err" }, 
-    { "level", "warning" }, 
-    { "msg", msg } 
-  });
+  send(buildErrJson("warning", msg));
   
 }
 
 void Server::sendAck(optional<string> result) {
 
-  boost::json::object msg = { 
-    { "type", "ack" }
-  };
-  if (result) {
-    msg["result"] = result.value();
-  }
-  send(msg);
+  send(buildAckJson(result));
   
 }
 
 void Server::sendAckDown(optional<string> result) {
 
-  boost::json::object msg = { 
-    { "type", "ack" }
-  };
-  if (result) {
-    msg["result"] = result.value();
-  }
-  sendDown(msg);
+  sendDown(buildAckJson(result));
   
 }
 
 void Server::sendSecurity() {
 
   L_ERROR("security error");
-  send({ 
-    { "type", "err" }, 
-    { "level", "security" }
-  });
+  send(buildErrJson("security", ""));
   
 }
 
@@ -634,6 +709,28 @@ bool Server::testModifyDate(json &j, const json &doc) {
     auto time = Json::getString(test.value(), "time", true);
     if (time) {
       long mod = Date::fromISODate(Json::getString(doc, "modifyDate").value());
+      long t = Date::fromISODate(time.value());
+      if (mod <= t) {
+        L_TRACE("not changed " << mod << " <= " << t);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool Server::testModifyDate(json &j, const DictG &obj) {
+
+  auto test = Json::getObject(j, "test", true);
+  if (test) {
+    auto time = Json::getString(test.value(), "time", true);
+    if (time) {
+      auto modDate = Dict::getString(Dict::getObject(obj), "modifyDate");
+      if (!modDate) {
+        L_ERROR("modifyDate missing");
+        return false;
+      }
+      long mod = Date::fromISODate(*modDate);
       long t = Date::fromISODate(time.value());
       if (mod <= t) {
         L_TRACE("not changed " << mod << " <= " << t);
@@ -660,47 +757,15 @@ bool Server::testCollectionChanged(json &j, const string &name) {
   return false;
 }
 
-void Server::sendCollection(json &j, const string &name, const boost::json::array &array) {
+void Server::sendCollection(json &j, const string &name, const DictV &array) {
 
-  if (testCollectionChanged(j, name)) {
-    send({
-      { "type", name },
-      { "test", {
-        { "latest", true }
-        }
-      }
-    });
-    return;
-  }
-
-  send({
-    { "type", name },
-    { "test", {
-      { "time", Storage::instance()->collectionChanged(name) }
-      }
-    },
-    { name, array }
-  });
+  send(buildCollResultJson(j, name, array));
 
 }
 
-void Server::sendObject(json &j, const string &name, const json &doc) {
+void Server::sendObject(json &j, const string &name, const DictG &obj) {
 
-  if (testModifyDate(j, doc)) {
-    send({
-      { "type", name },
-      { "test", {
-        { "latest", true }
-        }
-      }
-    });
-    return;
-  }
-  
-  send({
-    { "type", name },
-    { name, doc }
-  });
+  send(buildObjResultJson(j, name, obj));
 
 }
 

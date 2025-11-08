@@ -22,7 +22,7 @@ void siteMsg(Server *server, Data &j) {
   auto doc = Site().find({{}}, {}).one();
 
   if (doc) {
-    server->sendObject(j, "site", doc.value().d());
+    server->sendObject(j, "site", doc.value().d().dict());
     return;
   }
   

@@ -27,9 +27,9 @@ void usersMsg(Server *server, Data &j) {
   };
   auto docs = User().find(query, { "id", "modifyDate", "name", "fullname", "admin", "active", "upstream" }).all();
 
-  boost::json::array s;
+  DictV s;
   if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.d(); });
+    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
 
   server->sendCollection(j, "users", s);

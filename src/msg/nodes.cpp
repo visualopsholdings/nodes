@@ -22,9 +22,9 @@ void nodesMsg(Server *server, Data &j) {
 
   auto docs = Node().find({{}}).all();
   
-  boost::json::array s;
+  DictV s;
   if (docs) {
-    transform(docs.value().begin(), docs.value().end(), back_inserter(s), [](auto e) { return e.d(); });
+    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
   
   server->sendCollection(j, "nodes", s);

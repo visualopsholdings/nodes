@@ -424,6 +424,12 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
   - To use this, comment out set(USE_MONGO ON) in CMakeLists.txt but don't yet
     because it isn't implemented completely.
 
+### 7 Nov 2025
+- Start to use new "dict" project instead of boost json which
+  allows real reflection in CPP.
+- our new "dict" is used on the "send" side now. boost::json still used in MongoDB and receiving.
+
+
 
 
 

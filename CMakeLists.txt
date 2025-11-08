@@ -30,8 +30,8 @@ endif ()
   find_package(bsoncxx REQUIRED)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (UNIX AND NOT APPLE)
   add_definitions(-funwind-tables) 
@@ -44,6 +44,15 @@ endif ()
 # fetch from other repos.
 
 include(FetchContent)
+
+FetchContent_Declare(
+  dict
+  GIT_REPOSITORY https://github.com/visualopsholdings/dict.git
+  GIT_TAG main
+)
+FetchContent_MakeAvailable(dict)
+
+include_directories(build/_deps/dict-src/include)
 
 FetchContent_Declare(
   nodes-test
@@ -183,10 +192,10 @@ add_library(StorageLib SHARED
   ${STORAGE}
   ${STORAGEI}
   ${CORE})
-    target_link_libraries(StorageLib ${BOOSTLIBS} ${STORAGEILIBS} ${BSONLIBS})
+    target_link_libraries(StorageLib DictLib ${BOOSTLIBS} ${STORAGEILIBS} ${BSONLIBS})
 
 add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
-    target_link_libraries(nodes StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${STORAGEILIBS} ${OPENSSL_LIBRARIES})
+    target_link_libraries(nodes StorageLib DictLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${STORAGEILIBS} ${OPENSSL_LIBRARIES})
 
 add_executable(Send test/send.cpp src/log.cpp)
   target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
@@ -208,7 +217,7 @@ add_executable(TestStorage test/teststorage.cpp)
 add_test(TestStorage TestStorage)
 
 add_executable(TestCollection test/testcollection.cpp src/storage/collectioni.cpp ${CORE})
-  target_link_libraries(TestCollection ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
+  target_link_libraries(TestCollection DictLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
 
 add_test(TestCollection TestCollection)
 
@@ -243,7 +252,7 @@ add_executable(TestEncrypter test/testencrypter.cpp src/encrypter.cpp)
 add_test(TestEncrypter TestEncrypter)
 
 add_executable(TestData test/testdata.cpp src/data.cpp)
-  target_link_libraries(TestData ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
+  target_link_libraries(TestData DictLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestData TestData)
 

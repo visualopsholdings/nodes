@@ -32,7 +32,7 @@ void nodeMsg(Server *server, Data &j) {
     return;
   }
 
-  server->sendObject(j, "node", doc.value().d());
+  server->sendObject(j, "node", doc.value().d().dict());
 
 }
 

@@ -36,7 +36,7 @@ void groupMsg(Server *server, Data &j) {
     return;
   }
 
-  server->sendObject(j, "group", doc.value().d());
+  server->sendObject(j, "group", doc.value().d().dict());
   
 }
 
