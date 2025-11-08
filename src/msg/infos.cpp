@@ -17,7 +17,7 @@
 
 namespace nodes {
 
-void infosMsg(Server *server, Data &j) {
+void infosMsg(Server *server, const IncomingMsg &in) {
 
   auto docs = Info().find({{}}, {"type", "text"}).all();
 
@@ -27,7 +27,7 @@ void infosMsg(Server *server, Data &j) {
     transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
 
-  server->sendCollection(j, "infos", s);
+  server->sendCollection(in, "infos", s);
 
 }
 

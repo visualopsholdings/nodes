@@ -42,19 +42,19 @@ namespace nodes {
 void loginMsg(Server *server, Data &data);
 void policyUsersMsg(Server *server, Data &data);
 void policyGroupsMsg(Server *server, Data &data);
-void usersMsg(Server *server, Data &data);
-void userMsg(Server *server, Data &data);
-void objectsMsg(Server *server, Data &data);
-void objectMsg(Server *server, Data &data);
-void infosMsg(Server *server, Data &data);
+void usersMsg(Server *server, const IncomingMsg &m);
+void userMsg(Server *server, const IncomingMsg &m);
+void objectsMsg(Server *server, const IncomingMsg &m);
+void objectMsg(Server *server, const IncomingMsg &m);
+void infosMsg(Server *server, const IncomingMsg &m);
 void setinfoMsg(Server *server, Data &data);
-void siteMsg(Server *server, Data &data);
+void siteMsg(Server *server, const IncomingMsg &m);
 void setsiteMsg(Server *server, Data &data);
 void queryMsg(Server *server, Data &data);
 void addUserMsg(Server *server, Data &data);
 void reloadMsg(Server *server, Data &data);
-void groupsMsg(Server *server, Data &data);
-void groupMsg(Server *server, Data &data);
+void groupsMsg(Server *server, const IncomingMsg &m);
+void groupMsg(Server *server, const IncomingMsg &m);
 void membersMsg(Server *server, Data &data);
 void searchUsersMsg(Server *server, Data &data);
 void addMemberMsg(Server *server, Data &data);
@@ -73,8 +73,8 @@ void setGroupPolicyMsg(Server *server, Data &data);
 void shareLinkMsg(Server *server, Data &data);
 void canRegisterMsg(Server *server, Data &data);
 void deleteUserMsg(Server *server, Data &data);
-void nodesMsg(Server *server, Data &data);
-void nodeMsg(Server *server, Data &data);
+void nodesMsg(Server *server, const IncomingMsg &m);
+void nodeMsg(Server *server, const IncomingMsg &m);
 void addNodeMsg(Server *server, Data &data);
 void deleteNodeMsg(Server *server, Data &data);
 void purgeCountGroupsMsg(Server *server, Data &data);
@@ -146,19 +146,19 @@ Server::Server(bool test, bool noupstream,
   _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
   _messages["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
   _messages["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
-  _messages["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
-  _messages["user"] = bind(&nodes::userMsg, this, placeholders::_1);
-  _messages["objects"] = bind(&nodes::objectsMsg, this, placeholders::_1);
-  _messages["object"] = bind(&nodes::objectMsg, this, placeholders::_1);
-  _messages["infos"] = bind(&nodes::infosMsg, this, placeholders::_1);
+  _messages2["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
+  _messages2["user"] = bind(&nodes::userMsg, this, placeholders::_1);
+  _messages2["objects"] = bind(&nodes::objectsMsg, this, placeholders::_1);
+  _messages2["object"] = bind(&nodes::objectMsg, this, placeholders::_1);
+  _messages2["infos"] = bind(&nodes::infosMsg, this, placeholders::_1);
   _messages["setinfo"] = bind(&nodes::setinfoMsg, this, placeholders::_1);
-  _messages["site"] = bind(&nodes::siteMsg, this, placeholders::_1);
+  _messages2["site"] = bind(&nodes::siteMsg, this, placeholders::_1);
   _messages["setsite"] = bind(&nodes::setsiteMsg, this, placeholders::_1);
   _messages["query"] = bind(&nodes::queryMsg, this, placeholders::_1);
   _messages["adduser"] = bind(&nodes::addUserMsg, this, placeholders::_1);
   _messages["reload"] = bind(&nodes::reloadMsg, this, placeholders::_1);
-  _messages["groups"] = bind(&nodes::groupsMsg, this, placeholders::_1);
-  _messages["group"] = bind(&nodes::groupMsg, this, placeholders::_1);
+  _messages2["groups"] = bind(&nodes::groupsMsg, this, placeholders::_1);
+  _messages2["group"] = bind(&nodes::groupMsg, this, placeholders::_1);
   _messages["members"] = bind(&nodes::membersMsg, this, placeholders::_1);
   _messages["searchusers"] = bind(&nodes::searchUsersMsg, this, placeholders::_1);
   _messages["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
@@ -177,8 +177,8 @@ Server::Server(bool test, bool noupstream,
   _messages["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
   _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
-  _messages["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
-  _messages["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
+  _messages2["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
+  _messages2["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
   _messages["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
   _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
   _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
@@ -252,15 +252,15 @@ void Server::runUpstreamOnly() {
     zmq::poll(&items[0], 3, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages)) {
+      if (!getMsg("<-", *_rep, _messages, _messages2)) {
         sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages, nullopt);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages, nullopt)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -295,20 +295,20 @@ void Server::runUpstreamDownstream() {
     zmq::poll(&items[0], 4, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages)) {
+      if (!getMsg("<-", *_rep, _messages, _messages2)) {
         sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages, nullopt);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages, nullopt)) {
         sendErr("error in getting upstream rep message");
       }
     }
     if (items[3].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages, nullopt)) {
         sendErr("error in getting remote upstream sub message");
       }
     }
@@ -330,7 +330,7 @@ void Server::runStandalone() {
     zmq::poll(&items[0], 1, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages)) {
+      if (!getMsg("<-", *_rep, _messages, _messages2)) {
         sendErr("error in getting rep message");
       }
     }
@@ -354,12 +354,12 @@ void Server::runDownstreamOnly() {
     zmq::poll(&items[0], 2, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages)) {
-        sendErr("error in getting rep message");
+      if (!getMsg("<-", *_rep, _messages, _messages2)) {
+         sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages, nullopt)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -391,7 +391,7 @@ void Server::run() {
 
 }
 
-bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers ) {
+bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers, optional<map<string, msgHandler2> > handlers2) {
 
   L_TRACE("got " << name << " message");
   zmq::message_t reply;
@@ -403,6 +403,43 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
 #endif
     // convert to JSON
     string r((const char *)reply.data(), reply.size());
+    if (handlers2) {
+      L_DEBUG("trying new handlers " << name << " " << r);
+  
+      auto doc = rfl::json::read<IncomingMsg>(r);
+      if (!doc) {
+        L_ERROR("IncomingMsg missing fields");
+        return false;
+      }
+  
+      L_TRACE("handling " << doc->type);
+      map<string, msgHandler2>::iterator  handler2 = handlers2->find(doc->type);
+      if (handler2 == handlers2->end()) {
+        L_TRACE("using old handler");
+        auto handler = handlers.find(doc->type);
+        if (handler == handlers.end()) {
+          L_ERROR("unknown msg type " << doc->type << " for " << name);
+          return false;
+        }
+        else {
+          // use the old style doc.
+          Data doc(r);
+          handler->second(doc);
+        }
+        return true;
+      }
+      try {
+        handler2->second(*doc);
+      }
+      catch (exception &exc) {
+        L_ERROR("what: " << exc.what());
+        L_ERROR("location: " << boost::get_throw_location(exc));
+        return false;
+      }
+      return true;
+    }
+    
+    // no new handlers, do it the old way.
     Data doc(r);
 
     L_DEBUG(name << " " << doc);
@@ -453,6 +490,22 @@ void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type, op
   string m = ss.str();
   
   sendTo(socket, m, type);
+
+}
+
+void Server::sendTo(zmq::socket_t &socket, const DictO &in, const string &type, optional<string> corr) {
+
+  DictO in2 = in;
+  if (corr) {
+    L_TRACE("had corr id " << *corr);
+    if (type == "&->") {
+      // old servers (NodeJS) still use socket id
+      in2["socketid"] = *corr;
+    }
+    in2["corr"] = *corr;
+  }
+
+  sendTo(socket, Dict::toString(in2), type);
 
 }
 
@@ -576,11 +629,15 @@ void Server::sendOn(const json &origm) {
 
 string Server::buildErrJson(const string &level, const string &msg) {
 
+  L_TRACE("buildErrJson " << level << ", " << msg);
+  
   struct ErrMsg {
     string type = "err";
-    string level = level;
-    string msg = msg;
+    string level;
+    string msg;
   } m{};
+  m.level = level;
+  m.msg = msg;
   return rfl::json::write(m, rfl::json::pretty);
   
 }
@@ -600,7 +657,7 @@ string Server::buildAckJson(optional<string> result) {
   
 }
 
-string Server::buildCollResultJson(json &j, const string &name, const DictV &array) {
+string Server::buildCollResultJson(const IncomingMsg &in, const string &name, const DictV &array) {
 
   struct CollResult {
     string type;
@@ -612,7 +669,7 @@ string Server::buildCollResultJson(json &j, const string &name, const DictV &arr
     rfl::ExtraFields<DictV> extra_fields;
   };
   
-  if (testCollectionChanged(j, name)) {
+  if (testCollectionChanged(in, name)) {
     CollResult m{
       .type = name, 
       .test={
@@ -633,7 +690,7 @@ string Server::buildCollResultJson(json &j, const string &name, const DictV &arr
   
 }
 
-string Server::buildObjResultJson(json &j, const string &name, const DictG &obj) {
+string Server::buildObjResultJson(const IncomingMsg &in, const string &name, const DictG &obj) {
 
   struct ObjResult {
     string type;
@@ -644,7 +701,7 @@ string Server::buildObjResultJson(json &j, const string &name, const DictG &obj)
     rfl::ExtraFields<DictG> extra_fields;
   };
   
-  if (testModifyDate(j, obj)) {
+  if (testModifyDate(in, obj)) {
     ObjResult m{
       .type = name, 
       .test={
@@ -719,19 +776,17 @@ bool Server::testModifyDate(json &j, const json &doc) {
   return false;
 }
 
-bool Server::testModifyDate(json &j, const DictG &obj) {
+bool Server::testModifyDate(const IncomingMsg &m, const DictG &obj) {
 
-  auto test = Json::getObject(j, "test", true);
-  if (test) {
-    auto time = Json::getString(test.value(), "time", true);
-    if (time) {
+  if (m.test) {
+    if (m.test->time) {
       auto modDate = Dict::getString(Dict::getObject(obj), "modifyDate");
       if (!modDate) {
         L_ERROR("modifyDate missing");
         return false;
       }
       long mod = Date::fromISODate(*modDate);
-      long t = Date::fromISODate(time.value());
+      long t = Date::fromISODate(*(m.test->time));
       if (mod <= t) {
         L_TRACE("not changed " << mod << " <= " << t);
         return true;
@@ -741,31 +796,30 @@ bool Server::testModifyDate(json &j, const DictG &obj) {
   return false;
 }
 
-bool Server::testCollectionChanged(json &j, const string &name) {
+bool Server::testCollectionChanged(const IncomingMsg &m, const string &name) {
 
-  auto test = Json::getObject(j, "test", true);
-  if (test) {
-    auto time = Json::getNumber(test.value(), "time", true);
-    if (time) {
+  if (m.test) {
+    if (m.test->time) {
       long changed = Storage::instance()->collectionChanged(name);
-      if (changed <= time.value()) {
-        L_TRACE("not changed " << changed << " <= " << time.value());
+      long time = atol(m.test->time->c_str());
+      if (changed <= time) {
+        L_TRACE("not changed " << changed << " <= " << time);
         return true;
       }
-    }
+    } 
   }
   return false;
 }
 
-void Server::sendCollection(json &j, const string &name, const DictV &array) {
+void Server::sendCollection(const IncomingMsg &m, const string &name, const DictV &array) {
 
-  send(buildCollResultJson(j, name, array));
+  send(buildCollResultJson(m, name, array));
 
 }
 
-void Server::sendObject(json &j, const string &name, const DictG &obj) {
+void Server::sendObject(const IncomingMsg &m, const string &name, const DictG &obj) {
 
-  send(buildObjResultJson(j, name, obj));
+  send(buildObjResultJson(m, name, obj));
 
 }
 

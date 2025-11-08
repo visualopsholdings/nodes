@@ -15,45 +15,46 @@
 #include "security.hpp"
 #include "log.hpp"
 #include "data.hpp"
+#include "dict.hpp"
 
 using namespace vops;
 
 namespace nodes {
 
-void objectsMsg(Server *server, Data &j) {
+void objectsMsg(Server *server, const IncomingMsg &m) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
-    server->sendErr("no object type");
+  DictO query{makeDictO({
+    { "deleted", makeDictO({
+      { "$ne", true }
+      })
+    }
+  })};
+  
+  if (!m.objtype) {
+    server->sendErr("Message missing objtype");
     return;
   }
-  Data query = {
-    { "deleted", {
-      { "$ne", true }
-      }
-    }
-  };
   
   // add in any parent query.
   string parent;
-  if (Storage::instance()->parentInfo(objtype.value(), &parent)) {
-    auto pid = j.getString(parent);
+  if (Storage::instance()->parentInfo(*m.objtype, &parent)) {
+    auto pid = m.extra_fields.get(parent);
     if (!pid) {
       server->sendErr("no " + parent);
       return;
     }
-    query.setString(parent, pid.value());
+    query[parent] = *pid;
   }
   
   // get the collection name.
   string coll;
-  if (!Storage::instance()->collName(objtype.value(), &coll)) {
-    server->sendErr("Could not get collection name for " + objtype.value());
+  if (!Storage::instance()->collName(*m.objtype, &coll)) {
+    server->sendErr("Could not get collection name for " + *m.objtype);
     return;
   }
   
   // make sure it can be viewed.
-  auto docs = Security::instance()->withView(coll, j.getString("me", true), query).all();
+  auto docs = Security::instance()->withView(coll, m.me, query).all();
   
   // copy out all the data to return;
   DictV s;
@@ -61,7 +62,7 @@ void objectsMsg(Server *server, Data &j) {
     transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
   
-  server->sendCollection(j, coll, s);
+  server->sendCollection(m, coll, s);
 
 }
 

@@ -15,25 +15,28 @@
 #include "date.hpp"
 #include "log.hpp"
 #include "data.hpp"
+#include "dict.hpp"
+
+using namespace vops;
 
 namespace nodes {
 
-void userMsg(Server *server, Data &j) {
+void userMsg(Server *server, const IncomingMsg &in) {
 
-  auto userid = j.getString("user");
-  if (!userid) {
-    server->sendErr("no userid");
+  auto user = Dict::getString(in.extra_fields.get("user"));
+  if (!user) {
+    server->sendErr("user not string");
     return;
   }
 
-  auto doc = User().find({ { "_id", { { "$oid", userid.value() } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).one();
+  auto doc = User().find({ { "_id", { { "$oid", *user } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).one();
 
   if (!doc) {
-    server->sendErr("no user " + userid.value());
+    server->sendErr("no user " + *user);
     return;
   }
   
-  server->sendObject(j, "user", doc.value().d().dict());
+  server->sendObject(in, "user", doc.value().d().dict());
   
 }
 

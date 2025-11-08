@@ -33,6 +33,8 @@
 #define SHA1_LEN    128
 #define ITERATIONS  12000
 
+using namespace vops;
+
 namespace nodes {
 
 shared_ptr<Security> Security::_instance;
@@ -90,6 +92,22 @@ void Security::addTo(vector<string> *v, const string &val) {
 }
 
 Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const Data &query, const vector<string> &fields) {
+
+  if (me) {
+    if (!isValidId(me.value())) {
+      L_ERROR("me is not a valid Id.");
+      return shared_ptr<ResultImpl>(0);
+    }
+    GroupViewPermissions groupviews;
+    UserViewPermissions userviews;
+    return SchemaImpl::findGeneral(collection, withQuery(groupviews, userviews, me.value(), query), fields);
+  }
+
+  return  SchemaImpl::findGeneral(collection, query, fields);
+  
+}
+
+Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields) {
 
   if (me) {
     if (!isValidId(me.value())) {
@@ -196,6 +214,14 @@ Data Security::createArray(const vector<string> &list) {
 
 }
 
+DictV Security::createArray2(const vector<string> &list) {
+
+  DictV v;
+  copy(list.begin(), list.end(), back_inserter(v));
+  return v;
+
+}
+
 void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids) {
 
   Data q = { { "_id", {{ "$in", createArray(inids) }}}};
@@ -236,6 +262,46 @@ Data Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
     { { "policy", { { "$in", createArray(plist) } } } }
   } } };
   L_TRACE(q);
+
+  return q;
+  
+}
+
+DictO Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const DictO &query) {
+
+  using vops::DictV;
+  
+  // collect all the groups the user is in.
+  UserInGroups useringroups;
+  auto indexes = useringroups.find({{ "_id", userid }}, {"value"}).one();
+  vector<string> glist;
+  if (indexes) {
+    glist = indexes.value().all();
+  }
+  
+  // collect all the policies for those groips
+  vector<string> plist;
+  queryIndexes(gperm, glist, &plist);
+  
+  // add all the policies just for this user.
+  queryIndexes(uperm, { userid }, &plist);
+
+  DictO q;
+  DictV a;
+  a.push_back(query);
+  DictO policy;
+  DictO in;
+  in["$in"] = createArray2(plist);
+  policy["policy"] = in;
+  a.push_back(policy);
+  q["$and"] = a;
+  L_TRACE("query " << Dict::toString(q));
+  
+//   Data q = { { "$and", { 
+//     query,
+//     { { "policy", { { "$in", createArray2(plist) } } } }
+//   } } };
+//   L_TRACE(q);
 
   return q;
   

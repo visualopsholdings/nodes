@@ -39,6 +39,19 @@ class Data;
 
 typedef function<void (Data &data)> msgHandler;
 
+typedef struct {
+  optional<string> time; // this could be "0"
+} IncomingMsgTest;
+typedef struct {
+  string type;
+  optional<string> objtype;
+  optional<string> me;
+  optional<IncomingMsgTest> test;
+  rfl::ExtraFields<DictG> extra_fields;
+} IncomingMsg;
+
+typedef function<void (const IncomingMsg &m)> msgHandler2;
+
 class Server {
 
 public:
@@ -69,6 +82,9 @@ public:
   void send(const json &m) {
     sendTo(*_rep, m, "-> ", nullopt);
   }
+  void send(const DictO &m) {
+    sendTo(*_rep, m, "-> ", nullopt);
+  }
   void send(const std::string &s) {
     sendTo(*_rep, s, "-> ");
   }
@@ -95,14 +111,14 @@ public:
   string get1Info(const string &type);
     // dealing with the "infos"
     
-  void sendCollection(json &j, const string &name, const DictV &array);
+  void sendCollection(const IncomingMsg &m, const string &name, const DictV &array);
     //. send a collection back, taking care of the test for latest
     
-  void sendObject(json &j, const string &name, const DictG &obj);
+  void sendObject(const IncomingMsg &m, const string &name, const DictG &obj);
     // send an object back, taking care of the test for latest
     
   bool testModifyDate(json &j, const json &doc);
-  bool testModifyDate(json &j, const DictG &obj);
+  bool testModifyDate(const IncomingMsg &m, const DictG &obj);
     // test for the modifyDate to be the latest.
     
   void importObjs(Data &msgs);
@@ -141,6 +157,7 @@ private:
   shared_ptr<Downstream> _dataRep;
   shared_ptr<Downstream> _msgPub;
   map<string, msgHandler> _messages;
+  map<string, msgHandler2> _messages2;
   map<string, msgHandler> _remoteDataReqMessages;
   map<string, msgHandler> _dataRepMessages;
   map<string, msgHandler> _remoteMsgSubMessages;
@@ -155,10 +172,11 @@ private:
   string _chainFile;
   
   void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
+  void sendTo(zmq::socket_t &socket, const DictO &j, const string &type, optional<string> corr);
   void sendTo(zmq::socket_t &socket, const std::string &j, const string &type);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
-  bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers );
-  bool testCollectionChanged(json &j, const string &name);
+  bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers, std::optional<map<string, msgHandler2> > handlers2);
+  bool testCollectionChanged(const IncomingMsg &m, const string &name);
   void runUpstreamOnly();
   void runStandalone();
   void runUpstreamDownstream();
@@ -189,8 +207,8 @@ private:
   string zeroDate();
   std::string buildErrJson(const std::string &level, const std::string &msg);
   std::string buildAckJson(std::optional<std::string> result);
-  std::string buildCollResultJson(json &j, const std::string &name, const DictV &array);
-  std::string buildObjResultJson(json &j, const std::string &name, const DictG &obj);
+  std::string buildCollResultJson(const IncomingMsg &in, const std::string &name, const DictV &array);
+  std::string buildObjResultJson(const IncomingMsg &in, const std::string &name, const DictG &obj);
  
 };
 

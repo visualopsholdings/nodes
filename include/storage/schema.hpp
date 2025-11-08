@@ -31,6 +31,9 @@ public:
   Result<RowType> find(const Data &query, const vector<string> &fields = {}) {
     return Result<RowType>(findResult(query, fields));
   }
+  Result<RowType> find(const DictO &query, const vector<string> &fields = {}) {
+    return Result<RowType>(findResult(query, fields));
+  }
     
   // find the document with this id.
   Result<RowType> findById(const string &id, const vector<string> &fields = {}) {

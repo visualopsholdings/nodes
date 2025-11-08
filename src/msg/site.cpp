@@ -14,22 +14,25 @@
 #include "storage.hpp"
 #include "log.hpp"
 #include "data.hpp"
+#include "dict.hpp"
+
+using namespace vops;
 
 namespace nodes {
 
-void siteMsg(Server *server, Data &j) {
+void siteMsg(Server *server, const IncomingMsg &in) {
 
   auto doc = Site().find({{}}, {}).one();
 
   if (doc) {
-    server->sendObject(j, "site", doc.value().d().dict());
+    server->sendObject(in, "site", doc.value().d().dict());
     return;
   }
   
-  server->send({
+  server->send(makeDictO({
     { "type", "site" },
-    { "site", {{}} }
-  });
+    { "site", makeDictO({}) }
+  }));
   
 }
 

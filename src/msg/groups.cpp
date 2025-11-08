@@ -15,20 +15,22 @@
 #include "security.hpp"
 #include "log.hpp"
 #include "data.hpp"
+#include "dict.hpp"
+
+using namespace vops;
 
 namespace nodes {
 
-void groupsMsg(Server *server, Data &j) {
+void groupsMsg(Server *server, const IncomingMsg &in) {
 
   Group group;
-  Data query = {
-    { "deleted", {
+  DictO query{makeDictO({
+    { "deleted", makeDictO({
       { "$ne", true }
-      }
+      })
     }
-  };
-  L_TRACE(query);
-  auto docs = Security::instance()->withView(group, j.getString("me", true), query, 
+  })};
+  auto docs = Security::instance()->withView(group, in.me, query, 
     { "id", "policy", "modifyDate", "name", "upstream" }).all();
 
   DictV s;
@@ -36,7 +38,7 @@ void groupsMsg(Server *server, Data &j) {
     transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
 
-  server->sendCollection(j, "groups", s);
+  server->sendCollection(in, "groups", s);
   
 }
 

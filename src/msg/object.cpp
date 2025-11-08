@@ -14,38 +14,40 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "log.hpp"
+#include "dict.hpp"
+
+using namespace vops;
 
 namespace nodes {
 
-void objectMsg(Server *server, Data &j) {
+void objectMsg(Server *server, const IncomingMsg &in) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("no object type");
     return;
   }
-  auto id = j.getString("id");
+  auto id = Dict::getString(in.extra_fields.get("id"));
   if (!id) {
-    server->sendErr("no " + objtype.value());
+    server->sendErr("no id for " + *in.objtype);
     return;
   }
 
   // get the collection name.
   string coll;
-  if (!Storage::instance()->collName(objtype.value(), &coll)) {
+  if (!Storage::instance()->collName(*in.objtype, &coll)) {
     server->sendErr("Could not get collection name for object");
     return;
   }
   
-  auto doc = Security::instance()->withView(coll, j.getString("me", true), 
-    {{ { "_id", { { "$oid", id.value() } } } }}).one();
+  auto doc = Security::instance()->withView(coll, in.me, 
+    {{ { "_id", { { "$oid", *id } } } }}).one();
   if (!doc) {
     L_ERROR("no object to view");
     server->sendSecurity();
     return;
   }
 
-  server->sendObject(j, objtype.value(), doc.value().d().dict());
+  server->sendObject(in, *in.objtype, doc.value().d().dict());
 
 }
 

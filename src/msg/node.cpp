@@ -14,25 +14,28 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "log.hpp"
+#include "dict.hpp"
+
+using namespace vops;
 
 namespace nodes {
 
-void nodeMsg(Server *server, Data &j) {
+void nodeMsg(Server *server, const IncomingMsg &in) {
 
-  auto nodeid = j.getString("node");
-  if (!nodeid) {
+  auto node = Dict::getString(in.extra_fields.get("node"));
+  if (!node) {
     server->sendErr("no node");
     return;
   }
 
-  auto doc = Node().findById(nodeid.value()).one();
+  auto doc = Node().findById(*node).one();
   if (!doc) {
     L_ERROR("no nodes to view");
     server->sendSecurity();
     return;
   }
 
-  server->sendObject(j, "node", doc.value().d().dict());
+  server->sendObject(in, "node", doc.value().d().dict());
 
 }
 

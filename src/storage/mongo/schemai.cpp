@@ -29,6 +29,7 @@
 
 using namespace bsoncxx::builder::basic;
 using namespace nodes;
+using namespace vops;
 
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx::document::view_or_value query, 
           const vector<string> &fields, optional<int> limit, optional<Data> sort) {
@@ -91,6 +92,18 @@ shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const D
   stringstream sq;
   sq << query;
   bsoncxx::document::view_or_value q = bsoncxx::from_json(sq.str());
+  
+  return findGeneral(collection, q, fields, limit, sort);
+  
+}
+
+shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const DictO &query, 
+          const vector<string> &fields, optional<int> limit, optional<Data> sort) {
+
+  auto s = Dict::toString(query);
+  L_TRACE("find " << s << " in " << collection); 
+
+  bsoncxx::document::view_or_value q = bsoncxx::from_json(s);
   
   return findGeneral(collection, q, fields, limit, sort);
   

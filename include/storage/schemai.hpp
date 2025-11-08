@@ -16,8 +16,10 @@
 
 #include "result.hpp"
 #include "dynamicrow.hpp"
+#include "dict.hpp"
 
 using namespace std;
+using vops::DictO;
 
 namespace nodes {
 
@@ -59,6 +61,8 @@ public:
   
   static shared_ptr<ResultImpl> findGeneral(const string &collection, const Data &query, 
           const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
+  static shared_ptr<ResultImpl> findGeneral(const string &collection, const DictO &query, 
+          const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
   static int countGeneral(const string &collection, const Data &query);
@@ -69,6 +73,9 @@ public:
   static bool existsGeneral(const string &collection, const string &id);
 
   shared_ptr<ResultImpl> findResult(const Data &query, const vector<string> &fields) {
+    return findGeneral(collName(), query, fields);
+  }
+  shared_ptr<ResultImpl> findResult(const DictO &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);
   }
   shared_ptr<ResultImpl> findByIdResult(const string &id, const vector<string> &fields) {

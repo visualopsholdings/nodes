@@ -15,28 +15,31 @@
 #include "security.hpp"
 #include "log.hpp"
 #include "data.hpp"
+#include "dict.hpp"
+
+using namespace vops;
 
 namespace nodes {
 
-void groupMsg(Server *server, Data &j) {
+void groupMsg(Server *server, const IncomingMsg &in) {
 
-  auto groupid = j.getString("group");
+  auto groupid = Dict::getString(in.extra_fields.get("group"));
   if (!groupid) {
     server->sendErr("no group");
     return;
   }
 
   Group group;
-  auto doc = Security::instance()->withView(group, j.getString("me", true),  
-    Data{ { "_id", { { "$oid", groupid.value() } } } }, 
+  auto doc = Security::instance()->withView(group, in.me,  
+    Data{ { "_id", { { "$oid", *groupid } } } }, 
     { "id", "name", "modifyDate" }).one();
   if (!doc) {
-    L_ERROR("no group " + groupid.value());
+    L_ERROR("no group " + *groupid);
     server->sendSecurity();
     return;
   }
 
-  server->sendObject(j, "group", doc.value().d().dict());
+  server->sendObject(in, "group", doc.value().d().dict());
   
 }
 

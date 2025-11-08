@@ -16,12 +16,15 @@
 
 #include "storage/schema.hpp"
 #include "data.hpp"
+#include "dict.hpp"
 
 #include <string>
 #include <memory>
 #include <tuple>
 
 using namespace std;
+using vops::DictO;
+using vops::DictV;
 
 namespace nodes {
 
@@ -58,6 +61,7 @@ public:
     // get a list of groups that are in this policy.
   
   Result<DynamicRow> withView(const string &collection, optional<string> me, const Data &query, const vector<string> &fields = {});
+  Result<DynamicRow> withView(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields = {});
     // execute a query ensuring that the user can view the results, using the name of the collection.
 
   Result<DynamicRow> withEdit(const string &collection, optional<string> me, const Data &query, const vector<string> &fields = {});
@@ -69,6 +73,19 @@ public:
   // execute a query ensuring that the user can view the results.
   template <typename RowType>
   Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const Data &query, const vector<string> &fields = {}) {
+  
+    if (me) {
+      GroupViewPermissions groupviews;
+      UserViewPermissions userviews;
+      return schema.find(withQuery(groupviews, userviews, me.value(), query), fields);
+    }
+
+    return schema.find(query, fields);    
+    
+  }
+
+  template <typename RowType>
+  Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
   
     if (me) {
       GroupViewPermissions groupviews;
@@ -142,7 +159,9 @@ private:
   void addTo(vector<string> *v, const string &val);
   void queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids);
   Data createArray(const vector<string> &list);
+  DictV createArray2(const vector<string> &list);
   Data withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const Data &query);
+  DictO withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const DictO &query);
   Data makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
 //  void removeAt(json *obj, const string &fullpath);
 //  void addPolicy(Data *obj, const string &type, const string &context, const string &id);

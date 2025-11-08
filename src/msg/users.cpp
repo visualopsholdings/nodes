@@ -14,17 +14,20 @@
 #include "storage.hpp"
 #include "log.hpp"
 #include "data.hpp"
+#include "dict.hpp"
+
+using namespace vops;
 
 namespace nodes {
 
-void usersMsg(Server *server, Data &j) {
+void usersMsg(Server *server, const IncomingMsg &in) {
 
-  Data query = {
-    { "deleted", {
+  DictO query{makeDictO({
+    { "deleted", makeDictO({
       { "$ne", true }
-      }
+      })
     }
-  };
+  })};
   auto docs = User().find(query, { "id", "modifyDate", "name", "fullname", "admin", "active", "upstream" }).all();
 
   DictV s;
@@ -32,7 +35,7 @@ void usersMsg(Server *server, Data &j) {
     transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
 
-  server->sendCollection(j, "users", s);
+  server->sendCollection(in, "users", s);
   
 }
 

@@ -13,12 +13,14 @@
 
 #include "storage.hpp"
 #include "security.hpp"
-
 #include "log.hpp"
+#include "dict.hpp"
+
+using namespace vops;
 
 namespace nodes {
 
-void nodesMsg(Server *server, Data &j) {
+void nodesMsg(Server *server, const IncomingMsg &in) {
 
   auto docs = Node().find({{}}).all();
   
@@ -27,7 +29,7 @@ void nodesMsg(Server *server, Data &j) {
     transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
   }
   
-  server->sendCollection(j, "nodes", s);
+  server->sendCollection(in, "nodes", s);
 
 }
 
