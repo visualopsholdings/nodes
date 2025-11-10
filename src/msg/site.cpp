@@ -16,22 +16,20 @@
 #include "data.hpp"
 #include "dict.hpp"
 
-using namespace vops;
-
 namespace nodes {
 
 void siteMsg(Server *server, const IncomingMsg &in) {
 
-  auto doc = Site().find({{}}, {}).one();
+  auto doc = Site().find(dictO({}), {}).one();
 
   if (doc) {
     server->sendObject(in, "site", doc.value().d().dict());
     return;
   }
   
-  server->send(makeDictO({
+  server->send(dictO({
     { "type", "site" },
-    { "site", makeDictO({}) }
+    { "site", dictO({}) }
   }));
   
 }

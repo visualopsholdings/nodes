@@ -11,16 +11,30 @@
 
 #include "storage/schema.hpp"
 
+#include "dict.hpp"
+#include "log.hpp"
+
 #include <boost/algorithm/string.hpp>
+
+using namespace vops;
 
 namespace nodes {
 
 vector<AccessRow> PolicyRow::accesses() { 
 
   vector<AccessRow> rows;
-  for (auto a: getData("accesses")) {
-    rows.push_back(AccessRow(a));
+  auto accesses = Dict::getVector(dict(), "accesses");
+  if (!accesses) {
+    return rows;
   }
+  transform(accesses->begin(), accesses->end(), back_inserter(rows), [](auto e) {
+    auto obj = Dict::getObject(e);
+    if (!obj) {
+      L_ERROR("row in accesses not an object");
+      return AccessRow(DictO());
+    }
+    return AccessRow(*obj);
+  });
   return rows;
   
 }
@@ -28,9 +42,18 @@ vector<AccessRow> PolicyRow::accesses() {
 vector<MemberRow> GroupRow::members() { 
 
   vector<MemberRow> rows;
-  for (auto a: getData("members")) {
-    rows.push_back(MemberRow(a));
+  auto members = Dict::getVector(dict(), "members");
+  if (!members) {
+    return rows;
   }
+  transform(members->begin(), members->end(), back_inserter(rows), [](auto e) {
+    auto obj = Dict::getObject(e);
+    if (!obj) {
+      L_ERROR("row in members not an object");
+      return MemberRow(DictO());
+    }
+    return MemberRow(*obj);
+  });
   return rows;
   
 }

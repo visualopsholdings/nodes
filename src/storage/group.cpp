@@ -13,9 +13,10 @@
 
 #include "storage.hpp"
 #include "log.hpp"
-#include "data.hpp"
+#include "dict.hpp"
 
 using namespace nodes;
+using namespace vops;
 
 bool Group::getMemberSet(const string &group, set<string> *mset) {
 
@@ -24,12 +25,18 @@ bool Group::getMemberSet(const string &group, set<string> *mset) {
     L_ERROR("no group " + group);
     return false;
   }
-  auto members = doc.value().d().at("members").as_array();
-  
+  auto members = Dict::getVector(doc.value().dict(), "members");
+  if (!members) {
+    L_ERROR("group " + group + " missing members");
+    return false;
+  }
 //  L_TRACE("old members " << members);
 
-  for (auto i: members) {
-    mset->insert(i.at("user").as_string().c_str());
+  for (auto i: *members) {
+    auto user = Dict::getString(i);
+    if (user) {
+      mset->insert(*user);
+    }
   }
   
 //  L_TRACE("new set " << boost::algorithm::join(mset, ", "));
@@ -40,17 +47,17 @@ bool Group::getMemberSet(const string &group, set<string> *mset) {
 
 bool Group::saveMemberSet(const string &group, const set<string> &mset) {
 
-  boost::json::array newmembers;
+  DictV newmembers;
   for (auto i: mset) {
-    newmembers.push_back(Data{
+    newmembers.push_back(dictO({
       { "user", i }
-    });
+    }));
   }
   
-  auto result = Group().updateById(group, {
-    { "modifyDate", Storage::instance()->getNow() },
+  auto result = Group().updateById(group, dictO({
+    { "modifyDate", Storage::instance()->getNowO() },
     { "members", newmembers }
-  });
+  }));
   if (!result) {
     L_ERROR("can't update group " + group);
     return false;

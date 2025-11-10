@@ -64,7 +64,7 @@ void setObjectPolicyMsg(Server *server, Data &j) {
   arr = j.at("remove").as_array();
   transform(arr.begin(), arr.end(), back_inserter(remove), [](auto e) { return e.as_string().c_str(); });
   
-  auto policyid = orig.value().getString("policy");
+  auto policyid = Dict::getString(orig.value(), "policy");
   if (!policyid) {
     server->sendErr(objtype.value() + " no policy id");
     return;
@@ -86,8 +86,9 @@ void setObjectPolicyMsg(Server *server, Data &j) {
 
   // send to other nodes.
   Data obj2 = obj;
-  if (orig.value().has("upstream")) {
-    obj2.setBool("upstream", orig.value().getBool("upstream").value());
+  auto upstream = Dict::getBool(orig.value(), "upstream");
+  if (upstream) {
+    obj2.setBool("upstream", *upstream);
   }
   server->sendUpd(objtype.value(), id.value(), obj2);
     

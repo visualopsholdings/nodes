@@ -16,13 +16,11 @@
 #include "security.hpp"
 #include "log.hpp"
 
-#include <algorithm>
-
 namespace nodes {
 
-void discoverResultMsg(Server *server, Data &j) {
+void discoverResultMsg(Server *server, const IncomingMsg &in) {
    
-  auto msgs = j.getData("msgs");
+  auto msgs = Dict::getVector(in.extra_fields.get("msgs"));
   if (!msgs) {
     L_ERROR("discoverResult missing msgs");
     return;
@@ -35,7 +33,7 @@ void discoverResultMsg(Server *server, Data &j) {
   Data date = Storage::instance()->getNow();
   server->setInfo("upstreamLastSeen", Json::toISODate(date));
 
-  auto more = j.getBool("more", true);
+  auto more = Dict::getBool(in.extra_fields.get("more"));
   if (more && more.value()) {
     // go again.
     server->sendUpDiscover();

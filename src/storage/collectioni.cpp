@@ -14,57 +14,84 @@
 #include "log.hpp"
 #include "data.hpp"
 #include "json.hpp"
+#include "storage.hpp"
+#include "date.hpp"
 
 using namespace nodes;
+using namespace vops;
 
-Data CollectionImpl::fixObject(const Data &j) {
+DictO CollectionImpl::fixObject(const DictO &j) {
 
 //  L_TRACE("fixing " << j);
 
-  boost::json::object o;
-  for (auto i: j.as_object()) {
+  DictO o;
+  for (auto i: j) {
   
-//    L_TRACE("fixing " << i.key());
+    auto key = get<0>(i);
+    L_TRACE("fixing " << key);
     
-    if (i.value().is_object()) {
-      if (i.key() == "_id" && i.value().as_object().if_contains("$oid")) {
-        o["id"] = i.value().at("$oid");
-        continue;
-      }
-      if (i.value().as_object().if_contains("$date")) {
-        o[i.key()] = Json::toISODate(i.value());
-        continue;
-      }
-      // recurse into sub objects.
-      o[i.key()] = fixObject(i.value());
-      continue;
-    }
+    auto val = get<1>(i);
     
-    if (i.value().is_array()) {
-      boost::json::array newarray;
-      auto arr = i.value().as_array();
-      // copy array, recursing into sub objects.
-      transform(arr.begin(), arr.end(), back_inserter(newarray), [this](auto e) {
-        if (e.is_object()) {
-          return fixObject(e); 
+    auto oval = Dict::getObject(val);
+    if (oval) {
+      L_TRACE("value is object");
+      if (key == "_id") {
+        L_TRACE("got _id");
+        auto oid = Dict::getString(*oval, "$oid");
+        if (oid) {
+          L_TRACE("it's a string");
+          o["id"] = *oid;
+          continue;
         }
-        return Data(e);
-      });
-      o[i.key()] = newarray;
+      }
+      else if (oval->get("$date")) {
+        o[key] = toISODate(*oval);
+        continue;
+      }
+      o[key] = fixObject(*oval);
       continue;
     }
     
-    o[i.key()] = i.value();
+    auto iv = Dict::getVector(val);
+    if (iv) {
+      L_TRACE("value is vector");
+      DictV newarray;
+      // copy array, recursing into sub objects.
+      transform(iv->begin(), iv->end(), back_inserter(newarray), [this](auto e) -> DictG {
+        auto obj = Dict::getObject(e);
+        if (obj) {
+          return fixObject(*obj); 
+        }
+        return e;
+      });
+      o[key] = newarray;
+      continue;
+    }
+    
+    o[key] = val;
   }
+  
   return o;
 
 }
 
-Data CollectionImpl::fixObjects(const Data &j) {
+DictO CollectionImpl::fixObjects(const DictO &j) {
 
 //  L_TRACE("fixObjects " << j);
 
   return fixObject(j);
 
 }
+
+string CollectionImpl::toISODate(const DictO &date) {
+  
+  auto d = Dict::getNum(date, "$date");
+  if (!d) {
+    return "bad_object";
+  }
+  
+  return Date::toISODate(*d);
+  
+}
+
 

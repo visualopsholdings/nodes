@@ -80,7 +80,7 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
     return false;
   }
   
-  L_TRACE(type << " old value " << orig.value());
+  L_TRACE(type << " old value " << Dict::toString(orig.value()));
   
   // make sure it can be edited. If it has a parent we use that field.
   string editcoll;
@@ -92,7 +92,7 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
       server->sendErr("Could not get collection name for Handler::update (parent)");
       return false;
     }
-    auto id = Json::getString(orig.value(), parentfield);
+    auto id = Dict::getString(orig.value(), parentfield);
     if (!id) {
       server->sendErr("coll field not found");
       return false;
@@ -119,8 +119,9 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
   
   // send to other nodes.
   Data obj2 = obj1;
-  if (orig.value().as_object().if_contains("upstream")) {
-    obj2.setBool("upstream", Json::getBool(orig.value(), "upstream").value());
+  auto upstream = Dict::getBool(orig.value(), "upstream");
+  if (upstream) {
+    obj2.setBool("upstream", *upstream);
   }
   server->sendUpd(type, id, obj2);
     
@@ -168,7 +169,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
     return false;
   }
   
-  L_TRACE(type << " old value " << orig.value());
+  L_TRACE(type << " old value " << Dict::toString(orig.value()));
   
   Data obj = {
     { "deleted", true },
@@ -178,7 +179,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   // add in any parent field.
   string parent;
   if (Storage::instance()->parentInfo(type, &parent)) {
-    auto pid = Json::getString(orig.value(), parent);
+    auto pid = Dict::getString(orig.value(), parent);
     if (!pid) {
       server->sendErr("missing " + parent + " in " + id);
       return false;
@@ -188,8 +189,9 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   
   // send to other nodes.
   Data obj2 = obj;
-  if (orig.value().as_object().if_contains("upstream")) {
-    obj2.setBool("upstream", Json::getBool(orig.value(), "upstream").value());
+  auto upstream = Dict::getBool(orig.value(), "upstream");
+  if (upstream) {
+    obj2.setBool("upstream", *upstream);
   }
   server->sendUpd(type, id, obj2);
     

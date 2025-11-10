@@ -13,6 +13,7 @@
 
 #include "vid.hpp"
 #include "storage.hpp"
+#include "dict.hpp"
 
 #include <iostream>
 
@@ -21,6 +22,7 @@
 
 using namespace std;
 using namespace nodes;
+using namespace vops;
 
 void dbSetup() {
 
@@ -94,7 +96,7 @@ BOOST_AUTO_TEST_CASE( getPolicyUsers )
   cout << "=== getPolicyUsers ===" << endl;
   
   dbSetup();
-  Policy().deleteMany({{}});
+  Policy().deleteMany(dictO({}));
   boost::json::array empty;
   BOOST_CHECK(Policy().insert({
     { "_id", { { "$oid", policy } } },
@@ -126,8 +128,8 @@ BOOST_AUTO_TEST_CASE( getPolicyUsersInGroup )
   cout << "=== getPolicyUsersInGroup ===" << endl;
   
   dbSetup();
-  Policy().deleteMany({{}});
-  Group().deleteMany({{}});
+  Policy().deleteMany(dictO({}));
+  Group().deleteMany(dictO({}));
   BOOST_CHECK(Group().insert({
     { "_id", { { "$oid", team1 } } },
     { "name", "Team 1" },
@@ -168,8 +170,8 @@ BOOST_AUTO_TEST_CASE( getPolicyGroups )
   cout << "=== getPolicyGroups ===" << endl;
   
   dbSetup();
-  Policy().deleteMany({{}});
-  Group().deleteMany({{}});
+  Policy().deleteMany(dictO({}));
+  Group().deleteMany(dictO({}));
   BOOST_CHECK(Group().insert({
     { "_id", { { "$oid", team1 } } },
     { "name", "Team 1" },
@@ -210,9 +212,9 @@ BOOST_AUTO_TEST_CASE( with )
   cout << "=== with ===" << endl;
   
   dbSetup();
-  Policy().deleteMany({{}});
-  Group().deleteMany({{}});
-  SchemaImpl::deleteManyGeneral("collections", {{}});
+  Policy().deleteMany(dictO({}));
+  Group().deleteMany(dictO({}));
+  SchemaImpl::deleteManyGeneral("collections", dictO({}));
   BOOST_CHECK(Group().insert({
     { "_id", { { "$oid", team1 } } },
     { "name", "Team 1" },
@@ -293,8 +295,8 @@ BOOST_AUTO_TEST_CASE( canEdit )
   cout << "=== canEdit ===" << endl;
   
   dbSetup();
-  Policy().deleteMany({{}});
-  SchemaImpl::deleteManyGeneral("collections", {{}});
+  Policy().deleteMany(dictO({}));
+  SchemaImpl::deleteManyGeneral("collections", dictO({}));
   boost::json::array empty;
   auto policy = Policy().insert({
     { "accesses", {
@@ -329,9 +331,9 @@ BOOST_AUTO_TEST_CASE( getPolicyLines )
   cout << "=== getPolicyLines ===" << endl;
   
   dbSetup();
-  User().deleteMany({{}});
-  Group().deleteMany({{}});
-  Policy().deleteMany({{}});
+  User().deleteMany(dictO({}));
+  Group().deleteMany(dictO({}));
+  Policy().deleteMany(dictO({}));
   boost::json::array empty;
   BOOST_CHECK(User().insert({
     { "_id", { { "$oid", tracy } } },
@@ -374,7 +376,7 @@ BOOST_AUTO_TEST_CASE( getPolicyLines )
 
   auto lines =  Security::instance()->getPolicyLines(policy);
   BOOST_CHECK(lines);
-//  cout << lines.value() << endl;
+  cout << lines.value() << endl;
   BOOST_CHECK(lines.value().is_array());
   BOOST_CHECK_EQUAL(lines.value().as_array().size(), 5);
 
@@ -397,8 +399,8 @@ BOOST_AUTO_TEST_CASE( findMissingPolicyForUser )
   cout << "=== findMissingPolicyForUser ===" << endl;
   
   dbSetup();
-  User().deleteMany({{}});
-  Policy().deleteMany({{}});
+  User().deleteMany(dictO({}));
+  Policy().deleteMany(dictO({}));
   auto user = User().insert({
     { "name", "tracy" },
     { "admin", true },
@@ -416,8 +418,8 @@ BOOST_AUTO_TEST_CASE( findPolicyForUser )
   cout << "=== findPolicyForUser ===" << endl;
   
   dbSetup();
-  User().deleteMany({{}});
-  Policy().deleteMany({{}});
+  User().deleteMany(dictO({}));
+  Policy().deleteMany(dictO({}));
   auto user = User().insert({
     { "name", "tracy" },
     { "admin", true },
@@ -455,8 +457,8 @@ BOOST_AUTO_TEST_CASE( modifyPolicy )
   cout << "=== modifyPolicy ===" << endl;
   
   dbSetup();
-  User().deleteMany({{}});
-  Policy().deleteMany({{}});
+  User().deleteMany(dictO({}));
+  Policy().deleteMany(dictO({}));
   BOOST_CHECK(User().insert({
     { "_id", { { "$oid", tracy } } },
     { "name", "tracy" },
@@ -523,10 +525,10 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
   cout << "=== generateShareLink ===" << endl;
   
   dbSetup();
-  User().deleteMany({{}});
-  Group().deleteMany({{}});
-  SchemaImpl::deleteManyGeneral("collections", {{}});
-  Info().deleteMany({{}});
+  User().deleteMany(dictO({}));
+  Group().deleteMany(dictO({}));
+  SchemaImpl::deleteManyGeneral("collections", dictO({}));
+  Info().deleteMany(dictO({}));
   BOOST_CHECK(Info().insert({
     { "type", "tokenKey" },
     { "text", "90B21444AC1A2C9146FFA34C72BF787F76E7B0EDD236F0508571264153E58A787B82729268EF67DFCCC6B1F113721B0D752DA65DA6BC82BCA9A1C73E58DAAFF7" }
@@ -565,7 +567,7 @@ BOOST_AUTO_TEST_CASE( streamShareToken )
   cout << "=== streamShareToken ===" << endl;
   
   dbSetup();
-  Info().deleteMany({{}});
+  Info().deleteMany(dictO({}));
   BOOST_CHECK(Info().insert({
     { "type", "tokenKey" },
     { "text", "90B21444AC1A2C9146FFA34C72BF787F76E7B0EDD236F0508571264153E58A787B82729268EF67DFCCC6B1F113721B0D752DA65DA6BC82BCA9A1C73E58DAAFF7" }

@@ -22,6 +22,7 @@
 #include <fstream>
 
 using namespace nodes;
+using namespace vops;
 
 bool SchemaImpl::testInit() {
 
@@ -33,25 +34,25 @@ bool SchemaImpl::testInit() {
   return true;
 }
 
-optional<int> SchemaImpl::rawUpdate(const Data &query, const Data &doc) {
+optional<int> SchemaImpl::rawUpdate(const DictO &query, const DictO &doc) {
 
   return updateGeneral(collName(), query, doc);
 
 }
 
-optional<int> SchemaImpl::update(const Data &query, const Data &doc) {
+optional<int> SchemaImpl::update(const DictO &query, const DictO &doc) {
 
-  return rawUpdate(query, {
+  return rawUpdate(query, dictO({
     { "$set", doc }
-  });
+  }));
 
 }
 
-optional<string> SchemaImpl::updateById(const string &id, const Data &doc) {
+optional<string> SchemaImpl::updateById(const string &id, const DictO &doc) {
 
-  return rawUpdateById(id, {
+  return rawUpdateById(id, dictO({
     { "$set", doc }
-  });
+  }));
 
 }
 

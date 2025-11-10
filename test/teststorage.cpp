@@ -15,12 +15,14 @@
 #include "json.hpp"
 #include "date.hpp"
 #include "data.hpp"
+#include "dict.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace nodes;
+using namespace vops;
 
 string tracy = "667d0baedfb1ed18430d8ed3";
 string leanne = "667d0baedfb1ed18430d8ed4";
@@ -29,7 +31,7 @@ void dbSetup() {
 
   Storage::instance()->init("mongodb://127.0.0.1:27017", "dev");
 
-  User().deleteMany({{}});
+  User().deleteMany(dictO({}));
   BOOST_CHECK(User().insert({
     { "_id", { { "$oid", tracy } } },
     { "name", "tracy" },
@@ -78,7 +80,7 @@ BOOST_AUTO_TEST_CASE( findAll )
   
   dbSetup();
 
-  auto doc = User().find({{}}, {"id"}).all();
+  auto doc = User().find(dictO({}), {"id"}).all();
   BOOST_CHECK(doc);
 //  cout << doc.value().j() << endl;
   BOOST_CHECK_EQUAL(doc.value().size(), 2);
@@ -168,9 +170,9 @@ BOOST_AUTO_TEST_CASE( rawUpdate )
   
   dbSetup();
 
-  auto result = User().rawUpdateById(tracy, {
-    { "$set", { { "name", "tracy2" } } }
-  });
+  auto result = User().rawUpdateById(tracy, dictO({
+    { "$set", dictO({{ "name", "tracy2" }}) }
+  }));
   BOOST_CHECK(result);
 
 }
@@ -181,18 +183,18 @@ BOOST_AUTO_TEST_CASE( bulkInsert )
   
   dbSetup();
 
-  Data a =
+  vector<DictO> a =
   {
-    {
+    dictO({
       { "_id", tracy },
       { "name", "tracy2" }
-    },
-    {
+    }),
+    dictO({
       { "_id", leanne },
       { "name", "leanne2" }
-    }      
+    }) 
   };
-  cout << a << endl;
+//  cout << Dict::toString(a) << endl;
   BOOST_CHECK(Storage::instance()->bulkInsert("users", a));
 
 }
@@ -250,7 +252,7 @@ BOOST_AUTO_TEST_CASE( countGeneral )
 
   dbSetup();
 
-  BOOST_CHECK_EQUAL(SchemaImpl::countGeneral("users", Data{{}}), 2);
+  BOOST_CHECK_EQUAL(SchemaImpl::countGeneral("users", dictO({})), 2);
   
 }
 
@@ -271,7 +273,7 @@ BOOST_AUTO_TEST_CASE( findWithLimit )
 
   dbSetup();
 
-  auto results = SchemaImpl::findGeneral("users", Data{{}}, {}, 1);
+  auto results = SchemaImpl::findGeneral("users", dictO({}), {}, 1);
   BOOST_CHECK(results);
   auto users = results->all();
   BOOST_CHECK(users);
@@ -285,13 +287,13 @@ BOOST_AUTO_TEST_CASE( findLatest )
 
   dbSetup();
 
-  auto results = SchemaImpl::findGeneral("users", Data{{}}, {}, 1, Data{{ "modifyDate", -1 }});
+  auto results = SchemaImpl::findGeneral("users", dictO({}), {}, 1, dictO({{ "modifyDate", -1 }}));
   BOOST_CHECK(results);
   auto users = results->all();
   BOOST_CHECK(users);
   BOOST_CHECK_EQUAL(users.value().size(), 1);
-  Data n = users.value().getIterator(users.value().begin());
-  BOOST_CHECK_EQUAL(n.getString("name").value(), "leanne");
+  auto n = users.value().begin();
+  BOOST_CHECK_EQUAL(Dict::getStringG(*n, "name").value(), "leanne");
   
 }
 

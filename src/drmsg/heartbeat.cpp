@@ -45,10 +45,10 @@ void heartbeatMsg(Server *server, Data &j) {
     { "lastSeen", date }
   });
     
-  server->sendDown({
+  server->sendDown(dictO({
     { "type", "date" },
     { "date", date },
-  });
+  }));
   
 }
 

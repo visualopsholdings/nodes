@@ -15,7 +15,6 @@
 #define H_security
 
 #include "storage/schema.hpp"
-#include "data.hpp"
 #include "dict.hpp"
 
 #include <string>
@@ -61,10 +60,15 @@ public:
     // get a list of groups that are in this policy.
   
   Result<DynamicRow> withView(const string &collection, optional<string> me, const Data &query, const vector<string> &fields = {});
-  Result<DynamicRow> withView(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields = {});
+  Result<DynamicRow> withView(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
+    return withView(collection, me, Data(query), fields);
+  }
     // execute a query ensuring that the user can view the results, using the name of the collection.
 
   Result<DynamicRow> withEdit(const string &collection, optional<string> me, const Data &query, const vector<string> &fields = {});
+  Result<DynamicRow> withEdit(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
+    return withEdit(collection, me, Data(query), fields);
+  }
     //execute a query ensuring that the user can edit the results, using the name of the collection.
 
   bool canEdit(const string &collection, optional<string> me, const string &id);
@@ -81,22 +85,13 @@ public:
     }
 
     return schema.find(query, fields);    
-    
-  }
 
+  }
   template <typename RowType>
   Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
-  
-    if (me) {
-      GroupViewPermissions groupviews;
-      UserViewPermissions userviews;
-      return schema.find(withQuery(groupviews, userviews, me.value(), query), fields);
-    }
-
-    return schema.find(query, fields);    
-    
+    return withView(schema, me, Data(query), fields);
   }
-
+  
   template <typename RowType>
   bool canEdit(Schema<RowType> &schema, optional<string> me, const string &id) {
     return canEdit(schema.collName(), me, id);
@@ -111,7 +106,7 @@ public:
   }
   
   optional<Data> getPolicyLines(const string &id);
-    // get a data array of policy lines.
+    // get an array of policy lines.
   
   optional<string> findPolicyForUser(const string &userid);
     // find the policy for this user, if it doesn't exist create it.
@@ -158,10 +153,9 @@ private:
 
   void addTo(vector<string> *v, const string &val);
   void queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids);
-  Data createArray(const vector<string> &list);
-  DictV createArray2(const vector<string> &list);
+  DictV createArray(const vector<string> &list);
+  Data createArray2(const vector<string> &list);
   Data withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const Data &query);
-  DictO withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const DictO &query);
   Data makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
 //  void removeAt(json *obj, const string &fullpath);
 //  void addPolicy(Data *obj, const string &type, const string &context, const string &id);

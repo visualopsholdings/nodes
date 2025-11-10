@@ -17,14 +17,12 @@
 #include "data.hpp"
 #include "dict.hpp"
 
-using namespace vops;
-
 namespace nodes {
 
 void objectsMsg(Server *server, const IncomingMsg &m) {
 
-  DictO query{makeDictO({
-    { "deleted", makeDictO({
+  DictO query{dictO({
+    { "deleted", dictO({
       { "$ne", true }
       })
     }

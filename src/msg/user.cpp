@@ -17,8 +17,6 @@
 #include "data.hpp"
 #include "dict.hpp"
 
-using namespace vops;
-
 namespace nodes {
 
 void userMsg(Server *server, const IncomingMsg &in) {
@@ -29,7 +27,7 @@ void userMsg(Server *server, const IncomingMsg &in) {
     return;
   }
 
-  auto doc = User().find({ { "_id", { { "$oid", *user } } } }, { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).one();
+  auto doc = User().find(dictO({{ "_id", dictO({{ "$oid", *user }}) }}), { "id", "modifyDate", "name", "fullname", "admin", "hash", "active" }).one();
 
   if (!doc) {
     server->sendErr("no user " + *user);

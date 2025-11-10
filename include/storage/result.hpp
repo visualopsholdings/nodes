@@ -27,7 +27,7 @@ class Result {
 
 public:
   
-  // return the value of the query as a Data object.
+  // return the value of the query as an object.
   optional<RowType> one() {
     auto v = _impl->value();
     if (!v) {
@@ -36,15 +36,20 @@ public:
     return RowType(v.value());
   }
     
-  // return the value of the query as a DataArray array.
-  optional<vector<RowType >> all() {
+  // return the value of the query as an array.
+  optional<vector<RowType> > all() {
     auto v = _impl->all();
     if (!v) {
       return {};
     }
-    vector<RowType > ret;
+    vector<RowType> ret;
     for (auto i: v.value()) {
-      ret.push_back(Data(i));
+      auto obj = vops::Dict::getObject(i);
+      if (!obj) {
+        cerr << "obj not an object!" << endl;
+        continue;
+      }
+      ret.push_back(RowType(*obj));
     }
     return ret;
   }

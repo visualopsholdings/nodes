@@ -19,7 +19,7 @@ namespace nodes {
 
 void purgeGroupsMsg(Server *server, Data &j) {
 
-  Group().deleteMany({ { "deleted", true } });
+  Group().deleteMany(dictO({{ "deleted", true }}));
   Security::instance()->regenerateGroups();
   server->sendAck();
   

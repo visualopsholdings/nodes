@@ -25,9 +25,9 @@ void purgeMsg(Server *server, Data &j) {
     return;
   }
   
-  Data query = { 
+  DictO query = dictO({ 
     { "deleted", true } 
-  };
+  });
   
   // add in any parent query.
   string parent;
@@ -37,7 +37,7 @@ void purgeMsg(Server *server, Data &j) {
       server->sendErr("no " + parent);
       return;
     }
-    query.setString(parent, pid.value());
+    query[parent] = *pid;
   }
   
   // get the collection name.

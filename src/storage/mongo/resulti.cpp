@@ -27,6 +27,7 @@ using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::basic::make_document;
 
 using namespace nodes;
+using namespace vops;
 
 mongocxx::cursor ResultImpl::find() {
 
@@ -51,7 +52,7 @@ mongocxx::cursor ResultImpl::find() {
 
 }
 
-optional<Data> ResultImpl::value() {
+optional<DictO> ResultImpl::value() {
   
   if (!_mc) {
     return {};
@@ -65,14 +66,22 @@ optional<Data> ResultImpl::value() {
   auto first = cursor.begin();
   auto jsons = bsoncxx::to_json(*first);
 //  L_TRACE("raw json " << jsons);
-  auto json = boost::json::parse(jsons);
+  auto g = Dict::parseString(jsons);
+  if (!g) {
+    L_ERROR("could not parse json " << jsons);
+    return {};
+  }
+  auto obj = Dict::getObject(*g);
+  if (!obj) {
+    L_ERROR("json was not object " << jsons);
+    return {};
+  }
 //  L_TRACE("parsed json " << json);
   
-  
-  return _c.fixObjects(json);
+  return _c.fixObjects(*obj);
 }
 
-optional<Data> ResultImpl::all() {
+optional<DictV> ResultImpl::all() {
   
   if (!_mc) {
     return {};
@@ -83,15 +92,24 @@ optional<Data> ResultImpl::all() {
     L_TRACE("empty");
     return {};
   }
-  boost::json::array val;
+  DictV val;
   for (auto i: cursor) {
     auto jsons = bsoncxx::to_json(i);
 //    L_TRACE("raw json " << jsons);
-    auto json = boost::json::parse(jsons);
+    auto g = Dict::parseString(jsons);
+    if (!g) {
+      L_ERROR("could not parse json " << jsons);
+      continue;
+    }
+    auto obj = Dict::getObject(*g);
+    if (!obj) {
+      L_ERROR("json was not object " << jsons);
+      continue;
+    }
 //    L_TRACE("parsed json " << json);
-    val.push_back(_c.fixObjects(json));
+    val.push_back(_c.fixObjects(*obj));
   }
-  return Data(val);
+  return val;
   
 }
 

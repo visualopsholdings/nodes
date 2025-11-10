@@ -13,12 +13,14 @@
 
 #include "storage.hpp"
 #include "storage/schemai.hpp"
+#include "dict.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace nodes;
+using namespace vops;
 
 void dbSetup() {
 
@@ -31,7 +33,7 @@ BOOST_AUTO_TEST_CASE( userInGroups )
   cout << "=== userInGroups ===" << endl;
   
   dbSetup();
-  Group().deleteMany({{}});
+  Group().deleteMany(dictO({}));
   BOOST_CHECK(Group().insert({
     { "name", "Team 1" },
     { "members", {

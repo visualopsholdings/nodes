@@ -19,7 +19,7 @@ namespace nodes {
 
 void infosMsg(Server *server, const IncomingMsg &in) {
 
-  auto docs = Info().find({{}}, {"type", "text"}).all();
+  auto docs = Info().find(dictO({}), {"type", "text"}).all();
 
   // copy out all the data to return;
   DictV s;

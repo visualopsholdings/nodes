@@ -16,8 +16,6 @@
 #include "log.hpp"
 #include "dict.hpp"
 
-using namespace vops;
-
 namespace nodes {
 
 void objectMsg(Server *server, const IncomingMsg &in) {
@@ -40,7 +38,7 @@ void objectMsg(Server *server, const IncomingMsg &in) {
   }
   
   auto doc = Security::instance()->withView(coll, in.me, 
-    {{ { "_id", { { "$oid", *id } } } }}).one();
+    dictO({{ { "_id", dictO({{ "$oid", *id }}) } }})).one();
   if (!doc) {
     L_ERROR("no object to view");
     server->sendSecurity();

@@ -14,16 +14,19 @@
 #ifndef H_collectioni
 #define H_collectioni
 
+#include "dict.hpp"
+
 #ifdef MONGO_DB
 #include <mongocxx/collection.hpp>
 #endif
 #include <string>
 
 using namespace std;
+using vops::DictO;
+using vops::DictG;
+using vops::DictV;
 
 namespace nodes {
-
-class Data;
 
 class CollectionImpl {
 
@@ -39,23 +42,26 @@ public:
 #ifdef MONGO_DB
   mongocxx::collection _c;
 #else
-  optional<string> insert_one(const Data &doc);
-  void delete_many(const Data &doc);
-  Data findAll(const Data &query, optional<const Data> &sort);
-  Data find(const Data &query, optional<const Data> &sort);
-  Data findByIds(const vector<string> &ids);
+  optional<string> insert_one(const DictO &doc);
+  void delete_many(const DictO &doc);
+  DictV findAll(const DictO &query, optional<const DictO> &sort);
+  DictO find(const DictO &query, optional<const DictO> &sort);
+  DictV findByIds(const vector<string> &ids);
 #endif
 
   // public for testing.
-  Data fixObjects(const Data &data);
+  DictO fixObjects(const DictO &data);
 
+  static string toISODate(const DictO &date);
+    // convert dates correctly.
+    
 private:
-  Data fixObject(const Data &j);
+  DictO fixObject(const DictO &j);
 
 #ifndef MONGO_DB
   string _name;
   string getCollectionFolder();
-  bool match(const Data &json, const Data &query);
+  bool match(const DictO &doc, const DictO &query);
 #endif
 };
 

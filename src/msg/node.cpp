@@ -16,8 +16,6 @@
 #include "log.hpp"
 #include "dict.hpp"
 
-using namespace vops;
-
 namespace nodes {
 
 void nodeMsg(Server *server, const IncomingMsg &in) {

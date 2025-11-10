@@ -18,6 +18,7 @@
 #include "storage/collectioni.hpp"
 #include "storage/resulti.hpp"
 #include "date.hpp"
+#include "dict.hpp"
 
 #include "log.hpp"
 #include <sstream>
@@ -32,16 +33,15 @@ using namespace nodes;
 using namespace vops;
 
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx::document::view_or_value query, 
-          const vector<string> &fields, optional<int> limit, optional<Data> sort) {
+          const vector<string> &fields, optional<int> limit, optional<DictO> sort) {
 
   if (!testInit()) {
     return 0;
   }
 
   if (sort) {
-    stringstream ss;
-    ss << sort.value();
-    return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, bsoncxx::from_json(ss.str())));
+    return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, 
+      bsoncxx::from_json(Dict::toString(sort.value()))));
   }
 
   return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, nullopt));
@@ -58,15 +58,13 @@ int SchemaImpl::countGeneral(const string &collection, bsoncxx::document::view_o
   
 }
 
-int SchemaImpl::countGeneral(const string &collection, const Data &query) {
+int SchemaImpl::countGeneral(const string &collection, const DictO &query) {
 
   if (!testInit()) {
     return 0;
   }
 
-  stringstream ss;
-  ss << query;
-  bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
+  bsoncxx::document::view_or_value q = bsoncxx::from_json(Dict::toString(query));
 
   return countGeneral(collection, q);
 
@@ -84,21 +82,8 @@ bool SchemaImpl::existsGeneral(const string &collection, const string &id) {
   
 }
 
-shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const Data &query, 
-          const vector<string> &fields, optional<int> limit, optional<Data> sort) {
-
-  L_TRACE("find " << query << " in " << collection); 
-
-  stringstream sq;
-  sq << query;
-  bsoncxx::document::view_or_value q = bsoncxx::from_json(sq.str());
-  
-  return findGeneral(collection, q, fields, limit, sort);
-  
-}
-
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const DictO &query, 
-          const vector<string> &fields, optional<int> limit, optional<Data> sort) {
+          const vector<string> &fields, optional<int> limit, optional<DictO> sort) {
 
   auto s = Dict::toString(query);
   L_TRACE("find " << s << " in " << collection); 
@@ -132,17 +117,16 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, co
   
 }
 
-void SchemaImpl::deleteManyGeneral(const string &collection, const Data &doc) {
+void SchemaImpl::deleteManyGeneral(const string &collection, const DictO &doc) {
 
-  L_TRACE("deleteMany " << doc << " in " << collection);
+  auto s = Dict::toString(doc);
+  L_TRACE("deleteMany " << s << " in " << collection);
 
   if (!testInit()) {
     return;
   }
 
-  stringstream ss;
-  ss << doc;
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+  bsoncxx::document::view_or_value d = bsoncxx::from_json(s);
 
   Storage::instance()->_impl->coll(collection)._c.delete_many(d);
   Storage::instance()->collectionWasChanged(collection);
@@ -169,17 +153,16 @@ bool SchemaImpl::deleteById(const string &id) {
     
 }
 
-optional<string> SchemaImpl::insertGeneral(const string &collection, const Data &doc) {
+optional<string> SchemaImpl::insertGeneral(const string &collection, const DictO &doc) {
 
-  L_TRACE("insert " << doc << " in " << collection);
+  auto s = Dict::toString(doc);
+  L_TRACE("insert " << s << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
   }
   
-  stringstream ss;
-  ss << doc;
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+  bsoncxx::document::view_or_value d = bsoncxx::from_json(s);
   
   try {
     auto result = Storage::instance()->_impl->coll(collection)._c.insert_one(d);
@@ -199,21 +182,19 @@ optional<string> SchemaImpl::insertGeneral(const string &collection, const Data 
 
 }
 
-optional<int> SchemaImpl::updateGeneral(const string &collection, const Data &query, const Data &doc) {
+optional<int> SchemaImpl::updateGeneral(const string &collection, const DictO &query, const DictO &doc) {
 
-  L_TRACE("update " << query << " in " << collection);
+  auto s = Dict::toString(query);
+  L_TRACE("update " << s << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
   }
 
-  stringstream ss;
-  ss << query;
-  bsoncxx::document::view_or_value q = bsoncxx::from_json(ss.str());
+  bsoncxx::document::view_or_value q = bsoncxx::from_json(s);
 
-  ss.str("");
-  ss << doc;
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+  s = Dict::toString(doc);
+  bsoncxx::document::view_or_value d = bsoncxx::from_json(s);
   
   auto result = Storage::instance()->_impl->coll(collection)._c.update_many(q, d);
   if (result) {
@@ -225,7 +206,7 @@ optional<int> SchemaImpl::updateGeneral(const string &collection, const Data &qu
 
 }
 
-optional<string> SchemaImpl::updateGeneralById(const string &collection, const string &id, const Data &doc) {
+optional<string> SchemaImpl::updateGeneralById(const string &collection, const string &id, const DictO &doc) {
 
   L_TRACE("update " << id << " in " << collection);
 
@@ -235,9 +216,8 @@ optional<string> SchemaImpl::updateGeneralById(const string &collection, const s
 
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
 
-  stringstream ss;
-  ss << doc;
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+  auto s = Dict::toString(doc);
+  bsoncxx::document::view_or_value d = bsoncxx::from_json(s);
   
   auto result = Storage::instance()->_impl->coll(collection)._c.update_one(q, d);
   if (result) {

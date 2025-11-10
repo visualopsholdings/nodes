@@ -15,12 +15,13 @@
 #define H_schema
 
 #include "schemai.hpp"
+#include "data.hpp"
 
 #include <set>
 
-namespace nodes {
+using vops::DictO;
 
-class Data;
+namespace nodes {
 
 template <typename RowType>
 class Schema: public SchemaImpl {
@@ -28,11 +29,11 @@ class Schema: public SchemaImpl {
 public:
 
   // find documents with the query.
-  Result<RowType> find(const Data &query, const vector<string> &fields = {}) {
-    return Result<RowType>(findResult(query, fields));
-  }
   Result<RowType> find(const DictO &query, const vector<string> &fields = {}) {
     return Result<RowType>(findResult(query, fields));
+  }
+  Result<RowType> find(const Data &query, const vector<string> &fields = {}) {
+    return find(query.dict(), fields);
   }
     
   // find the document with this id.
@@ -50,7 +51,7 @@ public:
 class UserRow: public DynamicRow {
 
 public:
-  UserRow(Data data): DynamicRow(data) {}
+  UserRow(DictO data): DynamicRow(data) {}
   
   string name() { return getString("name"); }
   string fullname() { return getString("fullname"); }
@@ -75,7 +76,7 @@ public:
 class AccessRow: public DynamicRow {
 
 public:
-  AccessRow(Data data): DynamicRow(data) {}
+  AccessRow(DictO data): DynamicRow(data) {}
   
   string name() { return getString("name"); }
   vector<string> users() { return getStringArray("users"); }
@@ -86,7 +87,7 @@ public:
 class PolicyRow: public DynamicRow {
 
 public:
-  PolicyRow(Data data): DynamicRow(data) {}
+  PolicyRow(DictO data): DynamicRow(data) {}
   
   vector<AccessRow> accesses();
   
@@ -103,7 +104,7 @@ public:
 class MemberRow: public DynamicRow {
 
 public:
-  MemberRow(Data data): DynamicRow(data) {}
+  MemberRow(DictO data): DynamicRow(data) {}
   
   string user() { return getString("user"); }
   
@@ -112,7 +113,7 @@ public:
 class GroupRow: public DynamicRow {
 
 public:
-  GroupRow(Data data): DynamicRow(data) {}
+  GroupRow(DictO data): DynamicRow(data) {}
   
   string name() { return getString("name"); }
   string policy() { return getString("policy"); }
@@ -141,7 +142,7 @@ private:
 class InfoRow: public DynamicRow {
 
 public:
-  InfoRow(Data data): DynamicRow(data) {}
+  InfoRow(DictO data): DynamicRow(data) {}
   
   string type() const { return getString("type"); }
   string text() const { return getString("text"); }
@@ -162,7 +163,7 @@ public:
 class SiteRow: public DynamicRow {
 
 public:
-  SiteRow(Data data): DynamicRow(data) {}
+  SiteRow(DictO data): DynamicRow(data) {}
   
   string headerTitle() const { return getString("headerTitle"); }
   string streamBgColor() const { return getString("streamBgColor"); }
@@ -180,7 +181,7 @@ public:
 class NodeRow: public DynamicRow {
 
 public:
-  NodeRow(Data data): DynamicRow(data) {}
+  NodeRow(DictO data): DynamicRow(data) {}
   
   string serverId() const { return getString("serverId"); }
   string pubKey() const { return getString("pubKey"); }
@@ -199,7 +200,7 @@ public:
 class IndexRow: public DynamicRow {
 
 public:
-  IndexRow(Data data): DynamicRow(data) {}
+  IndexRow(DictO data): DynamicRow(data) {}
   
   vector<string> all();
   

@@ -11,15 +11,14 @@
 
 #include "server.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 namespace nodes {
 
-void discoverLocalMsg(Server *server, Data &j) {
+void discoverLocalMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("discoverLocal " << j);
+  L_TRACE("discoverLocal " << in.type);
  
-  auto data = j.getData("data");
+  auto data = Dict::getVector(in.extra_fields.get("data"));
   if (!data) {
     server->sendErrDown("discoverLocal missing data");
     return;
@@ -28,9 +27,9 @@ void discoverLocalMsg(Server *server, Data &j) {
   // import everything.
   server->importObjs(data.value());
  	    
- 	server->sendDown({ 
+ 	server->sendDown(dictO({ 
  	  { "type", "discoverLocalResult" } 
- 	});
+ 	}));
  	
 }
 

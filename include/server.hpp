@@ -15,6 +15,7 @@
 #define H_server
 
 #include "dict.hpp"
+#include "data.hpp"
 
 #include <zmq.hpp>
 #include <boost/json.hpp>
@@ -25,9 +26,7 @@
 
 using namespace std;
 using json = boost::json::value;
-using vops::DictV;
-using vops::DictG;
-using vops::DictO;
+using namespace vops;
 
 namespace nodes {
 
@@ -47,10 +46,11 @@ typedef struct {
   optional<string> objtype;
   optional<string> me;
   optional<IncomingMsgTest> test;
+  optional<vector<string> > path;
   rfl::ExtraFields<DictG> extra_fields;
 } IncomingMsg;
 
-typedef function<void (const IncomingMsg &m)> msgHandler2;
+typedef function<void (const IncomingMsg &in)> msgHandler2;
 
 class Server {
 
@@ -72,7 +72,7 @@ public:
   void systemStatus(const string &msg);
   void sendUpDiscover();
   void sendUpDiscoverLocal(optional<string> corr);
-  void sendDownDiscoverResult(json &j);
+  void sendDownDiscoverResult(const IncomingMsg &in);
   void resetDB();
   void discoveryComplete();
   
@@ -89,23 +89,39 @@ public:
     sendTo(*_rep, s, "-> ");
   }
   void setSrc(boost::json::object *m);
+  void setSrc(DictO *m);
+  bool getSrc(const IncomingMsg &in, string *s);
   bool getSrc(json &msg, string *s);
-  void sendDown(const json &m);
+  void sendDown(const DictO &m);
   void sendDown(const std::string &s);
+  void pubDown(const DictO &m);
   void pubDown(const json &m);
-  void sendOn(const json &m);
+  void sendOn(const DictO &m);
+  void sendOn(const Data &m) {
+    sendOn(m.dict());
+  }
   void sendErr(const string &msg);
   void sendErrDown(const string &msg);
   void sendWarning(const string &msg);
   void sendSecurity();
   void sendAck(optional<string> result=nullopt);
   void sendAckDown(optional<string> result=nullopt);
+  void sendDataReq(optional<string> corr, const DictO &m);
   void sendDataReq(optional<string> corr, const json &m);
   
   // notifying other nodes.
-  void sendUpd(const string &type, const string &id, Data &data);
-  void sendAdd(const string &type, Data &data);
-  void sendMov(const string &type, const string &id, Data &obj, const string &ptype, const string &origparent);
+  void sendUpd(const string &type, const string &id, const DictO &data);
+  void sendUpd(const string &type, const string &id, Data &data) {
+    sendUpd(type, id, data.dict());
+  }
+  void sendAdd(const string &type, const DictO &data);
+  void sendAdd(const string &type, Data &data) {
+    sendAdd(type, data.dict());
+  }
+  void sendMov(const string &type, const string &id, const DictO &obj, const string &ptype, const string &origparent);
+  void sendMov(const string &type, const string &id, Data &obj, const string &ptype, const string &origparent) {
+    sendMov(type, id, obj.dict(), ptype, origparent);
+  }
   
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
@@ -121,22 +137,32 @@ public:
   bool testModifyDate(const IncomingMsg &m, const DictG &obj);
     // test for the modifyDate to be the latest.
     
-  void importObjs(Data &msgs);
+  void importObjs(const DictV &msgs);
     // given msgs in the format of { "type": "user", "objs": [obj, obj] }
     // import them.
     
-  bool updateObject(json &j);
+  bool updateObject(const DictO &j);
+  bool updateObject(Data &j) {
+    return updateObject(j.dict());
+  }
     // given an object in the format {"data":{"type":"user","id":"6121bdfaec9e5a059715739c","obj":obj }}
     // update it
     
-  bool addObject(json &j);
+  bool addObject(const DictO &j);
+  bool addObject(Data &j) {
+    return addObject(j.dict());
+  }
     // given an object in the format {"data":{"type":"user","obj":obj }}
     // update it
     
-  bool shouldIgnoreAdd(json &msg);
+  bool shouldIgnoreAdd(const DictO &msg);
+  bool shouldIgnoreAdd(const Data &msg) {
+    return shouldIgnoreAdd(msg.dict());
+  }
     // adds always come, should we ignore one?
 
-  bool wasFromUs(json &msg);
+  bool wasFromUs(const DictO &msg);
+  bool wasFromUs(const Data &msg);
     // the message was send from us.
 
   string _hostName;
@@ -159,7 +185,9 @@ private:
   map<string, msgHandler> _messages;
   map<string, msgHandler2> _messages2;
   map<string, msgHandler> _remoteDataReqMessages;
+  map<string, msgHandler2> _remoteDataReqMessages2;
   map<string, msgHandler> _dataRepMessages;
+  map<string, msgHandler2> _dataRepMessages2;
   map<string, msgHandler> _remoteMsgSubMessages;
   int _remoteDataReqPort;
   int _remoteMsgSubPort;
@@ -181,29 +209,29 @@ private:
   void runStandalone();
   void runUpstreamDownstream();
   void runDownstreamOnly();
-  string getLastDate(optional<Data> rows, const string &hasInitialSync, const string &date, bool all);
+  string getLastDate(optional<DictV> rows, const string &hasInitialSync, const string &date, bool all);
   void sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optional<string> corr);
   void sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr);
 #ifdef MONGO_DB
   bool collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
-    boost::json::array *data, vector<string> *policies, optional<int> limit, bool mark);
+    DictV *data, vector<string> *policies, optional<int> limit, bool mark);
 #endif
-  void collectPolicies(const vector<string> &policies, boost::json::array *data);
+  void collectPolicies(const vector<string> &policies, DictV *data);
   bool isValidId(const string &id);
-  bool validateId(boost::json::object &obj, const string &id);
+  bool validateId(const DictO &obj, const string &id);
   bool hasValidNodes();
   bool anyNodesListening(const string &type, const string &id);
-  bool shouldSendDown(const string &action, const string &type, const string &id, boost::json::object &obj);
+  bool shouldSendDown(const string &action, const string &type, const string &id, const DictO &obj);
   vector<string> getNodeIds(const string &type);
   string getCollName(const string &type, optional<string> coll);
-  bool isObjParentUpstream(const string &type, boost::json::object &obj);
+  bool isObjParentUpstream(const string &type, const DictO &obj);
   bool isParentUpstream(const string &ptype, const string &origparent);
-  bool isObjUpstream(boost::json::object &obj);
+  bool isObjUpstream(const DictO &obj);
   bool hasUpstream();
-  optional<Data> getSubobjsLatest(const Data &subobj, const vector<string> &ids, 
+  optional<DictV> getSubobjsLatest(const DictO &subobj, const vector<string> &ids, 
     const string &hasInitialSync, const string &upstreamLastSeen, bool collzd);
-  void collectIds(const Data &ids, vector<string> *vids);
-  void unmarkAll(const json &obj);
+  void collectIds(const DictV &ids, vector<string> *vids);
+  void unmarkAll(const DictO &obj);
   string zeroDate();
   std::string buildErrJson(const std::string &level, const std::string &msg);
   std::string buildAckJson(std::optional<std::string> result);

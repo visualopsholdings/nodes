@@ -12,19 +12,26 @@
 #ifndef MONGO_DB
 
 #include "storage/resulti.hpp"
+#include "log.hpp"
+#include "dict.hpp"
 
 using namespace nodes;
+using namespace vops;
 
-optional<Data> ResultImpl::value() {
+optional<DictO> ResultImpl::value() {
   
   if (_ids) {
-    return _c.findByIds(_ids.value());
+    auto v = _c.findByIds(_ids.value());
+    if (v.size() > 1) {
+      L_ERROR("more than 1 doc found!");
+    }
+    return Dict::getObject(v[0]);
   }
   return _c.find(_q, _sort);
   
 }
 
-optional<Data> ResultImpl::all() {
+optional<DictV> ResultImpl::all() {
   
   if (_ids) {
     return _c.findByIds(_ids.value());

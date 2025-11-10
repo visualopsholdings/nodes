@@ -14,10 +14,13 @@
 #ifndef H_resulti
 #define H_resulti
 
-#include "data.hpp"
 #include "collectioni.hpp"
+#include "dict.hpp"
 
 using namespace std;
+using vops::DictG;
+using vops::DictO;
+using vops::DictV;
 
 namespace nodes {
 
@@ -31,16 +34,16 @@ public:
 #else
   ResultImpl(CollectionImpl coll, const vector<string> &ids, const vector<string> &fields): 
     _c(coll), _ids(ids), _f(fields) {};
-  ResultImpl(CollectionImpl coll, const Data &query, const vector<string> &fields, 
-      optional<int> limit, optional<const Data> sort): 
+  ResultImpl(CollectionImpl coll, const DictO &query, const vector<string> &fields, 
+      optional<int> limit, optional<const DictO> sort): 
     _c(coll), _q(query), _f(fields), _limit(limit), _sort(sort) {};
 #endif
 
   // public for testing.
-  Data fixObjects(const Data &data);
+  DictG fixObjects(const DictG &data);
 
-  optional<Data> value();
-  optional<Data> all();
+  optional<DictO> value();
+  optional<DictV> all();
   
 private:
 
@@ -54,9 +57,9 @@ private:
   optional<bsoncxx::document::view_or_value> _sort;
   mongocxx::cursor find();
 #else
-  Data _q;
-  optional< vector<string> > _ids;
-  optional<const Data> _sort;
+  DictO _q;
+  optional<vector<string> > _ids;
+  optional<const DictO> _sort;
 #endif
 };
 

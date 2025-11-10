@@ -27,7 +27,7 @@ class SchemaImpl {
 
 public:
  
-  void deleteMany(const Data &doc) {
+  void deleteMany(const DictO &doc) {
     deleteManyGeneral(collName(), doc);
   }
     // delete all documents that match the query.
@@ -35,21 +35,27 @@ public:
   bool deleteById(const string &id);
     // delete the document that has this id.
     
-  optional<string> insert(const Data &doc) {
+  optional<string> insert(const DictO &doc) {
     return insertGeneral(collName(), doc);
+  }
+  optional<string> insert(const Data &doc) {
+    return insertGeneral(collName(), doc.dict());
   }
     // insert a new document.
     
-  optional<int> update(const Data &query, const Data &doc);
+  optional<int> update(const DictO &query, const DictO &doc);
     // update an existing document (inserts $set around the doc).
     
-  optional<int> rawUpdate(const Data &query, const Data &doc);
+  optional<int> rawUpdate(const DictO &query, const DictO &doc);
     // update an existing document.
     
-  optional<string> updateById(const string &id, const Data &doc);
+  optional<string> updateById(const string &id, const DictO &doc);
+  optional<string> updateById(const string &id, const Data &doc) {
+    return updateById(id, doc.dict());
+  }
     // update an existing document when you know the ID  (inserts $set around the doc).
     
-  optional<string> rawUpdateById(const string &id, const Data &doc) {
+  optional<string> rawUpdateById(const string &id, const DictO &doc) {
     return updateGeneralById(collName(), id, doc);
   }
     // update an existing document when you know the ID.
@@ -59,22 +65,30 @@ public:
 
   virtual string collName() = 0;
   
-  static shared_ptr<ResultImpl> findGeneral(const string &collection, const Data &query, 
-          const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
   static shared_ptr<ResultImpl> findGeneral(const string &collection, const DictO &query, 
-          const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
+          const vector<string> &fields, optional<int> limit=nullopt, optional<DictO> sort=nullopt);
+  static shared_ptr<ResultImpl> findGeneral(const string &collection, const Data &query, 
+          const vector<string> &fields) {
+    return findGeneral(collection, query.dict(), fields);
+  }
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
-  static int countGeneral(const string &collection, const Data &query);
-  static optional<int> updateGeneral(const string &collection, const Data &query, const Data &doc);
-  static optional<string> updateGeneralById(const string &collection, const string &id, const Data &doc);
-  static optional<string> insertGeneral(const string &collection, const Data &doc);
-  static void deleteManyGeneral(const string &collection, const Data &doc);
+  static int countGeneral(const string &collection, const DictO &query);
+  static int countGeneral(const string &collection, const Data &query) {
+    return countGeneral(collection, query.dict());
+  }
+  static optional<int> updateGeneral(const string &collection, const DictO &query, const DictO &doc);
+  static optional<string> updateGeneralById(const string &collection, const string &id, const DictO &doc);
+  static optional<string> updateGeneralById(const string &collection, const string &id, const Data &doc) {
+    return updateGeneralById(collection, id, doc.dict());
+  }
+  static optional<string> insertGeneral(const string &collection, const DictO &doc);
+  static optional<string> insertGeneral(const string &collection, const Data &doc) {
+    return insertGeneral(collection, doc.dict());
+  }
+  static void deleteManyGeneral(const string &collection, const DictO &doc);
   static bool existsGeneral(const string &collection, const string &id);
 
-  shared_ptr<ResultImpl> findResult(const Data &query, const vector<string> &fields) {
-    return findGeneral(collName(), query, fields);
-  }
   shared_ptr<ResultImpl> findResult(const DictO &query, const vector<string> &fields) {
     return findGeneral(collName(), query, fields);
   }
@@ -87,7 +101,7 @@ public:
   
 #ifdef MONGO_DB
   static shared_ptr<ResultImpl> findGeneral(const string &collection, bsoncxx::document::view_or_value query, 
-          const vector<string> &fields, optional<int> limit=nullopt, optional<Data> sort=nullopt);
+          const vector<string> &fields, optional<int> limit=nullopt, optional<DictO> sort=nullopt);
   static int countGeneral(const string &collection, bsoncxx::document::view_or_value query);
   static bsoncxx::document::view_or_value idRangeAfterDateQuery(const vector<string> &ids, const string &date);
   static bsoncxx::document::view_or_value stringFieldEqualAfterDateQuery(const string &field, const string &id, const string &date);

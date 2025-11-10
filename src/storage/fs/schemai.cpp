@@ -16,17 +16,21 @@
 #include "storage.hpp"
 #include "storage/storagei.hpp"
 #include "log.hpp"
+#include "dict.hpp"
 
 #include <fstream>
 
 using namespace nodes;
+using namespace vops;
 
-int SchemaImpl::countGeneral(const string &collection, const Data &query) {
+int SchemaImpl::countGeneral(const string &collection, const DictO &query) {
 
   if (!testInit()) {
     return 0;
   }
 
+  L_ERROR("countGeneral not implemented");
+  
   return 0;
 
 }
@@ -37,14 +41,16 @@ bool SchemaImpl::existsGeneral(const string &collection, const string &id) {
     return 0;
   }
 
+  L_ERROR("existsGeneral not implemented");
+  
   return false;
   
 }
 
-shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const Data &query, 
-          const vector<string> &fields, optional<int> limit, optional<Data> sort) {
+shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const DictO &query, 
+          const vector<string> &fields, optional<int> limit, optional<DictO> sort) {
 
-  L_TRACE("find " << query << " in " << collection); 
+  L_TRACE("find " << Dict::toString(query) << " in " << collection); 
 
   return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection), query, fields, limit, nullopt));
   
@@ -66,9 +72,9 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, co
   
 }
 
-void SchemaImpl::deleteManyGeneral(const string &collection, const Data &doc) {
+void SchemaImpl::deleteManyGeneral(const string &collection, const DictO &doc) {
 
-  L_TRACE("deleteMany " << doc << " in " << collection);
+  L_TRACE("deleteMany " << Dict::toString(doc) << " in " << collection);
 
   if (!testInit()) {
     return;
@@ -86,13 +92,15 @@ bool SchemaImpl::deleteById(const string &id) {
     return false;
   }
   
+  L_ERROR("deleteById not implemented");
+  
   return false;
     
 }
 
-optional<string> SchemaImpl::insertGeneral(const string &collection, const Data &doc) {
+optional<string> SchemaImpl::insertGeneral(const string &collection, const DictO &doc) {
 
-  L_TRACE("insert " << doc << " in " << collection);
+  L_TRACE("insert " << Dict::toString(doc) << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
@@ -108,25 +116,29 @@ optional<string> SchemaImpl::insertGeneral(const string &collection, const Data 
 
 }
 
-optional<int> SchemaImpl::updateGeneral(const string &collection, const Data &query, const Data &doc) {
+optional<int> SchemaImpl::updateGeneral(const string &collection, const DictO &query, const DictO &doc) {
 
-  L_TRACE("update " << query << " in " << collection);
+  L_TRACE("update " << Dict::toString(query) << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
   }
   
+  L_ERROR("updateGeneral not implemented");
+  
   return nullopt;
 
 }
 
-optional<string> SchemaImpl::updateGeneralById(const string &collection, const string &id, const Data &doc) {
+optional<string> SchemaImpl::updateGeneralById(const string &collection, const string &id, const DictO &doc) {
 
   L_TRACE("update " << id << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
   }
+  
+  L_ERROR("updateGeneralById not implemented");
   
   return nullopt;
 
@@ -150,8 +162,8 @@ void SchemaImpl::aggregate(const string &filename) {
     return;    
   }
   
-  // TBD
-
+  L_ERROR("aggregate TBD");
+  
 }
 
 #endif

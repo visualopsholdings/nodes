@@ -107,22 +107,6 @@ Result<DynamicRow> Security::withView(const string &collection, optional<string>
   
 }
 
-Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields) {
-
-  if (me) {
-    if (!isValidId(me.value())) {
-      L_ERROR("me is not a valid Id.");
-      return shared_ptr<ResultImpl>(0);
-    }
-    GroupViewPermissions groupviews;
-    UserViewPermissions userviews;
-    return SchemaImpl::findGeneral(collection, withQuery(groupviews, userviews, me.value(), query), fields);
-  }
-
-  return  SchemaImpl::findGeneral(collection, query, fields);
-  
-}
-
 Result<DynamicRow> Security::withEdit(const string &collection, optional<string> me, const Data &query, const vector<string> &fields) {
 
   if (me) {
@@ -204,7 +188,15 @@ void Security::getPolicyGroups(const string &id, vector<string> *groups) {
  
 }
 
-Data Security::createArray(const vector<string> &list) {
+DictV Security::createArray(const vector<string> &list) {
+
+  DictV v;
+  copy(list.begin(), list.end(), back_inserter(v));
+  return v;
+
+}
+
+Data Security::createArray2(const vector<string> &list) {
 
   boost::json::array a;
   for (auto i: list) {
@@ -213,18 +205,9 @@ Data Security::createArray(const vector<string> &list) {
   return a;
 
 }
-
-DictV Security::createArray2(const vector<string> &list) {
-
-  DictV v;
-  copy(list.begin(), list.end(), back_inserter(v));
-  return v;
-
-}
-
 void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids) {
 
-  Data q = { { "_id", {{ "$in", createArray(inids) }}}};
+  Data q = { { "_id", {{ "$in", createArray2(inids) }}}};
   
   auto indexes = schema.find(q).all();
   if (!indexes) {
@@ -259,49 +242,9 @@ Data Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
 
   Data q = { { "$and", { 
     query,
-    { { "policy", { { "$in", createArray(plist) } } } }
+    { { "policy", { { "$in", createArray2(plist) } } } }
   } } };
   L_TRACE(q);
-
-  return q;
-  
-}
-
-DictO Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const DictO &query) {
-
-  using vops::DictV;
-  
-  // collect all the groups the user is in.
-  UserInGroups useringroups;
-  auto indexes = useringroups.find({{ "_id", userid }}, {"value"}).one();
-  vector<string> glist;
-  if (indexes) {
-    glist = indexes.value().all();
-  }
-  
-  // collect all the policies for those groips
-  vector<string> plist;
-  queryIndexes(gperm, glist, &plist);
-  
-  // add all the policies just for this user.
-  queryIndexes(uperm, { userid }, &plist);
-
-  DictO q;
-  DictV a;
-  a.push_back(query);
-  DictO policy;
-  DictO in;
-  in["$in"] = createArray2(plist);
-  policy["policy"] = in;
-  a.push_back(policy);
-  q["$and"] = a;
-  L_TRACE("query " << Dict::toString(q));
-  
-//   Data q = { { "$and", { 
-//     query,
-//     { { "policy", { { "$in", createArray2(plist) } } } }
-//   } } };
-//   L_TRACE(q);
 
   return q;
   
@@ -339,6 +282,7 @@ optional<Data> Security::getPolicyLines(const string &id) {
     L_ERROR("policy missing");
     return nullopt;
   }
+  L_TRACE("policy " << Dict::toString(policy->dict()));
   
   boost::json::array lines;
   auto accesses = policy.value().accesses();
@@ -609,7 +553,7 @@ optional<string> Security::generateShareLink(const string &me, const string &url
     L_ERROR("Could not find in " << coll);
     return nullopt;
   }
-  auto bits = Json::getNumber(obj.value(), bitsfield);
+  auto bits = Dict::getNum(obj.value(), bitsfield);
   if (!bits) {
     L_ERROR("Obj had no " + bitsfield);
     return nullopt;

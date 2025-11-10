@@ -15,13 +15,15 @@
 #include "storage/collectioni.hpp"
 #include "storage/resulti.hpp"
 #include "date.hpp"
-#include "data.hpp"
 #include "json.hpp"
+#include "dict.hpp"
 
 #include "log.hpp"
 #include <fstream>
 #include <wordexp.h>
 #include <sstream>
+
+using namespace vops;
 
 namespace nodes {
 
@@ -48,17 +50,25 @@ void Storage::init(const string &dbConn, const string &dbName, const string &sch
   
   ifstream file(fn);
   if (file) {
-    string input(istreambuf_iterator<char>(file), {});
-    try {
-      auto json = boost::json::parse(input);
-      if (!json.is_array()) {
-        L_ERROR("file does not contain array");
+    auto json = Dict::parseStream(file);
+    if (!json) {
+      L_ERROR("error loading schema from " << fn);
+      return;
+    }
+    auto v = Dict::getVector(*json);
+    if (!v) {
+      L_ERROR("schema is not array");
+      return;
+    }
+    // our schema contains objects rather than being a generic vector.
+    _schema.clear();
+    transform(v->begin(), v->end(), back_inserter(_schema), [](auto e) {
+      auto o = Dict::getObject(e);
+      if (o) {
+        return *o;
       }
-      _schema = json.as_array();
-    }
-    catch (exception &e) {
-      L_ERROR("error loading schema " << e.what());
-    }
+      return DictO();
+    });
   }
   else {
     L_ERROR("schema file not found");
@@ -66,18 +76,18 @@ void Storage::init(const string &dbConn, const string &dbName, const string &sch
   
 }
 
-optional<Data> Storage::searchSchema(const string &type) {
+optional<DictO> Storage::searchSchema(const string &type) {
 
-  for (auto s: _schema) {
-    auto t = Json::getString(s, "type");
-    if (t && t.value() == type) {
-      return Data(s.as_object());
+  for (auto o: _schema) {
+    auto t = Dict::getString(o, "type");
+    if (t && *t == type) {
+      return o;
     }
-    auto subobj = Json::getObject(s, "subobj", true);
+    auto subobj = Dict::getObject(o, "subobj");
     if (subobj) {
-      t = Json::getString(subobj.value(), "type");
-      if (t && t.value() == type) {
-        return Data(subobj.value().as_object());
+      t = Dict::getString(*subobj, "type");
+      if (t && *t == type) {
+        return *subobj;
       }
     }
   }
@@ -94,16 +104,16 @@ bool Storage::collName(const string &type, string *name, bool checkinternal) {
   }
   
   if (checkinternal) {
-    auto internal = Json::getBool(scheme.value(), "internal", true);
-    if (internal && internal.value()) {
+    auto internal = Dict::getBool(scheme, "internal");
+    if (internal && *internal) {
       L_TRACE(type << " is internal. Use the Schema objects");
       return false;
     }
   }
   
-  auto coll = Json::getString(scheme.value(), "coll", true);
+  auto coll = Dict::getString(scheme, "coll");
   
-  *name = coll ? coll.value() : (type + "s");
+  *name = coll ? *coll: (type + "s");
   
   return true;
 
@@ -112,28 +122,28 @@ bool Storage::collName(const string &type, string *name, bool checkinternal) {
 bool Storage::parentInfo(const string &type, string *parentfield, optional<string *> parenttype, optional<string *> namefield) {
 
   for (auto o: _schema) {
-    auto subobj = Json::getObject(o, "subobj", true);
+    auto subobj = Dict::getObject(o, "subobj");
     if (subobj) {
-      auto subtype = Json::getString(subobj.value(), "type");
+      auto subtype = Dict::getString(subobj.value(), "type");
       if (!subtype) {
-        L_ERROR("type missing in schema subobj " << subobj.value());
+        L_ERROR("type missing in schema subobj " << Dict::toString(subobj.value()));
         return false;
       }
       if (subtype.value() == type) {
-        auto field = Json::getString(subobj.value(), "field");
+        auto field = Dict::getString(subobj.value(), "field");
         if (!field) {
-          L_ERROR("field missing in schema subobj " << subobj.value());
+          L_ERROR("field missing in schema subobj " << Dict::toString(subobj.value()));
           return false;
         }
         *parentfield = field.value();
         if (parenttype) {
-          auto type = Json::getString(o, "type");
+          auto type = Dict::getString(o, "type");
           if (type) {
             *(parenttype.value()) = type.value();
           }
         }
         if (namefield) {
-          auto f = Json::getString(subobj.value(), "namefield", true);
+          auto f = Dict::getString(subobj.value(), "namefield");
           if (f) {
             *(namefield.value()) = f.value();
           }
@@ -208,38 +218,54 @@ private:
   
 };
 
-bool Storage::bulkInsert(const string &collName, Data &objs) {
+bool Storage::bulkInsert(const string &collName, const vector<DictO> &objs) {
 
   L_TRACE("bulkInsert to " << collName);
  
   auto schema = GenericSchema(collName);
   for (auto i: objs) {
-    Data obj = i;
-    
-//    L_TRACE("insert obj " << obj);
+  
+    // the object we will be inserting.
+    DictO obj;
 
+    // get the id.
     string id;
-    if (obj.as_object().if_contains("_id")) {
-      id = obj.as_object()["_id"].as_string();
-    }
-    else if (obj.as_object().if_contains("id")) {
-      id = obj.as_object()["id"].as_string();
-      obj.as_object().erase("id");
+    auto sid = Dict::getString(i, "_id");
+    if (sid) {
+      id = *sid;
     }
     else {
-      L_ERROR("no id or _id");
-      return false;
+      auto oid = Dict::getString(i, "id");
+      if (oid) {
+        id = *oid;
+        // no way to remove from an obj, just don't copy it.
+      }
+      else {
+        L_ERROR("no id or _id");
+        return false;
+      }
     }
     
-    obj.as_object()["_id"] = {
+    // create the id.
+    obj["_id"] = dictO({
       { "$oid", id }
-    };
-    
-    if (obj.as_object().if_contains("modifyDate") && obj.at("modifyDate").is_string()) {
+    });
+
+    // the modify date is not just a string.
+    auto mod = Dict::getString(i, "modifyDate");
+    if (mod) {
       L_TRACE("converting string modify date");
-      obj.as_object()["modifyDate"] = {
-        { "$date", Date::fromISODate(obj.at("modifyDate").as_string().c_str()) }
-      };
+      obj["modifyDate"] = dictO({
+        { "$date", Date::fromISODate(*mod) }
+      });
+    }
+    
+    // copy every other field.
+    for (auto f: i) {
+      auto key = get<0>(f);
+      if (key != "_id" && key != "id" && key != "modifyDate") {
+        obj[key] = get<1>(f);
+      }
     }
     
     auto result = schema.insert(obj);
@@ -248,8 +274,15 @@ bool Storage::bulkInsert(const string &collName, Data &objs) {
       return false;
     }
     if (result.value() == "exists") {
-      obj.as_object().erase("_id");
-      auto result = schema.updateById(id.c_str(), obj);
+      DictO r;
+      // copy all but "_id"
+      for (auto f: obj) {
+        auto key = get<0>(f);
+        if (key != "_id") {
+          r[key] = get<1>(f);
+        }
+      }
+      auto result = schema.updateById(id, r);
       if (!result) {
         L_ERROR("update failed");
         return false;
@@ -260,10 +293,57 @@ bool Storage::bulkInsert(const string &collName, Data &objs) {
   
 }
 
+DictO Storage::getNowO() {
+
+  return dictO({ { "$date", Date::now() } });
+  
+}
+
 Data Storage::getNow() {
 
   return { { "$date", Date::now() } };
   
+}
+
+
+bool Storage::hasArrayValue(const DictV &arr, const string &val) {
+
+  return find_if(arr.begin(), arr.end(), [&](auto e) {
+    auto s = Dict::getString(e);
+    return s && *s == val;
+  }) != arr.end();
+
+}
+
+bool Storage::appendArray(DictO *obj, const string &name, const string &val) {
+
+  DictV arr;
+  
+  auto v = Dict::getVector(*obj, name);
+  if (v) {
+    copy(v->begin(), v->end(), back_inserter(arr));
+  }
+  
+  if (hasArrayValue(arr, val)) {
+    return false;
+  }
+  
+  arr.push_back(val);
+  
+  (*obj)[name] = arr;
+  
+  return true;
+  
+}
+
+bool Storage::arrayHas(const DictO &obj, const string &name, const string &val) {
+
+  auto v = Dict::getVector(obj, name);
+  if (!v) {
+    return false;
+  }
+  return hasArrayValue(*v, val);
+
 }
 
 } // nodes

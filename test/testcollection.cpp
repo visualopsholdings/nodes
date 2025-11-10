@@ -13,12 +13,14 @@
 
 #include "storage/collectioni.hpp"
 #include "data.hpp"
+#include "dict.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace nodes;
+using namespace vops;
 
 void checkId(boost::json::value &j) {
 
@@ -28,63 +30,69 @@ void checkId(boost::json::value &j) {
   
 }
 
+void checkId(const DictG &g) {
+
+  auto o = Dict::getObject(g);
+  BOOST_CHECK(o);
+  BOOST_CHECK(Dict::getString(*o, "id"));
+  
+}
+
 BOOST_AUTO_TEST_CASE( goodIds )
 {
   cout << "=== goodIds ===" << endl;
   
   CollectionImpl impl;
 
-  Data obj = {
-    { "_id", {
+  DictO obj = dictO({
+    { "_id", dictO({
         { "$oid", "yyyy" }
-      }
+      })
     }
-  };
-  Data arr =
+  });
+  DictV arr =
   {
-    {
-      { "_id", {
+    dictO({
+      { "_id", dictO({
           { "$oid", "aaaa" }
-        }
+        })
       }
-    },
-    {
-      { "_id", {
+    }),
+    dictO({
+      { "_id", dictO({
           { "$oid", "bbbb" }
-        }
+        })
       }
-    },
+    }),
     // test for non objects in the array
     "cccc",
     42
   };
-  auto doc = impl.fixObjects({
-    { "_id", {
+  auto doc = impl.fixObjects(dictO({
+    { "_id", dictO({
         { "$oid", "xxxx" }
-      }
+      })
     },
     { "obj", obj },
     { "arr", arr }
-  });
+  }));
 //  cout << doc << endl;
   checkId(doc);
-  BOOST_CHECK_EQUAL(doc.at("id").as_string(), "xxxx");
+  BOOST_CHECK_EQUAL(*Dict::getString(doc, "id"), "xxxx");
   
-  BOOST_CHECK(doc.as_object().if_contains("obj"));
-  auto subobj = doc.at("obj");
-  checkId(subobj);
-  BOOST_CHECK_EQUAL(subobj.at("id").as_string(), "yyyy");
+  auto subobj = Dict::getObject(doc, "obj");
+  checkId(*subobj);
+  BOOST_CHECK_EQUAL(*Dict::getString(*subobj, "id"), "yyyy");
   
-  BOOST_CHECK(doc.as_object().if_contains("arr"));
-  BOOST_CHECK(doc.at("arr").is_array());
-  auto subarr = doc.at("arr").as_array();
-  BOOST_CHECK_EQUAL(subarr.size(), 4);
-  checkId(subarr[0]);
-  BOOST_CHECK_EQUAL(subarr[0].at("id").as_string(), "aaaa");
-  checkId(subarr[1]);
-  BOOST_CHECK_EQUAL(subarr[1].at("id").as_string(), "bbbb");
-  BOOST_CHECK_EQUAL(subarr[2].as_string(), "cccc");
-  BOOST_CHECK_EQUAL(subarr[3].as_int64(), 42);
+  auto subarr = Dict::getVector(doc, "arr");
+  BOOST_CHECK(subarr);
+  BOOST_CHECK_EQUAL(subarr->size(), 4);
+  checkId((*subarr)[0]);
+  BOOST_CHECK_EQUAL(*Dict::getStringG((*subarr)[0], "id"), "aaaa");
+  checkId((*subarr)[1]);
+  BOOST_CHECK_EQUAL(*Dict::getStringG((*subarr)[1], "id"), "bbbb");
+  BOOST_CHECK_EQUAL(*Dict::getString((*subarr)[2]), "cccc");
+  BOOST_CHECK_EQUAL(*Dict::getNum((*subarr)[3]), 42);
 
 }
 
@@ -94,13 +102,11 @@ BOOST_AUTO_TEST_CASE( badIds )
   
   CollectionImpl impl;
 
-  auto doc = impl.fixObjects({
+  auto doc = impl.fixObjects(dictO({
     { "_id", "xxxx" }
-  });
-//  cout << doc << endl;
-  BOOST_CHECK(doc.is_object());
-  BOOST_CHECK(doc.at("_id").is_string());
-  BOOST_CHECK_EQUAL(doc.at("_id").as_string(), "xxxx");
+  }));
+//   cout << Dict::toString(doc) << endl;
+  BOOST_CHECK_EQUAL(*Dict::getString(doc, "_id"), "xxxx");
   
 }
 
@@ -110,15 +116,14 @@ BOOST_AUTO_TEST_CASE( noOID )
   
   CollectionImpl impl;
 
-  auto doc = impl.fixObjects({
-    { "_id", {
+  auto doc = impl.fixObjects(dictO({
+    { "_id", dictO({
         { "string", "xxxx" }
-      }
+      })
     }
-  });
+  }));
 //  cout << doc << endl;
-  BOOST_CHECK(doc.is_object());
-  BOOST_CHECK(doc.at("_id").is_object());
+  BOOST_CHECK(Dict::getObject(doc, "_id"));
   
 }
 
@@ -128,16 +133,16 @@ BOOST_AUTO_TEST_CASE( goodDate )
   
   CollectionImpl impl;
 
-  auto doc = impl.fixObjects({
-    { "modifyDate", {
+  auto doc = impl.fixObjects(dictO({
+    { "modifyDate", dictO({
         { "$date", 1722068626483 }
-      }
+      })
     }
-  });
+  }));
 //  cout << doc << endl;
-  BOOST_CHECK(doc.is_object());
-  BOOST_CHECK(doc.at("modifyDate").is_string());
-  BOOST_CHECK_EQUAL(doc.at("modifyDate").as_string(), "2024-07-27T08:23:46.483+00:00");
+  auto mod = Dict::getString(doc, "modifyDate");
+  BOOST_CHECK(mod);
+  BOOST_CHECK_EQUAL(*mod, "2024-07-27T08:23:46.483+00:00");
   
 }
 
@@ -147,16 +152,16 @@ BOOST_AUTO_TEST_CASE( number )
   
   CollectionImpl impl;
 
-  auto doc = impl.fixObjects({
-    { "_id", {
+  auto doc = impl.fixObjects(dictO({
+    { "_id", dictO({
         { "$oid", "xxxx" }
-      }
+      })
     },
     { "name", "Collection 1" },
     { "stuff", 2048 }
-  });
+  }));
 //  cout << doc << endl;
-  BOOST_CHECK(doc.is_object());
+  BOOST_CHECK_EQUAL(*Dict::getNum(doc, "stuff"), 2048);
   
 }
 

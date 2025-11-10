@@ -29,6 +29,7 @@
 #include <boost/json.hpp>
 
 using namespace std;
+using vops::DictO;
 using vops::DictG;
 
 namespace nodes {
@@ -57,6 +58,9 @@ public:
   Data(boost::json::value &init) : boost::json::value(init) {}
   Data(initializer_list<boost::json::value_ref> init) : boost::json::value(init) {}
   Data(const string &s);
+
+  Data(const DictG &g);
+    // convert from newstyle.
     
   bool has(const string &name);
     // does it have the key.
@@ -83,7 +87,7 @@ public:
    
   void pretty_print(ostream& os) const;
 
-  DictG dict();
+  DictO dict() const;
     // convert to a newstyle dict.
     
 private:

@@ -16,13 +16,11 @@
 #include "log.hpp"
 #include "dict.hpp"
 
-using namespace vops;
-
 namespace nodes {
 
 void nodesMsg(Server *server, const IncomingMsg &in) {
 
-  auto docs = Node().find({{}}).all();
+  auto docs = Node().find(dictO({})).all();
   
   DictV s;
   if (docs) {

@@ -87,8 +87,8 @@ void addObjectMsg(Server *server, Data &j) {
         server->sendErr("invalid " + parenttype);
         return;
       }
-      L_TRACE(doc.value());
-      auto policy = doc.value().getString("policy");
+      L_TRACE(Dict::toString(doc.value()));
+      auto policy = Dict::getString(doc.value(), "policy");
       if (!policy) {
         server->sendErr(parenttype + " missing policy");
         return;

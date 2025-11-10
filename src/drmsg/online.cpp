@@ -73,12 +73,12 @@ void onlineMsg(Server *server, Data &j) {
     }
   }
   
-  server->sendDown({
+  server->sendDown(dictO({
     { "type", "upstream" },
     { "id", server->_serverId },
     { "valid", valid },
     { "dest", src }   
-  });
+  }));
   
 }
 

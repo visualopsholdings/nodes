@@ -34,7 +34,6 @@
 #define MAX_OBJECTS         50 // maximum objects at a time.
 
 using namespace nodes;
-using namespace vops;
 
 namespace nodes {
 
@@ -90,7 +89,7 @@ void buildMsg(Server *server, Data &data);
 void upstreamMsg(Server *server, Data &data);
 void dateMsg(Server *server, Data &data);
 void sendOnMsg(Server *server, Data &data);
-void discoverResultMsg(Server *server, Data &data);
+void discoverResultMsg(Server *server, const IncomingMsg &in);
 
 // remoteMsgSub handlers
 void updSubMsg(Server *server, Data &data);
@@ -98,7 +97,7 @@ void addSubMsg(Server *server, Data &data);
 
 // dataRep handles
 void onlineMsg(Server *server, Data &data);
-void discoverLocalMsg(Server *server, Data &data);
+void discoverLocalMsg(Server *server, const IncomingMsg &in);
 void heartbeatMsg(Server *server, Data &data);
 void queryDrMsg(Server *server, Data &data);
 void updDrMsg(Server *server, Data &data);
@@ -197,7 +196,7 @@ Server::Server(bool test, bool noupstream,
     // the server has inserted all the local stuff, discover what's out there.
     sendUpDiscover();
   };
-  _remoteDataReqMessages["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
+  _remoteDataReqMessages2["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
   _remoteDataReqMessages["ack"] =  [&](Data &) {
     L_TRACE("ack");
   };
@@ -207,10 +206,10 @@ Server::Server(bool test, bool noupstream,
   _remoteMsgSubMessages["add"] =  bind(&nodes::addSubMsg, this, placeholders::_1);
 
   _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
-  _dataRepMessages["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
+  _dataRepMessages2["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
   _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
-  _dataRepMessages["discover"] =  [&](Data &data) {
-    sendDownDiscoverResult(data);
+  _dataRepMessages2["discover"] =  [&](const IncomingMsg &in) {
+    sendDownDiscoverResult(in);
   };
 
   _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
@@ -257,7 +256,7 @@ void Server::runUpstreamOnly() {
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages, nullopt);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages, _remoteDataReqMessages2);
     }
     if (items[2].revents & ZMQ_POLLIN) {
       if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages, nullopt)) {
@@ -300,10 +299,10 @@ void Server::runUpstreamDownstream() {
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages, nullopt);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages, _remoteDataReqMessages2);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages, nullopt)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages, _dataRepMessages2)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -359,7 +358,7 @@ void Server::runDownstreamOnly() {
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages, nullopt)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages, _dataRepMessages2)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -541,6 +540,14 @@ json Server::receiveFrom(shared_ptr<zmq::socket_t> socket) {
 
 }
 
+void Server::setSrc(DictO *m) {
+
+  if (!Storage::appendArray(m, "path", _serverId)) {
+    L_ERROR(_serverId << " is already in the path!");
+  }
+  
+}
+
 void Server::setSrc(boost::json::object *m) {
 
   if (!Json::appendArray(m, "path", _serverId)) {
@@ -549,20 +556,42 @@ void Server::setSrc(boost::json::object *m) {
   
 }
 
+bool Server::getSrc(const IncomingMsg &in, string *s) {
+
+  if (!in.path) {
+    L_ERROR("missing path in msg");
+    return false;
+  }
+  if (in.path->size() == 0) {
+    L_ERROR("path is empty in message");
+    return false;
+  }
+  *s = in.path->back();
+  return true;
+
+}
+
 bool Server::getSrc(json &msg, string *s) {
 
   return Json::arrayTail(msg.as_object(), "path", s);
 
 }
 
-bool Server::wasFromUs(json &msg) {
+bool Server::wasFromUs(const DictO &msg) {
+
+  // make sure it's not on the path either.
+  return Storage::arrayHas(msg, "path", _serverId);
+  
+}
+
+bool Server::wasFromUs(const Data &msg) {
 
   // make sure it's not on the path either.
   return Json::arrayHas(msg.as_object(), "path", _serverId);
   
 }
 
-void Server::sendDown(const json &m) {
+void Server::sendDown(const DictO &m) {
 
   sendTo(_dataRep->socket(), m, "dr-> ", nullopt);
   
@@ -572,6 +601,21 @@ void Server::sendDown(const std::string &m) {
 
   sendTo(_dataRep->socket(), m, "dr-> ");
   
+}
+
+void Server::pubDown(const DictO &m) {
+
+  // no destination for publishes.
+  DictO m2 = m;
+  // TBD: how do we do this with copy_if etc.
+  for (auto i: m) {
+    if (get<0>(i) != "dest") {
+      m2[get<0>(i)] = get<1>(i);
+    }
+  }
+  
+  sendTo(_msgPub->socket(), m2, "mp-> ", nullopt);
+
 }
 
 void Server::pubDown(const json &m) {
@@ -584,44 +628,44 @@ void Server::pubDown(const json &m) {
 
 }
 
-void Server::sendOn(const json &origm) {
+void Server::sendOn(const DictO &origm) {
 
-  auto data = Json::getObject(origm, "data");
+  auto data = Dict::getObject(origm, "data");
   if (!data) {
     L_ERROR("sendOn message has no data");
     return;
   }
-  auto type = Json::getString(data.value(), "type");
+  auto type = Dict::getString(data.value(), "type");
   if (!type) {
     L_ERROR("sendOn message data has no type");
     return;
   }
-  auto obj = Json::getObject(data.value(), "obj");
+  auto obj = Dict::getObject(data.value(), "obj");
   if (!obj) {
     L_ERROR("sendOn message data has no obj");
     return;
   }
   
-  boost::json::object msg = origm.as_object();
+  auto msg = origm;
   setSrc(&msg);
 
-  if (hasUpstream() && (isObjUpstream(obj.value().as_object()) || isObjParentUpstream(type.value(), obj.value().as_object()))) {
+  if (hasUpstream() && (isObjUpstream(obj.value()) || isObjParentUpstream(type.value(), obj.value()))) {
     L_TRACE("sendOn");
     msg["dest"] = _upstreamId;
     sendDataReq(nullopt, msg);
   }
   
   // try to find the id. It's either in the object or in the message data
-  auto id = Json::getString(data.value(), "id", true);
+  auto id = Dict::getString(data.value(), "id");
   if (!id) {
-    id = Json::getString(obj.value(), "id");
+    id = Dict::getString(obj.value(), "id");
   }
   if (!id) {
     L_ERROR("sendOn message data and obj has no id");
     return;
   }
   
-  if (hasValidNodes() && shouldSendDown("on", type.value(), id.value(), obj.value().as_object())) {
+  if (hasValidNodes() && shouldSendDown("on", type.value(), id.value(), obj.value())) {
     L_TRACE("publish down");
     pubDown(msg);
   }
@@ -780,7 +824,7 @@ bool Server::testModifyDate(const IncomingMsg &m, const DictG &obj) {
 
   if (m.test) {
     if (m.test->time) {
-      auto modDate = Dict::getString(Dict::getObject(obj), "modifyDate");
+      auto modDate = Dict::getStringG(obj, "modifyDate");
       if (!modDate) {
         L_ERROR("modifyDate missing");
         return false;
@@ -823,6 +867,12 @@ void Server::sendObject(const IncomingMsg &m, const string &name, const DictG &o
 
 }
 
+void Server::sendDataReq(optional<string> corr, const DictO &m) {
+
+  sendTo(_remoteDataReq->socket(), m, "rdr-> ", corr);
+  
+}
+
 void Server::sendDataReq(optional<string> corr, const json &m) {
 
   sendTo(_remoteDataReq->socket(), m, "rdr-> ", corr);
@@ -844,7 +894,11 @@ void Server::stopUpstream() {
 
 void Server::clearUpstream() {
 
-  Info().deleteMany({{ "type", { { "$in", {"upstream", "upstreamPubKey", "hasInitialSync", "upstreamLastSeen"}}} }});
+  Info().deleteMany(dictO({{ 
+    "type", dictO({{ 
+      "$in", DictV({"upstream", "upstreamPubKey", "hasInitialSync", "upstreamLastSeen"})
+    }}) 
+  }}));
 
   systemStatus("Server orphaned");
   stopUpstream();
@@ -864,7 +918,11 @@ void Server::connectUpstream() {
 
   stopUpstream();
   
-  auto docs = Info().find({{ "type", { { "$in", {"serverId", "upstream", "upstreamPubKey", "privateKey", "pubKey"}}} }}, {"type", "text"}).all();
+  auto docs = Info().find(dictO({{ 
+    "type", dictO({{ 
+      "$in", DictV({"serverId", "upstream", "upstreamPubKey", "privateKey", "pubKey"}) 
+    }})
+  }}), {"type", "text"}).all();
   if (!docs) {
     L_INFO("no infos.");
     return;
@@ -927,17 +985,21 @@ void Server::sendUpOnline() {
 
   L_TRACE("online");
 
-  auto doc = Site().find({{}}, {}).one();
+  auto doc = Site().find(dictO({}), {}).one();
   if (!doc) {
     L_INFO("no site.");
     return;
   }
   
-  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamMirror"}}} }}, {"type", "text"}).all();
+  auto infos = Info().find(dictO({{ 
+    "type", dictO({{ 
+      "$in", DictV({"hasInitialSync", "upstreamMirror"})
+    }}) 
+  }}), {"type", "text"}).all();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
   string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "false");
 
-  boost::json::object msg = {
+  DictO msg = dictO({
     { "type", "online" },
     { "build", "28474" },
     { "headerTitle", doc.value().headerTitle() },
@@ -945,7 +1007,7 @@ void Server::sendUpOnline() {
     { "pubKey", _pubKey },
     { "synced", hasInitialSync == "true" },
     { "mirror", upstreamMirror == "true" }
-  };
+  });
   setSrc(&msg);  
   sendDataReq(nullopt, msg);
   
@@ -960,9 +1022,9 @@ void Server::sendUpHeartbeat() {
   }
   _lastHeartbeat = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   
-  boost::json::object msg = {
+  DictO msg = dictO({
     { "type", "heartbeat" }
-  };
+  });
   setSrc(&msg);  
 	sendDataReq(nullopt, msg);
 	
@@ -970,10 +1032,10 @@ void Server::sendUpHeartbeat() {
 
 bool Server::setInfo(const string &name, const string &text) {
 
-  auto doc = Info().find({{ "type", name }}, {"text"}).one();
+  auto doc = Info().find(dictO({{ "type", name }}), {"text"}).one();
   if (doc) {
-    L_TRACE("info old value " << doc.value().d());
-    auto result = Info().update({{ "type", name }}, {{ "text", text }});
+    L_TRACE("info old value " << Dict::toString(doc.value().dict()));
+    auto result = Info().update(dictO({{ "type", name }}), dictO({{ "text", text }}));
     if (!result) {
       L_ERROR("could not update info");
       return false;
@@ -982,10 +1044,10 @@ bool Server::setInfo(const string &name, const string &text) {
     return true;
   }
 
-  auto result = Info().insert({
+  auto result = Info().insert(dictO({
     { "type", name },
     { "text", text }
-  });
+  }));
   if (!result) {
     L_ERROR("could not insert info");
     return false;
@@ -1026,8 +1088,11 @@ bool Server::resetServer() {
   }
     
   // clear out all these flags.
-  Info().deleteMany({{ "type", { { "$in", {"upstream", "upstreamPubKey", "upstreamMirror", 
-    "hasInitialSync", "upstreamLastSeen" }}} }});
+  Info().deleteMany(dictO({{ 
+    "type", dictO({{ 
+      "$in", DictV({"upstream", "upstreamPubKey", "upstreamMirror", "hasInitialSync", "upstreamLastSeen" })
+    }})
+  }}));
   
   // make sure to start security again.
   Security::rebuild();
@@ -1037,7 +1102,7 @@ bool Server::resetServer() {
 
 string Server::get1Info(const string &type) {
 
-  auto docs = Info().find({{ "type", type }}).all();
+  auto docs = Info().find(dictO({{ "type", type }})).all();
   if (!docs) {
     return "";
   }
@@ -1067,7 +1132,7 @@ string Server::zeroDate() {
   
 }
 
-string Server::getLastDate(optional<Data> rows, const string &hasInitialSync, const string &date, bool all) {
+string Server::getLastDate(optional<DictV> rows, const string &hasInitialSync, const string &date, bool all) {
 
   L_TRACE("getLastDate rows " << (rows ? rows.value().size() : 0) << " all " << all);
   
@@ -1077,12 +1142,12 @@ string Server::getLastDate(optional<Data> rows, const string &hasInitialSync, co
     if (hasInitialSync == "true" || all) {
       // does any of the rows have a null date?
       bool hasNullDate = find_if(rows.value().begin(), rows.value().end(), [zd](auto e) { 
-        return Json::getString(e, "modifyDate") == zd;
+        return Dict::getStringG(e, "modifyDate") == zd;
       }) != rows.value().end();
       if (hasNullDate) {
         return zd;
       }
-      auto d = Json::getString(*(rows.value().begin()), "modifyDate");
+      auto d = Dict::getStringG(*(rows.value().begin()), "modifyDate");
       if (d) {
         L_TRACE("returning " << d.value());
         return d.value();
@@ -1103,26 +1168,25 @@ string Server::getCollName(const string &type, optional<string> coll) {
   
 }
 
-optional<Data> Server::getSubobjsLatest(const Data &subobj, const vector<string> &ids, const string &hasInitialSync, const string &upstreamLastSeen, bool collzd) {
+optional<DictV> Server::getSubobjsLatest(const DictO &subobj, const vector<string> &ids, const string &hasInitialSync, const string &upstreamLastSeen, bool collzd) {
 
   L_TRACE("getSubobjsLatest");
   
-  auto type = Json::getString(subobj, "type");
+  auto type = Dict::getString(subobj, "type");
   if (!type) {
-    L_ERROR("type missing in schema obj " << subobj);
+    L_ERROR("type missing in schema obj " << Dict::toString(subobj));
     return {};
   }
-  string collname = getCollName(type.value(), Json::getString(subobj, "coll", true));
-  auto field = Json::getString(subobj, "field");
-  DataArray a;
-  Data d(a);
+  string collname = getCollName(type.value(), Dict::getString(subobj, "coll"));
+  auto field = Dict::getString(subobj, "field");
+  DictV d;
   for (auto id: ids) {
     // make sure to ignore all locally new objects when getting the latest.
-    Data q = {{ "localNew", {{ "$ne", true }}}};
+    DictO q = dictO({{ "localNew", dictO({{ "$ne", true }})}});
     if (id != "*") {
-      q.setString(field.value(), id);
+      q[field.value()] = id;
     }
-    auto objs = SchemaImpl::findGeneral(collname, q, { "_id", "modifyDate" }, 1, Data{{ "modifyDate", -1 }});
+    auto objs = SchemaImpl::findGeneral(collname, q, { "_id", "modifyDate" }, 1, dictO({{ "modifyDate", -1 }}));
     if (!objs) {
       L_ERROR("couldn't find subobjs");
       return {};
@@ -1131,10 +1195,10 @@ optional<Data> Server::getSubobjsLatest(const Data &subobj, const vector<string>
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
-    d.push_back({
+    d.push_back(dictO({
       { "id", id },
       { lastname, lastseen }
-    });
+    }));
   }
   
   L_TRACE("returning " << d.size() << " objs");
@@ -1144,24 +1208,28 @@ optional<Data> Server::getSubobjsLatest(const Data &subobj, const vector<string>
 
 void Server::sendUpDiscover() {
 
-  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).all();
+  auto infos = Info().find(dictO({{ 
+    "type", dictO({{ 
+      "$in", DictV({"hasInitialSync", "upstreamLastSeen", "upstreamMirror"})
+    }})
+  }}), {"type", "text"}).all();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
   string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
   string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "");
   
-  boost::json::object msg = {
+  DictO msg = dictO({
     { "type", "discover" },
     { "hasInitialSync", hasInitialSync == "true" }
-  };
+  });
 
   for (auto o: Storage::instance()->_schema) {
-    auto type = Json::getString(o, "type");
+    auto type = Dict::getString(o, "type");
     if (!type) {
-      L_ERROR("type missing in schema obj " << o);
+      L_ERROR("type missing in schema obj " << Dict::toString(o));
       return;
     }
     
-    string collname = getCollName(type.value(), Json::getString(o, "coll", true));
+    string collname = getCollName(type.value(), Dict::getString(o, "coll"));
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
@@ -1174,10 +1242,14 @@ void Server::sendUpDiscover() {
       colldate = getLastDate(nullopt, hasInitialSync, upstreamLastSeen, true);
     }
     else {
-      auto objs = SchemaImpl::findGeneral(collname, {{ "upstream", true }}, { "_id", "modifyDate" }, nullopt)->all();
+      auto objs = SchemaImpl::findGeneral(collname, dictO({{ "upstream", true }}), { "_id", "modifyDate" }, nullopt)->all();
       if (objs) {
         transform(objs.value().begin(), objs.value().end(), back_inserter(ids), [](auto e) {
-          return e.as_object().at("id").as_string().c_str(); 
+          auto s = Dict::getStringG(e, "id");
+          if (s) {
+            return *s;
+          }
+          return string("??");
         });
       }
       colldate = getLastDate(objs, hasInitialSync, upstreamLastSeen, false);
@@ -1185,7 +1257,7 @@ void Server::sendUpDiscover() {
     
     msg[lastname] = colldate;
     
-    auto subobj = Json::getObject(o, "subobj", true);
+    auto subobj = Dict::getObject(o, "subobj");
     if (subobj) {
       auto d = getSubobjsLatest(subobj.value(), ids, hasInitialSync, upstreamLastSeen, colldate == zeroDate());
       if (!d) {
@@ -1194,7 +1266,11 @@ void Server::sendUpDiscover() {
       msg[collname] =  d.value();
     }
     else {
-      msg[collname] =  boost::json::value_from(ids);
+      DictV v;
+      transform(ids.begin(), ids.end(), back_inserter(v), [](auto e) {
+        return DictG(e);
+      });
+      msg[collname] = v;
     }
   }
   setSrc(&msg);
@@ -1203,16 +1279,18 @@ void Server::sendUpDiscover() {
 
 }
 
-void Server::unmarkAll(const json &obj) {
+void Server::unmarkAll(const DictO &obj) {
 
-  auto type = Json::getString(obj, "type");
+  auto type = Dict::getString(obj, "type");
   if (!type) {
-    L_ERROR("type missing in schema obj " << obj);
+    L_ERROR("type missing in schema obj " << Dict::toString(obj));
     return;
   }
-  string collname = getCollName(type.value(), Json::getString(obj, "coll", true));
+  string collname = getCollName(type.value(), Dict::getString(obj, "coll"));
 
-  if (!SchemaImpl::updateGeneral(collname, {{ "localNew", true }}, {{ "$unset", {{ "localNew", "" }} }})) {
+  if (!SchemaImpl::updateGeneral(collname, 
+      dictO({{ "localNew", true }}), 
+      dictO({{ "$unset", dictO({{ "localNew", "" }}) }}))) {
     L_ERROR("unable to unmark object");
   }
 
@@ -1229,7 +1307,7 @@ void Server::discoveryComplete() {
   // noce to have a pattern for this.
   for (auto o: Storage::instance()->_schema) {
     unmarkAll(o);
-    auto subobj = Json::getObject(o, "subobj", true);
+    auto subobj = Dict::getObject(o, "subobj");
     if (subobj) {
       unmarkAll(subobj.value());
     }
@@ -1239,7 +1317,7 @@ void Server::discoveryComplete() {
 
 #ifdef MONGO_DB
 bool Server::collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
-    boost::json::array *data, vector<string> *policies, optional<int> limit, bool mark) {
+    DictV *data, vector<string> *policies, optional<int> limit, bool mark) {
 
   // fetch 1 more than the limit.
   optional<int> fetchlimit;
@@ -1248,7 +1326,7 @@ bool Server::collectObjs(const string &type, const string &collname, bsoncxx::do
   }
   
   bool more = false;
-  auto result = SchemaImpl::findGeneral(collname, q, {}, fetchlimit, Data{{ "modifyDate", 1 }});
+  auto result = SchemaImpl::findGeneral(collname, q, {}, fetchlimit, dictO({{ "modifyDate", 1 }}));
   if (result) {
     auto vals = result->all();
     if (vals) {
@@ -1258,21 +1336,21 @@ bool Server::collectObjs(const string &type, const string &collname, bsoncxx::do
         // remove the last 1 since only 1 extra
         val.pop_back();
       }
-      json obj = {
+      DictO obj = dictO({
         { "type", type },
         { "objs", val }
-      };
+      });
       data->push_back(obj);
       
       // collect all the policies of the objects, and mark if necessary
       for (auto i: val) {
         if (mark) {
           // we mark all objects to ignore when querying locally for changes.
-          if (!SchemaImpl::updateGeneralById(collname, Json::getString(i, "id").value(), {{ "$set", {{ "localNew", true }} }})) {
+          if (!SchemaImpl::updateGeneralById(collname, Dict::getStringG(i, "id").value(), dictO({{ "$set", dictO({{ "localNew", true }}) }}))) {
             L_ERROR("unable to mark object");
           }
         }
-        auto p = Json::getString(i, "policy", true);
+        auto p = Dict::getStringG(i, "policy");
         if (p) {
           if (find(policies->begin(), policies->end(), p.value()) == policies->end()) {
             policies->push_back(p.value());
@@ -1287,7 +1365,7 @@ bool Server::collectObjs(const string &type, const string &collname, bsoncxx::do
 }
 #endif
 
-void Server::collectPolicies(const vector<string> &policies, boost::json::array *data) {
+void Server::collectPolicies(const vector<string> &policies, DictV *data) {
 
 #ifdef MONGO_DB
   auto q = SchemaImpl::idRangeQuery(policies);
@@ -1295,10 +1373,10 @@ void Server::collectPolicies(const vector<string> &policies, boost::json::array 
   if (result) {
     auto vals = result->all();
     if (vals) {
-      json obj = {
+      DictO obj = dictO({
         { "type", "policy" },
         { "objs", vals.value() }
-      };
+      });
       data->push_back(obj);
     }
   }
@@ -1313,44 +1391,44 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
 #ifdef MONGO_DB
   auto q = SchemaImpl::boolFieldEqualAfterDateQuery("upstream", true, upstreamLastSeen);
 
-  boost::json::array data;
+  DictV data;
   vector<string> policies;
   for (auto o: Storage::instance()->_schema) {
   
-    auto nosync = Json::getBool(o, "nosync", true);
+    auto nosync = Dict::getBool(o, "nosync");
     if (nosync && nosync.value()) {
       continue;
     }
     
-    auto type = Json::getString(o, "type");
+    auto type = Dict::getString(o, "type");
     if (!type) {
-      L_ERROR("type missing in schema obj " << o);
+      L_ERROR("type missing in schema obj " << Dict::toString(o));
       return;
     }
     
-    string collname = getCollName(type.value(), Json::getString(o, "coll", true));
+    string collname = getCollName(type.value(), Dict::getString(o, "coll"));
     
     collectObjs(type.value(), collname, q, &data, &policies, nullopt, false);
     
-    auto subobj = Json::getObject(o, "subobj", true);
+    auto subobj = Dict::getObject(o, "subobj");
     if (subobj) {
-      auto field = Json::getString(subobj.value(), "field");
+      auto field = Dict::getString(subobj.value(), "field");
       if (!field) {
-        L_ERROR("field missing in schema subobj " << subobj.value());
+        L_ERROR("field missing in schema subobj " << Dict::toString(subobj.value()));
         return;
       }
-      auto result = SchemaImpl::findGeneral(collname, { { "upstream", true } }, { "_id" });
+      auto result = SchemaImpl::findGeneral(collname, dictO({{ "upstream", true }}), { "_id" });
       if (result) {
         auto upstreams = result->all();
         if (upstreams) {
-          auto subtype = Json::getString(subobj.value(), "type");
+          auto subtype = Dict::getString(subobj.value(), "type");
           if (!subtype) {
-            L_ERROR("type missing in schema subobj " << subobj.value());
+            L_ERROR("type missing in schema subobj " << Dict::toString(subobj.value()));
             return;
           }
-          string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+          string subcollname = getCollName(subtype.value(), Dict::getString(subobj.value(), "coll"));
           for (auto o: upstreams.value()) {
-            auto id = Json::getString(o, "id");
+            auto id = Dict::getStringG(o, "id");
             collectObjs(subtype.value(), subcollname, 
               SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data, &policies, nullopt, true);
           }
@@ -1361,10 +1439,10 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
   
   // we don't send policies upstream.
   // that's why the policies array is ignored.
-  boost::json::object msg = {
+  DictO msg = dictO({
     { "type", "discoverLocal" },
     { "data", data }
-  };
+  });
   setSrc(&msg);  
   sendDataReq(corr, msg);
 
@@ -1379,44 +1457,44 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
 #ifdef MONGO_DB
   auto q = SchemaImpl::afterDateQuery(upstreamLastSeen);
 
-  boost::json::array data;
+  DictV data;
   vector<string> policies;
   for (auto o: Storage::instance()->_schema) {
   
-    auto nosync = Json::getBool(o, "nosync", true);
+    auto nosync = Dict::getBool(o, "nosync");
     if (nosync && nosync.value()) {
       continue;
     }
     
-    auto type = Json::getString(o, "type");
+    auto type = Dict::getString(o, "type");
     if (!type) {
-      L_ERROR("type missing in schema obj " << o);
+      L_ERROR("type missing in schema obj " << Dict::toString(o));
       return;
     }
     
-    string collname = getCollName(type.value(), Json::getString(o, "coll", true));
+    string collname = getCollName(type.value(), Dict::getString(o, "coll"));
     
     collectObjs(type.value(), collname, q, &data, &policies, nullopt, false);
     
-    auto subobj = Json::getObject(o, "subobj", true);
+    auto subobj = Dict::getObject(o, "subobj");
     if (subobj) {
-      auto field = Json::getString(subobj.value(), "field");
+      auto field = Dict::getString(subobj.value(), "field");
       if (!field) {
-        L_ERROR("field missing in schema subobj " << subobj.value());
+        L_ERROR("field missing in schema subobj " << Dict::toString(subobj.value()));
         return;
       }
-      auto result = SchemaImpl::findGeneral(collname, Data{{}}, { "_id" });
+      auto result = SchemaImpl::findGeneral(collname, dictO({}), { "_id" });
       if (result) {
         auto upstreams = result->all();
         if (upstreams) {
-          auto subtype = Json::getString(subobj.value(), "type");
+          auto subtype = Dict::getString(subobj.value(), "type");
           if (!subtype) {
-            L_ERROR("type missing in schema subobj " << subobj.value());
+            L_ERROR("type missing in schema subobj " << Dict::toString(subobj.value()));
             return;
           }
-          string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+          string subcollname = getCollName(subtype.value(), Dict::getString(subobj.value(), "coll"));
           for (auto o: upstreams.value()) {
-            auto id = Json::getString(o, "id");
+            auto id = Dict::getStringG(o, "id");
             collectObjs(subtype.value(), subcollname, SchemaImpl::afterDateQuery(upstreamLastSeen), &data, &policies, nullopt, false);
           }
         }
@@ -1426,10 +1504,10 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
   
   collectPolicies(policies, &data);
 
-  boost::json::object msg = {
+  DictO msg = dictO({
     { "type", "discoverLocal" },
     { "data", data }
-  };
+  });
   setSrc(&msg);  
   sendDataReq(corr, msg);
 #endif
@@ -1437,18 +1515,22 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
 
 void Server::sendUpDiscoverLocal(optional<string> corr) {
 
-  auto infos = Info().find({{ "type", { { "$in", {"hasInitialSync", "upstreamLastSeen", "upstreamMirror"}}} }}, {"type", "text"}).all();
+  auto infos = Info().find(dictO({{ 
+    "type", dictO({{ 
+      "$in", DictV({"hasInitialSync", "upstreamLastSeen", "upstreamMirror"})
+    }} )
+  }}), {"type", "text"}).all();
   string hasInitialSync = Info::getInfoSafe(infos, "hasInitialSync", "false");
   string upstreamLastSeen = Info::getInfoSafe(infos, "upstreamLastSeen", "");
   string upstreamMirror = Info::getInfoSafe(infos, "upstreamMirror", "");
   
   if (hasInitialSync != "true") {
     L_TRACE("no initial sync, nothing to discover locally.");
-    boost::json::array empty;
-    boost::json::object msg = {
+    DictV empty;
+    DictO msg = dictO({
       { "type", "discoverLocal" },
       { "data", empty }
-    };
+    });
     setSrc(&msg);  
     sendDataReq(corr, msg);
     return;
@@ -1469,40 +1551,40 @@ void Server::sendUpDiscoverLocal(optional<string> corr) {
   }
 }
 
-void Server::collectIds(const Data &ids, vector<string> *vids) {
+void Server::collectIds(const DictV &ids, vector<string> *vids) {
 
   // convert all the user ids to oids.
   // ids are an array of strings or an array of objects with "id"
   for  (auto u: ids) {
-    if (u.is_string()) {
-      vids->push_back(u.as_string().c_str());
+    auto s = Dict::getString(u);
+    if (s) {
+      vids->push_back(*s);
     }
-    else if (u.is_object()) {
-      if (!u.as_object().if_contains("id")) {
-        L_ERROR("idRangeAfterDateQuery id missing fro obj");
-        continue;
+    else {
+      auto o = Dict::getObject(u);
+      if (o) {
+        auto id = Dict::getString(o, "id");
+        if (!id) {
+          L_ERROR("idRangeAfterDateQuery id missing from obj or not a string");
+          continue;
+        }
+        vids->push_back(*id);
       }
-      auto id = u.at("id");
-      if (!id.is_string()) {
-        L_ERROR("idRangeAfterDateQuery id is not string");
-        continue;
-      }
-      vids->push_back(id.as_string().c_str());
     }
   }
   
 }
 
-void Server::sendDownDiscoverResult(json &j) {
+void Server::sendDownDiscoverResult(const IncomingMsg &in) {
 
 #ifdef MONGO_DB
   string src;
-  if (!getSrc(j, &src)) {
+  if (!getSrc(in, &src)) {
     sendErrDown("discover missing src");
     return;
   }
 
-  auto node = Node().find({ { "serverId", src } }, {}).one();
+  auto node = Node().find(dictO({ { "serverId", src } }), {}).one();
   if (!node) {
     sendErrDown("discover no node");
     return;
@@ -1516,23 +1598,23 @@ void Server::sendDownDiscoverResult(json &j) {
   bool hasMore = false;
   int limit = MAX_OBJECTS;
     
-  boost::json::array msgs;
-  boost::json::object obj;
+  DictV msgs;
+  DictO obj;
   vector<string> policies;
   for (auto o: Storage::instance()->_schema) {
   
-    auto nosync = Json::getBool(o, "nosync", true);
+    auto nosync = Dict::getBool(o, "nosync");
     if (nosync && nosync.value()) {
       continue;
     }
     
-    auto type = Json::getString(o, "type");
+    auto type = Dict::getString(o, "type");
     if (!type) {
-      L_ERROR("type missing in schema obj " << o);
+      L_ERROR("type missing in schema obj " << Dict::toString(o));
       return;
     }
     
-    string collname = getCollName(type.value(), Json::getString(o, "coll", true));
+    string collname = getCollName(type.value(), Dict::getString(o, "coll"));
 
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
@@ -1542,8 +1624,8 @@ void Server::sendDownDiscoverResult(json &j) {
     auto objsname = collname;
     L_TRACE(objsname);
 
-    auto last = Json::getString(j, lastname, true);
-    auto objs = Json::getArray(j, objsname, true);
+    auto last = Dict::getString(in.extra_fields.get(lastname));
+    auto objs = Dict::getVector(in.extra_fields.get(objsname));
     if (last) {
       obj[lastname] = last.value();
     }
@@ -1562,25 +1644,25 @@ void Server::sendDownDiscoverResult(json &j) {
       if (more) {
         hasMore = true;
       }
-      auto subobj = Json::getObject(o, "subobj", true);
+      auto subobj = Dict::getObject(o, "subobj");
       if (subobj) {
-        auto field = Json::getString(subobj.value(), "field");
+        auto field = Dict::getString(subobj.value(), "field");
         if (!field) {
-          L_ERROR("field missing in schema subobj " << subobj.value());
+          L_ERROR("field missing in schema subobj " << Dict::toString(subobj.value()));
           return;
         }
-        auto subtype = Json::getString(subobj.value(), "type");
+        auto subtype = Dict::getString(subobj.value(), "type");
         if (!subtype) {
-          L_ERROR("type missing in schema subobj " << subobj.value());
+          L_ERROR("type missing in schema subobj " << Dict::toString(subobj.value()));
           return;
         }
         string lastname = subtype.value();
         lastname[0] = toupper(lastname[0]);
         lastname = "last" + lastname;
         L_TRACE(lastname);
-        string subcollname = getCollName(subtype.value(), Json::getString(subobj.value(), "coll", true));
+        string subcollname = getCollName(subtype.value(), Dict::getString(subobj.value(), "coll"));
         if (ids.size() == 1 && *(ids.begin()) == "*") {
-          auto last = Json::getString(*(objs.value().begin()), lastname).value();
+          auto last = Dict::getStringG(*(objs.value().begin()), lastname).value();
           more = collectObjs(subtype.value(), subcollname, 
             SchemaImpl::afterDateQuery(last), &msgs, &policies, limit, false);
           if (more) {
@@ -1589,8 +1671,8 @@ void Server::sendDownDiscoverResult(json &j) {
         }
         else {
           for (auto o: objs.value()) {
-            auto id = Json::getString(o, "id").value();
-            auto last = Json::getString(o, lastname).value();
+            auto id = Dict::getStringG(o, "id").value();
+            auto last = Dict::getStringG(o, lastname).value();
             L_TRACE(id << " " << last);
             more = collectObjs(subtype.value(), subcollname, 
               SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id, last), &msgs, &policies, limit, false);
@@ -1609,13 +1691,13 @@ void Server::sendDownDiscoverResult(json &j) {
   // update the node where we are.  
   Node().updateById(node.value().id(), obj);
 
-  Data msg = {
+  DictO msg = dictO({
     { "type", "discoverResult" },
     { "msgs", msgs },
-  };
+  });
   
   if (hasMore) {
-    msg.setBool("more", true);
+    msg["more"] = true;
   }
   // and send the result on.
   sendDown(msg);
@@ -1629,23 +1711,16 @@ void Server::resetDB() {
    
 }
 
-void Server::importObjs(Data &msgs) {
+void Server::importObjs(const DictV &msgs) {
 
-  if (!msgs.is_array()) {
-    L_ERROR("objects is not an array");
-    return;
-  }
   for (auto a: msgs) {
   
-    // would be so cool if this was implicit.
-    auto m = Data(a);
-    
-    auto type = m.getString("type");
+    auto type = Dict::getStringG(a, "type");
     if (!type) {
       L_ERROR("msg missing type");
       continue;
     }
-    auto objs = m.getData("objs");
+    auto objs = Dict::getVectorG(a, "objs");
     if (!objs) {
       L_ERROR("msg missing objs");
       continue;
@@ -1655,10 +1730,18 @@ void Server::importObjs(Data &msgs) {
     if (!Storage::instance()->collName(type.value(), &coll, false)) {
       continue;
     }
+    vector<DictO> v;
+    transform(objs->begin(), objs->end(), back_inserter(v), [](auto e) {
+      auto o = Dict::getObject(e);
+      if (!o) {
+        L_ERROR("object isn't an object");
+        return DictO();
+      }
+      return *o;
+    });
+    Storage::instance()->bulkInsert(coll, v);
 
-    Storage::instance()->bulkInsert(coll, objs.value());
-
-    auto more = Json::getBool(m, "more", true);
+    auto more = Dict::getBoolG(a, "more");
     if (more && more.value()) {
       L_INFO("ignoring more for " << type.value());
       continue;
@@ -1671,9 +1754,9 @@ bool Server::isValidId(const string &id) {
   return id.size() == 24;
 }
 
-bool Server::validateId(boost::json::object &obj, const string &id) {
+bool Server::validateId(const DictO &obj, const string &id) {
 
-  auto objid = Json::getString(obj, "id", true);
+  auto objid = Dict::getString(obj, "id");
   if (!objid) {
     return true;
   }
@@ -1686,16 +1769,20 @@ bool Server::validateId(boost::json::object &obj, const string &id) {
 
 vector<string> Server::getNodeIds(const string &type) {
 
-  auto nodes = Node().find({{ "valid", true }}).all();
+  auto nodes = Node().find(dictO({{ "valid", true }})).all();
   if (!nodes || nodes.value().size() == 0) {
     return {};
   }
   string field = type + "s";
   vector<string> ids;
   for (auto n: nodes.value()) {
-    auto a = n.getData(field);
+    auto a = Dict::getVector(n.dict(), field);
+    if (!a) {
+      L_ERROR("node missing ids for " << field);
+      continue;
+    }
     vector<string> nids;
-    collectIds(a, &nids);
+    collectIds(*a, &nids);
     for (auto id: nids) {
       if (find(ids.begin(), ids.end(), id) == ids.end()) {
         ids.push_back(id);
@@ -1713,7 +1800,7 @@ bool Server::hasValidNodes() {
   L_TRACE("hasValidNodes");
 
   if (_dataRep) {
-    auto nodes = Node().find({ { "valid", true }}).all();
+    auto nodes = Node().find(dictO({{ "valid", true }})).all();
     if (!nodes || nodes.value().size() == 0) {
       L_TRACE("skipping send down mov nobody listening at all");
       return false;
@@ -1739,7 +1826,7 @@ bool Server::anyNodesListening(const string &type, const string &id) {
 
 }
 
-bool Server::shouldSendDown(const string &action, const string &type, const string &id, boost::json::object &obj) {
+bool Server::shouldSendDown(const string &action, const string &type, const string &id, const DictO &obj) {
 
   L_TRACE("shouldSendDown");
 
@@ -1754,7 +1841,7 @@ bool Server::shouldSendDown(const string &action, const string &type, const stri
   string iid;
   string pfield;
   if (Storage::instance()->parentInfo(type, &pfield, &ltype)) {
-    auto iparent = Json::getString(obj, pfield);
+    auto iparent = Dict::getString(obj, pfield);
     if (!iparent) {
       L_ERROR("shouldSendDown obj has no parent field");
       return false;
@@ -1770,14 +1857,14 @@ bool Server::shouldSendDown(const string &action, const string &type, const stri
   
 }
 
-bool Server::isObjParentUpstream(const string &type, boost::json::object &obj) {
+bool Server::isObjParentUpstream(const string &type, const DictO &obj) {
 
   L_TRACE("isObjParentUpstream");
 
   string ptype;
   string pfield;
   if (Storage::instance()->parentInfo(type, &pfield, &ptype)) {
-    auto iparent = Json::getString(obj, pfield);
+    auto iparent = Dict::getString(obj, pfield);
     if (!iparent) {
       L_ERROR("obj is missing " << pfield);
       return false;
@@ -1795,7 +1882,7 @@ bool Server::isObjParentUpstream(const string &type, boost::json::object &obj) {
     
     auto s = result->value();
     if (s) {
-      auto upstream = Json::getBool(s.value(), "upstream", true);
+      auto upstream = Dict::getBool(s.value(), "upstream");
       return upstream && upstream.value();
     }
   }
@@ -1819,7 +1906,7 @@ bool Server::isParentUpstream(const string &ptype, const string &origparent) {
   }
   auto s = result->value();
   if (s) {
-    auto upstream = Json::getBool(s.value(), "upstream", true);
+    auto upstream = Dict::getBool(s.value(), "upstream");
     return upstream && upstream.value();
   }
 
@@ -1836,7 +1923,7 @@ bool Server::hasUpstream() {
   
 }
 
-bool Server::isObjUpstream(boost::json::object &obj) {
+bool Server::isObjUpstream(const DictO &obj) {
 
   L_TRACE("isObjUpstream");
 
@@ -1845,7 +1932,7 @@ bool Server::isObjUpstream(boost::json::object &obj) {
     L_TRACE("mirror sending up");
     return true;
   }
-  auto upstream = Json::getBool(obj, "upstream", true);
+  auto upstream = Dict::getBool(obj, "upstream");
   if (upstream && upstream.value()) {
     L_TRACE("upstream sending up");
     return true;
@@ -1855,7 +1942,7 @@ bool Server::isObjUpstream(boost::json::object &obj) {
   
 }
 
-void Server::sendUpd(const string &type, const string &id, Data &data) {
+void Server::sendUpd(const string &type, const string &id, const DictO &obj) {
 
   L_TRACE("sendUpd " << type);
 
@@ -1863,12 +1950,6 @@ void Server::sendUpd(const string &type, const string &id, Data &data) {
     L_WARNING("skipping upd, obj id is not valid" << id);
     return;
   }
-  if (!data.is_object()) {
-    L_WARNING("skipping upd, data is not an object");
-    return;
-  }
-  
-  auto obj = data.as_object();
   
   if (!validateId(obj, id)) {
     return;
@@ -1896,15 +1977,15 @@ void Server::sendUpd(const string &type, const string &id, Data &data) {
     return;
   }
 
-  boost::json::object msg = {
+  DictO msg = dictO({
     { "type", "upd" },
-    { "data", {
+    { "data", dictO({
       { "type", type },
       { "id", id },
       { "obj", obj }
-      }
+      })
     }
-  };
+  });
   setSrc(&msg);
   if (down) {
     pubDown(msg);
@@ -1916,18 +1997,11 @@ void Server::sendUpd(const string &type, const string &id, Data &data) {
 
 }
 
-void Server::sendAdd(const string &type, Data &data) {
+void Server::sendAdd(const string &type, const DictO &obj) {
 
   L_TRACE("sendAdd " << type);
 
-  if (!data.is_object()) {
-    L_WARNING("skipping add, data is not an object");
-    return;
-  }
-  
-  auto obj = data.as_object();
-
-  auto id = Json::getString(obj, "id");
+  auto id = Dict::getString(obj, "id");
   if (!id) {
     L_WARNING("skipping add, but obj id ");
   }
@@ -1953,14 +2027,14 @@ void Server::sendAdd(const string &type, Data &data) {
     return;
   }
 
-  boost::json::object msg = {
+  DictO msg = dictO({
     { "type", "add" },
-    { "data", {
+    { "data", dictO({
       { "type", type },
       { "obj", obj }
-      }
+      })
     }
-  };
+  });
   
   setSrc(&msg);
   if (down) {
@@ -1973,7 +2047,7 @@ void Server::sendAdd(const string &type, Data &data) {
 
 }
 
-void Server::sendMov(const string &type, const string &id, Data &data, const string &ptype, const string &origparent) {
+void Server::sendMov(const string &type, const string &id, const DictO &obj, const string &ptype, const string &origparent) {
 
   L_TRACE("sendMov" << type);
 
@@ -1981,12 +2055,6 @@ void Server::sendMov(const string &type, const string &id, Data &data, const str
     L_WARNING("skipping mov, obj id is not valid" << id);
     return;
   }
-  if (!data.is_object()) {
-    L_WARNING("skipping mov, data is not an object");
-    return;
-  }
-  
-  auto obj = data.as_object();
   
   if (!validateId(obj, id)) {
     return;
@@ -2019,16 +2087,16 @@ void Server::sendMov(const string &type, const string &id, Data &data, const str
     return;
   }
 
-  boost::json::object msg = {
+  DictO msg = dictO({
     { "type", "mov" },
-    { "data", {
+    { "data", dictO({
       { "type", type },
       { "id", id },
       { "obj", obj },
       { "orig", origparent }
-      }
+      })
     }
-  };
+  });
   setSrc(&msg);
   if (down) {
     pubDown(msg);
@@ -2040,24 +2108,24 @@ void Server::sendMov(const string &type, const string &id, Data &data, const str
 
 }
 
-bool Server::updateObject(json &j) {
+bool Server::updateObject(const DictO &j) {
 
-  auto data = Json::getObject(j, "data");
+  auto data = Dict::getObject(j, "data");
   if (!data) {
     L_ERROR("upd sub missing data");
     return false;
   }
-  auto type = Json::getString(data.value(), "type");
+  auto type = Dict::getString(data.value(), "type");
   if (!type) {
     L_ERROR("upd sub data missing type");
     return false;
   }
-  auto id = Json::getString(data.value(), "id");
+  auto id = Dict::getString(data.value(), "id");
   if (!id) {
     L_ERROR("upd sub data missing id");
     return false;
   }
-  auto obj = Json::getObject(data.value(), "obj");
+  auto obj = Dict::getObject(data.value(), "obj");
   if (!obj) {
     L_ERROR("upd sub data missing obj");
     return false;
@@ -2068,7 +2136,7 @@ bool Server::updateObject(json &j) {
     return false;
   }
 
-  auto result = SchemaImpl::updateGeneralById(coll, id.value(), {{ "$set", obj.value() }});
+  auto result = SchemaImpl::updateGeneralById(coll, id.value(), dictO({{ "$set", obj.value() }}));
   if (!result) {
     L_ERROR("upd sub failed to update db");
     return false;
@@ -2078,34 +2146,38 @@ bool Server::updateObject(json &j) {
   
 }
 
-bool Server::addObject(json &j) {
+bool Server::addObject(const DictO &j) {
 
-  auto data = Json::getObject(j, "data");
+  auto data = Dict::getObject(j, "data");
   if (!data) {
     L_ERROR("add sub missing data");
     return false;
   }
-  auto type = Json::getString(data.value(), "type");
+  auto type = Dict::getString(data.value(), "type");
   if (!type) {
     L_ERROR("add sub data missing type");
     return false;
   }
-  auto obj = Json::getObject(data.value(), "obj");
+  auto obj = Dict::getObject(data.value(), "obj");
   if (!obj) {
     L_ERROR("add sub data missing obj");
     return false;
   }
-  
-  // clean up the object.
-  boost::json::object obj2 = obj.value().as_object();
-  obj2.erase("id");
-  obj2.erase("type");
   
   string coll;
   if (!Storage::instance()->collName(type.value(), &coll, false)) {
     return false;
   }
 
+  // clean up the object.
+  DictO obj2;
+  for (auto i: *obj) {
+    if (get<0>(i) != "id" && get<0>(i) != "type") {
+      obj2[get<0>(i)] = get<1>(i);
+    }
+  }
+  
+  // and insert it.
   auto result = SchemaImpl::insertGeneral(coll, obj2);
   if (!result) {
     L_ERROR("upd sub failed to update db");
@@ -2116,7 +2188,7 @@ bool Server::addObject(json &j) {
   
 }
 
-bool Server::shouldIgnoreAdd(json &msg) {
+bool Server::shouldIgnoreAdd(const DictO &msg) {
 
   string mirror = get1Info("upstreamMirror");
   if (mirror == "true") {
@@ -2124,22 +2196,22 @@ bool Server::shouldIgnoreAdd(json &msg) {
     return false;
   }
   
-  auto data = Json::getObject(msg, "data");
+  auto data = Dict::getObject(msg, "data");
   if (!data) {
     return true;
   }
   
-  auto type = Json::getString(data.value(), "type");
+  auto type = Dict::getString(data.value(), "type");
   if (!type) {
     return true;
   }
   
-  auto obj = Json::getObject(data.value(), "obj");
+  auto obj = Dict::getObject(data.value(), "obj");
   if (!obj) {
     return true;
   }
 
-  if (!isObjParentUpstream(type.value(), obj.value().as_object())) {
+  if (!isObjParentUpstream(type.value(), obj.value())) {
     L_TRACE(type.value() << " parent upstream, ignoring add");
     return true;
   }

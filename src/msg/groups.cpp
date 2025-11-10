@@ -17,15 +17,13 @@
 #include "data.hpp"
 #include "dict.hpp"
 
-using namespace vops;
-
 namespace nodes {
 
 void groupsMsg(Server *server, const IncomingMsg &in) {
 
   Group group;
-  DictO query{makeDictO({
-    { "deleted", makeDictO({
+  DictO query{dictO({
+    { "deleted", dictO({
       { "$ne", true }
       })
     }

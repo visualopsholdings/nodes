@@ -81,9 +81,9 @@ void moveObjectMsg(Server *server, Data &j) {
     return;
   }
   
-  L_TRACE(objtype.value() << " old value " << orig.value());
+  L_TRACE(objtype.value() << " old value " << Dict::toString(orig.value()));
   
-  auto origparent = orig.value().getString(parentfield);
+  auto origparent = Dict::getString(orig.value(), parentfield);
   if (!origparent) {
     server->sendErr("parent field not found");
     return;
@@ -104,8 +104,9 @@ void moveObjectMsg(Server *server, Data &j) {
   
   // send to other nodes.
   Data obj2 = obj;
-  if (orig.value().has("upstream")) {
-    obj2.setBool("upstream", orig.value().getBool("upstream").value());
+  auto upstream = Dict::getBool(orig.value(), "upstream");
+  if (upstream) {
+    obj2.setBool("upstream", *upstream);
   }
   server->sendMov(objtype.value(), id.value(), obj2, parenttype, origparent.value());
     

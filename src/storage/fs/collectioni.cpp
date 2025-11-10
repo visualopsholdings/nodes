@@ -16,12 +16,14 @@
 #include "log.hpp"
 #include "data.hpp"
 #include "json.hpp"
+#include "dict.hpp"
 
 #include <bsoncxx/oid.hpp>
 #include <fstream>
 #include <sstream>
 
 using namespace nodes;
+using namespace vops;
 
 namespace nodes {
   string getHome();
@@ -36,15 +38,15 @@ string CollectionImpl::getCollectionFolder() {
   return folder;
 }
 
-optional<string> CollectionImpl::insert_one(const Data &doc) {
+optional<string> CollectionImpl::insert_one(const DictO &doc) {
   
-  L_TRACE("insert_one " << doc);
+  L_TRACE("insert_one " << Dict::toString(doc));
   
   string newid;
-  Data newdoc = doc;
-  auto id = doc.getData("_id", true);
+  DictO newdoc = doc;
+  auto id = Dict::getObject(doc, "_id");
   if (id) {
-    auto oid = id->getString("$oid", true);
+    auto oid = Dict::getString(*id, "$oid");
     if (!oid) {
       L_ERROR("no _id.$oid");
       return nullopt;
@@ -54,10 +56,10 @@ optional<string> CollectionImpl::insert_one(const Data &doc) {
   else {
     bsoncxx::oid oid = bsoncxx::oid();
     newid = oid.to_string();
-    Data id = {
+    auto id = dictO({
       { "$oid", newid }
-    };
-    newdoc.setObj("_id", id);
+    });
+    newdoc["_id"] = id;
   }
 
   string fn = getCollectionFolder() + "/" + newid + ".json";
@@ -75,29 +77,33 @@ optional<string> CollectionImpl::insert_one(const Data &doc) {
   }
 
   // and write the object out.
-  newdoc.pretty_print(file);
+  file << Dict::toString(newdoc);
 
   return newid;
   
 }
 
-bool CollectionImpl::match(const Data &json, const Data &query) {
+bool CollectionImpl::match(const DictO &doc, const DictO &query) {
 
   if (query.size() == 0) {
     return true;
   }
-  auto q = query.getObject();
-  for (auto elem: q) {
-    auto s = json.getString(elem.key());
+  for (auto elem: query) {
+    auto key = get<0>(elem);
+    auto value = get<1>(elem);
+    
+    auto s = Dict::getString(doc, key);
     if (s) {
-      if (s.value() == elem.value().as_string()) {
+      auto vals = Dict::getString(value);
+      if (vals && *s == *vals) {
         return true;
       }
     }
     else {
-      auto n = json.getNumber(elem.key());
+      auto n = Dict::getNum(doc, key);
       if (n) {
-        if (n.value() == elem.value().as_uint64()) {
+        auto valn = Dict::getNum(value);
+        if (valn && *n == *valn) {
           return true;
         }
       }
@@ -107,9 +113,9 @@ bool CollectionImpl::match(const Data &json, const Data &query) {
   
 }
 
-Data CollectionImpl::find(const Data &query, optional<const Data> &sort) {
+DictO CollectionImpl::find(const DictO &query, optional<const DictO> &sort) {
 
-  L_TRACE("find " << query);
+  L_TRACE("find " << Dict::toString(query));
 
   for (auto const& e : filesystem::directory_iterator{getCollectionFolder()}) {
   
@@ -123,22 +129,29 @@ Data CollectionImpl::find(const Data &query, optional<const Data> &sort) {
     }
     
     string input(istreambuf_iterator<char>(f), {});
-    Data j(input);
-    if (match(j, query)) {
-      return fixObjects(j);
+    auto doc = Dict::parseString(input);
+    if (doc) {
+      auto obj = Dict::getObject(*doc);
+      if (!obj) {
+        L_ERROR("file contents not object!");
+        continue;
+      }
+      if (match(*obj, query)) {
+        return fixObjects(*obj);
+      }
     }
     
   }
         
-  return {{}};
+  return DictO{};
   
 }
 
-Data CollectionImpl::findAll(const Data &query, optional<const Data> &sort) {
+DictV CollectionImpl::findAll(const DictO &query, optional<const DictO> &sort) {
 
   L_TRACE("findAll");
   
-  boost::json::array a;
+  DictV a;
   for (auto const& e : filesystem::directory_iterator{getCollectionFolder()}) {
   
     if (!e.is_regular_file() || e.path().extension() != ".json") {
@@ -151,9 +164,16 @@ Data CollectionImpl::findAll(const Data &query, optional<const Data> &sort) {
     }
     
     string input(istreambuf_iterator<char>(f), {});
-    Data j(input);
-    if (match(j, query)) {
-      a.push_back(fixObjects(j));
+    auto doc = Dict::parseString(input);
+    if (doc) {
+      auto obj = Dict::getObject(*doc);
+      if (!obj) {
+        L_ERROR("file contents not object!");
+        continue;
+      }
+      if (match(*obj, query)) {
+        a.push_back(fixObjects(*obj));
+      }
     }
     
   }
@@ -162,11 +182,11 @@ Data CollectionImpl::findAll(const Data &query, optional<const Data> &sort) {
 
 }
 
-Data CollectionImpl::findByIds(const vector<string> &ids) {
+DictV CollectionImpl::findByIds(const vector<string> &ids) {
 
   L_TRACE("findByIds " << ids.size());
   
-  boost::json::array a;
+  DictV a;
   for (auto id: ids) {
     string fn = getCollectionFolder() + "/" + *ids.begin() + ".json";
     L_TRACE(fn);
@@ -177,21 +197,24 @@ Data CollectionImpl::findByIds(const vector<string> &ids) {
       return {{}};
     }
     string input(istreambuf_iterator<char>(f), {});
-    Data j(input);
-    a.push_back(fixObjects(j));
+    auto doc = Dict::parseString(input);
+    if (doc) {
+      auto obj = Dict::getObject(*doc);
+      if (!obj) {
+        L_ERROR("file contents not object!");
+        continue;
+      }
+      a.push_back(fixObjects(*obj));
+    }
   }
   
-  if (a.size() == 1) {
-    return Data(*a.begin());
-  }
-  
-  return Data(a);
+  return a;
   
 }
 
-void CollectionImpl::delete_many(const Data &doc) {
+void CollectionImpl::delete_many(const DictO &doc) {
 
-  L_TRACE("delete_many " << doc);
+  L_TRACE("delete_many " << Dict::toString(doc));
   
   if (doc.size() == 0) {
     filesystem::remove_all(getCollectionFolder());

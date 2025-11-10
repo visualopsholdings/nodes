@@ -12,12 +12,14 @@
 #include "storage/dynamicrow.hpp"
 
 #include "log.hpp"
+#include "dict.hpp"
 
 using namespace nodes;
+using namespace vops;
 
 string DynamicRow::getString(const string &name) const {
 
-  auto value = _data.getString(name);
+  auto value = Dict::getString(_data, name);
   if (!value) {
     return "";
   }
@@ -26,9 +28,9 @@ string DynamicRow::getString(const string &name) const {
 
 }
 
-Data DynamicRow::getData(const string &name) {
+DictO DynamicRow::getObject(const string &name) {
 
-  auto value = _data.getData(name);
+  auto value = Dict::getObject(_data, name);
   if (!value) {
     return {};
   }
@@ -40,13 +42,19 @@ Data DynamicRow::getData(const string &name) {
 vector<string> DynamicRow::getStringArray(const string &name) {
 
   vector<string> a;
-  auto value = _data.getData(name);
+  auto value = Dict::getVector(_data, name);
   if (!value) {
     return a;
   }
 
   for (auto i: value.value()) {
-    a.push_back(i.as_string().c_str());
+    auto s = Dict::getString(i);
+    if (s) {
+      a.push_back(*s);
+    }
+    else {
+      a.push_back("");
+    }
   }
 
   return a;
@@ -55,7 +63,7 @@ vector<string> DynamicRow::getStringArray(const string &name) {
 
 bool DynamicRow::getBool(const string &name, bool silent) const {
   
-  auto value = _data.getBool(name, silent);
+  auto value = Dict::getBool(_data, name);
   if (!value) {
     return false;
   }
@@ -66,7 +74,7 @@ bool DynamicRow::getBool(const string &name, bool silent) const {
 
 int DynamicRow::getNumber(const string &name) const {
   
-  auto value = _data.getNumber(name);
+  auto value = Dict::getNum(_data, name);
   if (!value) {
     return false;
   }
@@ -75,4 +83,9 @@ int DynamicRow::getNumber(const string &name) const {
 
 }
 
+Data DynamicRow::d() {
+  
+  return Data(Dict::toString(_data));
+  
+}
 

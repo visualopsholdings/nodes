@@ -24,6 +24,11 @@ Data::Data(const string &s) {
   
 }
 
+Data::Data(const DictG &g) {
+
+  *this = Dict::toString(g);
+}
+
 bool Data::has(const string &name) {
 
   return is_object() && as_object().if_contains(name);
@@ -314,15 +319,19 @@ void Data::pretty_print(ostream& os, boost::json::value const& jv, string* inden
       os << "\n";
 }
 
-DictG Data::dict() {
+DictO Data::dict() const {
 
   stringstream ss;
   ss << *this;
   auto g = Dict::parseStream(ss);
   if (g) {
-    return *g;
+    auto o = Dict::getObject(*g);
+    if (o) {
+      return *o;
+    }
+    L_ERROR("json not an object" << ss.str());
   }
-  return DictG(); 
+  return DictO(); 
 
 }
 

@@ -66,14 +66,14 @@ void queryDrMsg(Server *server, Data &j) {
   }
       
   auto docs = result->all();
-  Data empty;
-  server->sendDown({
+  DictV empty;
+  server->sendDown(dictO({
     { "type", "queryResult" },
     { "objtype", objtype.value() },
     { "result", docs ? docs.value() : empty },
     { "corr", corr.value() },
     { "dest", src }   
-  });
+  }));
  
 }
 

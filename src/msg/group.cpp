@@ -14,10 +14,7 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "log.hpp"
-#include "data.hpp"
 #include "dict.hpp"
-
-using namespace vops;
 
 namespace nodes {
 
@@ -31,7 +28,9 @@ void groupMsg(Server *server, const IncomingMsg &in) {
 
   Group group;
   auto doc = Security::instance()->withView(group, in.me,  
-    Data{ { "_id", { { "$oid", *groupid } } } }, 
+    dictO({{ 
+      "_id", dictO({{ "$oid", *groupid }})
+    }}), 
     { "id", "name", "modifyDate" }).one();
   if (!doc) {
     L_ERROR("no group " + *groupid);
