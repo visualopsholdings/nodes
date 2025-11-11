@@ -15,7 +15,6 @@
 #define H_dynamicrow
 
 #include "dict.hpp"
-#include "data.hpp"
 
 using namespace std;
 using vops::DictO;
@@ -35,9 +34,6 @@ public:
   bool getBool(const string &name, bool silent=false) const;
   int getNumber(const string &name) const;
   
-  Data d();
-    // old school . Almost not needed.
-    
 private:
   DictO _data;
 };

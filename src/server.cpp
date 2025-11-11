@@ -38,28 +38,31 @@ using namespace nodes;
 namespace nodes {
 
 // handlers
-void loginMsg(Server *server, Data &data);
 void policyUsersMsg(Server *server, const IncomingMsg &m);
-void policyGroupsMsg(Server *server, Data &data);
+void policyGroupsMsg(Server *server, const IncomingMsg &m);
 void usersMsg(Server *server, const IncomingMsg &m);
 void userMsg(Server *server, const IncomingMsg &m);
 void objectsMsg(Server *server, const IncomingMsg &m);
 void objectMsg(Server *server, const IncomingMsg &m);
 void infosMsg(Server *server, const IncomingMsg &m);
-void setinfoMsg(Server *server, Data &data);
 void siteMsg(Server *server, const IncomingMsg &m);
-void setsiteMsg(Server *server, Data &data);
-void queryMsg(Server *server, Data &data);
-void addUserMsg(Server *server, Data &data);
-void reloadMsg(Server *server, Data &data);
 void groupsMsg(Server *server, const IncomingMsg &m);
 void groupMsg(Server *server, const IncomingMsg &m);
 void membersMsg(Server *server, const IncomingMsg &m);
 void searchUsersMsg(Server *server, const IncomingMsg &m);
-void addMemberMsg(Server *server, Data &data);
-void deleteMemberMsg(Server *server, Data &data);
 void setuserMsg(Server *server, const IncomingMsg &m);
 void policyMsg(Server *server, const IncomingMsg &m);
+void nodesMsg(Server *server, const IncomingMsg &m);
+void nodeMsg(Server *server, const IncomingMsg &m);
+
+void loginMsg(Server *server, Data &data);
+void setinfoMsg(Server *server, Data &data);
+void setsiteMsg(Server *server, Data &data);
+void queryMsg(Server *server, Data &data);
+void addUserMsg(Server *server, Data &data);
+void reloadMsg(Server *server, Data &data);
+void addMemberMsg(Server *server, Data &data);
+void deleteMemberMsg(Server *server, Data &data);
 void addObjectMsg(Server *server, Data &data);
 void deleteObjectMsg(Server *server, Data &data);
 void moveObjectMsg(Server *server, Data &data);
@@ -72,8 +75,6 @@ void setGroupPolicyMsg(Server *server, Data &data);
 void shareLinkMsg(Server *server, Data &data);
 void canRegisterMsg(Server *server, Data &data);
 void deleteUserMsg(Server *server, Data &data);
-void nodesMsg(Server *server, const IncomingMsg &m);
-void nodeMsg(Server *server, const IncomingMsg &m);
 void addNodeMsg(Server *server, Data &data);
 void deleteNodeMsg(Server *server, Data &data);
 void purgeCountGroupsMsg(Server *server, Data &data);
@@ -86,18 +87,20 @@ void requestBuildMsg(Server *server, Data &data);
 void buildMsg(Server *server, Data &data);
 
 // remoteDataReq handlers
+void discoverResultMsg(Server *server, const IncomingMsg &in);
+
 void upstreamMsg(Server *server, Data &data);
 void dateMsg(Server *server, Data &data);
 void sendOnMsg(Server *server, Data &data);
-void discoverResultMsg(Server *server, const IncomingMsg &in);
 
 // remoteMsgSub handlers
 void updSubMsg(Server *server, Data &data);
 void addSubMsg(Server *server, Data &data);
 
 // dataRep handles
-void onlineMsg(Server *server, Data &data);
 void discoverLocalMsg(Server *server, const IncomingMsg &in);
+
+void onlineMsg(Server *server, Data &data);
 void heartbeatMsg(Server *server, Data &data);
 void queryDrMsg(Server *server, Data &data);
 void updDrMsg(Server *server, Data &data);
@@ -144,7 +147,7 @@ Server::Server(bool test, bool noupstream,
   
   _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
   _messages2["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
-  _messages["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
+  _messages2["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
   _messages2["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
   _messages2["user"] = bind(&nodes::userMsg, this, placeholders::_1);
   _messages2["objects"] = bind(&nodes::objectsMsg, this, placeholders::_1);

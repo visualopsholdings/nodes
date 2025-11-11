@@ -17,6 +17,7 @@
 #include "result.hpp"
 #include "dynamicrow.hpp"
 #include "dict.hpp"
+#include "data.hpp"
 
 using namespace std;
 using vops::DictO;

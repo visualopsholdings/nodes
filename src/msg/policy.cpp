@@ -44,13 +44,9 @@ void policyMsg(Server *server, const IncomingMsg &in) {
   }
   
   // get the policy out of the JSON.
-  auto policy = Dict::getString(doc->dict(), "policy");
-  if (!policy) {
-    server->sendErr("missing policy");
-    return;
-  }
+  auto policy = doc->getString("policy");
 
-  auto lines = Security::instance()->getPolicyLines(*policy);
+  auto lines = Security::instance()->getPolicyLines(policy);
   if (!lines) {
     server->sendErr("Policy lines error");
     return;

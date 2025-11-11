@@ -21,7 +21,7 @@ string DynamicRow::getString(const string &name) const {
 
   auto value = Dict::getString(_data, name);
   if (!value) {
-    return "";
+    return "???";
   }
 
   return value.value();
@@ -53,7 +53,7 @@ vector<string> DynamicRow::getStringArray(const string &name) {
       a.push_back(*s);
     }
     else {
-      a.push_back("");
+      a.push_back("???");
     }
   }
 
@@ -76,17 +76,9 @@ int DynamicRow::getNumber(const string &name) const {
   
   auto value = Dict::getNum(_data, name);
   if (!value) {
-    return false;
+    return 0;
   }
 
   return value.value();
 
 }
-
-Data DynamicRow::d() {
-  
-  L_WARNING("old school data still used");
-  return Data(Dict::toString(_data));
-  
-}
-

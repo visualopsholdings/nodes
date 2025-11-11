@@ -33,7 +33,7 @@ void nodeMsg(Server *server, const IncomingMsg &in) {
     return;
   }
 
-  server->sendObject(in, "node", doc.value().d().dict());
+  server->sendObject(in, "node", doc.value().dict());
 
 }
 
