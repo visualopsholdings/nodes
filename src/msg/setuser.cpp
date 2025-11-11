@@ -18,9 +18,9 @@
 
 namespace nodes {
 
-void setuserMsg(Server *server, Data &j) {
+void setuserMsg(Server *server, const IncomingMsg &in) {
 
-  auto id = j.getString("id");
+  auto id = Dict::getString(in.extra_fields.get("id"));
   if (!id) {
     server->sendErr("no id in user");
     return;
@@ -32,38 +32,38 @@ void setuserMsg(Server *server, Data &j) {
     return;
   }
   
-  L_TRACE("user old value " << doc.value().d());
+  L_TRACE("user old value " << Dict::toString(doc->dict()));
   
-  auto fullname = j.getString("fullname", true);
-  auto name = j.getString("name", true);
-  auto admin = j.getBool("admin", true);
-  auto active = j.getBool("active", true);
+  auto fullname = Dict::getString(in.extra_fields.get("fullname"));
+  auto name = Dict::getString(in.extra_fields.get("name"));
+  auto admin = Dict::getBool(in.extra_fields.get("admin"));
+  auto active = Dict::getBool(in.extra_fields.get("active"));
 
-  Data obj = {
-    { "modifyDate", Storage::instance()->getNow() },
-  };
+  auto obj = dictO({
+    { "modifyDate", Storage::instance()->getNowO() },
+  });
   if (fullname) {
-    obj.setString("fullname", fullname.value());
+    obj["fullname"] = *fullname;
   }    
   if (name) {
-    obj.setString("name", name.value());
+    obj["name"] = *name;
   }    
   if (active) {
-    obj.setBool("active", active.value());
+    obj["active"] = *active;
   }    
   if (admin) {
-    obj.setBool("admin", admin.value());
+    obj["admin"] = *admin;
   }
   
   // send to other nodes.
-  Data obj2 = obj;
-  if (doc.value().upstream()) {
-    obj2.setBool("upstream", true);
+  auto obj2 = obj;
+  if (doc->upstream()) {
+    obj2["upstream"] = true;
   }
   server->sendUpd("user", id.value(), obj2);
   
   // update this node.
-  L_TRACE("updating " << obj);
+  L_TRACE("updating " << Dict::toString(obj));
   auto result = User().updateById(id.value(), obj);
   if (!result) {
     server->sendErr("could not update user");

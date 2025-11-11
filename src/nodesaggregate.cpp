@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 
   Log::config("nodesaggregate", logLevel);
 
-  L_INFO("aggregating collection " << coll);
+  L_DEBUG("aggregating collection " << coll);
   
   Storage::instance()->init(dbConn, dbName);
   

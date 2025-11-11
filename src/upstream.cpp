@@ -57,7 +57,7 @@ void Upstream::check() {
 
 void Monitor::on_event_connected(const zmq_event_t& event, const char* addr) {
 
-  L_INFO("connected to " << _name);
+  L_DEBUG("connected to " << _name);
   _connected = true;
   
   if (_name == "remoteDataReq") {

@@ -17,27 +17,29 @@
 
 namespace nodes {
 
-void searchUsersMsg(Server *server, Data &j) {
+void searchUsersMsg(Server *server, const IncomingMsg &in) {
 
-  auto q = j.getString("q");
+  auto q = Dict::getString(in.extra_fields.get("q"));
   if (!q) {
     server->sendErr("no q");
     return;
   }
 
-  auto docs = User().find({ { "fullname", { { "$regex", q.value() }, { "$options", "i" } } } }, { "id", "modifyDate", "name", "fullname", "admin" }).all();
+  auto docs = User().find(dictO({
+    { "fullname", dictO({{ "$regex", q.value() }, { "$options", "i" }}) 
+  }}), { "id", "modifyDate", "name", "fullname", "admin" }).all();
 
-  boost::json::array s;
+  DictV s;
   if (docs) {
-    for (auto i: docs.value()) {
-      s.push_back(i.d());
+    for (auto i: *docs) {
+      s.push_back(i.dict());
     }
   }
 
-  server->send({
+  server->send(dictO({
     { "type", "searchusers" },
     { "result", s }
-  });
+  }));
   
 }
 

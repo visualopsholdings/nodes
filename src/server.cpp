@@ -54,11 +54,11 @@ void addUserMsg(Server *server, Data &data);
 void reloadMsg(Server *server, Data &data);
 void groupsMsg(Server *server, const IncomingMsg &m);
 void groupMsg(Server *server, const IncomingMsg &m);
-void membersMsg(Server *server, Data &data);
-void searchUsersMsg(Server *server, Data &data);
+void membersMsg(Server *server, const IncomingMsg &m);
+void searchUsersMsg(Server *server, const IncomingMsg &m);
 void addMemberMsg(Server *server, Data &data);
 void deleteMemberMsg(Server *server, Data &data);
-void setuserMsg(Server *server, Data &data);
+void setuserMsg(Server *server, const IncomingMsg &m);
 void policyMsg(Server *server, Data &data);
 void addObjectMsg(Server *server, Data &data);
 void deleteObjectMsg(Server *server, Data &data);
@@ -158,11 +158,11 @@ Server::Server(bool test, bool noupstream,
   _messages["reload"] = bind(&nodes::reloadMsg, this, placeholders::_1);
   _messages2["groups"] = bind(&nodes::groupsMsg, this, placeholders::_1);
   _messages2["group"] = bind(&nodes::groupMsg, this, placeholders::_1);
-  _messages["members"] = bind(&nodes::membersMsg, this, placeholders::_1);
-  _messages["searchusers"] = bind(&nodes::searchUsersMsg, this, placeholders::_1);
+  _messages2["members"] = bind(&nodes::membersMsg, this, placeholders::_1);
+  _messages2["searchusers"] = bind(&nodes::searchUsersMsg, this, placeholders::_1);
   _messages["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
   _messages["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
-  _messages["setuser"] = bind(&nodes::setuserMsg, this, placeholders::_1);
+  _messages2["setuser"] = bind(&nodes::setuserMsg, this, placeholders::_1);
   _messages["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
   _messages["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
   _messages["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
@@ -227,7 +227,7 @@ Server::~Server() {
 void Server::runUpstreamOnly() {
 
   L_TRACE("running with upstream only");
-  L_INFO("init nodes");
+  L_INFO("init nodes"); // used to detect server startup
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 },
       { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
@@ -269,7 +269,7 @@ void Server::runUpstreamOnly() {
 void Server::runUpstreamDownstream() {
 
   L_TRACE("running with upstream and downstream");
-  L_INFO("init nodes");
+  L_INFO("init nodes"); // used to detect server startup
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 },
       { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
@@ -317,7 +317,7 @@ void Server::runUpstreamDownstream() {
 void Server::runStandalone() {
 
   L_TRACE("running standalone");
-  L_INFO("init nodes");
+  L_INFO("init nodes"); // used to detect server startup
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 }
   };
@@ -340,7 +340,7 @@ void Server::runStandalone() {
 void Server::runDownstreamOnly() {
 
   L_TRACE("running downstream only");
-  L_INFO("init nodes");
+  L_INFO("init nodes"); // used to detect server startup
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 },
       { _dataRep->socket(), 0, ZMQ_POLLIN, 0 }

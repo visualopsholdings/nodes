@@ -139,7 +139,7 @@ public:
   string newHash(const string &password, const string &salt);
     // generate a new user salt value.
     
-  Data policyToQuery(const Data &obj);
+  DictO policyToQuery(const DictO &obj);
     // convert a policy to a query for that policy.
     
 private:

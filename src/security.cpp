@@ -305,25 +305,25 @@ optional<Data> Security::getPolicyLines(const string &id) {
 
 optional<string> Security::findPolicyForUser(const string &userid) {
   
-  boost::json::array empty;
-  Data obj = {
-    { "accesses", {
-      { { "name", "view" }, 
+  DictV empty;
+  auto obj = dictO({
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
         { "groups", empty },
-        { "users", { userid } }
-        },
-      { { "name", "edit" }, 
+        { "users", DictV{ userid } }
+        }),
+      dictO({ { "name", "edit" }, 
         { "groups", empty },
-        { "users", { userid } }
-        },
-      { { "name", "exec" }, 
+        { "users", DictV{ userid } }
+        }),
+      dictO({ { "name", "exec" }, 
         { "groups", empty },
-        { "users", { userid } }
-        }
-      } 
+        { "users", DictV{ userid } }
+        })
+      }
     },
-    { "modifyDate", Storage::instance()->getNow() }
-  };
+    { "modifyDate", Storage::instance()->getNowO() }
+  });
     
   auto policy = Policy().find(policyToQuery(obj)).one();
   if (!policy) {
@@ -341,8 +341,10 @@ optional<string> Security::findPolicyForUser(const string &userid) {
   
 }
 
-void removeAt(boost::json::value *obj, const string &fullpath) {
+void removeAt(DictO *dict, const string &fullpath) {
 
+  Data obj(*dict);
+  
   // this is the code that was needed in NodeJS to do this:
   // var spdb = spahql.db(policy);
   //   _.forEach(changes.remove, function(r) {
@@ -377,7 +379,7 @@ void removeAt(boost::json::value *obj, const string &fullpath) {
   
   // find the first part in the object.
   error_code ec;
-  json *node = obj->find_pointer(path, ec);
+  json *node = obj.find_pointer(path, ec);
   if (ec) {
     L_ERROR(ec);
     return;
@@ -400,101 +402,145 @@ void removeAt(boost::json::value *obj, const string &fullpath) {
   }
   
   // and then set the new array.
-  obj->set_at_pointer(path, newarr);
+  obj.set_at_pointer(path, newarr);
 
+  // and copy back.
+  *dict = obj.dict();
+  
 }
 
-void addPolicy(boost::json::value *obj, const string &type, const string &context, const string &id) {
+void appendId(DictV *v, const string &id) {
 
-  // get the index for the access
-  int acc;
-  if (type == "view") {
-    acc = 0;
-  }
-  else if (type == "edit") {
-    acc = 1;
-  }
-  else if (type == "exec") {
-    acc = 2;
-  }
-  else {
-    L_ERROR("invalid type " << type);
-    return;
-  }
-  auto accnode = obj->at("accesses").as_array()[acc];
-//    L_TRACE("access node " << accnode);
+  // keep the vector sorted.
   
-  // get the array
-  boost::json::array arr;
-  if (context == "group") {
-    arr = accnode.at("groups").as_array();
-  }
-  else if (context == "user") {
-    arr = accnode.at("users").as_array();
-  }
-  else {
-    L_ERROR("invalid context " << context);
-    return;
-  }
-//    L_TRACE("array " << arr);
-
-  // copy over the existing array (transforming to strings)
   vector<string> newvec;
-  transform(arr.begin(), arr.end(), back_inserter(newvec), [](auto e){ return e.as_string().c_str(); });
-  
-  // push in the new value
+  transform(v->begin(), v->end(), back_inserter(newvec), [](auto e){
+    auto s = Dict::getString(e);
+    if (s) {
+      return *s;
+    }
+    return string("??"); 
+  });
   newvec.push_back(id);
-  
-  // make sure the vector is sorted.
   sort(newvec.begin(), newvec.end());
-  
-  // create a new array.
-  boost::json::array newarr;
-  transform(newvec.begin(), newvec.end(), back_inserter(newarr), 
-    [](auto e){ return boost::json::value_from(e); });
-//    L_TRACE("new array " << newarr);
-  
-  // and set it.
-  if (context == "group") {
-    obj->at("accesses").as_array()[acc].at("groups").emplace_array() = newarr;
-  }
-  else if (context == "user") {
-    obj->at("accesses").as_array()[acc].at("users").emplace_array() = newarr;
-  }
-
+  v->clear();
+  copy(newvec.begin(), newvec.end(), back_inserter(*v));
+    
 }
 
-Data Security::policyToQuery(const Data &obj) {
+void addPolicy(DictO *obj, const string &type, const string &context, const string &id) {
 
-  return { 
+//  L_TRACE("addPolicy in " << Dict::toString(*obj));
+  
+  auto accesses = Dict::getVector(*obj, "accesses");
+  if (!accesses) {
+    L_ERROR("accesses missing");
+    return;
+  }
+  
+  DictV newaccesses;
+  for (auto a: *accesses) {
+    auto name = Dict::getStringG(a, "name");
+    if (!name) {
+      L_ERROR("no name");
+      continue;
+    }
+    auto groups = Dict::getVectorG(a, "groups");
+    if (!groups) {
+      L_ERROR("no groups");
+      continue;
+    }
+    auto users = Dict::getVectorG(a, "users");
+    if (!users) {
+      L_ERROR("no users");
+      continue;
+    }
+    auto o = dictO({
+      { "name", *name }
+    });
+    if (*name == type) {
+      // this is the one we are replacing.
+      if (context == "user") {
+        o["groups"] = *groups;
+        appendId(&(*users), id);
+         o["users"] = *users;
+      }
+      else if (context == "group" ){
+         o["users"] = *users;
+        appendId(&(*groups), id);
+         o["groups"] = *groups;
+      }
+      else {
+        L_ERROR("invalid context " << context);
+        return;
+      }
+    }
+    else {
+      o["groups"] = *groups;
+      o["users"] = *users;
+    }
+    
+    newaccesses.push_back(o);
+  }
+  (*obj)["accesses"] = newaccesses;
+  
+//  L_TRACE("addPolicy out " << Dict::toString(*obj));
+  
+}
+
+DictO Security::policyToQuery(const DictO &obj) {
+
+  auto accesses = Dict::getVector(obj, "accesses");
+  if (!accesses || accesses->size() < 3) {
+    L_ERROR("policyToQuery missing accesses");
+    return DictO();
+  }
+  
+  auto groups0 = Dict::getVectorG((*accesses)[0], "groups");
+  auto users0 = Dict::getVectorG((*accesses)[0], "users");
+  auto groups1 = Dict::getVectorG((*accesses)[1], "groups");
+  auto users1 = Dict::getVectorG((*accesses)[1], "users");
+  auto groups2 = Dict::getVectorG((*accesses)[2], "groups");
+  auto users2 = Dict::getVectorG((*accesses)[2], "users");
+  
+  return dictO({ 
     { "accesses.0.name", "view" },
-    { "accesses.0.groups", obj.at("accesses").as_array()[0].at("groups") }, 
-    { "accesses.0.users", obj.at("accesses").as_array()[0].at("users") }, 
+    { "accesses.0.groups", *groups0 }, 
+    { "accesses.0.users", *users0 }, 
     { "accesses.1.name", "edit" },
-    { "accesses.1.groups", obj.at("accesses").as_array()[1].at("groups") }, 
-    { "accesses.1.users", obj.at("accesses").as_array()[1].at("users") }, 
+    { "accesses.1.groups", *groups1 }, 
+    { "accesses.1.users", *users1 }, 
     { "accesses.2.name", "exec" },
-    { "accesses.2.groups", obj.at("accesses").as_array()[2].at("groups") }, 
-    { "accesses.2.users", obj.at("accesses").as_array()[2].at("users") }
-	};
+    { "accesses.2.groups", *groups2 }, 
+    { "accesses.2.users", *users2 }
+	});
 }
 
 optional<string> Security::modifyPolicy(const string &id, const vector<addTupleType> &add, const vector<string> &remove) {
-
+  
   auto policy = Policy().findById(id).one();
   if (!policy) {
     L_ERROR("existing policy not found");
     return nullopt;
   }
 
-  auto obj = policy.value().d();
-  obj.as_object().erase("id");
+  DictO obj;
+  // TBD: how do we do this with copy_if etc.
+  for (auto i: policy->dict()) {
+    if (get<0>(i) != "id") {
+      obj[get<0>(i)] = get<1>(i);
+    }
+  }
   
+//  L_TRACE("modifyPolicy " << Dict::toString(obj));
+
   // do removes first.
   for (auto i: remove) {
+//    L_TRACE("remove " << i);
     removeAt(&obj, i);
   }
   for (auto i: add) {
+//    L_TRACE("add " << get<0>(i) << ", " << get<1>(i) << ", " << get<2>(i));
     addPolicy(&obj, get<0>(i), get<1>(i), get<2>(i));    
   }
   

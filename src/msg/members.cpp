@@ -18,17 +18,17 @@
 
 namespace nodes {
 
-void membersMsg(Server *server, Data &j) {
+void membersMsg(Server *server, const IncomingMsg &in) {
 
-  auto groupid = j.getString("group");
+  auto groupid = Dict::getString(in.extra_fields.get("group"));
   if (!groupid) {
     server->sendErr("no group");
     return;
   }
 
   Group groups;
-  auto doc = Security::instance()->withView(groups, j.getString("me", true), 
-    Data{ { "_id", { { "$oid", groupid.value() } } } }, 
+  auto doc = Security::instance()->withView(groups, in.me, 
+    dictO({{ "_id", dictO({{ "$oid", groupid.value() }}) }}), 
     { "members", "modifyDate" }).one();
   if (!doc) {
     L_ERROR("no group " + groupid.value());
@@ -36,36 +36,50 @@ void membersMsg(Server *server, Data &j) {
     return;
   }
 
-  if (server->testModifyDate(j, doc.value().d())) {
-    server->send({
+  auto members = Dict::getVectorG(doc->dict(), "members");
+  if (!members) {
+    server->sendErr("no members in doc");
+    return;
+  }
+
+  if (server->testModifyDate(in, doc->dict())) {
+    server->send(dictO({
       { "type", "members" },
-      { "test", {
+      { "test", dictO({
         { "latest", true }
-        }
+        })
       }
-    });
+    }));
     return;
   }
   
-  boost::json::array newmembers;
-  auto members = doc.value().d().at("members").as_array();
-  for (auto i: members) {
-    boost::json::object newmember = i.as_object();
-    auto user = User().findById(i.at("user").as_string().c_str(), { "fullname" }).one();
-    if (user) {
-      newmember["fullname"] = user.value().fullname();
+  DictV newmembers;
+  for (auto i: *members) {
+    auto o = Dict::getObject(i);
+    if (!o) {
+      L_ERROR("memer not an object");
+      continue;
     }
-    newmembers.push_back(newmember);
-  }
-  
-  server->send({
-    { "type", "members" },
-    { "group", {
-      { "members", newmembers },
-      { "modifyDate", doc.value().modifyDate() }
+    DictO m = *o;
+    // set the fuillname.
+    auto u = Dict::getString(m);
+    if (u) {
+      auto user = User().findById(*u, { "fullname" }).one();
+      if (user) {
+        m["fullname"] = user->fullname();
       }
     }
-  });
+    newmembers.push_back(m);
+  }
+  
+  server->send(dictO({
+    { "type", "members" },
+    { "group", dictO({
+      { "members", newmembers },
+      { "modifyDate", doc.value().modifyDate() }
+      })
+    }
+  }));
   
 }
 
