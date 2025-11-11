@@ -39,7 +39,8 @@ class Data;
 typedef function<void (Data &data)> msgHandler;
 
 typedef struct {
-  optional<string> time; // this could be "0"
+  optional<long> time; // this could be 0
+  optional<string> modifyDate;
 } IncomingMsgTest;
 typedef struct {
   string type;

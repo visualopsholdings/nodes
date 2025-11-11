@@ -23,7 +23,7 @@ void siteMsg(Server *server, const IncomingMsg &in) {
   auto doc = Site().find(dictO({}), {}).one();
 
   if (doc) {
-    server->sendObject(in, "site", doc.value().d().dict());
+    server->sendObject(in, "site", doc.value().dict());
     return;
   }
   

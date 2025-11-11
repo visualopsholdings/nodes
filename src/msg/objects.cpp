@@ -57,7 +57,9 @@ void objectsMsg(Server *server, const IncomingMsg &m) {
   // copy out all the data to return;
   DictV s;
   if (docs) {
-    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
+    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { 
+      return e.dict(); 
+    });
   }
   
   server->sendCollection(m, coll, s);

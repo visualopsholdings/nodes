@@ -27,20 +27,20 @@ void setsiteMsg(Server *server, Data &j) {
   
   auto doc = Site().findById(id.value(), {}).one();
   if (doc) {
-    L_TRACE("site old value " << doc.value().d());
+    L_TRACE("site old value " << Dict::toString(doc->dict()));
     
-    Data obj = {
-      { "modifyDate", Storage::instance()->getNow() }
-    };
+    auto obj = dictO({
+      { "modifyDate", Storage::instance()->getNowO() }
+    });
     auto headerTitle = j.getString("headerTitle");
     auto streamBgColor = j.getString("streamBgColor");
     if (headerTitle) {
-      obj.setString("headerTitle", headerTitle.value());
+      obj["headerTitle"] = headerTitle.value();
     }
     if (streamBgColor) {
-      obj.setString("streamBgColor", streamBgColor.value());
+      obj["streamBgColor"] = streamBgColor.value();
     }
-    L_TRACE("updating " << obj);
+    L_TRACE("updating " << Dict::toString(obj));
     auto result = Site().updateById(id.value(), obj);
     if (!result) {
       server->sendErr("could not update site");
@@ -51,16 +51,16 @@ void setsiteMsg(Server *server, Data &j) {
     return;
   }
 
-  auto result = Site().insert({
+  auto result = Site().insert(dictO({
     { "headerTitle", j.getString("headerTitle").value() },
     { "streamBgColor", j.getString("streamBgColor").value() }
-  });
+  }));
   if (!result) {
     server->sendErr("could not insert site");
     return;
   }
   
-  L_TRACE("inserted " << result.value());
+  L_TRACE("inserted " << Dict::toString(result.value()));
   server->sendAck();
   
 }

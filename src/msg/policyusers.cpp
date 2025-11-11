@@ -17,9 +17,9 @@
 
 namespace nodes {
 
-void policyUsersMsg(Server *server, Data &j) {
+void policyUsersMsg(Server *server, const IncomingMsg &in) {
 
-  auto policyid = j.getString("policy");
+  auto policyid = Dict::getString(in.extra_fields.get("policy"));
   if (!policyid) {
     server->sendErr("no policy");
     return;
@@ -28,19 +28,19 @@ void policyUsersMsg(Server *server, Data &j) {
   vector<string> userids;
   Security::instance()->getPolicyUsers(policyid.value(), &userids);
 
-  boost::json::array users;
+  DictV users;
   for (auto i: userids) {
     auto user = User().findById(i, { "id", "name", "fullname" }).one();
     if (user) {
-      users.push_back(user.value().d());
+      users.push_back(user->dict());
     }
   }
 
-  server->send({
+  server->send(dictO({
     { "type", "policyusers" },
     { "id", policyid.value() },
     { "users", users }
-  });
+  }));
   
 }
 

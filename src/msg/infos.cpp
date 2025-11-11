@@ -24,7 +24,7 @@ void infosMsg(Server *server, const IncomingMsg &in) {
   // copy out all the data to return;
   DictV s;
   if (docs) {
-    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
+    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.dict(); });
   }
 
   server->sendCollection(in, "infos", s);

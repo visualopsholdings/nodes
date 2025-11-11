@@ -39,7 +39,7 @@ namespace nodes {
 
 // handlers
 void loginMsg(Server *server, Data &data);
-void policyUsersMsg(Server *server, Data &data);
+void policyUsersMsg(Server *server, const IncomingMsg &m);
 void policyGroupsMsg(Server *server, Data &data);
 void usersMsg(Server *server, const IncomingMsg &m);
 void userMsg(Server *server, const IncomingMsg &m);
@@ -143,7 +143,7 @@ Server::Server(bool test, bool noupstream,
   };
   
   _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
-  _messages["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
+  _messages2["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
   _messages["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
   _messages2["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
   _messages2["user"] = bind(&nodes::userMsg, this, placeholders::_1);
@@ -823,14 +823,14 @@ bool Server::testModifyDate(json &j, const json &doc) {
 bool Server::testModifyDate(const IncomingMsg &m, const DictG &obj) {
 
   if (m.test) {
-    if (m.test->time) {
+    if (m.test->modifyDate) {
       auto modDate = Dict::getStringG(obj, "modifyDate");
       if (!modDate) {
         L_ERROR("modifyDate missing");
         return false;
       }
       long mod = Date::fromISODate(*modDate);
-      long t = Date::fromISODate(*(m.test->time));
+      long t = Date::fromISODate(*(m.test->modifyDate));
       if (mod <= t) {
         L_TRACE("not changed " << mod << " <= " << t);
         return true;
@@ -845,9 +845,8 @@ bool Server::testCollectionChanged(const IncomingMsg &m, const string &name) {
   if (m.test) {
     if (m.test->time) {
       long changed = Storage::instance()->collectionChanged(name);
-      long time = atol(m.test->time->c_str());
-      if (changed <= time) {
-        L_TRACE("not changed " << changed << " <= " << time);
+      if (changed <= *(m.test->time)) {
+        L_TRACE("not changed " << changed << " <= " << *(m.test->time));
         return true;
       }
     } 

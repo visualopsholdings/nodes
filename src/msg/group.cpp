@@ -38,7 +38,7 @@ void groupMsg(Server *server, const IncomingMsg &in) {
     return;
   }
 
-  server->sendObject(in, "group", doc.value().d().dict());
+  server->sendObject(in, "group", doc.value().dict());
   
 }
 

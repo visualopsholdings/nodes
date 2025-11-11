@@ -85,6 +85,7 @@ int DynamicRow::getNumber(const string &name) const {
 
 Data DynamicRow::d() {
   
+  L_WARNING("old school data still used");
   return Data(Dict::toString(_data));
   
 }

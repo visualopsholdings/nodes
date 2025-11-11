@@ -432,6 +432,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 10 Nov 2025
 - Dict is used for a all of the MongoDB code now.
 
+### 11 Nov 2025
+- More Dict stuff.
+- Get nodes-web working.
+
 
 
 

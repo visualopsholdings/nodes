@@ -36,7 +36,7 @@ public:
   int getNumber(const string &name) const;
   
   Data d();
-    // old school.
+    // old school . Almost not needed.
     
 private:
   DictO _data;

@@ -34,21 +34,21 @@ BOOST_AUTO_TEST_CASE( userInGroups )
   
   dbSetup();
   Group().deleteMany(dictO({}));
-  BOOST_CHECK(Group().insert({
+  BOOST_CHECK(Group().insert(dictO({
     { "name", "Team 1" },
-    { "members", {
-      { { "user", "u1" } },
-      { { "user", "u2" } }  
-      } 
+    { "members", DictV{
+      dictO({ { "user", "u1" } }),
+      dictO({ { "user", "u2" } })
+      }
     }
-  }));
+  })));
   
   Group().aggregate("../scripts/useringroups.json");
   
-  auto doc = UserInGroups().find({{ "_id", "u2"}}, {"value"}).one();
+  auto doc = UserInGroups().find(dictO({{ "_id", "u2"}}), {"value"}).one();
   BOOST_CHECK(doc);
-  BOOST_CHECK(doc.value().d().is_object());
-  BOOST_CHECK(doc.value().d().at("value").is_string());
-  BOOST_CHECK_EQUAL(doc.value().d().at("value").as_string().size(), 24);
+  auto s = Dict::getString(doc->dict(), "value");
+  BOOST_CHECK(s);
+  BOOST_CHECK_EQUAL(s->size(), 24);
 
 }

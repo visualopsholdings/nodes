@@ -45,7 +45,7 @@ void objectMsg(Server *server, const IncomingMsg &in) {
     return;
   }
 
-  server->sendObject(in, *in.objtype, doc.value().d().dict());
+  server->sendObject(in, *in.objtype, doc->dict());
 
 }
 

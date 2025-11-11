@@ -30,10 +30,10 @@ bool Group::getMemberSet(const string &group, set<string> *mset) {
     L_ERROR("group " + group + " missing members");
     return false;
   }
-//  L_TRACE("old members " << members);
+//  L_DEBUG("old members " << Dict::toString(*members));
 
   for (auto i: *members) {
-    auto user = Dict::getString(i);
+    auto user = Dict::getStringG(i, "user");
     if (user) {
       mset->insert(*user);
     }

@@ -34,7 +34,7 @@ void userMsg(Server *server, const IncomingMsg &in) {
     return;
   }
   
-  server->sendObject(in, "user", doc.value().d().dict());
+  server->sendObject(in, "user", doc->dict());
   
 }
 

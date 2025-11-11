@@ -30,7 +30,9 @@ void usersMsg(Server *server, const IncomingMsg &in) {
 
   DictV s;
   if (docs) {
-    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { return e.d().dict(); });
+    transform(docs->begin(), docs->end(), back_inserter(s), [](auto e) { 
+      return e.dict(); 
+    });
   }
 
   server->sendCollection(in, "users", s);
