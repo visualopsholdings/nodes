@@ -17,45 +17,48 @@
 
 namespace nodes {
 
-void policyMsg(Server *server, Data &j) {
+void policyMsg(Server *server, const IncomingMsg &in) {
 
-  auto objid = j.getString("id");
+  auto objid = Dict::getString(in.extra_fields.get("id"));
   if (!objid) {
     server->sendErr("no object id");
     return;
   }
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("no object type");
     return;
   }
 
   // the collection names are pluralised object types.
   string collname;
-  if (!Storage::instance()->collName(objtype.value(), &collname, false)) {
+  if (!Storage::instance()->collName(in.objtype.value(), &collname, false)) {
     server->sendErr("Could not get collection name for policy");
     return;
   }
 
-  auto doc = Security::instance()->withView(collname, j.getString("me", true), 
-    {{ { "_id", { { "$oid", objid.value() } } } }}, { "policy" }).one();
+  auto doc = Security::instance()->withView(collname, in.me, 
+    dictO({{ { "_id", dictO({{ "$oid", objid.value() }}) } }}), { "policy" }).one();
   if (!doc) {
     server->sendErr("DB Error (no policy)");
     return;
   }
   
   // get the policy out of the JSON.
-  string policy = boost::json::value_to<string>(doc.value().d().at("policy"));
+  auto policy = Dict::getString(doc->dict(), "policy");
+  if (!policy) {
+    server->sendErr("missing policy");
+    return;
+  }
 
-  auto lines = Security::instance()->getPolicyLines(policy);
+  auto lines = Security::instance()->getPolicyLines(*policy);
   if (!lines) {
     server->sendErr("Policy lines error");
     return;
   }
-  server->send({
+  server->send(dictO({
     { "type", "policy" },
     { "policy", lines.value() }
-  });
+  }));
   
 }
 

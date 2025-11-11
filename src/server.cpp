@@ -59,7 +59,7 @@ void searchUsersMsg(Server *server, const IncomingMsg &m);
 void addMemberMsg(Server *server, Data &data);
 void deleteMemberMsg(Server *server, Data &data);
 void setuserMsg(Server *server, const IncomingMsg &m);
-void policyMsg(Server *server, Data &data);
+void policyMsg(Server *server, const IncomingMsg &m);
 void addObjectMsg(Server *server, Data &data);
 void deleteObjectMsg(Server *server, Data &data);
 void moveObjectMsg(Server *server, Data &data);
@@ -163,7 +163,7 @@ Server::Server(bool test, bool noupstream,
   _messages["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
   _messages["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
   _messages2["setuser"] = bind(&nodes::setuserMsg, this, placeholders::_1);
-  _messages["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
+  _messages2["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
   _messages["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
   _messages["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
   _messages["moveobject"] = bind(&nodes::moveObjectMsg, this, placeholders::_1);

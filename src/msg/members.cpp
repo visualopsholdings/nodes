@@ -62,7 +62,7 @@ void membersMsg(Server *server, const IncomingMsg &in) {
     }
     DictO m = *o;
     // set the fuillname.
-    auto u = Dict::getString(m);
+    auto u = Dict::getString(m, "user");
     if (u) {
       auto user = User().findById(*u, { "fullname" }).one();
       if (user) {

@@ -250,11 +250,11 @@ Data Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
   
 }
 
-Data Security::makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index) {
+DictO Security::makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index) {
 
   // Lines have this simple format so they can be easily edited in a visual editor.
 
-  boost::json::object line;
+  DictO line;
   
   stringstream ss;
   ss << "//accesses/" << access << "/" << type << "s/" << index;
@@ -265,17 +265,17 @@ Data Security::makeLine(const string &type, int access, const string &name, cons
   L_TRACE(ids[index]);
   if (type == "user") {
     auto user = User().findById(ids[index], { "fullname" }).one();
-    line["name"] = !user ? "???" : user.value().fullname();
+    line["name"] = !user ? "???" : user->fullname();
   }
   else {
     auto group = Group().findById(ids[index], { "name" }).one();
-    line["name"] = !group ? "???" : group.value().name();
+    line["name"] = !group ? "???" : group->name();
   }
   return line;
   
 }
 
-optional<Data> Security::getPolicyLines(const string &id) {
+optional<DictV> Security::getPolicyLines(const string &id) {
 
   auto policy = Policy().findById(id, { "accesses" }).one();
   if (!policy) {
@@ -284,13 +284,14 @@ optional<Data> Security::getPolicyLines(const string &id) {
   }
   L_TRACE("policy " << Dict::toString(policy->dict()));
   
-  boost::json::array lines;
-  auto accesses = policy.value().accesses();
+  DictV lines;
+  auto accesses = policy->accesses();
   for (int i=0; i<accesses.size(); i++) {
   
     auto users = accesses[i].users();
+    
     for (int j=0; j<users.size(); j++) {
-       lines.push_back(makeLine("user", i, accesses[i].name(), users, j));
+    lines.push_back(makeLine("user", i, accesses[i].name(), users, j));
     }
     
     auto groups = accesses[i].groups();
@@ -299,7 +300,7 @@ optional<Data> Security::getPolicyLines(const string &id) {
     }
   }
   
-  return Data(lines);
+  return lines;
   
 }
 

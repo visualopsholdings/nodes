@@ -105,7 +105,7 @@ public:
     return true;
   }
   
-  optional<Data> getPolicyLines(const string &id);
+  optional<DictV> getPolicyLines(const string &id);
     // get an array of policy lines.
   
   optional<string> findPolicyForUser(const string &userid);
@@ -156,7 +156,7 @@ private:
   DictV createArray(const vector<string> &list);
   Data createArray2(const vector<string> &list);
   Data withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const Data &query);
-  Data makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
+  DictO makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
 //  void removeAt(json *obj, const string &fullpath);
 //  void addPolicy(Data *obj, const string &type, const string &context, const string &id);
   bool isValidId(const string &id);

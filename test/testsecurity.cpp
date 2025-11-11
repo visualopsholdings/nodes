@@ -376,21 +376,20 @@ BOOST_AUTO_TEST_CASE( getPolicyLines )
 
   auto lines =  Security::instance()->getPolicyLines(policy);
   BOOST_CHECK(lines);
-  cout << lines.value() << endl;
-  BOOST_CHECK(lines.value().is_array());
-  BOOST_CHECK_EQUAL(lines.value().as_array().size(), 5);
+//  cout << Dict::toString(lines.value()) << endl;
+  BOOST_CHECK_EQUAL(lines->size(), 5);
 
-  auto user = lines.value().as_array()[0];
-  BOOST_CHECK_EQUAL(user.at("path").as_string(), "//accesses/0/users/0");
-  BOOST_CHECK_EQUAL(user.at("type").as_string(), "view");
-  BOOST_CHECK_EQUAL(user.at("context").as_string(), "user");
-  BOOST_CHECK_EQUAL(user.at("name").as_string(), "Tracy");
+  auto user = (*lines)[0];
+  BOOST_CHECK_EQUAL(*Dict::getStringG(user, "path"), "//accesses/0/users/0");
+  BOOST_CHECK_EQUAL(*Dict::getStringG(user, "type"), "view");
+  BOOST_CHECK_EQUAL(*Dict::getStringG(user, "context"), "user");
+  BOOST_CHECK_EQUAL(*Dict::getStringG(user, "name"), "Tracy");
 
-  auto group = lines.value().as_array()[2];
-  BOOST_CHECK_EQUAL(group.at("path").as_string(), "//accesses/1/groups/0");
-  BOOST_CHECK_EQUAL(group.at("type").as_string(), "edit");
-  BOOST_CHECK_EQUAL(group.at("context").as_string(), "group");
-  BOOST_CHECK_EQUAL(group.at("name").as_string(), "Team 1");
+  auto group = (*lines)[2];
+  BOOST_CHECK_EQUAL(*Dict::getStringG(group, "path"), "//accesses/1/groups/0");
+  BOOST_CHECK_EQUAL(*Dict::getStringG(group, "type"), "edit");
+  BOOST_CHECK_EQUAL(*Dict::getStringG(group, "context"), "group");
+  BOOST_CHECK_EQUAL(*Dict::getStringG(group, "name"), "Team 1");
   
 }
 
