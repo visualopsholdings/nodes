@@ -32,23 +32,23 @@ void onlineMsg(Server *server, Data &j) {
     return;
   }
   
-  Data obj = {{}};
+  DictO obj;
   
   auto headerTitle = j.getString("headerTitle", true);
   if (headerTitle) {
-    obj.setString("headerTitle", headerTitle.value());
+    obj["headerTitle"] = *headerTitle;
   }
   auto streamBgColor = j.getString("streamBgColor", true);
   if (streamBgColor) {
-    obj.setString("streamBgColor", streamBgColor.value());
+    obj["streamBgColor"] = *streamBgColor;
   }
   auto mirror = j.getString("mirror", true);
   if (mirror) {
-    obj.setString("mirror", mirror.value());
+    obj["mirror"] = *mirror;
   }
   auto synced = j.getString("synced", true);
   if (synced) {
-    obj.setString("synced", synced.value());
+    obj["synced"] = *synced;
   }
 
   // is the node valid?
@@ -56,14 +56,14 @@ void onlineMsg(Server *server, Data &j) {
   auto node = Node().find(dictO({{ "serverId", src }}), {}).one();
   if (node) {
     if (node.value().pubKey() == pubKey.value()) {
-      obj.setBool("valid", true);
+      obj["valid"] = true;
       Node().updateById(node.value().id(), obj);
       valid = true;
     }
   }
   else {
-    obj.setString("serverId", src);
-    obj.setString("pubKey", pubKey.value());
+    obj["serverId"] = src;
+    obj["pubKey"] = *pubKey;
     
     // create a new node.
     auto result = Node().insert(obj);

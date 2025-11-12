@@ -14,6 +14,7 @@
 #include "storage.hpp"
 #include "json.hpp"
 #include "log.hpp"
+#include "dict.hpp"
 
 #include <iostream>
 #include <boost/program_options.hpp> 
@@ -29,6 +30,7 @@ namespace po = boost::program_options;
 using namespace std;
 using json = boost::json::value;
 using namespace nodes;
+using namespace vops;
 
 int main(int argc, char *argv[]) {
 
@@ -171,7 +173,7 @@ int main(int argc, char *argv[]) {
   for (auto l: lines) {
   
     Data o = l;
-    Data q = {{}};
+    DictO q;
     
     auto type = o.getString("type");
     if (!type) {
@@ -183,12 +185,12 @@ int main(int argc, char *argv[]) {
     }
     auto field = o.getString("field", true);
     if (Json::getBool(o, "full", true)) {
-      q.setObj(field.value(), {
+      q[field.value()] = dictO({
         { "$ne", "Waiting discovery" }
       });
     }
     else if (o.getBool("waiting", true)) {
-      q.setString(field.value(), "Waiting discovery");
+      q[field.value()] = "Waiting discovery";
     }
     
     int count = SchemaImpl::countGeneral(type.value(), q);

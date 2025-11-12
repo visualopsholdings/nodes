@@ -20,7 +20,7 @@
 
 namespace nodes {
 
-bool Handler::add(Server *server, const string &type, const Data &obj, optional<string> corr) {
+bool Handler::add(Server *server, const string &type, const DictO &obj, optional<string> corr) {
 
   // get the collection name.
   string coll;
@@ -36,9 +36,9 @@ bool Handler::add(Server *server, const string &type, const Data &obj, optional<
     return false;
   }
   
-  Data obj2 = obj;
-  obj2.setString("id", id.value());
-  obj2.setString("type", type);
+  auto obj2 = obj;
+  obj2["id"] = *id;
+  obj2["type"] = type;
 
   // send to other nodes.
   server->sendAdd(type, obj2);
@@ -55,12 +55,7 @@ bool Handler::add(Server *server, const string &type, const Data &obj, optional<
   
 }
 
-bool Handler::update(Server *server, const string &type, const string &id, optional<string> me, optional<string> name, const Data &obj) {
-
-  if (!obj.is_object()) {
-    L_ERROR("json passed in is not object");
-    return false;
-  }
+bool Handler::update(Server *server, const string &type, const string &id, optional<string> me, optional<string> name, const DictO &obj) {
 
   // get the collection name.
   string coll;
@@ -110,33 +105,32 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
     return false;
   }
   
-  Data obj1 = obj;
-
-  obj1.setObj("modifyDate", Storage::instance()->getNow());
+  auto obj1 = obj;
+  obj1["modifyDate"] = Storage::instance()->getNowO();
   if (name) {
-    obj1.setString("name", name.value());
+    obj1["name"] = *name;
   }
   
   // send to other nodes.
-  Data obj2 = obj1;
+  auto obj2 = obj1;
   auto upstream = Dict::getBool(orig.value(), "upstream");
   if (upstream) {
-    obj2.setBool("upstream", *upstream);
+    obj2["upstream"] = *upstream;
   }
   server->sendUpd(type, id, obj2);
     
   // update locally
-  L_TRACE("updating " << obj1);
-  auto r = SchemaImpl::updateGeneralById(coll, id, {
+  L_TRACE("updating " << Dict::toString(obj1));
+  auto r = SchemaImpl::updateGeneralById(coll, id, dictO({
     { "$set", obj1 }
-  });
+  }));
   if (!r) {
     server->sendErr("could not update " + type);
     return false;
   }
   
   // and reply back
-  L_TRACE("updated " << r.value());
+  L_TRACE("updated " << Dict::toString(r.value()));
   server->sendAck();
 
   return true;
@@ -171,10 +165,10 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   
   L_TRACE(type << " old value " << Dict::toString(orig.value()));
   
-  Data obj = {
+  auto obj = dictO({
     { "deleted", true },
-    { "modifyDate", Storage::instance()->getNow() }
-  };
+    { "modifyDate", Storage::instance()->getNowO() }
+  });
   
   // add in any parent field.
   string parent;
@@ -184,29 +178,29 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
       server->sendErr("missing " + parent + " in " + id);
       return false;
     }
-    obj.setString(parent, pid.value());
+    obj[parent] = *pid;
   }
   
   // send to other nodes.
-  Data obj2 = obj;
+  auto obj2 = obj;
   auto upstream = Dict::getBool(orig.value(), "upstream");
   if (upstream) {
-    obj2.setBool("upstream", *upstream);
+    obj2["upstream"] = *upstream;
   }
   server->sendUpd(type, id, obj2);
     
   // update locally
-  L_TRACE("updating " << obj);
-  auto r = SchemaImpl::updateGeneralById(coll, id, {
+  L_TRACE("updating " << Dict::toString(obj));
+  auto r = SchemaImpl::updateGeneralById(coll, id, dictO({
     { "$set", obj }
-  });
+  }));
   if (!r) {
     server->sendErr("could not update " + type);
     return false;
   }
   
   // and reply back
-  L_TRACE("updated " << r.value());
+  L_TRACE("updated " << Dict::toString(r.value()));
   server->sendAck();
 
   return true;
@@ -230,12 +224,12 @@ bool Handler::upstream(Server *server, const string &type, const string &id, con
   auto doc = result->value();
   if (doc) {
     // set the upstream on doc.
-    auto result = SchemaImpl::updateGeneralById(coll, id, {
-      { "$set", { 
-        { "modifyDate", Storage::instance()->getNow() },
+    auto result = SchemaImpl::updateGeneralById(coll, id, dictO({
+      { "$set", dictO({ 
+        { "modifyDate", Storage::instance()->getNowO() },
         { "upstream", true } 
-      } }
-    });
+      }) }
+    }));
     if (!result) {
       server->sendErr("could not update " + type);
       return false;
@@ -245,12 +239,12 @@ bool Handler::upstream(Server *server, const string &type, const string &id, con
   }
   
   // insert a new object
-  auto r = SchemaImpl::insertGeneral(coll, {
-    { "_id", { { "$oid", id } } },
+  auto r = SchemaImpl::insertGeneral(coll, dictO({
+    { "_id", dictO({ { "$oid", id } }) },
     { namefield, "Waiting discovery" },
     { "upstream", true },
-    { "modifyDate", { { "$date", 0 } } }
-  });
+    { "modifyDate", dictO({ { "$date", 0 } }) }
+  }));
   if (!r) {
     server->sendErr("could not insert " + type);
     return false;

@@ -36,20 +36,20 @@ void setObjectMsg(Server *server, Data &j) {
   
   auto name = j.getString("name", true);
   
-  Data obj2 = j;
-
-  // set on all fields passed in except name.
-  boost::json::object obj = obj2.as_object();
-  obj.erase("type");
-  obj.erase("objtype");
-  obj.erase("me");
-  obj.erase("id");
-  obj.erase("name");
+  DictO obj2;
+  // set on all fields passed in except these
+  auto fields = vector<string>{"type", "objtype", "me", "id", "name"};
+  for (auto i: j.dict()) {
+    auto key = get<0>(i);
+    if (find(fields.begin(), fields.end(), key) == fields.end()) {
+      obj2[key] = get<1>(i);
+    }
+  }
 
   L_TRACE("setting name " << (name ? name.value() : "(not)"));
-  L_TRACE("setting obj " << obj2);
+  L_TRACE("setting obj " << Dict::toString(obj2));
   
-  Handler::update(server, objtype.value(),  id.value(), 
+  Handler::update(server, objtype.value(), id.value(), 
     j.getString("me", true), name, obj2);
 
 }

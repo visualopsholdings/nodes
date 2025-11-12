@@ -46,7 +46,7 @@ void addObjectMsg(Server *server, Data &j) {
     return;
   }
   
-  Data obj = {{}};
+  DictO obj;
 
   // if the object has a parent, then we use the security of the parent.
   string parentfield;
@@ -97,13 +97,13 @@ void addObjectMsg(Server *server, Data &j) {
     }
 
     // how do we know to add user and not active?
-    obj = {
+    obj = dictO({
       { namefield, name.value() },
       { "policy", policyid },
-      { "modifyDate", Storage::instance()->getNow() },
+      { "modifyDate", Storage::instance()->getNowO() },
       { parentfield, parentid.value() },
       { "user", me.value() }
-    };
+    });
   }
   else {
     auto name = j.getString("name");
@@ -117,12 +117,12 @@ void addObjectMsg(Server *server, Data &j) {
       return;
     }
     
-    obj = {
+    obj = dictO({
       { "name", name.value() },
       { "policy", policy.value() },
-      { "modifyDate", Storage::instance()->getNow() },
+      { "modifyDate", Storage::instance()->getNowO() },
       { "active", true }
-    };
+    });
   }
   
   Handler::add(server, objtype.value(), obj, j.getString("corr", true));

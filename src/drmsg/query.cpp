@@ -58,8 +58,9 @@ void queryDrMsg(Server *server, Data &j) {
     return;
   }
 
-  auto result = SchemaImpl::findGeneral(coll, { { fieldname.value(), 
-    { { "$regex", fieldval.value() }, { "$options", "i" } } } }, { fieldname.value() });
+  auto result = SchemaImpl::findGeneral(coll, dictO({{  
+    fieldname.value(), dictO({ { "$regex", fieldval.value() }, { "$options", "i" } }) 
+  }}), { fieldname.value() });
   if (!result) {
     server->sendErrDown("find failed");
     return;

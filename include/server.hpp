@@ -80,6 +80,9 @@ public:
   void publish(optional<string> corr, const json &m) {
     sendTo(*_pub, m, "*-> ", corr);
   }
+  void publish(optional<string> corr, const DictO &m) {
+    sendTo(*_pub, m, "*-> ", corr);
+  }
   void send(const json &m) {
     sendTo(*_rep, m, "-> ", nullopt);
   }

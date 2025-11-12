@@ -28,7 +28,7 @@ void setGroupMsg(Server *server, Data &j) {
   }  
   
   Handler::update(server, "group", id.value(), 
-    j.getString("me", true), j.getString("name", true), {{}});
+    j.getString("me", true), j.getString("name", true), DictO());
   
 }
 

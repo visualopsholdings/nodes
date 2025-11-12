@@ -130,34 +130,34 @@ BOOST_AUTO_TEST_CASE( getPolicyUsersInGroup )
   dbSetup();
   Policy().deleteMany(dictO({}));
   Group().deleteMany(dictO({}));
-  BOOST_CHECK(Group().insert({
-    { "_id", { { "$oid", team1 } } },
+  BOOST_CHECK(Group().insert(dictO({
+    { "_id", dictO({ { "$oid", team1 } }) },
     { "name", "Team 1" },
-    { "members", {
-      { { "user", tracy } }, // tracy
-      { { "user", leanne } }  // leanne
+    { "members", DictV{
+      dictO({ { "user", tracy } }), // tracy
+      dictO({ { "user", leanne } })  // leanne
       } 
     }
-  }));
-  boost::json::array empty;
-  BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", policy } } },
-    { "accesses", {
-      { { "name", "view" }, 
-        { "groups", { team1 } },
+  })));
+  DictV empty;
+  BOOST_CHECK(Policy().insert(dictO({
+    { "_id", dictO({ { "$oid", policy } }) },
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
+        { "groups", DictV{ team1 } },
         { "users", empty }
-        },
-      { { "name", "edit" }, 
-        { "groups", { team1 } },
+        }),
+      dictO({ { "name", "edit" }, 
+        { "groups", DictV{ team1 } },
         { "users", empty }
-        },
-      { { "name", "exec" }, 
-        { "groups", { team1 } },
+        }),
+      dictO({ { "name", "exec" }, 
+        { "groups", DictV{ team1 } },
         { "users", empty }
-        }
+        })
       } 
     }
-  }));
+  })));
   
   vector<string> users;
   Security::instance()->getPolicyUsers(policy, &users);
@@ -172,34 +172,34 @@ BOOST_AUTO_TEST_CASE( getPolicyGroups )
   dbSetup();
   Policy().deleteMany(dictO({}));
   Group().deleteMany(dictO({}));
-  BOOST_CHECK(Group().insert({
-    { "_id", { { "$oid", team1 } } },
+  BOOST_CHECK(Group().insert(dictO({
+    { "_id", dictO({ { "$oid", team1 } }) },
     { "name", "Team 1" },
-    { "members", {
-      { { "user", tracy } }, // tracy
-      { { "user", leanne } }  // leanne
+    { "members", DictV{
+      dictO({ { "user", tracy } }), // tracy
+      dictO({ { "user", leanne } })  // leanne
       } 
     }
-  }));
-  boost::json::array empty;
-  BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", policy } } },
-    { "accesses", {
-      { { "name", "view" }, 
-        { "groups", { team1 } },
+  })));
+  DictV empty;
+  BOOST_CHECK(Policy().insert(dictO({
+    { "_id", dictO({ { "$oid", policy } }) },
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
+        { "groups", DictV{ team1 } },
         { "users", empty }
-        },
-      { { "name", "edit" }, 
-        { "groups", { team1 } },
+        }),
+      dictO({ { "name", "edit" }, 
+        { "groups", DictV{ team1 } },
         { "users", empty }
-        },
-      { { "name", "exec" }, 
-        { "groups", { team1 } },
+        }),
+      dictO({ { "name", "exec" }, 
+        { "groups", DictV{ team1 } },
         { "users", empty }
-        }
+        })
       } 
     }
-  }));
+  })));
   
   vector<string> groups;
   Security::instance()->getPolicyGroups(policy, &groups);
@@ -215,37 +215,37 @@ BOOST_AUTO_TEST_CASE( with )
   Policy().deleteMany(dictO({}));
   Group().deleteMany(dictO({}));
   SchemaImpl::deleteManyGeneral("collections", dictO({}));
-  BOOST_CHECK(Group().insert({
-    { "_id", { { "$oid", team1 } } },
+  BOOST_CHECK(Group().insert(dictO({
+    { "_id", dictO({ { "$oid", team1 } }) },
     { "name", "Team 1" },
-    { "members", {
-      { { "user", tracy } }, // tracy
+    { "members", DictV{
+      dictO({ { "user", tracy } }), // tracy
       } 
     }
-  }));
-  boost::json::array empty;
-  BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", policy } } },
-    { "accesses", {
-      { { "name", "view" }, 
-        { "groups", { team1 } },
+  })));
+  DictV empty;
+  BOOST_CHECK(Policy().insert(dictO({
+    { "_id", dictO({ { "$oid", policy } }) },
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
+        { "groups", DictV{ team1 } },
         { "users", empty }
-        },
-      { { "name", "edit" }, 
+        }),
+      dictO({ { "name", "edit" }, 
         { "groups", empty },
-        { "users", { leanne } } // leanne
-        },
-      { { "name", "exec" }, 
+        { "users", DictV{ leanne } } // leanne
+        }),
+      dictO({ { "name", "exec" }, 
         { "groups", empty },
         { "users", empty }
-        }
+        })
       } 
     }
-  }));
-  BOOST_CHECK(SchemaImpl::insertGeneral("collections", {
+  })));
+  BOOST_CHECK(SchemaImpl::insertGeneral("collections", dictO({
     { "name", "Collection 1" },
     { "policy", policy }
-  }));
+  })));
 
   Security::instance()->regenerateGroups();
   Security::instance()->regenerate();
@@ -297,28 +297,28 @@ BOOST_AUTO_TEST_CASE( canEdit )
   dbSetup();
   Policy().deleteMany(dictO({}));
   SchemaImpl::deleteManyGeneral("collections", dictO({}));
-  boost::json::array empty;
-  auto policy = Policy().insert({
-    { "accesses", {
-      { { "name", "view" }, 
+  DictV empty;
+  auto policy = Policy().insert(dictO({
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
         { "groups", empty },
-        { "users", { tracy, leanne } }
-        },
-      { { "name", "edit" }, 
+        { "users", DictV{ tracy, leanne } }
+        }),
+      dictO({ { "name", "edit" }, 
         { "groups", empty },
-        { "users", { tracy } }
-        },
-      { { "name", "exec" }, 
+        { "users", DictV{ tracy } }
+        }),
+      dictO({ { "name", "exec" }, 
         { "groups", empty },
         { "users", empty }
-        }
+        })
       } 
     }
-  });
-  auto collection = SchemaImpl::insertGeneral("collections", {
+  }));
+  auto collection = SchemaImpl::insertGeneral("collections", dictO({
     { "name", "Collection 1" },
     { "policy", policy.value() }
-  });
+  }));
   Security::instance()->regenerate();
   
   BOOST_CHECK(Security::instance()->canEdit("collections", tracy, collection.value()));
@@ -334,45 +334,45 @@ BOOST_AUTO_TEST_CASE( getPolicyLines )
   User().deleteMany(dictO({}));
   Group().deleteMany(dictO({}));
   Policy().deleteMany(dictO({}));
-  boost::json::array empty;
-  BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", tracy } } },
+  DictV empty;
+  BOOST_CHECK(User().insert(dictO({
+    { "_id", dictO({ { "$oid", tracy } }) },
     { "name", "tracy" },
     { "admin", true },
     { "fullname", "Tracy" }
-  }));
-  BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", leanne } } },
+  })));
+  BOOST_CHECK(User().insert(dictO({
+    { "_id", dictO({ { "$oid", leanne } }) },
     { "name", "leanne" },
     { "admin", false },
     { "fullname", "Leanne" }
-  }));
-  BOOST_CHECK(Group().insert({
-    { "_id", { { "$oid", team1 } } },
+  })));
+  BOOST_CHECK(Group().insert(dictO({
+    { "_id", dictO({ { "$oid", team1 } }) },
     { "name", "Team 1" },
-    { "members", {
-      { { "user", tracy } }, // tracy
+    { "members", DictV{
+      dictO({ { "user", tracy } }), // tracy
       } 
     }
-  }));
-  BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", policy } } },
-    { "accesses", {
-      { { "name", "view" }, 
+  })));
+  BOOST_CHECK(Policy().insert(dictO({
+    { "_id", dictO({ { "$oid", policy } }) },
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
         { "groups", empty },
-        { "users", { tracy, leanne } }
-        },
-      { { "name", "edit" }, 
-        { "groups", { team1 } },
+        { "users", DictV{ tracy, leanne } }
+        }),
+      dictO({ { "name", "edit" }, 
+        { "groups", DictV{ team1 } },
         { "users",  empty }
-        },
-      { { "name", "exec" }, 
+        }),
+      dictO({ { "name", "exec" }, 
         { "groups", empty },
-        { "users",  { tracy, leanne } }
-        }
+        { "users",  DictV{ tracy, leanne } }
+        })
       } 
     }
-  }));
+  })));
 
   auto lines =  Security::instance()->getPolicyLines(policy);
   BOOST_CHECK(lines);
@@ -400,11 +400,11 @@ BOOST_AUTO_TEST_CASE( findMissingPolicyForUser )
   dbSetup();
   User().deleteMany(dictO({}));
   Policy().deleteMany(dictO({}));
-  auto user = User().insert({
+  auto user = User().insert(dictO({
     { "name", "tracy" },
     { "admin", true },
     { "fullname", "Tracy" }
-  });
+  }));
   BOOST_CHECK(user);
 
   auto foundpolicy =  Security::instance()->findPolicyForUser(user.value());
@@ -419,30 +419,30 @@ BOOST_AUTO_TEST_CASE( findPolicyForUser )
   dbSetup();
   User().deleteMany(dictO({}));
   Policy().deleteMany(dictO({}));
-  auto user = User().insert({
+  auto user = User().insert(dictO({
     { "name", "tracy" },
     { "admin", true },
     { "fullname", "Tracy" }
-  });
+  }));
   BOOST_CHECK(user);
-  boost::json::array empty;
-  auto policy = Policy().insert({
-    { "accesses", {
-      { { "name", "view" }, 
+  DictV empty;
+  auto policy = Policy().insert(dictO({
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
         { "groups", empty },
-        { "users", { user.value() } }
-        },
-      { { "name", "edit" }, 
+        { "users", DictV{ user.value() } }
+        }),
+      dictO({ { "name", "edit" }, 
         { "groups", empty },
-        { "users", { user.value() } }
-        },
-      { { "name", "exec" }, 
+        { "users", DictV{ user.value() } }
+        }),
+      dictO({ { "name", "exec" }, 
         { "groups", empty },
-        { "users", { user.value() } }
-        }
+        { "users", DictV{ user.value() } }
+        })
       } 
     }
-  });
+  }));
   BOOST_CHECK(policy);
 
   auto foundpolicy =  Security::instance()->findPolicyForUser(user.value());
@@ -458,45 +458,45 @@ BOOST_AUTO_TEST_CASE( modifyPolicy )
   dbSetup();
   User().deleteMany(dictO({}));
   Policy().deleteMany(dictO({}));
-  BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", tracy } } },
+  BOOST_CHECK(User().insert(dictO({
+    { "_id", dictO({ { "$oid", tracy } }) },
     { "name", "tracy" },
     { "admin", true },
     { "fullname", "Tracy" }
-  }));
-  BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", leanne } } },
+  })));
+  BOOST_CHECK(User().insert(dictO({
+    { "_id", dictO({ { "$oid", leanne } }) },
     { "name", "leanne" },
     { "admin", false },
     { "fullname", "Leanne" }
-  }));
-  BOOST_CHECK(Group().insert({
-    { "_id", { { "$oid", team1 } } },
+  })));
+  BOOST_CHECK(Group().insert(dictO({
+    { "_id", dictO({ { "$oid", team1 } }) },
     { "name", "Team 1" },
-    { "members", {
-      { { "user", tracy } }, // tracy
+    { "members", DictV{
+      dictO({ { "user", tracy } }), // tracy
       } 
     }
-  }));
-  boost::json::array empty;
-  BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", policy } } },
-    { "accesses", {
-      { { "name", "view" }, 
+  })));
+  DictV empty;
+  BOOST_CHECK(Policy().insert(dictO({
+    { "_id", dictO({ { "$oid", policy } }) },
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
         { "groups", empty },
-        { "users", { tracy } }
-        },
-      { { "name", "edit" }, 
-        { "groups", { team1 } },
+        { "users", DictV{ tracy } }
+        }),
+      dictO({ { "name", "edit" }, 
+        { "groups", DictV{ team1 } },
         { "users",  empty }
-        },
-      { { "name", "exec" }, 
+        }),
+      dictO({ { "name", "exec" }, 
         { "groups", empty },
-        { "users",  { tracy, leanne } }
-        }
+        { "users", DictV{ tracy, leanne } }
+        })
       } 
     }
-  }));
+  })));
 
   // add and remove a bunch of stuff.
   vector<tuple<string, string, string > > add;
@@ -528,32 +528,32 @@ BOOST_AUTO_TEST_CASE( generateShareLink )
   Group().deleteMany(dictO({}));
   SchemaImpl::deleteManyGeneral("collections", dictO({}));
   Info().deleteMany(dictO({}));
-  BOOST_CHECK(Info().insert({
+  BOOST_CHECK(Info().insert(dictO({
     { "type", "tokenKey" },
     { "text", "90B21444AC1A2C9146FFA34C72BF787F76E7B0EDD236F0508571264153E58A787B82729268EF67DFCCC6B1F113721B0D752DA65DA6BC82BCA9A1C73E58DAAFF7" }
-  }));
-  BOOST_CHECK(Info().insert({
+  })));
+  BOOST_CHECK(Info().insert(dictO({
     { "type", "tokenIV" },
     { "text", "D764E7CAE16C361A4546873B" }
-  }));
-  BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", tracy } } },
+  })));
+  BOOST_CHECK(User().insert(dictO({
+    { "_id", dictO({ { "$oid", tracy } }) },
     { "name", "tracy" },
     { "fullname", "Tracy" }
-  }));
-  BOOST_CHECK(Group().insert({
-    { "_id", { { "$oid", team1 } } },
+  })));
+  BOOST_CHECK(Group().insert(dictO({
+    { "_id", dictO({ { "$oid", team1 } }) },
     { "name", "Team 1" },
-    { "members", {
-      { { "user", tracy } },
+    { "members", DictV{
+      dictO({ { "user", tracy } }),
       } 
     }
-  }));
-  BOOST_CHECK(SchemaImpl::insertGeneral("collections", {
-    { "_id", { { "$oid", collection1 } } },
+  })));
+  BOOST_CHECK(SchemaImpl::insertGeneral("collections", dictO({
+    { "_id", dictO({ { "$oid", collection1 } }) },
     { "name", "Collection 1" },
     { "bits", 2048 }
-  }));
+  })));
   
   auto link = Security::instance()->generateShareLink(tracy, "http://visualops.com/apps/chat/#/streams/" + collection1, "collections", collection1, team1, 4, "bits");
   BOOST_CHECK(link);
@@ -567,14 +567,14 @@ BOOST_AUTO_TEST_CASE( streamShareToken )
   
   dbSetup();
   Info().deleteMany(dictO({}));
-  BOOST_CHECK(Info().insert({
+  BOOST_CHECK(Info().insert(dictO({
     { "type", "tokenKey" },
     { "text", "90B21444AC1A2C9146FFA34C72BF787F76E7B0EDD236F0508571264153E58A787B82729268EF67DFCCC6B1F113721B0D752DA65DA6BC82BCA9A1C73E58DAAFF7" }
-  }));
-  BOOST_CHECK(Info().insert({
+  })));
+  BOOST_CHECK(Info().insert(dictO({
     { "type", "tokenIV" },
     { "text", "D764E7CAE16C361A4546873B" }
-  }));
+  })));
   
   string options = "mustName";
   string expires = "2024-09-13T11:56:24.0+00:00";

@@ -51,12 +51,12 @@ void addGroupMsg(Server *server, Data &j) {
     return;
   }
 
-  Data obj = {
+  auto obj = dictO({
     { "name", name.value() },
     { "policy", policy.value() },
-    { "modifyDate", Storage::instance()->getNow() },
+    { "modifyDate", Storage::instance()->getNowO() },
     { "active", true }
-  };
+  });
 
   if (Handler::add(server, "group", obj, j.getString("corr", true))) {
     Security::instance()->regenerateGroups();

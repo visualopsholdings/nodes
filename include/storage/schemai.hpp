@@ -17,7 +17,6 @@
 #include "result.hpp"
 #include "dynamicrow.hpp"
 #include "dict.hpp"
-#include "data.hpp"
 
 using namespace std;
 using vops::DictO;
@@ -39,9 +38,6 @@ public:
   optional<string> insert(const DictO &doc) {
     return insertGeneral(collName(), doc);
   }
-  optional<string> insert(const Data &doc) {
-    return insertGeneral(collName(), doc.dict());
-  }
     // insert a new document.
     
   optional<int> update(const DictO &query, const DictO &doc);
@@ -51,9 +47,6 @@ public:
     // update an existing document.
     
   optional<string> updateById(const string &id, const DictO &doc);
-  optional<string> updateById(const string &id, const Data &doc) {
-    return updateById(id, doc.dict());
-  }
     // update an existing document when you know the ID  (inserts $set around the doc).
     
   optional<string> rawUpdateById(const string &id, const DictO &doc) {
@@ -68,25 +61,12 @@ public:
   
   static shared_ptr<ResultImpl> findGeneral(const string &collection, const DictO &query, 
           const vector<string> &fields, optional<int> limit=nullopt, optional<DictO> sort=nullopt);
-  static shared_ptr<ResultImpl> findGeneral(const string &collection, const Data &query, 
-          const vector<string> &fields) {
-    return findGeneral(collection, query.dict(), fields);
-  }
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
   static int countGeneral(const string &collection, const DictO &query);
-  static int countGeneral(const string &collection, const Data &query) {
-    return countGeneral(collection, query.dict());
-  }
   static optional<int> updateGeneral(const string &collection, const DictO &query, const DictO &doc);
   static optional<string> updateGeneralById(const string &collection, const string &id, const DictO &doc);
-  static optional<string> updateGeneralById(const string &collection, const string &id, const Data &doc) {
-    return updateGeneralById(collection, id, doc.dict());
-  }
   static optional<string> insertGeneral(const string &collection, const DictO &doc);
-  static optional<string> insertGeneral(const string &collection, const Data &doc) {
-    return insertGeneral(collection, doc.dict());
-  }
   static void deleteManyGeneral(const string &collection, const DictO &doc);
   static bool existsGeneral(const string &collection, const string &id);
 

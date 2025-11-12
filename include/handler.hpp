@@ -16,23 +16,24 @@
 
 #include <string>
 #include <optional>
+#include "dict.hpp"
 
 using namespace std;
+using namespace vops;
 
 namespace nodes {
 
 class Server;
-class Data;
 
 class Handler {
 
 public:
 
-  static bool add(Server *server, const string &type, const Data &obj, optional<string> corr);
+  static bool add(Server *server, const string &type, const DictO &obj, optional<string> corr);
     // add a new object.
     
   static bool update(Server *server, const string &type, const string &id, 
-                optional<string> me, optional<string> name, const Data &obj);
+                optional<string> me, optional<string> name, const DictO &obj);
     // update an existing object.
     
   static bool remove(Server *server, const string &type, const string &id, optional<string> me);
