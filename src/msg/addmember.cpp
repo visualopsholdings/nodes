@@ -17,29 +17,28 @@
 
 namespace nodes {
 
-void addMemberMsg(Server *server, Data &j) {
+void addMemberMsg(Server *server, const IncomingMsg &in) {
 
   // TBD: this should be very similar code to setgroup!
   
-  auto groupid = j.getString("group");
+  auto groupid = Dict::getString(in.extra_fields.get("group"));
   if (!groupid) {
     server->sendErr("no group");
     return;
   }
 
   Group groups;
-  if (!Security::instance()->canEdit(groups, j.getString("me", true), groupid.value())) {
+  if (!Security::instance()->canEdit(groups, in.me, groupid.value())) {
     server->sendErr("no edit for group " + groupid.value());
     return;
   }
 
-  auto id = j.getString("id");
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id");
     return;
   }
 
-  if (groups.addMember(groupid.value(), id.value())) {
+  if (groups.addMember(groupid.value(), in.id.value())) {
     Security::instance()->regenerateGroups();
     server->sendAck();
     return;

@@ -17,15 +17,15 @@
 
 namespace nodes {
 
-void addNodeMsg(Server *server, Data &j) {
+void addNodeMsg(Server *server, const IncomingMsg &in) {
 
-  auto serverId = j.getString("serverId");
+  auto serverId = Dict::getString(in.extra_fields.get("serverId"));
   if (!serverId) {
     server->sendErr("no serverId");
     return;
   }
   
-  auto pubKey = j.getString("pubKey");
+  auto pubKey = Dict::getString(in.extra_fields.get("pubKey"));
   if (!pubKey) {
     server->sendErr("no pubKey");
     return;

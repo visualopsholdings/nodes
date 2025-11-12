@@ -19,29 +19,26 @@
 
 namespace nodes {
 
-void addObjectMsg(Server *server, Data &j) {
+void addObjectMsg(Server *server, const IncomingMsg &in) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("no object type");
     return;
   }
 
-  auto upstream = j.getBool("upstream", true);
+  auto upstream = Dict::getBool(in.extra_fields.get("upstream"));
   if (upstream && upstream.value()) {
 
-    auto id = j.getString("id");
-    if (!id) {
+    if (!in.id) {
       server->sendErr("no id");
       return;
     }
   
-    Handler::upstream(server, objtype.value(), id.value(), "name");
+    Handler::upstream(server, in.objtype.value(), in.id.value(), "name");
     return;
   }
 
-  auto me = j.getString("me");
-  if (!me) {
+  if (!in.me) {
     server->sendErr("no me");
     return;
   }
@@ -52,13 +49,13 @@ void addObjectMsg(Server *server, Data &j) {
   string parentfield;
   string parenttype;
   string namefield;
-  if (Storage::instance()->parentInfo(objtype.value(), &parentfield, &parenttype, &namefield)) {
-    auto name = j.getString(namefield);
+  if (Storage::instance()->parentInfo(in.objtype.value(), &parentfield, &parenttype, &namefield)) {
+    auto name = Dict::getString(in.extra_fields.get(namefield));
     if (!name) {
       server->sendErr("no " + namefield);
       return;
     }
-    auto parentid = j.getString(parentfield);
+    auto parentid = Dict::getString(in.extra_fields.get(parentfield));
     if (!parentid) {
       server->sendErr("no " + parentfield);
       return;
@@ -68,13 +65,14 @@ void addObjectMsg(Server *server, Data &j) {
       server->sendErr("couldn't get collection name for  " + parenttype);
       return;
     }
-    if (!Security::instance()->canEdit(pcoll, me, parentid.value())) {
+    if (!Security::instance()->canEdit(pcoll, in.me, parentid.value())) {
       server->sendErr("no edit for " + parenttype + " " + parentid.value());
       return;
     }
     string policyid;
-    if (j.has("policy")) {
-      policyid = j.getString("policy").value();
+    auto policy = Dict::getString(in.extra_fields.get("policy"));
+    if (policy) {
+      policyid = *policy;
     }
     else {
       auto result = SchemaImpl::findByIdGeneral(pcoll, parentid.value(), {"policy"});
@@ -102,16 +100,16 @@ void addObjectMsg(Server *server, Data &j) {
       { "policy", policyid },
       { "modifyDate", Storage::instance()->getNowO() },
       { parentfield, parentid.value() },
-      { "user", me.value() }
+      { "user", in.me.value() }
     });
   }
   else {
-    auto name = j.getString("name");
+    auto name = Dict::getString(in.extra_fields.get("name"));
     if (!name) {
       server->sendErr("no name");
       return;
     }
-    auto policy = Security::instance()->findPolicyForUser(me.value());
+    auto policy = Security::instance()->findPolicyForUser(in.me.value());
     if (!policy) {
       server->sendErr("could not get policy");
       return;
@@ -125,7 +123,7 @@ void addObjectMsg(Server *server, Data &j) {
     });
   }
   
-  Handler::add(server, objtype.value(), obj, j.getString("corr", true));
+  Handler::add(server, in.objtype.value(), obj, in.corr);
 
 }
 

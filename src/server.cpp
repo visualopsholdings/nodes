@@ -61,9 +61,11 @@ void queryMsg(Server *server, const IncomingMsg &in);
 void addUserMsg(Server *server, const IncomingMsg &in);
 void reloadMsg(Server *server, const IncomingMsg &in);
 
-void addMemberMsg(Server *server, Data &data);
-void deleteMemberMsg(Server *server, Data &data);
-void addObjectMsg(Server *server, Data &data);
+void addMemberMsg(Server *server, const IncomingMsg &in);
+void deleteMemberMsg(Server *server, const IncomingMsg &in);
+void addObjectMsg(Server *server, const IncomingMsg &in);
+void addNodeMsg(Server *server, const IncomingMsg &in);
+
 void deleteObjectMsg(Server *server, Data &data);
 void moveObjectMsg(Server *server, Data &data);
 void addGroupMsg(Server *server, Data &data);
@@ -75,7 +77,6 @@ void setGroupPolicyMsg(Server *server, Data &data);
 void shareLinkMsg(Server *server, Data &data);
 void canRegisterMsg(Server *server, Data &data);
 void deleteUserMsg(Server *server, Data &data);
-void addNodeMsg(Server *server, Data &data);
 void deleteNodeMsg(Server *server, Data &data);
 void purgeCountGroupsMsg(Server *server, Data &data);
 void purgeGroupsMsg(Server *server, Data &data);
@@ -167,10 +168,11 @@ Server::Server(bool test, bool noupstream,
   _messages2["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
   _messages2["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
   _messages2["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
-
-  _messages["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
-  _messages["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
-  _messages["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
+  _messages2["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
+  _messages2["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
+  _messages2["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
+  _messages2["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
+  
   _messages["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
   _messages["moveobject"] = bind(&nodes::moveObjectMsg, this, placeholders::_1);
   _messages["addgroup"] = bind(&nodes::addGroupMsg, this, placeholders::_1);
@@ -182,7 +184,6 @@ Server::Server(bool test, bool noupstream,
   _messages["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
   _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
-  _messages["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
   _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
   _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
   _messages["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
