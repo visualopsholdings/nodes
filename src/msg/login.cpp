@@ -74,7 +74,7 @@ void loginMsg(Server *server, Data &j) {
   }
 //  L_TRACE(user.value().j();)
   
-  server->send({
+  server->send(dictO({
     { "type", "user" },
     { "session", session.value() },
     { "id", user->id() },
@@ -82,7 +82,7 @@ void loginMsg(Server *server, Data &j) {
     { "fullname", user->fullname() },
     { "admin", user->admin() },
     { "modifyDate", user->modifyDate() }
-  });
+  }));
 
 }
 

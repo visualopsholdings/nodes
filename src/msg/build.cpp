@@ -15,10 +15,10 @@ namespace nodes {
 
 void buildMsg(Server *server, Data &j) {
 
-  server->send({
+  server->send(dictO({
     { "type", "build" },
     { "build", "2" }
-  });
+  }));
   
 }
 

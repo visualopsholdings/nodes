@@ -25,11 +25,11 @@ void dateMsg(Server *server, Data &j) {
   
   auto date = j.getString("date");
   if (date) {
-    server->publish(nullopt, {
+    server->publish(nullopt, dictO({
       { "type", "nodeSeen" },
       { "serverId", server->_upstreamId },
       { "upstreamLastSeen", date.value() }
-    });
+    }));
   }
 
 }

@@ -67,10 +67,10 @@ void shareLinkMsg(Server *server, Data &data) {
     server->sendErr("couldn't create share link");
     return;
   }
-  server->send({
+  server->send(dictO({
     { "type", "sharelink" },
     { "url", url.value() }
-  });
+  }));
 
 }
 

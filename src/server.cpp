@@ -130,18 +130,18 @@ Server::Server(bool test, bool noupstream,
 
   _messages["certs"] =  [&](Data &) {
     if (_certFile.empty()) {
-      send({
+      send(dictO({
         { "type", "certs" }, 
         { "ssl", false }
-      });
+      }));
     }
     else {
-      send({
+      send(dictO({
         { "type", "certs" }, 
         { "ssl", true },
         { "certFile", _certFile }, 
         { "chainFile",_chainFile }
-      });
+      }));
     }
   };
   
@@ -1120,10 +1120,10 @@ void Server::systemStatus(const string &msg) {
 
   L_INFO(msg);
   
-  publish(nullopt, {
+  publish(nullopt, dictO({
     { "type", "status" },
     { "text", msg }
-  });
+  }));
   
 }
 

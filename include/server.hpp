@@ -83,9 +83,6 @@ public:
   void publish(optional<string> corr, const DictO &m) {
     sendTo(*_pub, m, "*-> ", corr);
   }
-  void send(const json &m) {
-    sendTo(*_rep, m, "-> ", nullopt);
-  }
   void send(const DictO &m) {
     sendTo(*_rep, m, "-> ", nullopt);
   }
@@ -115,17 +112,8 @@ public:
   
   // notifying other nodes.
   void sendUpd(const string &type, const string &id, const DictO &data);
-  void sendUpd(const string &type, const string &id, Data &data) {
-    sendUpd(type, id, data.dict());
-  }
   void sendAdd(const string &type, const DictO &data);
-  void sendAdd(const string &type, Data &data) {
-    sendAdd(type, data.dict());
-  }
   void sendMov(const string &type, const string &id, const DictO &obj, const string &ptype, const string &origparent);
-  void sendMov(const string &type, const string &id, Data &obj, const string &ptype, const string &origparent) {
-    sendMov(type, id, obj.dict(), ptype, origparent);
-  }
   
   bool setInfo(const string &name, const string &text);
   string get1Info(const string &type);
