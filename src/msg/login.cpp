@@ -18,14 +18,14 @@
 
 namespace nodes {
 
-void loginMsg(Server *server, Data &j) {
+void loginMsg(Server *server, const IncomingMsg &in) {
 
-  auto session = j.getString("session");
+  auto session = Dict::getString(in.extra_fields.get("session"));
   if (!session) {
     server->sendErr("no session");
     return;
   }
-  auto password = j.getString("password");
+  auto password = Dict::getString(in.extra_fields.get("password"));
   if (!password) {
     server->sendErr("no password");
     return;

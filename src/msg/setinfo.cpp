@@ -17,9 +17,9 @@
 
 namespace nodes {
 
-void setinfoMsg(Server *server, Data &j) {
+void setinfoMsg(Server *server, const IncomingMsg &in) {
 
-  auto serverId = j.getString("serverId");
+  auto serverId = Dict::getString(in.extra_fields.get("serverId"));
   if (serverId) {
     if (serverId.value() == "none") {
       L_TRACE("reset server");
@@ -37,9 +37,9 @@ void setinfoMsg(Server *server, Data &j) {
     return;
   }
 
-  auto upstream = j.getString("upstream");
+  auto upstream = Dict::getString(in.extra_fields.get("upstream"));
   if (upstream) {
-    auto upstreamPubKey = j.getString("upstreamPubKey");
+    auto upstreamPubKey = Dict::getString(in.extra_fields.get("upstreamPubKey"));
     if (!upstreamPubKey) {
       server->sendErr("missing upstreamPubKey");
       return;
@@ -58,7 +58,7 @@ void setinfoMsg(Server *server, Data &j) {
       server->sendErr("could not set upstreamPubKey");
       return;
     }
-    auto upstreamMirror = j.getString("upstreamMirror", true);
+    auto upstreamMirror = Dict::getString(in.extra_fields.get("upstreamMirror"));
     if (!server->setInfo("upstreamMirror", upstreamMirror ? upstreamMirror.value() : "false")) {
       server->sendErr("could not set upstreamMirror");
       return;
@@ -72,7 +72,7 @@ void setinfoMsg(Server *server, Data &j) {
   }
   
   stringstream ss;
-  ss << "unknown " << j;
+  ss << "unknown setinfoMsg";
   server->sendErr(ss.str());
 
 }

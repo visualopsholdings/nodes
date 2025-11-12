@@ -46,6 +46,8 @@ typedef struct {
   string type;
   optional<string> objtype;
   optional<string> me;
+  optional<string> id;
+  optional<string> corr;
   optional<IncomingMsgTest> test;
   optional<vector<string> > path;
   rfl::ExtraFields<DictG> extra_fields;

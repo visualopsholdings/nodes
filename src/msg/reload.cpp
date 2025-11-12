@@ -15,7 +15,7 @@
 
 namespace nodes {
 
-void reloadMsg(Server *server, Data &j) {
+void reloadMsg(Server *server, const IncomingMsg &in) {
 
   server->resetDB();
   server->connectUpstream();

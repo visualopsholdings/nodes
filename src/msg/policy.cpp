@@ -19,8 +19,7 @@ namespace nodes {
 
 void policyMsg(Server *server, const IncomingMsg &in) {
 
-  auto objid = Dict::getString(in.extra_fields.get("id"));
-  if (!objid) {
+  if (!in.id) {
     server->sendErr("no object id");
     return;
   }
@@ -37,7 +36,7 @@ void policyMsg(Server *server, const IncomingMsg &in) {
   }
 
   auto doc = Security::instance()->withView(collname, in.me, 
-    dictO({{ { "_id", dictO({{ "$oid", objid.value() }}) } }}), { "policy" }).one();
+    dictO({{ { "_id", dictO({{ "$oid", *in.id }}) } }}), { "policy" }).one();
   if (!doc) {
     server->sendErr("DB Error (no policy)");
     return;

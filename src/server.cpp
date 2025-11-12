@@ -38,29 +38,29 @@ using namespace nodes;
 namespace nodes {
 
 // handlers
-void policyUsersMsg(Server *server, const IncomingMsg &m);
-void policyGroupsMsg(Server *server, const IncomingMsg &m);
-void usersMsg(Server *server, const IncomingMsg &m);
-void userMsg(Server *server, const IncomingMsg &m);
-void objectsMsg(Server *server, const IncomingMsg &m);
-void objectMsg(Server *server, const IncomingMsg &m);
-void infosMsg(Server *server, const IncomingMsg &m);
-void siteMsg(Server *server, const IncomingMsg &m);
-void groupsMsg(Server *server, const IncomingMsg &m);
-void groupMsg(Server *server, const IncomingMsg &m);
-void membersMsg(Server *server, const IncomingMsg &m);
-void searchUsersMsg(Server *server, const IncomingMsg &m);
-void setuserMsg(Server *server, const IncomingMsg &m);
-void policyMsg(Server *server, const IncomingMsg &m);
-void nodesMsg(Server *server, const IncomingMsg &m);
-void nodeMsg(Server *server, const IncomingMsg &m);
+void policyUsersMsg(Server *server, const IncomingMsg &in);
+void policyGroupsMsg(Server *server, const IncomingMsg &in);
+void usersMsg(Server *server, const IncomingMsg &in);
+void userMsg(Server *server, const IncomingMsg &in);
+void objectsMsg(Server *server, const IncomingMsg &in);
+void objectMsg(Server *server, const IncomingMsg &in);
+void infosMsg(Server *server, const IncomingMsg &in);
+void siteMsg(Server *server, const IncomingMsg &in);
+void groupsMsg(Server *server, const IncomingMsg &in);
+void groupMsg(Server *server, const IncomingMsg &in);
+void membersMsg(Server *server, const IncomingMsg &in);
+void searchUsersMsg(Server *server, const IncomingMsg &in);
+void setuserMsg(Server *server, const IncomingMsg &in);
+void policyMsg(Server *server, const IncomingMsg &in);
+void nodesMsg(Server *server, const IncomingMsg &in);
+void nodeMsg(Server *server, const IncomingMsg &in);
+void loginMsg(Server *server, const IncomingMsg &in);
+void setinfoMsg(Server *server, const IncomingMsg &in);
+void setsiteMsg(Server *server, const IncomingMsg &in);
+void queryMsg(Server *server, const IncomingMsg &in);
+void addUserMsg(Server *server, const IncomingMsg &in);
+void reloadMsg(Server *server, const IncomingMsg &in);
 
-void loginMsg(Server *server, Data &data);
-void setinfoMsg(Server *server, Data &data);
-void setsiteMsg(Server *server, Data &data);
-void queryMsg(Server *server, Data &data);
-void addUserMsg(Server *server, Data &data);
-void reloadMsg(Server *server, Data &data);
 void addMemberMsg(Server *server, Data &data);
 void deleteMemberMsg(Server *server, Data &data);
 void addObjectMsg(Server *server, Data &data);
@@ -145,7 +145,7 @@ Server::Server(bool test, bool noupstream,
     }
   };
   
-  _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
+  _messages2["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
   _messages2["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
   _messages2["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
   _messages2["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
@@ -153,20 +153,23 @@ Server::Server(bool test, bool noupstream,
   _messages2["objects"] = bind(&nodes::objectsMsg, this, placeholders::_1);
   _messages2["object"] = bind(&nodes::objectMsg, this, placeholders::_1);
   _messages2["infos"] = bind(&nodes::infosMsg, this, placeholders::_1);
-  _messages["setinfo"] = bind(&nodes::setinfoMsg, this, placeholders::_1);
+  _messages2["setinfo"] = bind(&nodes::setinfoMsg, this, placeholders::_1);
   _messages2["site"] = bind(&nodes::siteMsg, this, placeholders::_1);
-  _messages["setsite"] = bind(&nodes::setsiteMsg, this, placeholders::_1);
-  _messages["query"] = bind(&nodes::queryMsg, this, placeholders::_1);
-  _messages["adduser"] = bind(&nodes::addUserMsg, this, placeholders::_1);
-  _messages["reload"] = bind(&nodes::reloadMsg, this, placeholders::_1);
+  _messages2["setsite"] = bind(&nodes::setsiteMsg, this, placeholders::_1);
+  _messages2["query"] = bind(&nodes::queryMsg, this, placeholders::_1);
+  _messages2["adduser"] = bind(&nodes::addUserMsg, this, placeholders::_1);
+  _messages2["reload"] = bind(&nodes::reloadMsg, this, placeholders::_1);
   _messages2["groups"] = bind(&nodes::groupsMsg, this, placeholders::_1);
   _messages2["group"] = bind(&nodes::groupMsg, this, placeholders::_1);
   _messages2["members"] = bind(&nodes::membersMsg, this, placeholders::_1);
   _messages2["searchusers"] = bind(&nodes::searchUsersMsg, this, placeholders::_1);
-  _messages["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
-  _messages["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
   _messages2["setuser"] = bind(&nodes::setuserMsg, this, placeholders::_1);
   _messages2["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
+  _messages2["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
+  _messages2["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
+
+  _messages["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
+  _messages["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
   _messages["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
   _messages["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
   _messages["moveobject"] = bind(&nodes::moveObjectMsg, this, placeholders::_1);
@@ -179,8 +182,6 @@ Server::Server(bool test, bool noupstream,
   _messages["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
   _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
-  _messages2["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
-  _messages2["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
   _messages["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
   _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
   _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
@@ -192,28 +193,30 @@ Server::Server(bool test, bool noupstream,
   _messages["requestbuild"] = bind(&nodes::requestBuildMsg, this, placeholders::_1);
   _messages["build"] = bind(&nodes::buildMsg, this, placeholders::_1);
 
-  _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
-  _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
-  _remoteDataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
-  _remoteDataReqMessages["discoverLocalResult"] =  [&](Data &) {
+  _remoteDataReqMessages2["discoverLocalResult"] =  [&](const IncomingMsg &in) {
     // the server has inserted all the local stuff, discover what's out there.
     sendUpDiscover();
   };
-  _remoteDataReqMessages2["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
-  _remoteDataReqMessages["ack"] =  [&](Data &) {
+  _remoteDataReqMessages2["ack"] =  [&](const IncomingMsg &in) {
     L_TRACE("ack");
   };
+  _remoteDataReqMessages2["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
 
+  _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
+  _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
+  _remoteDataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
+  
   _remoteMsgSubMessages["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
   _remoteMsgSubMessages["mov"] =  bind(&nodes::updSubMsg, this, placeholders::_1); // same handler as upd
   _remoteMsgSubMessages["add"] =  bind(&nodes::addSubMsg, this, placeholders::_1);
 
-  _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
   _dataRepMessages2["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
-  _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
   _dataRepMessages2["discover"] =  [&](const IncomingMsg &in) {
     sendDownDiscoverResult(in);
   };
+
+  _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
+  _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
 
   _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
   _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);

@@ -20,33 +20,31 @@
 
 namespace nodes {
 
-void addUserMsg(Server *server, Data &j) {
+void addUserMsg(Server *server, const IncomingMsg &in) {
   
-  auto upstream = j.getBool("upstream", true);
+  auto upstream = Dict::getBool(in.extra_fields.get("upstream"));
   if (upstream && upstream.value()) {
   
-    auto id = j.getString("id");
-    if (!id) {
+    if (!in.id) {
       server->sendErr("no user id");
       return;
     }
   
-    Handler::upstream(server, "user", id.value(), "fullname");
+    Handler::upstream(server, "user", in.id.value(), "fullname");
     return;
   }
   
-  auto coll = j.getString("collection");
+  auto coll = Dict::getString(in.extra_fields.get("collection"));
   if (!coll) {
     server->sendErr("no collection");
     return;
   }
 
-  auto vopsidtoken = j.getString("vopsidtoken");
+  auto vopsidtoken = Dict::getString(in.extra_fields.get("vopsidtoken"));
   if (!vopsidtoken) {
     server->sendErr("only upstream or having a token.");
     return;
   }
-  auto fullname = j.getString("fullname");
 
   auto token = Security::instance()->expandShareToken(vopsidtoken.value());
   if (!token) {
@@ -103,6 +101,7 @@ void addUserMsg(Server *server, Data &j) {
     { "modifyDate", Storage::instance()->getNowO() }
   });
 
+  auto fullname = Dict::getString(in.extra_fields.get("fullname"));
   auto options = Dict::getString(token.value(), "options");
   if (options && options.value() == "mustName") {
     if (!fullname || fullname.value().size() == 0) {

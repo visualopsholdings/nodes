@@ -20,15 +20,14 @@ namespace nodes {
 
 void setuserMsg(Server *server, const IncomingMsg &in) {
 
-  auto id = Dict::getString(in.extra_fields.get("id"));
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id in user");
     return;
   }  
   
-  auto doc = User().findById(id.value(), {}).one();
+  auto doc = User().findById(*in.id, {}).one();
   if (!doc) {
-    server->sendErr("could not find user " + id.value());
+    server->sendErr("could not find user " + *in.id);
     return;
   }
   
@@ -60,11 +59,11 @@ void setuserMsg(Server *server, const IncomingMsg &in) {
   if (doc->upstream()) {
     obj2["upstream"] = true;
   }
-  server->sendUpd("user", id.value(), obj2);
+  server->sendUpd("user", *in.id, obj2);
   
   // update this node.
   L_TRACE("updating " << Dict::toString(obj));
-  auto result = User().updateById(id.value(), obj);
+  auto result = User().updateById(*in.id, obj);
   if (!result) {
     server->sendErr("could not update user");
     return;

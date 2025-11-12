@@ -24,8 +24,7 @@ void objectMsg(Server *server, const IncomingMsg &in) {
     server->sendErr("no object type");
     return;
   }
-  auto id = Dict::getString(in.extra_fields.get("id"));
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id for " + *in.objtype);
     return;
   }
@@ -38,7 +37,7 @@ void objectMsg(Server *server, const IncomingMsg &in) {
   }
   
   auto doc = Security::instance()->withView(coll, in.me, 
-    dictO({{ { "_id", dictO({{ "$oid", *id }}) } }})).one();
+    dictO({{ { "_id", dictO({{ "$oid", *in.id }}) } }})).one();
   if (!doc) {
     L_ERROR("no object to view");
     server->sendSecurity();

@@ -18,10 +18,9 @@
 
 namespace nodes {
 
-void queryMsg(Server *server, Data &j) {
+void queryMsg(Server *server, const IncomingMsg &in) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("require objtype");
     return;
   }
@@ -30,20 +29,20 @@ void queryMsg(Server *server, Data &j) {
     server->sendErr("not online with upstream");
     return;
   }
-  string fieldname = objtype.value() == "user" ? "fullname" : "name";
-  auto fieldval = j.getString(fieldname);
+  string fieldname = in.objtype.value() == "user" ? "fullname" : "name";
+  auto fieldval = Dict::getString(in.extra_fields.get(fieldname));
   if (!fieldval) {
-    server->sendErr("require " + fieldname + " for " + objtype.value() + " query");
+    server->sendErr("require " + fieldname + " for " + in.objtype.value() + " query");
     return;
   }
   boost::json::object msg = {
     { "type", "query" },
-    { "objtype", objtype.value() },
+    { "objtype", in.objtype.value() },
     { "fieldname", fieldname },
     { "fieldval", fieldval.value() }
   };
   server->setSrc(&msg);
-  server->sendDataReq(j.getString("corr", true), msg);
+  server->sendDataReq(in.corr, msg);
     
   server->sendAck();
   
