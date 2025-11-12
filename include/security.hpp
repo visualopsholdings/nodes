@@ -59,16 +59,10 @@ public:
   void getPolicyGroups(const string &id, vector<string> *groups);
     // get a list of groups that are in this policy.
   
-  Result<DynamicRow> withView(const string &collection, optional<string> me, const Data &query, const vector<string> &fields = {});
-  Result<DynamicRow> withView(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
-    return withView(collection, me, Data(query), fields);
-  }
+  Result<DynamicRow> withView(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields = {});
     // execute a query ensuring that the user can view the results, using the name of the collection.
 
-  Result<DynamicRow> withEdit(const string &collection, optional<string> me, const Data &query, const vector<string> &fields = {});
-  Result<DynamicRow> withEdit(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
-    return withEdit(collection, me, Data(query), fields);
-  }
+  Result<DynamicRow> withEdit(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields = {});
     //execute a query ensuring that the user can edit the results, using the name of the collection.
 
   bool canEdit(const string &collection, optional<string> me, const string &id);
@@ -76,8 +70,8 @@ public:
     
   // execute a query ensuring that the user can view the results.
   template <typename RowType>
-  Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const Data &query, const vector<string> &fields = {}) {
-  
+  Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
+
     if (me) {
       GroupViewPermissions groupviews;
       UserViewPermissions userviews;
@@ -87,10 +81,6 @@ public:
     return schema.find(query, fields);    
 
   }
-  template <typename RowType>
-  Result<RowType> withView(Schema<RowType> &schema, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
-    return withView(schema, me, Data(query), fields);
-  }
   
   template <typename RowType>
   bool canEdit(Schema<RowType> &schema, optional<string> me, const string &id) {
@@ -98,7 +88,7 @@ public:
   }
     
   // Users can always be edited and viewed
-  Result<User> withView(Schema<User> &schema, optional<string> me, const Data &query, const vector<string> &fields = {}) {
+  Result<User> withView(Schema<User> &schema, optional<string> me, const DictO &query, const vector<string> &fields = {}) {
     return schema.find(query, fields);    
   }
   bool canEdit(Schema<User> &schema, optional<string> me, const string &id) {
@@ -127,7 +117,7 @@ public:
     // for expires ours.
     
   optional<string> createShareToken(const string &collid, const string &me, const string &options, const string &groupid, const string &expires);
-  optional<Data> expandShareToken(const string &token);
+  optional<DictO> expandShareToken(const string &token);
     // public for testing.
   
   string newSalt();
@@ -154,11 +144,8 @@ private:
   void addTo(vector<string> *v, const string &val);
   void queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids);
   DictV createArray(const vector<string> &list);
-  Data createArray2(const vector<string> &list);
-  Data withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const Data &query);
+  DictO withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const DictO &query);
   DictO makeLine(const string &type, int access, const string &name, const vector<string> &ids, int index);
-//  void removeAt(json *obj, const string &fullpath);
-//  void addPolicy(Data *obj, const string &type, const string &context, const string &id);
   bool isValidId(const string &id);
   
 };

@@ -31,14 +31,14 @@ void canRegisterMsg(Server *server, Data &j) {
     return;
   }
 
-  auto id = exptoken.value().getString("id");
-  auto options = exptoken.value().getString("options");
+  auto id = Dict::getString(exptoken.value(), "id");
+  auto options = Dict::getString(exptoken.value(), "options");
   
-  server->send({
+  server->send(dictO({
     { "type", "canreg" },
     { "canRegister", id && options && options.value() != "none" },
     { "requireFullname", options && options.value() == "mustName" }
-  });
+  }));
 
 }
 

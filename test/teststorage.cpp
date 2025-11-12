@@ -32,22 +32,22 @@ void dbSetup() {
   Storage::instance()->init("mongodb://127.0.0.1:27017", "dev");
 
   User().deleteMany(dictO({}));
-  BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", tracy } } },
+  BOOST_CHECK(User().insert(dictO({
+    { "_id", dictO({{ "$oid", tracy }}) },
     { "name", "tracy" },
     { "admin", true },
     { "fullname", "Tracy" },
     // 2024-07-25T06:54:39.599+00:00
-    { "modifyDate", { { "$date", 1721890479599 } } }
-  }));
-  BOOST_CHECK(User().insert({
-    { "_id", { { "$oid", leanne } } },
+    { "modifyDate", dictO({{ "$date", 1721890479599 }}) }
+  })));
+  BOOST_CHECK(User().insert(dictO({
+    { "_id", dictO({{ "$oid", leanne }}) },
     { "name", "leanne" },
     { "admin", false },
     { "fullname", "Leanne" },
     // 2024-09-18T11:11:30.2+00:00
-    { "modifyDate", { { "$date", 1726657890002 } } }
-  }));
+    { "modifyDate", dictO({{ "$date", 1726657890002 }}) }
+  })));
 }
 
 BOOST_AUTO_TEST_CASE( notInit )
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE( user )
   
   dbSetup();
   
-  auto doc = User().find({{ "name", "tracy" }}, {"id", "name"}).one();
+  auto doc = User().find(dictO({{ "name", "tracy" }}), {"id", "name"}).one();
 //  cout << doc.value().j() << endl;
   BOOST_CHECK(doc);
   BOOST_CHECK_EQUAL(doc->name(), "tracy");
@@ -126,10 +126,10 @@ BOOST_AUTO_TEST_CASE( insertExisting )
   
   dbSetup();
 
-  auto result = User().insert({
-    { "_id", { { "$oid", tracy } } },
+  auto result = User().insert(dictO({
+    { "_id", dictO({{ "$oid", tracy }}) },
     { "name", "tracy2" }
-  });
+  }));
   BOOST_CHECK(result);
   BOOST_CHECK_EQUAL(result.value(), "exists");
 
@@ -141,9 +141,9 @@ BOOST_AUTO_TEST_CASE( insertNew )
   
   dbSetup();
 
-  auto result = User().insert({
+  auto result = User().insert(dictO({
     { "name", "bob" }
-  });
+  }));
   BOOST_CHECK(result);
   BOOST_CHECK_EQUAL(result.value().size(), 24);
 
@@ -155,11 +155,11 @@ BOOST_AUTO_TEST_CASE( update )
   
   dbSetup();
 
-  auto result = User().updateById(tracy, {
+  auto result = User().updateById(tracy, dictO({
     { "name", "tracy2" },
-    { "modifyDate", Storage::instance()->getNow() },
+    { "modifyDate", Storage::instance()->getNowO() },
     { "fullname", "Tracy new" }
-  });
+  }));
   BOOST_CHECK(result);
 
 }

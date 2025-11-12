@@ -43,7 +43,7 @@ string getHome();
 
 Security::Security() {
 
-  auto infos = Info().find({{ "type", { { "$in", {"tokenKey", "tokenIV"}}} }}, {"type", "text"}).all();
+  auto infos = Info().find(dictO({{ "type", dictO({{ "$in", DictV{"tokenKey", "tokenIV"}}}) }}), {"type", "text"}).all();
   if (!infos) {
     L_WARNING("missing infos. Running without can work.");
     return;
@@ -91,7 +91,7 @@ void Security::addTo(vector<string> *v, const string &val) {
 
 }
 
-Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const Data &query, const vector<string> &fields) {
+Result<DynamicRow> Security::withView(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields) {
 
   if (me) {
     if (!isValidId(me.value())) {
@@ -107,7 +107,7 @@ Result<DynamicRow> Security::withView(const string &collection, optional<string>
   
 }
 
-Result<DynamicRow> Security::withEdit(const string &collection, optional<string> me, const Data &query, const vector<string> &fields) {
+Result<DynamicRow> Security::withEdit(const string &collection, optional<string> me, const DictO &query, const vector<string> &fields) {
 
   if (me) {
     if (!isValidId(me.value())) {
@@ -132,7 +132,7 @@ bool Security::canEdit(const string &collection, optional<string> me, const stri
     }
     GroupEditPermissions groupedits;
     UserEditPermissions useredits;
-    auto result = SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), Data{ { "_id", { { "$oid", id } } } }), {});
+    auto result = SchemaImpl::findGeneral(collection, withQuery(groupedits, useredits, me.value(), dictO({{ "_id", dictO({{ "$oid", id }}) }})), {});
     if (!result) {
       L_ERROR("can't find in canEdit");
       return false;
@@ -196,18 +196,9 @@ DictV Security::createArray(const vector<string> &list) {
 
 }
 
-Data Security::createArray2(const vector<string> &list) {
-
-  boost::json::array a;
-  for (auto i: list) {
-    a.push_back(boost::json::string(i));
-  }
-  return a;
-
-}
 void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inids, vector<string> *ids) {
 
-  Data q = { { "_id", {{ "$in", createArray2(inids) }}}};
+  auto q = dictO({{ "_id", dictO({{ "$in", createArray(inids) }}) }});
   
   auto indexes = schema.find(q).all();
   if (!indexes) {
@@ -223,11 +214,11 @@ void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inid
 
 }
 
-Data Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const Data &query) {
+DictO Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const string &userid, const DictO &query) {
 
   // collect all the groups the user is in.
   UserInGroups useringroups;
-  auto indexes = useringroups.find({{ "_id", userid }}, {"value"}).one();
+  auto indexes = useringroups.find(dictO({{ "_id", userid }}), {"value"}).one();
   vector<string> glist;
   if (indexes) {
     glist = indexes.value().all();
@@ -240,11 +231,14 @@ Data Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, const
   // add all the policies just for this user.
   queryIndexes(uperm, { userid }, &plist);
 
-  Data q = { { "$and", { 
-    query,
-    { { "policy", { { "$in", createArray2(plist) } } } }
-  } } };
-  L_TRACE(q);
+  auto q = dictO({ 
+    { "$and", DictV{ 
+      query,
+      dictO({{ "policy", dictO({{ "$in", createArray(plist) }}) }})
+      }
+    } 
+  });
+  L_TRACE(Dict::toString(q));
 
   return q;
   
@@ -638,13 +632,16 @@ optional<string> Security::createShareToken(const string &collid, const string &
   
 }
 
-optional<Data> Security::expandShareToken(const string &token) {
+optional<DictO> Security::expandShareToken(const string &token) {
 
   Encrypter encrypter(_key, _iv);
   auto dec = encrypter.decryptText(token);
   if (dec) {
-    auto val = boost::json::parse(dec.value());
-    return Data(val);
+    auto g = Dict::parseString(*dec);
+    if (!g) {
+      return nullopt;
+    }
+    return Dict::getObject(*g);
   }
   return nullopt;
   

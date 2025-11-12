@@ -79,25 +79,25 @@ void setObjectPolicyMsg(Server *server, Data &j) {
     server->sendAck();
   }
   
-  Data obj = {
-    { "modifyDate", Storage::instance()->getNow() },
+  auto obj = dictO({
+    { "modifyDate", Storage::instance()->getNowO() },
     { "policy", policy.value() }
-  };
+  });
 
   // send to other nodes.
-  Data obj2 = obj;
+  auto obj2 = obj;
   auto upstream = Dict::getBool(orig.value(), "upstream");
   if (upstream) {
-    obj2.setBool("upstream", *upstream);
+    obj2["upstream"] = *upstream;
   }
   server->sendUpd(objtype.value(), id.value(), obj2);
     
-  L_TRACE("updating " << obj);
-  auto r = SchemaImpl::updateGeneralById(coll, id.value(), {
+  L_TRACE("updating " << Dict::toString(obj));
+  auto r = SchemaImpl::updateGeneralById(coll, id.value(), dictO({
     { "$set", obj }
-  });
+  }));
   
-  L_TRACE("updated " << r.value());
+  L_TRACE("updated " << Dict::toString(r.value()));
   server->sendAck(r.value());
 
 }

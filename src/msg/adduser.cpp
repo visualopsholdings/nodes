@@ -54,9 +54,9 @@ void addUserMsg(Server *server, Data &j) {
     return;
   }
   
-  L_TRACE("token " << token.value());
+  L_TRACE("token " << Dict::toString(token.value()));
 
-  auto expires = token.value().getString("expires");
+  auto expires = Dict::getString(token.value(), "expires");
   if (!expires) {
     L_ERROR("Expires must be specified in token");
     server->sendWarning("Invalid token.");
@@ -73,14 +73,14 @@ void addUserMsg(Server *server, Data &j) {
     return;
   }
   
-  auto user = token.value().getString("user");
+  auto user = Dict::getString(token.value(), "user");
   if (!user) {
     L_ERROR("User must be specified in token");
     server->sendWarning("Invalid token.");
     return;
   }
 
-  auto id = token.value().getString("id");
+  auto id = Dict::getString(token.value(), "id");
   if (!id) {
     L_ERROR("Id must be specified in token");
     server->sendWarning("Invalid token.");
@@ -97,22 +97,22 @@ void addUserMsg(Server *server, Data &j) {
     return;
   }
 
-  Data obj = {
+  auto obj = dictO({
     { "invitedBy", user.value() },
     { "active", true },
-    { "modifyDate", Storage::instance()->getNow() }
-  };
+    { "modifyDate", Storage::instance()->getNowO() }
+  });
 
-  auto options = token.value().getString("options");
+  auto options = Dict::getString(token.value(), "options");
   if (options && options.value() == "mustName") {
     if (!fullname || fullname.value().size() == 0) {
       server->sendWarning("Must specify full name." );
       return;
     }
-    obj.setString("fullname", fullname.value());
+    obj["fullname"] = *fullname;
   }
   
-  auto team = token.value().getString("team");
+  auto team = Dict::getString(token.value(), "team");
   if (!team) {
     L_ERROR("Security settings not supported");
     server->sendWarning("Invalid token.");
@@ -123,8 +123,8 @@ void addUserMsg(Server *server, Data &j) {
   string password = Security::instance()->newPassword();
   string hash = Security::instance()->newHash(password, salt);
 
-  obj.setString("salt", salt);
-  obj.setString("hash", hash);
+  obj["salt"] = salt;
+  obj["hash"] = hash;
 
   auto userid = User().insert(obj);
   if (!userid) {
@@ -133,7 +133,7 @@ void addUserMsg(Server *server, Data &j) {
   }
 
   // send to other nodes.
-  obj.setString("id", userid.value());
+  obj["id"] = *userid;
   server->sendAdd("user", obj);
     
   VID vid;
@@ -145,12 +145,12 @@ void addUserMsg(Server *server, Data &j) {
   }
   Security::instance()->regenerateGroups();
 
-  server->send({
+  server->send(dictO({
     { "type", "adduser" },
     { "vopsid", vid.value() },
     { "id", userid.value() },
     { "fullname", fullname.value() }
-  });
+  }));
 
 }
 

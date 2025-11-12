@@ -25,9 +25,9 @@ void purgeCountMsg(Server *server, Data &j) {
     return;
   }
   
-  Data query = { 
+  auto query = dictO({ 
     { "deleted", true } 
-  };
+  });
   
   // add in any parent query.
   string parent;
@@ -37,9 +37,8 @@ void purgeCountMsg(Server *server, Data &j) {
       server->sendErr("no " + parent);
       return;
     }
-    query.setString(parent, pid.value());
-  }
-  
+    query[parent] = *pid;
+  }  
   // get the collection name.
   string coll;
   if (!Storage::instance()->collName(objtype.value(), &coll)) {
@@ -47,10 +46,10 @@ void purgeCountMsg(Server *server, Data &j) {
     return;
   }
   
-  server->send({
+  server->send(dictO({
     { "type", "count" },
     { "count", SchemaImpl::countGeneral(coll, query) }
-  });
+  }));
   
 }
 

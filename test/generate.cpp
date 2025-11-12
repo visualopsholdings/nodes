@@ -15,6 +15,7 @@
 #include "json.hpp"
 #include "log.hpp"
 #include "date.hpp"
+#include "dict.hpp"
 
 #include <iostream>
 #include <boost/program_options.hpp> 
@@ -30,6 +31,7 @@ namespace po = boost::program_options;
 using namespace std;
 using json = boost::json::value;
 using namespace nodes;
+using namespace vops;
 
 int main(int argc, char *argv[]) {
 
@@ -85,13 +87,13 @@ int main(int argc, char *argv[]) {
     d += 5 * 60 * 1000;
     stringstream text;
     text << prefix << i;
-    Data obj = {
+    auto obj = dictO({
       { collectionField, collectionValue },
       { "policy", policy },
       { "user", user },
-      { "modifyDate", { { "$date", d } } },
+      { "modifyDate", dictO({ { "$date", d } }) },
       { "text",  text.str() }
-    };
+    });
     auto res = SchemaImpl::insertGeneral(collection, obj);
     if (!res) {
       L_ERROR("failed to insert");

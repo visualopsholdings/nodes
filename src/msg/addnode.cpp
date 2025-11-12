@@ -32,10 +32,10 @@ void addNodeMsg(Server *server, Data &j) {
   }
   
   // insert a new node
-  auto result = Node().insert({
+  auto result = Node().insert(dictO({
     { "serverId", serverId.value() },
     { "pubKey", pubKey.value() }
-  });
+  }));
   if (!result) {
     server->sendErr("could not insert node");
     return;

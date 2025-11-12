@@ -57,26 +57,26 @@ void setGroupPolicyMsg(Server *server, Data &j) {
     server->sendAck();
   }
   
-  Data obj = {
-    { "modifyDate", Storage::instance()->getNow() },
+  auto obj = dictO({
+    { "modifyDate", Storage::instance()->getNowO() },
     { "policy", policy.value() }
-  };
+  });
 
   // send to other nodes.
-  Data obj2 = obj;
+  auto obj2 = obj;
   if (orig.value().upstream()) {
-    obj2.setBool("upstream", true);
+    obj2["upstream"] = true;
   }
   server->sendUpd("group", id.value(), obj2);
     
-  L_TRACE("updating " << obj);
+  L_TRACE("updating " << Dict::toString(obj));
   auto result = groups.updateById(id.value(), obj);
   if (!result) {
     server->sendErr("could not update group");
     return;
   }
   
-  L_TRACE("updated " << result.value());
+  L_TRACE("updated " << Dict::toString(result.value()));
   server->sendAck(result.value());
 
 }

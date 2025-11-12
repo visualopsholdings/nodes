@@ -97,25 +97,25 @@ BOOST_AUTO_TEST_CASE( getPolicyUsers )
   
   dbSetup();
   Policy().deleteMany(dictO({}));
-  boost::json::array empty;
-  BOOST_CHECK(Policy().insert({
-    { "_id", { { "$oid", policy } } },
-    { "accesses", {
-      { { "name", "view" }, 
+  DictV empty;
+  BOOST_CHECK(Policy().insert(dictO({
+    { "_id", dictO({ { "$oid", policy } }) },
+    { "accesses", DictV{
+      dictO({ { "name", "view" }, 
         { "groups", empty },
-        { "users", { "u1", "u2" } }
-        },
-      { { "name", "edit" }, 
+        { "users", DictV{ "u1", "u2" } }
+        }),
+      dictO({ { "name", "edit" }, 
         { "groups", empty },
-        { "users",  { "u1", "u2" } }
-        },
-      { { "name", "exec" }, 
+        { "users",  DictV{ "u1", "u2" } }
+        }),
+      dictO({ { "name", "exec" }, 
         { "groups", empty },
-        { "users",  { "u1", "u2" } }
-        }
-      } 
+        { "users",  DictV{ "u1", "u2" } }
+        })
+      }
     }
-  }));
+  })));
 
   vector<string> users;
   Security::instance()->getPolicyUsers(policy, &users);
@@ -252,39 +252,39 @@ BOOST_AUTO_TEST_CASE( with )
 
   {
     // tracy is in the team that can view.
-    auto doc = Security::instance()->withView("collections", tracy, {{ "name", "Collection 1" }}).one();
+    auto doc = Security::instance()->withView("collections", tracy, dictO({{ "name", "Collection 1" }})).one();
     BOOST_CHECK(doc);
   }
   
   {
     // leanne can only edit.
-    auto docs = Security::instance()->withView("collections", leanne, {{ "name", "Collection 1" }}).all();
+    auto docs = Security::instance()->withView("collections", leanne, dictO({{ "name", "Collection 1" }})).all();
     BOOST_CHECK(!docs);
   }
   
   {
     // leanne is in the team that can edit.
-    auto docs = Security::instance()->withEdit("collections", leanne, {{ "name", "Collection 1" }}).all();
+    auto docs = Security::instance()->withEdit("collections", leanne, dictO({{ "name", "Collection 1" }})).all();
     BOOST_CHECK(docs);
     BOOST_CHECK_EQUAL(docs.value().size(), 1);
   }
   
   {
     // tracy can only view.
-    auto docs = Security::instance()->withEdit("collections", tracy, {{ "name", "Collection 1" }}).all();
+    auto docs = Security::instance()->withEdit("collections", tracy, dictO({{ "name", "Collection 1" }})).all();
     BOOST_CHECK(!docs);
   }
 
   {
     // admin can see them all.
-    auto docs = Security::instance()->withView("collections", nullopt, {{ "name", "Collection 1" }}).all();
+    auto docs = Security::instance()->withView("collections", nullopt, dictO({{ "name", "Collection 1" }})).all();
     BOOST_CHECK(docs);
     BOOST_CHECK_EQUAL(docs.value().size(), 1);
   }
   
   {
     // even tracy can't see a collection not there.
-    auto docs = Security::instance()->withView("collections", tracy, {{ "name", "Collection 2" }}).all();
+    auto docs = Security::instance()->withView("collections", tracy, dictO({{ "name", "Collection 2" }})).all();
     BOOST_CHECK(!docs);
   }
   
@@ -583,19 +583,12 @@ BOOST_AUTO_TEST_CASE( streamShareToken )
   cout << token.value() << endl;
   auto json = Security::instance()->expandShareToken(token.value());
   BOOST_CHECK(json);
-  cout << json.value() << endl;
-  BOOST_CHECK(json.value().is_object());
-  auto obj = json.value().as_object();
-  BOOST_CHECK(obj.if_contains("id"));
-  BOOST_CHECK_EQUAL(obj.at("id").as_string(), collection1);
-  BOOST_CHECK(obj.if_contains("user"));
-  BOOST_CHECK_EQUAL(obj.at("user").as_string(), tracy);
-  BOOST_CHECK(obj.if_contains("options"));
-  BOOST_CHECK_EQUAL(obj.at("options").as_string(), options);
-  BOOST_CHECK(obj.if_contains("team"));
-  BOOST_CHECK_EQUAL(obj.at("team").as_string(), team1);
-  BOOST_CHECK(obj.if_contains("expires"));
-  BOOST_CHECK_EQUAL(obj.at("expires").as_string(), expires);
+  cout << Dict::toString(json.value()) << endl;
+  BOOST_CHECK_EQUAL(*Dict::getString(json.value(), "id"), collection1);
+  BOOST_CHECK_EQUAL(*Dict::getString(json.value(), "user"), tracy);
+  BOOST_CHECK_EQUAL(*Dict::getString(json.value(), "options"), options);
+  BOOST_CHECK_EQUAL(*Dict::getString(json.value(), "team"), team1);
+  BOOST_CHECK_EQUAL(*Dict::getString(json.value(), "expires"), expires);
   
 }
 

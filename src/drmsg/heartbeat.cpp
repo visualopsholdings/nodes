@@ -28,7 +28,7 @@ void heartbeatMsg(Server *server, Data &j) {
     return;
   }
   
-  auto node = Node().find({ { "serverId", src } }, {}).one();
+  auto node = Node().find(dictO({{ "serverId", src }}), {}).one();
   if (!node) {
     L_ERROR("heartbeat no node " << src);
     server->sendAckDown();
@@ -36,7 +36,7 @@ void heartbeatMsg(Server *server, Data &j) {
   }
     
   auto now = Date::now();
-  Node().updateById(node.value().id(), { { "lastSeen", { { "$date", now } } } });
+  Node().updateById(node.value().id(), dictO({{ "lastSeen", dictO({{ "$date", now }}) }}));
 
   auto date = Date::toISODate(now);
   server->publish(nullopt, {

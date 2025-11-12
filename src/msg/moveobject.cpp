@@ -96,25 +96,24 @@ void moveObjectMsg(Server *server, Data &j) {
   }
   
   // Set the parent field of the object.
-  Data obj = {
+  auto obj = dictO({
     { parentfield, pcollid.value() }
-  };
-
-  obj.setObj("modifyDate", Storage::instance()->getNow());
+  });
+  obj["modifyDate"] = Storage::instance()->getNowO();
   
   // send to other nodes.
-  Data obj2 = obj;
+  auto obj2 = obj;
   auto upstream = Dict::getBool(orig.value(), "upstream");
   if (upstream) {
-    obj2.setBool("upstream", *upstream);
+    obj2["upstream"] = *upstream;
   }
   server->sendMov(objtype.value(), id.value(), obj2, parenttype, origparent.value());
     
   // update locally
-  L_TRACE("updating " << obj);
-  auto r = SchemaImpl::updateGeneralById(coll, id.value(), {
+  L_TRACE("updating " << Dict::toString(obj));
+  auto r = SchemaImpl::updateGeneralById(coll, id.value(), dictO({
     { "$set", obj }
-  });
+  }));
   if (!r) {
     server->sendErr("could not update " + objtype.value());
     return;

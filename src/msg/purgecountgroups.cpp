@@ -18,10 +18,10 @@ namespace nodes {
 
 void purgeCountGroupsMsg(Server *server, Data &j) {
 
-  server->send({
+  server->send(dictO({
     { "type", "count" },
-    { "count", SchemaImpl::countGeneral("groups", { { "deleted", true } }) }
-  });
+    { "count", SchemaImpl::countGeneral("groups", dictO({{ "deleted", true }})) }
+  }));
   
 }
 

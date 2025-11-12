@@ -46,7 +46,7 @@ public:
     for (auto i: v.value()) {
       auto obj = vops::Dict::getObject(i);
       if (!obj) {
-        cerr << "obj not an object!" << endl;
+//        cerr << "obj not an object!" << endl;
         continue;
       }
       ret.push_back(RowType(*obj));

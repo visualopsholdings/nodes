@@ -35,10 +35,13 @@ void loginMsg(Server *server, Data &j) {
   // even if the server is in test mode, if the password seems like
   // a VID then try that out.
   if (server->_test && password.value().rfind("Vk9", 0) == string::npos) {
-    Data q = { { "$or", { 
-      { { "name", password.value() } },
-      { { "fullname", password.value() } }
-    } } };
+    auto q = dictO({ 
+      { "$or", DictV{ 
+        dictO({{ "name", password.value() }}),
+        dictO({{ "fullname", password.value() }})
+        }
+      } 
+    });
     user = User().find(q, {"name", "fullname", "admin", "modifyDate"}).one();
     if (!user) {
       server->sendErr("Username/Password incorrect");

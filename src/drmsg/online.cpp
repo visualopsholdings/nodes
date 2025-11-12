@@ -53,7 +53,7 @@ void onlineMsg(Server *server, Data &j) {
 
   // is the node valid?
   bool valid = false;
-  auto node = Node().find({ { "serverId", src } }, {}).one();
+  auto node = Node().find(dictO({{ "serverId", src }}), {}).one();
   if (node) {
     if (node.value().pubKey() == pubKey.value()) {
       obj.setBool("valid", true);

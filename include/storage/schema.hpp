@@ -15,7 +15,6 @@
 #define H_schema
 
 #include "schemai.hpp"
-#include "data.hpp"
 
 #include <set>
 
@@ -31,9 +30,6 @@ public:
   // find documents with the query.
   Result<RowType> find(const DictO &query, const vector<string> &fields = {}) {
     return Result<RowType>(findResult(query, fields));
-  }
-  Result<RowType> find(const Data &query, const vector<string> &fields = {}) {
-    return find(query.dict(), fields);
   }
     
   // find the document with this id.

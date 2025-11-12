@@ -19,10 +19,10 @@ namespace nodes {
 
 void purgeCountUsersMsg(Server *server, Data &j) {
 
-  server->send({
+  server->send(dictO({
     { "type", "count" },
-    { "count", SchemaImpl::countGeneral("users", { { "deleted", true } }) }
-  });
+    { "count", SchemaImpl::countGeneral("users", dictO({ { "deleted", true } })) }
+  }));
   
 }
 
