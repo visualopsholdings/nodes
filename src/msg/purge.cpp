@@ -17,10 +17,9 @@
 
 namespace nodes {
 
-void purgeMsg(Server *server, Data &j) {
+void purgeMsg(Server *server, const IncomingMsg &in) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("no object type");
     return;
   }
@@ -31,8 +30,8 @@ void purgeMsg(Server *server, Data &j) {
   
   // add in any parent query.
   string parent;
-  if (Storage::instance()->parentInfo(objtype.value(), &parent)) {
-    auto pid = j.getString(parent);
+  if (Storage::instance()->parentInfo(in.objtype.value(), &parent)) {
+    auto pid = Dict::getString(in.extra_fields.get(parent));
     if (!pid) {
       server->sendErr("no " + parent);
       return;
@@ -42,7 +41,7 @@ void purgeMsg(Server *server, Data &j) {
   
   // get the collection name.
   string coll;
-  if (!Storage::instance()->collName(objtype.value(), &coll)) {
+  if (!Storage::instance()->collName(in.objtype.value(), &coll)) {
     server->sendErr("Could not get collection name for purge");
     return;
   }

@@ -13,7 +13,7 @@
 
 namespace nodes {
 
-void buildMsg(Server *server, Data &j) {
+void buildMsg(Server *server, const IncomingMsg &in) {
 
   server->send(dictO({
     { "type", "build" },

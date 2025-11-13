@@ -15,11 +15,15 @@
 
 namespace nodes {
 
-void requestBuildMsg(Server *server, Data &j) {
+void requestBuildMsg(Server *server, const IncomingMsg &in) {
 
-  boost::json::object msg = j.as_object();
-  server->setSrc(&msg);
-  server->sendDataReq(nullopt, msg);
+  auto obj = Dict::getObject(rfl::to_generic(in));
+  if (!obj) {
+    server->sendErr("can't convert to object!");
+    return;
+  }
+  server->setSrc(&(*obj));
+  server->sendDataReq(nullopt, *obj);
     
   server->sendAck();
   

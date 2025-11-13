@@ -17,7 +17,7 @@
 
 namespace nodes {
 
-void purgeGroupsMsg(Server *server, Data &j) {
+void purgeGroupsMsg(Server *server, const IncomingMsg &in) {
 
   Group().deleteMany(dictO({{ "deleted", true }}));
   Security::instance()->regenerateGroups();

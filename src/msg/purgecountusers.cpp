@@ -17,7 +17,7 @@
 
 namespace nodes {
 
-void purgeCountUsersMsg(Server *server, Data &j) {
+void purgeCountUsersMsg(Server *server, const IncomingMsg &in) {
 
   server->send(dictO({
     { "type", "count" },

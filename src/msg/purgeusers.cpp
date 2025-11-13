@@ -17,7 +17,7 @@
 
 namespace nodes {
 
-void purgeUsersMsg(Server *server, Data &j) {
+void purgeUsersMsg(Server *server, const IncomingMsg &in) {
 
   User().deleteMany(dictO({{ "deleted", true }}));
   server->sendAck();

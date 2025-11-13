@@ -76,15 +76,14 @@ void deleteUserMsg(Server *server, const IncomingMsg &in);
 void shareLinkMsg(Server *server, const IncomingMsg &in);
 void canRegisterMsg(Server *server, const IncomingMsg &in);
 void deleteNodeMsg(Server *server, const IncomingMsg &in);
-
-void purgeCountGroupsMsg(Server *server, Data &data);
-void purgeGroupsMsg(Server *server, Data &data);
-void purgeCountMsg(Server *server, Data &data);
-void purgeMsg(Server *server, Data &data);
-void purgeCountUsersMsg(Server *server, Data &data);
-void purgeUsersMsg(Server *server, Data &data);
-void requestBuildMsg(Server *server, Data &data);
-void buildMsg(Server *server, Data &data);
+void purgeCountGroupsMsg(Server *server, const IncomingMsg &in);
+void purgeGroupsMsg(Server *server, const IncomingMsg &in);
+void purgeCountMsg(Server *server, const IncomingMsg &in);
+void purgeMsg(Server *server, const IncomingMsg &in);
+void purgeCountUsersMsg(Server *server, const IncomingMsg &in);
+void purgeUsersMsg(Server *server, const IncomingMsg &in);
+void requestBuildMsg(Server *server, const IncomingMsg &in);
+void buildMsg(Server *server, const IncomingMsg &in);
 
 // remoteDataReq handlers
 void discoverResultMsg(Server *server, const IncomingMsg &in);
@@ -183,15 +182,14 @@ Server::Server(bool test, bool noupstream,
   _messages2["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
   _messages2["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
   _messages2["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
-  
-  _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
-  _messages["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
-  _messages["purgecount"] = bind(&nodes::purgeCountMsg, this, placeholders::_1);
-  _messages["purge"] = bind(&nodes::purgeMsg, this, placeholders::_1);
-  _messages["purgecountusers"] = bind(&nodes::purgeCountUsersMsg, this, placeholders::_1);
-  _messages["purgeusers"] = bind(&nodes::purgeUsersMsg, this, placeholders::_1);
-  _messages["requestbuild"] = bind(&nodes::requestBuildMsg, this, placeholders::_1);
-  _messages["build"] = bind(&nodes::buildMsg, this, placeholders::_1);
+  _messages2["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
+  _messages2["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
+  _messages2["purgecount"] = bind(&nodes::purgeCountMsg, this, placeholders::_1);
+  _messages2["purge"] = bind(&nodes::purgeMsg, this, placeholders::_1);
+  _messages2["purgecountusers"] = bind(&nodes::purgeCountUsersMsg, this, placeholders::_1);
+  _messages2["purgeusers"] = bind(&nodes::purgeUsersMsg, this, placeholders::_1);
+  _messages2["requestbuild"] = bind(&nodes::requestBuildMsg, this, placeholders::_1);
+  _messages2["build"] = bind(&nodes::buildMsg, this, placeholders::_1);
 
   _remoteDataReqMessages2["discoverLocalResult"] =  [&](const IncomingMsg &in) {
     // the server has inserted all the local stuff, discover what's out there.
