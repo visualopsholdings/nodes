@@ -15,7 +15,6 @@
 
 #include "storage/resulti.hpp"
 #include "storage/schemai.hpp"
-#include "json.hpp"
 #include "log.hpp"
 
 #include <bsoncxx/json.hpp>
@@ -33,13 +32,11 @@ mongocxx::cursor ResultImpl::find() {
 
   mongocxx::options::find opts{};
   if (_f.size() > 0) {
-    boost::json::object j;
+    DictO o;
     for (auto i: _f) {
-      j[i] = 1;
+      o[i] = 1;
     }
-    stringstream ss;
-    ss << j;
-    opts.projection(bsoncxx::from_json(ss.str()));
+    opts.projection(bsoncxx::from_json(Dict::toString(o)));
   }
   if (_limit) {
     opts.limit(_limit.value());

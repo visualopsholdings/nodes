@@ -17,14 +17,12 @@
 #include "dict.hpp"
 
 #include <zmq.hpp>
-#include <boost/json.hpp>
 #include <map>
 #ifdef MONGO_DB
 #include <mongocxx/collection.hpp>
 #endif
 
 using namespace std;
-using json = boost::json::value;
 using namespace vops;
 
 namespace nodes {
@@ -84,14 +82,11 @@ public:
   void send(const std::string &s) {
     sendTo(*_rep, s, "-> ");
   }
-  void setSrc(boost::json::object *m);
   void setSrc(DictO *m);
   bool getSrc(const IncomingMsg &in, string *s);
-  bool getSrc(json &msg, string *s);
   void sendDown(const DictO &m);
   void sendDown(const std::string &s);
   void pubDown(const DictO &m);
-  void pubDown(const json &m);
   void sendOn(const DictO &m);
   void sendErr(const string &msg);
   void sendErrDown(const string &msg);
@@ -158,10 +153,10 @@ private:
   shared_ptr<Upstream> _remoteMsgSub;
   shared_ptr<Downstream> _dataRep;
   shared_ptr<Downstream> _msgPub;
-  map<string, msgHandler> _messages2;
-  map<string, msgHandler> _remoteDataReqMessages2;
-  map<string, msgHandler> _dataRepMessages2;
-  map<string, msgHandler> _remoteMsgSubMessages2;
+  map<string, msgHandler> _messages;
+  map<string, msgHandler> _remoteDataReqMessages;
+  map<string, msgHandler> _dataRepMessages;
+  map<string, msgHandler> _remoteMsgSubMessages;
   int _remoteDataReqPort;
   int _remoteMsgSubPort;
   int _dataRepPort;
@@ -172,10 +167,8 @@ private:
   string _certFile;
   string _chainFile;
   
-  void sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr);
   void sendTo(zmq::socket_t &socket, const DictO &j, const string &type, optional<string> corr);
   void sendTo(zmq::socket_t &socket, const std::string &j, const string &type);
-  json receiveFrom(shared_ptr<zmq::socket_t> socket);
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers);
   bool testCollectionChanged(const IncomingMsg &m, const string &name);
   void runUpstreamOnly();

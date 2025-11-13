@@ -10,7 +10,6 @@
 */
 
 #include "json.hpp"
-
 #include "date.hpp"
 #include "log.hpp"
 

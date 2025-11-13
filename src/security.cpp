@@ -13,10 +13,9 @@
 
 #include "vid.hpp"
 #include "storage.hpp"
-#include "json.hpp"
 #include "encrypter.hpp"
 #include "date.hpp"
-#include "data.hpp"
+#include "json.hpp"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -338,7 +337,7 @@ optional<string> Security::findPolicyForUser(const string &userid) {
 
 void removeAt(DictO *dict, const string &fullpath) {
 
-  Data obj(*dict);
+  auto obj = boost::json::parse(Dict::toString(*dict));
   
   // this is the code that was needed in NodeJS to do this:
   // var spdb = spahql.db(policy);
@@ -400,7 +399,20 @@ void removeAt(DictO *dict, const string &fullpath) {
   obj.set_at_pointer(path, newarr);
 
   // and copy back.
-  *dict = obj.dict();
+  stringstream ss;
+  ss << obj;
+  auto g = Dict::parseStream(ss);
+  if (!g) {
+    L_ERROR("couldnt parse " << ss.str());
+    return;
+  }
+  auto o = Dict::getObject(*g);
+  if (!o) {
+    L_ERROR("not object " << ss.str());
+    return;
+  }
+  
+  *dict = *o;
   
 }
 

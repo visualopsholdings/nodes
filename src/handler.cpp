@@ -12,7 +12,6 @@
 #include "handler.hpp"
 
 #include "server.hpp"
-#include "json.hpp"
 #include "security.hpp"
 #include "storage.hpp"
 #include "log.hpp"

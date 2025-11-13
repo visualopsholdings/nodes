@@ -12,7 +12,6 @@
 #include "storage/collectioni.hpp"
 
 #include "log.hpp"
-#include "json.hpp"
 #include "storage.hpp"
 #include "date.hpp"
 
@@ -27,18 +26,18 @@ DictO CollectionImpl::fixObject(const DictO &j) {
   for (auto i: j) {
   
     auto key = get<0>(i);
-    L_TRACE("fixing " << key);
+//    L_TRACE("fixing " << key);
     
     auto val = get<1>(i);
     
     auto oval = Dict::getObject(val);
     if (oval) {
-      L_TRACE("value is object");
+//      L_TRACE("value is object");
       if (key == "_id") {
-        L_TRACE("got _id");
+//        L_TRACE("got _id");
         auto oid = Dict::getString(*oval, "$oid");
         if (oid) {
-          L_TRACE("it's a string");
+//          L_TRACE("it's a string");
           o["id"] = *oid;
           continue;
         }
@@ -53,7 +52,7 @@ DictO CollectionImpl::fixObject(const DictO &j) {
     
     auto iv = Dict::getVector(val);
     if (iv) {
-      L_TRACE("value is vector");
+//      L_TRACE("value is vector");
       DictV newarray;
       // copy array, recursing into sub objects.
       transform(iv->begin(), iv->end(), back_inserter(newarray), [this](auto e) -> DictG {

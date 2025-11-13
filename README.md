@@ -439,6 +439,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 12 Nov 2025
 - "Data" removed from all storage and security code.
 
+### 13 Nov 2025
+- "Data" removed completely.
+
+
 
 
 

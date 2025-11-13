@@ -84,7 +84,6 @@ set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
 set(CORE
   src/json.cpp
   src/date.cpp
-  src/data.cpp
 )
 set(UTILS
   src/vid.cpp 
@@ -198,7 +197,7 @@ add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
     target_link_libraries(nodes StorageLib DictLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${STORAGEILIBS} ${OPENSSL_LIBRARIES})
 
 add_executable(Send test/send.cpp src/log.cpp)
-  target_link_libraries(Send ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
+  target_link_libraries(Send DictLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
 add_executable(Counts test/counts.cpp src/log.cpp)
   target_link_libraries(Counts StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${STORAGEILIBS})
@@ -250,9 +249,3 @@ add_executable(TestEncrypter test/testencrypter.cpp src/encrypter.cpp)
   target_link_libraries(TestEncrypter ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${OPENSSL_LIBRARIES})
 
 add_test(TestEncrypter TestEncrypter)
-
-add_executable(TestData test/testdata.cpp src/data.cpp)
-  target_link_libraries(TestData DictLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
-
-add_test(TestData TestData)
-

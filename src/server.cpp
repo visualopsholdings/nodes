@@ -12,7 +12,6 @@
 #include "server.hpp"
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "storage/schema.hpp"
 #include "upstream.hpp"
 #include "downstream.hpp"
@@ -125,7 +124,7 @@ Server::Server(bool test, bool noupstream,
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
 	L_INFO("Bound to ZMQ as Local REP on " << rep);
 
-  _messages2["certs"] =  [&](const IncomingMsg &in) {
+  _messages["certs"] =  [&](const IncomingMsg &in) {
     if (_certFile.empty()) {
       send(dictO({
         { "type", "certs" }, 
@@ -142,81 +141,81 @@ Server::Server(bool test, bool noupstream,
     }
   };
   
-  _messages2["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
-  _messages2["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
-  _messages2["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
-  _messages2["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
-  _messages2["user"] = bind(&nodes::userMsg, this, placeholders::_1);
-  _messages2["objects"] = bind(&nodes::objectsMsg, this, placeholders::_1);
-  _messages2["object"] = bind(&nodes::objectMsg, this, placeholders::_1);
-  _messages2["infos"] = bind(&nodes::infosMsg, this, placeholders::_1);
-  _messages2["setinfo"] = bind(&nodes::setinfoMsg, this, placeholders::_1);
-  _messages2["site"] = bind(&nodes::siteMsg, this, placeholders::_1);
-  _messages2["setsite"] = bind(&nodes::setsiteMsg, this, placeholders::_1);
-  _messages2["query"] = bind(&nodes::queryMsg, this, placeholders::_1);
-  _messages2["adduser"] = bind(&nodes::addUserMsg, this, placeholders::_1);
-  _messages2["reload"] = bind(&nodes::reloadMsg, this, placeholders::_1);
-  _messages2["groups"] = bind(&nodes::groupsMsg, this, placeholders::_1);
-  _messages2["group"] = bind(&nodes::groupMsg, this, placeholders::_1);
-  _messages2["members"] = bind(&nodes::membersMsg, this, placeholders::_1);
-  _messages2["searchusers"] = bind(&nodes::searchUsersMsg, this, placeholders::_1);
-  _messages2["setuser"] = bind(&nodes::setuserMsg, this, placeholders::_1);
-  _messages2["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
-  _messages2["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
-  _messages2["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
-  _messages2["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
-  _messages2["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
-  _messages2["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
-  _messages2["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
-  _messages2["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
-  _messages2["moveobject"] = bind(&nodes::moveObjectMsg, this, placeholders::_1);
-  _messages2["addgroup"] = bind(&nodes::addGroupMsg, this, placeholders::_1);
-  _messages2["setgroup"] = bind(&nodes::setGroupMsg, this, placeholders::_1);
-  _messages2["setobject"] = bind(&nodes::setObjectMsg, this, placeholders::_1);
-  _messages2["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
-  _messages2["setobjectpolicy"] = bind(&nodes::setObjectPolicyMsg, this, placeholders::_1);
-  _messages2["setgrouppolicy"] = bind(&nodes::setGroupPolicyMsg, this, placeholders::_1);
-  _messages2["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
-  _messages2["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
-  _messages2["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
-  _messages2["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
-  _messages2["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
-  _messages2["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
-  _messages2["purgecount"] = bind(&nodes::purgeCountMsg, this, placeholders::_1);
-  _messages2["purge"] = bind(&nodes::purgeMsg, this, placeholders::_1);
-  _messages2["purgecountusers"] = bind(&nodes::purgeCountUsersMsg, this, placeholders::_1);
-  _messages2["purgeusers"] = bind(&nodes::purgeUsersMsg, this, placeholders::_1);
-  _messages2["requestbuild"] = bind(&nodes::requestBuildMsg, this, placeholders::_1);
-  _messages2["build"] = bind(&nodes::buildMsg, this, placeholders::_1);
+  _messages["login"] = bind(&nodes::loginMsg, this, placeholders::_1);
+  _messages["policyusers"] = bind(&nodes::policyUsersMsg, this, placeholders::_1);
+  _messages["policygroups"] = bind(&nodes::policyGroupsMsg, this, placeholders::_1);
+  _messages["users"] = bind(&nodes::usersMsg, this, placeholders::_1);
+  _messages["user"] = bind(&nodes::userMsg, this, placeholders::_1);
+  _messages["objects"] = bind(&nodes::objectsMsg, this, placeholders::_1);
+  _messages["object"] = bind(&nodes::objectMsg, this, placeholders::_1);
+  _messages["infos"] = bind(&nodes::infosMsg, this, placeholders::_1);
+  _messages["setinfo"] = bind(&nodes::setinfoMsg, this, placeholders::_1);
+  _messages["site"] = bind(&nodes::siteMsg, this, placeholders::_1);
+  _messages["setsite"] = bind(&nodes::setsiteMsg, this, placeholders::_1);
+  _messages["query"] = bind(&nodes::queryMsg, this, placeholders::_1);
+  _messages["adduser"] = bind(&nodes::addUserMsg, this, placeholders::_1);
+  _messages["reload"] = bind(&nodes::reloadMsg, this, placeholders::_1);
+  _messages["groups"] = bind(&nodes::groupsMsg, this, placeholders::_1);
+  _messages["group"] = bind(&nodes::groupMsg, this, placeholders::_1);
+  _messages["members"] = bind(&nodes::membersMsg, this, placeholders::_1);
+  _messages["searchusers"] = bind(&nodes::searchUsersMsg, this, placeholders::_1);
+  _messages["setuser"] = bind(&nodes::setuserMsg, this, placeholders::_1);
+  _messages["policy"] = bind(&nodes::policyMsg, this, placeholders::_1);
+  _messages["nodes"] = bind(&nodes::nodesMsg, this, placeholders::_1);
+  _messages["node"] = bind(&nodes::nodeMsg, this, placeholders::_1);
+  _messages["addmember"] = bind(&nodes::addMemberMsg, this, placeholders::_1);
+  _messages["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
+  _messages["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
+  _messages["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
+  _messages["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
+  _messages["moveobject"] = bind(&nodes::moveObjectMsg, this, placeholders::_1);
+  _messages["addgroup"] = bind(&nodes::addGroupMsg, this, placeholders::_1);
+  _messages["setgroup"] = bind(&nodes::setGroupMsg, this, placeholders::_1);
+  _messages["setobject"] = bind(&nodes::setObjectMsg, this, placeholders::_1);
+  _messages["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
+  _messages["setobjectpolicy"] = bind(&nodes::setObjectPolicyMsg, this, placeholders::_1);
+  _messages["setgrouppolicy"] = bind(&nodes::setGroupPolicyMsg, this, placeholders::_1);
+  _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
+  _messages["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
+  _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
+  _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
+  _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
+  _messages["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
+  _messages["purgecount"] = bind(&nodes::purgeCountMsg, this, placeholders::_1);
+  _messages["purge"] = bind(&nodes::purgeMsg, this, placeholders::_1);
+  _messages["purgecountusers"] = bind(&nodes::purgeCountUsersMsg, this, placeholders::_1);
+  _messages["purgeusers"] = bind(&nodes::purgeUsersMsg, this, placeholders::_1);
+  _messages["requestbuild"] = bind(&nodes::requestBuildMsg, this, placeholders::_1);
+  _messages["build"] = bind(&nodes::buildMsg, this, placeholders::_1);
 
-  _remoteDataReqMessages2["discoverLocalResult"] =  [&](const IncomingMsg &in) {
+  _remoteDataReqMessages["discoverLocalResult"] =  [&](const IncomingMsg &in) {
     // the server has inserted all the local stuff, discover what's out there.
     sendUpDiscover();
   };
-  _remoteDataReqMessages2["ack"] =  [&](const IncomingMsg &in) {
+  _remoteDataReqMessages["ack"] =  [&](const IncomingMsg &in) {
     L_TRACE("ack");
   };
-  _remoteDataReqMessages2["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
-  _remoteDataReqMessages2["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
-  _remoteDataReqMessages2["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
-  _remoteDataReqMessages2["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
+  _remoteDataReqMessages["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
+  _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
+  _remoteDataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
+  _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
   
-  _remoteMsgSubMessages2["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
-  _remoteMsgSubMessages2["mov"] =  bind(&nodes::updSubMsg, this, placeholders::_1); // same handler as upd
-  _remoteMsgSubMessages2["add"] =  bind(&nodes::addSubMsg, this, placeholders::_1);
+  _remoteMsgSubMessages["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
+  _remoteMsgSubMessages["mov"] =  bind(&nodes::updSubMsg, this, placeholders::_1); // same handler as upd
+  _remoteMsgSubMessages["add"] =  bind(&nodes::addSubMsg, this, placeholders::_1);
 
-  _dataRepMessages2["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
-  _dataRepMessages2["discover"] =  [&](const IncomingMsg &in) {
+  _dataRepMessages["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
+  _dataRepMessages["discover"] =  [&](const IncomingMsg &in) {
     sendDownDiscoverResult(in);
   };
 
-  _dataRepMessages2["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
-  _dataRepMessages2["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
+  _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
+  _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
 
-  _dataRepMessages2["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
-  _dataRepMessages2["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
-  _dataRepMessages2["mov"] =  bind(&nodes::updDrMsg, this, placeholders::_1); // same handler as upd
-  _dataRepMessages2["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
+  _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
+  _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
+  _dataRepMessages["mov"] =  bind(&nodes::updDrMsg, this, placeholders::_1); // same handler as upd
+  _dataRepMessages["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName, schema);
   
@@ -252,15 +251,15 @@ void Server::runUpstreamOnly() {
     zmq::poll(&items[0], 3, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages2)) {
+      if (!getMsg("<-", *_rep, _messages)) {
         sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages2);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages2)) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -295,20 +294,20 @@ void Server::runUpstreamDownstream() {
     zmq::poll(&items[0], 4, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages2)) {
+      if (!getMsg("<-", *_rep, _messages)) {
         sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages2);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages2)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
         sendErr("error in getting upstream rep message");
       }
     }
     if (items[3].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages2)) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
         sendErr("error in getting remote upstream sub message");
       }
     }
@@ -330,7 +329,7 @@ void Server::runStandalone() {
     zmq::poll(&items[0], 1, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages2)) {
+      if (!getMsg("<-", *_rep, _messages)) {
         sendErr("error in getting rep message");
       }
     }
@@ -354,12 +353,12 @@ void Server::runDownstreamOnly() {
     zmq::poll(&items[0], 2, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages2)) {
+      if (!getMsg("<-", *_rep, _messages)) {
          sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages2)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -431,26 +430,6 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
   
 }
 
-void Server::sendTo(zmq::socket_t &socket, const json &j, const string &type, optional<string> corr) {
-
-  json j2 = j;
-  if (corr) {
-    L_TRACE("had corr id " << corr.value());
-    if (type == "&->") {
-      // old servers (NodeJS) still use socket id
-      j2.as_object()["socketid"] = corr.value();
-    }
-    j2.as_object()["corr"] = corr.value();
-  }
-
-  stringstream ss;
-  ss << j2;
-  string m = ss.str();
-  
-  sendTo(socket, m, type);
-
-}
-
 void Server::sendTo(zmq::socket_t &socket, const DictO &in, const string &type, optional<string> corr) {
 
   DictO in2 = in;
@@ -486,30 +465,9 @@ void Server::sendTo(zmq::socket_t &socket, const string &m, const string &type) 
 
 }
 
-json Server::receiveFrom(shared_ptr<zmq::socket_t> socket) {
-
-  zmq::message_t reply;
-#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-  socket->recv(&reply);
-#else
-  auto res = socket->recv(reply, zmq::recv_flags::none);
-#endif
-  string r((const char *)reply.data(), reply.size());
-  return boost::json::parse(r);
-
-}
-
 void Server::setSrc(DictO *m) {
 
   if (!Storage::appendArray(m, "path", _serverId)) {
-    L_ERROR(_serverId << " is already in the path!");
-  }
-  
-}
-
-void Server::setSrc(boost::json::object *m) {
-
-  if (!Json::appendArray(m, "path", _serverId)) {
     L_ERROR(_serverId << " is already in the path!");
   }
   
@@ -527,12 +485,6 @@ bool Server::getSrc(const IncomingMsg &in, string *s) {
   }
   *s = in.path->back();
   return true;
-
-}
-
-bool Server::getSrc(json &msg, string *s) {
-
-  return Json::arrayTail(msg.as_object(), "path", s);
 
 }
 
@@ -583,16 +535,6 @@ void Server::pubDown(const DictO &m) {
       m2[get<0>(i)] = get<1>(i);
     }
   }
-  
-  sendTo(_msgPub->socket(), m2, "mp-> ", nullopt);
-
-}
-
-void Server::pubDown(const json &m) {
-
-  // no destination for publishes.
-  boost::json::object m2 = m.as_object();
-  m2.erase("dest");
   
   sendTo(_msgPub->socket(), m2, "mp-> ", nullopt);
 

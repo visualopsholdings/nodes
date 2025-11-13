@@ -240,7 +240,6 @@ void SchemaImpl::aggregate(const string &filename) {
     L_ERROR("file not found");
     return;    
   }
-  string input(istreambuf_iterator<char>(file), {});
   auto obj = Dict::parseStream(file);
   if (!obj) {
     L_ERROR("file invalid");

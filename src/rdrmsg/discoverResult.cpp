@@ -11,7 +11,6 @@
 
 #include "server.hpp"
 
-#include "json.hpp"
 #include "storage.hpp"
 #include "security.hpp"
 #include "log.hpp"

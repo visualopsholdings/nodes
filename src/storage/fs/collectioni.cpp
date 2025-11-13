@@ -14,7 +14,6 @@
 #include "storage/collectioni.hpp"
 
 #include "log.hpp"
-#include "json.hpp"
 #include "dict.hpp"
 
 #include <bsoncxx/oid.hpp>

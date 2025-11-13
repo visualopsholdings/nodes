@@ -12,20 +12,20 @@
 */
 
 #include "log.hpp"
+#include "dict.hpp"
 
 #include <iostream>
 #include <boost/program_options.hpp> 
-#include <boost/json.hpp>
 #include <zmq.hpp>
 #include <boost/algorithm/string.hpp>
 
 namespace po = boost::program_options;
 
 using namespace std;
-using json = boost::json::value;
+using namespace vops;
 
-void send(zmq::socket_t &socket, const json &json);
-json receive(zmq::socket_t &socket);
+void send(zmq::socket_t &socket, const DictG &obj);
+DictG receive(zmq::socket_t &socket);
 
 int main(int argc, char *argv[]) {
 
@@ -62,25 +62,21 @@ int main(int argc, char *argv[]) {
   req.connect("tcp://127.0.0.1:" + to_string(reqPort));
 	L_TRACE("Connect to ZMQ as Local REQ on " << reqPort);
   
-  json j = boost::json::parse(jsonstr);
-  send(req, j);
-  json jr = receive(req);
-  L_DEBUG("<- " << jr);
-  stringstream ss;
-  ss << jr;
-  cout << ss.str();
+  auto j = Dict::parseString(jsonstr);
+  send(req, *j);
+  auto jr = receive(req);
+  L_DEBUG("<- " << Dict::toString(jr));
+  cout << Dict::toString(jr);
     
   return 0;
  
 }
 
-void send(zmq::socket_t &socket, const json &json) {
+void send(zmq::socket_t &socket, const DictG &json) {
 
-  L_DEBUG("-> " << json);
+  L_DEBUG("-> " << Dict::toString(json));
 
-  stringstream ss;
-  ss << json;
-  string m = ss.str();
+  string m = Dict::toString(json);
   zmq::message_t msg(m.length());
   memcpy(msg.data(), m.c_str(), m.length());
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
@@ -91,7 +87,7 @@ void send(zmq::socket_t &socket, const json &json) {
 
 }
 
-json receive(zmq::socket_t &socket) {
+DictG receive(zmq::socket_t &socket) {
 
   zmq::message_t reply;
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
@@ -101,9 +97,9 @@ json receive(zmq::socket_t &socket) {
 #endif
   string r((const char *)reply.data(), reply.size());
 
-  json j = boost::json::parse(r);
-  L_DEBUG("<- " << j);
+  auto j = Dict::parseString(r);
+  L_DEBUG("<- " << Dict::toString(*j));
   
-  return j;
+  return *j;
 
 }

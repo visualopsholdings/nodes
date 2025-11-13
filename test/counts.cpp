@@ -12,7 +12,6 @@
 */
 
 #include "storage.hpp"
-#include "json.hpp"
 #include "log.hpp"
 #include "dict.hpp"
 
@@ -22,13 +21,11 @@
 #include <boost/log/support/date_time.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/json.hpp>
 #include <boost/algorithm/string.hpp>
 
 namespace po = boost::program_options;
 
 using namespace std;
-using json = boost::json::value;
 using namespace nodes;
 using namespace vops;
 
