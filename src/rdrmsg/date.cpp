@@ -15,15 +15,13 @@
 
 namespace nodes {
 
-void dateMsg(Server *server, Data &j) {
+void dateMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("date " << j);
-     
   if (!server->_online) {
     server->sendUpOnline();
   }
   
-  auto date = j.getString("date");
+  auto date = Dict::getString(in.extra_fields.get("date"));
   if (date) {
     server->publish(nullopt, dictO({
       { "type", "nodeSeen" },

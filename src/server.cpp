@@ -20,7 +20,6 @@
 #include "security.hpp"
 #include "date.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -89,21 +88,20 @@ void buildMsg(Server *server, const IncomingMsg &in);
 void discoverResultMsg(Server *server, const IncomingMsg &in);
 void upstreamMsg(Server *server, const IncomingMsg &in);
 void sendOnMsg(Server *server, const IncomingMsg &in);
-
-void dateMsg(Server *server, Data &data);
+void dateMsg(Server *server, const IncomingMsg &in);
 
 // remoteMsgSub handlers
-void updSubMsg(Server *server, Data &data);
-void addSubMsg(Server *server, Data &data);
+void updSubMsg(Server *server, const IncomingMsg &in);
+void addSubMsg(Server *server, const IncomingMsg &in);
 
 // dataRep handles
 void discoverLocalMsg(Server *server, const IncomingMsg &in);
 
-void onlineMsg(Server *server, Data &data);
-void heartbeatMsg(Server *server, Data &data);
-void queryDrMsg(Server *server, Data &data);
-void updDrMsg(Server *server, Data &data);
-void addDrMsg(Server *server, Data &data);
+void onlineMsg(Server *server, const IncomingMsg &in);
+void heartbeatMsg(Server *server, const IncomingMsg &in);
+void queryDrMsg(Server *server, const IncomingMsg &in);
+void updDrMsg(Server *server, const IncomingMsg &in);
+void addDrMsg(Server *server, const IncomingMsg &in);
 
 }
 
@@ -127,7 +125,7 @@ Server::Server(bool test, bool noupstream,
   _rep->bind("tcp://127.0.0.1:" + to_string(rep));
 	L_INFO("Bound to ZMQ as Local REP on " << rep);
 
-  _messages["certs"] =  [&](Data &) {
+  _messages2["certs"] =  [&](const IncomingMsg &in) {
     if (_certFile.empty()) {
       send(dictO({
         { "type", "certs" }, 
@@ -201,25 +199,24 @@ Server::Server(bool test, bool noupstream,
   _remoteDataReqMessages2["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
   _remoteDataReqMessages2["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _remoteDataReqMessages2["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
+  _remoteDataReqMessages2["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
   
-  _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
-  
-  _remoteMsgSubMessages["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
-  _remoteMsgSubMessages["mov"] =  bind(&nodes::updSubMsg, this, placeholders::_1); // same handler as upd
-  _remoteMsgSubMessages["add"] =  bind(&nodes::addSubMsg, this, placeholders::_1);
+  _remoteMsgSubMessages2["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
+  _remoteMsgSubMessages2["mov"] =  bind(&nodes::updSubMsg, this, placeholders::_1); // same handler as upd
+  _remoteMsgSubMessages2["add"] =  bind(&nodes::addSubMsg, this, placeholders::_1);
 
   _dataRepMessages2["discoverLocal"] =  bind(&nodes::discoverLocalMsg, this, placeholders::_1);
   _dataRepMessages2["discover"] =  [&](const IncomingMsg &in) {
     sendDownDiscoverResult(in);
   };
 
-  _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
-  _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
+  _dataRepMessages2["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
+  _dataRepMessages2["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
 
-  _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
-  _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
-  _dataRepMessages["mov"] =  bind(&nodes::updDrMsg, this, placeholders::_1); // same handler as upd
-  _dataRepMessages["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
+  _dataRepMessages2["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
+  _dataRepMessages2["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
+  _dataRepMessages2["mov"] =  bind(&nodes::updDrMsg, this, placeholders::_1); // same handler as upd
+  _dataRepMessages2["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
   
   Storage::instance()->init(dbConn, dbName, schema);
   
@@ -255,15 +252,15 @@ void Server::runUpstreamOnly() {
     zmq::poll(&items[0], 3, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages, _messages2)) {
+      if (!getMsg("<-", *_rep, _messages2)) {
         sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages, _remoteDataReqMessages2);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages2);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages, nullopt)) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages2)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -298,20 +295,20 @@ void Server::runUpstreamDownstream() {
     zmq::poll(&items[0], 4, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages, _messages2)) {
+      if (!getMsg("<-", *_rep, _messages2)) {
         sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages, _remoteDataReqMessages2);
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages2);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages, _dataRepMessages2)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages2)) {
         sendErr("error in getting upstream rep message");
       }
     }
     if (items[3].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages, nullopt)) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages2)) {
         sendErr("error in getting remote upstream sub message");
       }
     }
@@ -333,7 +330,7 @@ void Server::runStandalone() {
     zmq::poll(&items[0], 1, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages, _messages2)) {
+      if (!getMsg("<-", *_rep, _messages2)) {
         sendErr("error in getting rep message");
       }
     }
@@ -357,12 +354,12 @@ void Server::runDownstreamOnly() {
     zmq::poll(&items[0], 2, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages, _messages2)) {
+      if (!getMsg("<-", *_rep, _messages2)) {
          sendErr("error in getting rep message");
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages, _dataRepMessages2)) {
+      if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages2)) {
         sendErr("error in getting upstream rep message");
       }
     }
@@ -394,7 +391,7 @@ void Server::run() {
 
 }
 
-bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers, optional<map<string, msgHandler2> > handlers2) {
+bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers) {
 
   L_TRACE("got " << name << " message");
   zmq::message_t reply;
@@ -406,67 +403,25 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
 #endif
     // convert to JSON
     string r((const char *)reply.data(), reply.size());
-    if (handlers2) {
-      L_DEBUG("trying new handlers " << name << " " << r);
-  
-      auto doc = rfl::json::read<IncomingMsg>(r);
-      if (!doc) {
-        L_ERROR("IncomingMsg missing fields");
-        return false;
-      }
-  
-      L_TRACE("handling " << doc->type);
-      map<string, msgHandler2>::iterator  handler2 = handlers2->find(doc->type);
-      if (handler2 == handlers2->end()) {
-        L_TRACE("using old handler");
-        auto handler = handlers.find(doc->type);
-        if (handler == handlers.end()) {
-          L_ERROR("unknown msg type " << doc->type << " for " << name);
-          return false;
-        }
-        else {
-          // use the old style doc.
-          Data doc(r);
-          handler->second(doc);
-        }
-        return true;
-      }
-      try {
-        handler2->second(*doc);
-      }
-      catch (exception &exc) {
-        L_ERROR("what: " << exc.what());
-        L_ERROR("location: " << boost::get_throw_location(exc));
-        return false;
-      }
-      return true;
-    }
-    
-    // no new handlers, do it the old way.
-    Data doc(r);
+    L_DEBUG("trying handler " << name << " " << r);
 
-    L_DEBUG(name << " " << doc);
-
-    auto type = Json::getString(doc, "type");
-    if (!type) {
-      L_ERROR("no type for " << name << " reply");
+    auto doc = rfl::json::read<IncomingMsg>(r);
+    if (!doc) {
+      L_ERROR("IncomingMsg missing fields");
       return false;
     }
 
-    L_TRACE("handling " << type.value());
-    map<string, msgHandler>::iterator handler = handlers.find(type.value());
-    if (handler == handlers.end()) {
-      L_ERROR("unknown msg type " << type.value() << " for " << name);
-      return false;
-    }
+    L_TRACE("handling " << doc->type);
+    map<string, msgHandler>::iterator handler = handlers.find(doc->type);
     try {
-      handler->second(doc);
+      handler->second(*doc);
     }
     catch (exception &exc) {
       L_ERROR("what: " << exc.what());
       L_ERROR("location: " << boost::get_throw_location(exc));
       return false;
     }
+    return true;
   }
   catch (zmq::error_t &e) {
     L_WARNING("got exc with " << name << " recv" << e.what() << "(" << e.num() << ")");
@@ -581,6 +536,18 @@ bool Server::getSrc(json &msg, string *s) {
 
 }
 
+bool Server::wasFromUs(const IncomingMsg &in) {
+
+  if (!in.path) {
+    return false;
+  }
+  
+  return find_if(in.path->begin(), in.path->end(), [this](auto e) {
+    return e == _serverId;
+  }) != in.path->end();
+  
+}
+
 bool Server::wasFromUs(const DictO &msg) {
 
   // make sure it's not on the path either.
@@ -588,11 +555,10 @@ bool Server::wasFromUs(const DictO &msg) {
   
 }
 
-bool Server::wasFromUs(const Data &msg) {
+optional<DictO> Server::toObject(const IncomingMsg &in) {
 
-  // make sure it's not on the path either.
-  return Json::arrayHas(msg.as_object(), "path", _serverId);
-  
+  return Dict::getObject(rfl::to_generic(in));
+
 }
 
 void Server::sendDown(const DictO &m) {
@@ -807,23 +773,6 @@ void Server::sendSecurity() {
   
 }
 
-bool Server::testModifyDate(json &j, const json &doc) {
-
-  auto test = Json::getObject(j, "test", true);
-  if (test) {
-    auto time = Json::getString(test.value(), "time", true);
-    if (time) {
-      long mod = Date::fromISODate(Json::getString(doc, "modifyDate").value());
-      long t = Date::fromISODate(time.value());
-      if (mod <= t) {
-        L_TRACE("not changed " << mod << " <= " << t);
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 bool Server::testModifyDate(const IncomingMsg &m, const DictG &obj) {
 
   if (m.test) {
@@ -871,12 +820,6 @@ void Server::sendObject(const IncomingMsg &m, const string &name, const DictG &o
 }
 
 void Server::sendDataReq(optional<string> corr, const DictO &m) {
-
-  sendTo(_remoteDataReq->socket(), m, "rdr-> ", corr);
-  
-}
-
-void Server::sendDataReq(optional<string> corr, const json &m) {
 
   sendTo(_remoteDataReq->socket(), m, "rdr-> ", corr);
   

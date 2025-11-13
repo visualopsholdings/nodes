@@ -16,17 +16,15 @@
 
 namespace nodes {
 
-void onlineMsg(Server *server, Data &j) {
+void onlineMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("online " << j);
-       
   string src;
-  if (!server->getSrc(j, &src)) {
+  if (!server->getSrc(in, &src)) {
     server->sendErrDown("online missing src");
     return;
   }
   
-  auto pubKey = j.getString("pubKey");
+  auto pubKey = Dict::getString(in.extra_fields.get("pubKey"));
   if (!pubKey) {
     server->sendErrDown("online missing pubKey");
     return;
@@ -34,19 +32,19 @@ void onlineMsg(Server *server, Data &j) {
   
   DictO obj;
   
-  auto headerTitle = j.getString("headerTitle", true);
+  auto headerTitle = Dict::getString(in.extra_fields.get("headerTitle"));
   if (headerTitle) {
     obj["headerTitle"] = *headerTitle;
   }
-  auto streamBgColor = j.getString("streamBgColor", true);
+  auto streamBgColor = Dict::getString(in.extra_fields.get("streamBgColor"));
   if (streamBgColor) {
     obj["streamBgColor"] = *streamBgColor;
   }
-  auto mirror = j.getString("mirror", true);
+  auto mirror = Dict::getString(in.extra_fields.get("mirror"));
   if (mirror) {
     obj["mirror"] = *mirror;
   }
-  auto synced = j.getString("synced", true);
+  auto synced = Dict::getString(in.extra_fields.get("synced"));
   if (synced) {
     obj["synced"] = *synced;
   }

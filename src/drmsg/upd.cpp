@@ -16,11 +16,9 @@
 
 namespace nodes {
 
-void updDrMsg(Server *server, Data &j) {
+void updDrMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("upd or mov (dr) " << j);
-       
-  auto dest = j.getString("dest");
+  auto dest = Dict::getString(in.extra_fields.get("dest"));
   if (!dest) {
     server->sendErrDown("upd missing dest");
     return;
@@ -32,8 +30,14 @@ void updDrMsg(Server *server, Data &j) {
    return;
   }
   
-  server->updateObject(j);
-  server->sendOn(j);
+  auto obj = server->toObject(in);
+  if (!obj) {
+    server->sendErr("can't convert to object!");
+    return;
+  }
+
+  server->updateObject(*obj);
+  server->sendOn(*obj);
   server->sendAckDown();
 
   

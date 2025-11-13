@@ -15,25 +15,29 @@
 
 namespace nodes {
 
-void addSubMsg(Server *server, Data &j) {
+void addSubMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("add sub" << j);
-        
-  if (server->wasFromUs(j)) {
+  if (server->wasFromUs(in)) {
     L_TRACE("ignoring, came from us");
     return;
   }
   
+  auto obj = server->toObject(in);
+  if (!obj) {
+    server->sendErr("can't convert to object!");
+    return;
+  }
+
   // if we should ignore it, then do so.
-  if (server->shouldIgnoreAdd(j)) {
+  if (server->shouldIgnoreAdd(*obj)) {
     return;
   }
 
   // keep sending it down.
-  server->pubDown(j);
+  server->pubDown(*obj);
 
   // and write it ourselves
-  server->addObject(j);
+  server->addObject(*obj);
 
 }
 

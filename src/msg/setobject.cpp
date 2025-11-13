@@ -37,7 +37,7 @@ void setObjectMsg(Server *server, const IncomingMsg &in) {
   DictO obj2;
   // set on all fields passed in except these
   auto fields = vector<string>{"type", "objtype", "me", "id", "name"};
-  auto obj = Dict::getObject(rfl::to_generic(in));
+  auto obj = server->toObject(in);
   if (!obj) {
     server->sendErr("can't convert to object!");
     return;

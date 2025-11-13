@@ -15,7 +15,6 @@
 #define H_server
 
 #include "dict.hpp"
-#include "data.hpp"
 
 #include <zmq.hpp>
 #include <boost/json.hpp>
@@ -34,9 +33,6 @@ class DynamicRow;
 class InfoRow;
 class Upstream;
 class Downstream;
-class Data;
-
-typedef function<void (Data &data)> msgHandler;
 
 typedef struct {
   optional<long> time; // this could be 0
@@ -53,7 +49,7 @@ typedef struct {
   rfl::ExtraFields<DictG> extra_fields;
 } IncomingMsg;
 
-typedef function<void (const IncomingMsg &in)> msgHandler2;
+typedef function<void (const IncomingMsg &in)> msgHandler;
 
 class Server {
 
@@ -79,9 +75,6 @@ public:
   void resetDB();
   void discoveryComplete();
   
-  void publish(optional<string> corr, const json &m) {
-    sendTo(*_pub, m, "*-> ", corr);
-  }
   void publish(optional<string> corr, const DictO &m) {
     sendTo(*_pub, m, "*-> ", corr);
   }
@@ -100,9 +93,6 @@ public:
   void pubDown(const DictO &m);
   void pubDown(const json &m);
   void sendOn(const DictO &m);
-  void sendOn(const Data &m) {
-    sendOn(m.dict());
-  }
   void sendErr(const string &msg);
   void sendErrDown(const string &msg);
   void sendWarning(const string &msg);
@@ -110,7 +100,6 @@ public:
   void sendAck(optional<string> result=nullopt);
   void sendAckDown(optional<string> result=nullopt);
   void sendDataReq(optional<string> corr, const DictO &m);
-  void sendDataReq(optional<string> corr, const json &m);
   
   // notifying other nodes.
   void sendUpd(const string &type, const string &id, const DictO &data);
@@ -127,7 +116,6 @@ public:
   void sendObject(const IncomingMsg &m, const string &name, const DictG &obj);
     // send an object back, taking care of the test for latest
     
-  bool testModifyDate(json &j, const json &doc);
   bool testModifyDate(const IncomingMsg &m, const DictG &obj);
     // test for the modifyDate to be the latest.
     
@@ -136,29 +124,23 @@ public:
     // import them.
     
   bool updateObject(const DictO &j);
-  bool updateObject(Data &j) {
-    return updateObject(j.dict());
-  }
     // given an object in the format {"data":{"type":"user","id":"6121bdfaec9e5a059715739c","obj":obj }}
     // update it
     
   bool addObject(const DictO &j);
-  bool addObject(Data &j) {
-    return addObject(j.dict());
-  }
     // given an object in the format {"data":{"type":"user","obj":obj }}
     // update it
     
   bool shouldIgnoreAdd(const DictO &msg);
-  bool shouldIgnoreAdd(const Data &msg) {
-    return shouldIgnoreAdd(msg.dict());
-  }
     // adds always come, should we ignore one?
 
+  bool wasFromUs(const IncomingMsg &in);
   bool wasFromUs(const DictO &msg);
-  bool wasFromUs(const Data &msg);
     // the message was send from us.
 
+  optional<DictO> toObject(const IncomingMsg &in);
+    // convert an incoming message to an object.
+    
   string _hostName;
   bool _test;
   bool _online;
@@ -176,13 +158,10 @@ private:
   shared_ptr<Upstream> _remoteMsgSub;
   shared_ptr<Downstream> _dataRep;
   shared_ptr<Downstream> _msgPub;
-  map<string, msgHandler> _messages;
-  map<string, msgHandler2> _messages2;
-  map<string, msgHandler> _remoteDataReqMessages;
-  map<string, msgHandler2> _remoteDataReqMessages2;
-  map<string, msgHandler> _dataRepMessages;
-  map<string, msgHandler2> _dataRepMessages2;
-  map<string, msgHandler> _remoteMsgSubMessages;
+  map<string, msgHandler> _messages2;
+  map<string, msgHandler> _remoteDataReqMessages2;
+  map<string, msgHandler> _dataRepMessages2;
+  map<string, msgHandler> _remoteMsgSubMessages2;
   int _remoteDataReqPort;
   int _remoteMsgSubPort;
   int _dataRepPort;
@@ -197,7 +176,7 @@ private:
   void sendTo(zmq::socket_t &socket, const DictO &j, const string &type, optional<string> corr);
   void sendTo(zmq::socket_t &socket, const std::string &j, const string &type);
   json receiveFrom(shared_ptr<zmq::socket_t> socket);
-  bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers, std::optional<map<string, msgHandler2> > handlers2);
+  bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers);
   bool testCollectionChanged(const IncomingMsg &m, const string &name);
   void runUpstreamOnly();
   void runStandalone();

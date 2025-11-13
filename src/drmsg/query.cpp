@@ -17,35 +17,32 @@
 
 namespace nodes {
 
-void queryDrMsg(Server *server, Data &j) {
+void queryDrMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("query (dr)" << j);
-       
   string src;
-  if (!server->getSrc(j, &src)) {
+  if (!server->getSrc(in, &src)) {
     server->sendErrDown("query missing src");
     return;
   }
   
-  auto corr = j.getString("corr");
+  auto corr = Dict::getString(in.extra_fields.get("corr"));
   if (!corr) {
     server->sendErrDown("query missing corr");
     return;
   }
   
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErrDown("query missing objtype");
     return;
   }
   
-  auto fieldname = j.getString("fieldname");
+  auto fieldname = Dict::getString(in.extra_fields.get("fieldname"));
   if (!fieldname) {
     server->sendErrDown("query missing fieldname");
     return;
   }
   
-  auto fieldval = j.getString("fieldval");
+  auto fieldval = Dict::getString(in.extra_fields.get("fieldval"));
   if (!fieldval) {
     server->sendErrDown("query missing fieldval");
     return;
@@ -53,7 +50,7 @@ void queryDrMsg(Server *server, Data &j) {
 
   // get the collection name.
   string coll;
-  if (!Storage::instance()->collName(objtype.value(), &coll, false)) {
+  if (!Storage::instance()->collName(in.objtype.value(), &coll, false)) {
     server->sendErr("Could not get collection name for query");
     return;
   }
@@ -70,7 +67,7 @@ void queryDrMsg(Server *server, Data &j) {
   DictV empty;
   server->sendDown(dictO({
     { "type", "queryResult" },
-    { "objtype", objtype.value() },
+    { "objtype", in.objtype.value() },
     { "result", docs ? docs.value() : empty },
     { "corr", corr.value() },
     { "dest", src }   

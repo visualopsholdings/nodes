@@ -18,12 +18,10 @@
 
 namespace nodes {
 
-void heartbeatMsg(Server *server, Data &j) {
+void heartbeatMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("heartbeat " << j);
-         
   string src;
-  if (!server->getSrc(j, &src)) {
+  if (!server->getSrc(in, &src)) {
     server->sendErrDown("heartbeat missing src");
     return;
   }
@@ -39,11 +37,11 @@ void heartbeatMsg(Server *server, Data &j) {
   Node().updateById(node.value().id(), dictO({{ "lastSeen", dictO({{ "$date", now }}) }}));
 
   auto date = Date::toISODate(now);
-  server->publish(nullopt, {
+  server->publish(nullopt, dictO({
     { "type", "nodeSeen" },
     { "serverId", src },
     { "lastSeen", date }
-  });
+  }));
     
   server->sendDown(dictO({
     { "type", "date" },

@@ -17,7 +17,7 @@ namespace nodes {
 
 void requestBuildMsg(Server *server, const IncomingMsg &in) {
 
-  auto obj = Dict::getObject(rfl::to_generic(in));
+  auto obj = server->toObject(in);
   if (!obj) {
     server->sendErr("can't convert to object!");
     return;

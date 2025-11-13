@@ -15,11 +15,9 @@
 
 namespace nodes {
 
-void addDrMsg(Server *server, Data &data) {
+void addDrMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("add (dr) " << data);
-       
-  auto dest = data.getString("dest");
+  auto dest = Dict::getString(in.extra_fields.get("dest"));
   if (!dest) {
     server->sendErrDown("add missing dest");
     return;
@@ -31,8 +29,14 @@ void addDrMsg(Server *server, Data &data) {
    return;
   }
   
-  server->addObject(data);
-  server->sendOn(data);
+  auto obj = server->toObject(in);
+  if (!obj) {
+    server->sendErr("can't convert to object!");
+    return;
+  }
+
+  server->addObject(*obj);
+  server->sendOn(*obj);
   server->sendAckDown();
 
   

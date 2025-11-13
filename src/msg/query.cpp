@@ -35,12 +35,12 @@ void queryMsg(Server *server, const IncomingMsg &in) {
     server->sendErr("require " + fieldname + " for " + in.objtype.value() + " query");
     return;
   }
-  boost::json::object msg = {
+  auto msg = dictO({
     { "type", "query" },
     { "objtype", in.objtype.value() },
     { "fieldname", fieldname },
     { "fieldval", fieldval.value() }
-  };
+  });
   server->setSrc(&msg);
   server->sendDataReq(in.corr, msg);
     

@@ -15,20 +15,24 @@
 
 namespace nodes {
 
-void updSubMsg(Server *server, Data &j) {
+void updSubMsg(Server *server, const IncomingMsg &in) {
    
-  L_TRACE("upd or mov sub" << j);
-        
-  if (server->wasFromUs(j)) {
+  if (server->wasFromUs(in)) {
     L_TRACE("ignoring, came from us");
     return;
   }
   
+  auto obj = server->toObject(in);
+  if (!obj) {
+    server->sendErr("can't convert to object!");
+    return;
+  }
+
   // keep sending it down.
-  server->pubDown(j);
+  server->pubDown(*obj);
 
   // and write it ourselves
-  server->updateObject(j);
+  server->updateObject(*obj);
 
 }
 
