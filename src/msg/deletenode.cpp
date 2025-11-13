@@ -17,15 +17,14 @@
 
 namespace nodes {
 
-void deleteNodeMsg(Server *server, Data &j) {
+void deleteNodeMsg(Server *server, const IncomingMsg &in) {
 
-  auto id = j.getString("id");
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id");
     return;
   }
 
-  if (Node().deleteById(id.value())) {
+  if (Node().deleteById(in.id.value())) {
     server->sendAck();
     return;
   }

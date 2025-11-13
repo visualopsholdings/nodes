@@ -17,9 +17,9 @@
 
 namespace nodes {
 
-void canRegisterMsg(Server *server, Data &j) {
+void canRegisterMsg(Server *server, const IncomingMsg &in) {
 
-  auto token = j.getString("token");
+  auto token = Dict::getString(in.extra_fields.get("token"));
   if (!token) {
     server->sendErr("Missing token");
     return;

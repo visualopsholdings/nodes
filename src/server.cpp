@@ -73,10 +73,10 @@ void deleteGroupMsg(Server *server, const IncomingMsg &in);
 void setObjectPolicyMsg(Server *server, const IncomingMsg &in);
 void setGroupPolicyMsg(Server *server, const IncomingMsg &in);
 void deleteUserMsg(Server *server, const IncomingMsg &in);
+void shareLinkMsg(Server *server, const IncomingMsg &in);
+void canRegisterMsg(Server *server, const IncomingMsg &in);
+void deleteNodeMsg(Server *server, const IncomingMsg &in);
 
-void shareLinkMsg(Server *server, Data &data);
-void canRegisterMsg(Server *server, Data &data);
-void deleteNodeMsg(Server *server, Data &data);
 void purgeCountGroupsMsg(Server *server, Data &data);
 void purgeGroupsMsg(Server *server, Data &data);
 void purgeCountMsg(Server *server, Data &data);
@@ -180,10 +180,10 @@ Server::Server(bool test, bool noupstream,
   _messages2["setobjectpolicy"] = bind(&nodes::setObjectPolicyMsg, this, placeholders::_1);
   _messages2["setgrouppolicy"] = bind(&nodes::setGroupPolicyMsg, this, placeholders::_1);
   _messages2["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
-
-  _messages["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
-  _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
-  _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
+  _messages2["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
+  _messages2["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
+  _messages2["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
+  
   _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
   _messages["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
   _messages["purgecount"] = bind(&nodes::purgeCountMsg, this, placeholders::_1);
