@@ -11,8 +11,6 @@
 
 #include "server.hpp"
 
-#include "data.hpp"
-
 namespace nodes {
 
 void requestBuildMsg(Server *server, const IncomingMsg &in) {

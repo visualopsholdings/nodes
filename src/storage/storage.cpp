@@ -293,18 +293,11 @@ bool Storage::bulkInsert(const string &collName, const vector<DictO> &objs) {
   
 }
 
-DictO Storage::getNowO() {
+DictO Storage::getNow() {
 
   return dictO({ { "$date", Date::now() } });
   
 }
-
-Data Storage::getNow() {
-
-  return { { "$date", Date::now() } };
-  
-}
-
 
 bool Storage::hasArrayValue(const DictV &arr, const string &val) {
 

@@ -14,7 +14,6 @@
 #include "storage.hpp"
 #include "security.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 namespace nodes {
 
@@ -39,7 +38,7 @@ void setuserMsg(Server *server, const IncomingMsg &in) {
   auto active = Dict::getBool(in.extra_fields.get("active"));
 
   auto obj = dictO({
-    { "modifyDate", Storage::instance()->getNowO() },
+    { "modifyDate", Storage::instance()->getNow() },
   });
   if (fullname) {
     obj["fullname"] = *fullname;

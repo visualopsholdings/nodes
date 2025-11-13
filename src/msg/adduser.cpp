@@ -98,7 +98,7 @@ void addUserMsg(Server *server, const IncomingMsg &in) {
   auto obj = dictO({
     { "invitedBy", user.value() },
     { "active", true },
-    { "modifyDate", Storage::instance()->getNowO() }
+    { "modifyDate", Storage::instance()->getNow() }
   });
 
   auto fullname = Dict::getString(in.extra_fields.get("fullname"));

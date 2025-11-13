@@ -12,7 +12,6 @@
 #include <iostream>
 
 #include "storage/collectioni.hpp"
-#include "data.hpp"
 #include "dict.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
@@ -21,14 +20,6 @@
 using namespace std;
 using namespace nodes;
 using namespace vops;
-
-void checkId(boost::json::value &j) {
-
-  BOOST_CHECK(j.is_object());
-  BOOST_CHECK(j.as_object().if_contains("id"));
-  BOOST_CHECK(j.at("id").is_string());
-  
-}
 
 void checkId(const DictG &g) {
 

@@ -14,7 +14,6 @@
 #include "storage.hpp"
 #include "json.hpp"
 #include "date.hpp"
-#include "data.hpp"
 #include "dict.hpp"
 
 #define BOOST_AUTO_TEST_MAIN
@@ -157,7 +156,7 @@ BOOST_AUTO_TEST_CASE( update )
 
   auto result = User().updateById(tracy, dictO({
     { "name", "tracy2" },
-    { "modifyDate", Storage::instance()->getNowO() },
+    { "modifyDate", Storage::instance()->getNow() },
     { "fullname", "Tracy new" }
   }));
   BOOST_CHECK(result);
@@ -203,8 +202,8 @@ BOOST_AUTO_TEST_CASE( getNow )
 {
   cout << "=== getNow ===" << endl;
 
-  json date = Storage::instance()->getNow();
-  string dates = Json::toISODate(date);
+  auto date = Storage::instance()->getNow();
+  string dates = CollectionImpl::toISODate(date);
   
   // get the year a different way and compare with the start.
   std::time_t t = std::time(nullptr);

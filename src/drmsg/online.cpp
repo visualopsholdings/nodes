@@ -12,7 +12,6 @@
 #include "server.hpp"
 #include "storage/schema.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 namespace nodes {
 

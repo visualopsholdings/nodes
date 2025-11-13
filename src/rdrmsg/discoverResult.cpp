@@ -30,8 +30,8 @@ void discoverResultMsg(Server *server, const IncomingMsg &in) {
   server->importObjs(msgs.value());
    
   server->setInfo("hasInitialSync", "true");
-  Data date = Storage::instance()->getNow();
-  server->setInfo("upstreamLastSeen", Json::toISODate(date));
+  auto date = Storage::instance()->getNow();
+  server->setInfo("upstreamLastSeen", CollectionImpl::toISODate(date));
 
   auto more = Dict::getBool(in.extra_fields.get("more"));
   if (more && more.value()) {

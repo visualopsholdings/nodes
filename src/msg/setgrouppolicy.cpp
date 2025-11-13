@@ -71,7 +71,7 @@ void setGroupPolicyMsg(Server *server, const IncomingMsg &in) {
   }
   
   auto obj = dictO({
-    { "modifyDate", Storage::instance()->getNowO() },
+    { "modifyDate", Storage::instance()->getNow() },
     { "policy", policy.value() }
   });
 

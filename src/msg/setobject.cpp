@@ -15,7 +15,6 @@
 #include "security.hpp"
 #include "handler.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 namespace nodes {
 

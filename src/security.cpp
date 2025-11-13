@@ -317,7 +317,7 @@ optional<string> Security::findPolicyForUser(const string &userid) {
         })
       }
     },
-    { "modifyDate", Storage::instance()->getNowO() }
+    { "modifyDate", Storage::instance()->getNow() }
   });
     
   auto policy = Policy().find(policyToQuery(obj)).one();

@@ -96,7 +96,7 @@ void moveObjectMsg(Server *server, const IncomingMsg &in) {
   auto obj = dictO({
     { parentfield, pcollid.value() }
   });
-  obj["modifyDate"] = Storage::instance()->getNowO();
+  obj["modifyDate"] = Storage::instance()->getNow();
   
   // send to other nodes.
   auto obj2 = obj;

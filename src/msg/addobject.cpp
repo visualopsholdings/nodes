@@ -15,7 +15,6 @@
 #include "security.hpp"
 #include "handler.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 namespace nodes {
 
@@ -98,7 +97,7 @@ void addObjectMsg(Server *server, const IncomingMsg &in) {
     obj = dictO({
       { namefield, name.value() },
       { "policy", policyid },
-      { "modifyDate", Storage::instance()->getNowO() },
+      { "modifyDate", Storage::instance()->getNow() },
       { parentfield, parentid.value() },
       { "user", in.me.value() }
     });
@@ -118,7 +117,7 @@ void addObjectMsg(Server *server, const IncomingMsg &in) {
     obj = dictO({
       { "name", name.value() },
       { "policy", policy.value() },
-      { "modifyDate", Storage::instance()->getNowO() },
+      { "modifyDate", Storage::instance()->getNow() },
       { "active", true }
     });
   }

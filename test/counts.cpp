@@ -84,113 +84,115 @@ int main(int argc, char *argv[]) {
   
   Storage::instance()->init(dbConn, dbName);
 
-  DataArray a;
-  Data lines(a);
+  vector<DictO> lines;
   if (users >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "users" }, 
       { "expected", users }
-    });
+    }));
   }
   if (fullUsers >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "users" }, 
       { "expected", fullUsers },
       { "full", true },
       { "field", "fullname" }
-    });
+    }));
   }
   if (waitingUsers >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "users" }, 
       { "expected", waitingUsers },
       { "waiting", true },
       { "field", "fullname" }
-    });
+    }));
   }
 
   if (groups >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "groups" }, 
       { "expected", groups }
-    });
+    }));
   }
   if (fullGroups >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "groups" }, 
       { "expected", fullGroups },
       { "full", true },
       { "field", "name" }
-    });
+    }));
   }
   if (waitingGroups >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "groups" }, 
       { "expected", waitingGroups },
       { "waiting", true },
       { "field", "name" }
-    });
+    }));
   }
 
   if (collections >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "collections" }, 
       { "expected", collections }
-    });
+    }));
   }
   if (fullCollections >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "collections" }, 
       { "expected", fullCollections },
       { "full", true },
       { "field", "name" }
-    });
+    }));
   }
   if (waitingCollections >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "collections" }, 
       { "expected", waitingCollections },
       { "waiting", true },
       { "field", "name" }
-    });
+    }));
   }
 
   if (objs >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "objs" }, 
       { "expected", objs }
-    });
+    }));
   }
 
   if (policies >= 0) {
-    lines.push_back({ 
+    lines.push_back(dictO({ 
       { "type", "policies" }, 
       { "expected", policies }
-    });
+    }));
   }
 
   bool success = true;
   for (auto l: lines) {
   
-    Data o = l;
     DictO q;
     
-    auto type = o.getString("type");
+    auto type = Dict::getString(l, "type");
     if (!type) {
       continue;
     }
-    auto expected = o.getNumber("expected");
+    auto expected = Dict::getNum(l, "expected");
     if (!expected) {
       continue;
     }
-    auto field = o.getString("field", true);
-    if (Json::getBool(o, "full", true)) {
+    auto field = Dict::getString(l, "field");
+    auto full = Dict::getBool(l, "full");
+    if (full && *full) {
       q[field.value()] = dictO({
         { "$ne", "Waiting discovery" }
       });
     }
-    else if (o.getBool("waiting", true)) {
-      q[field.value()] = "Waiting discovery";
+    else {
+      auto waiting = Dict::getBool(l, "waiting");
+      if (waiting && *waiting) {
+        q[field.value()] = "Waiting discovery";
+      }
     }
     
     int count = SchemaImpl::countGeneral(type.value(), q);

@@ -25,7 +25,7 @@ void setsiteMsg(Server *server, const IncomingMsg &in) {
   }  
 
   auto obj = dictO({
-    { "modifyDate", Storage::instance()->getNowO() }
+    { "modifyDate", Storage::instance()->getNow() }
   });
   auto headerTitle = Dict::getString(in.extra_fields.get("headerTitle"));
   if (headerTitle) {

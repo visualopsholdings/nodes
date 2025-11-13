@@ -241,31 +241,52 @@ void SchemaImpl::aggregate(const string &filename) {
     return;    
   }
   string input(istreambuf_iterator<char>(file), {});
-  Data j(input);
-  if (!j.is_array()) {
-    L_ERROR("file does not contain array");
+  auto obj = Dict::parseStream(file);
+  if (!obj) {
+    L_ERROR("file invalid");
+    return;    
+  }
+  auto v = Dict::getVector(*obj);
+  if (!v) {
+    L_ERROR("file contents not an array");
     return;    
   }
   
   // build pipleline from JSON.
   mongocxx::pipeline p;
-  for (auto i: j.as_array()) {
-    auto first = i.as_object().begin();
-    string key = first->key();
-    auto value = first->value();
+  for (auto i: *v) {
+    auto obj = Dict::getObject(i);
+    if (!obj) {
+      L_ERROR("not object");
+      continue;
+    }
+    auto first = *(obj->begin());
+    string key = get<0>(first);
+    auto value = get<1>(first);
     if (key == "$unwind") {
-      p.unwind(value.at("path").as_string().c_str());
+      auto path = Dict::getStringG(value, "path");
+      if (!path) {
+        L_ERROR("$unwind missing path");
+        continue;
+      }
+      p.unwind(*path);
     }
     else if (key == "$out") {
-      p.out(value.as_string().c_str());
+      auto str = Dict::getString(value);
+      if (!str) {
+        L_ERROR("$out not a string");
+        continue;
+      }
+      p.out(*str);
     }
     else {
-      if (!value.is_object()) {
+      auto obj = Dict::getObject(value);
+      if (!obj) {
         L_ERROR("key is not object " << key);
         return;
       }
       stringstream ss;
-      ss << value;
+      ss << Dict::toString(*obj);
       bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
       if (key == "$group") {
         p.group(d);

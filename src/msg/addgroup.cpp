@@ -15,7 +15,6 @@
 #include "security.hpp"
 #include "handler.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 namespace nodes {
 
@@ -52,7 +51,7 @@ void addGroupMsg(Server *server, const IncomingMsg &in) {
   auto obj = dictO({
     { "name", name.value() },
     { "policy", policy.value() },
-    { "modifyDate", Storage::instance()->getNowO() },
+    { "modifyDate", Storage::instance()->getNow() },
     { "active", true }
   });
 

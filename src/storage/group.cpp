@@ -55,7 +55,7 @@ bool Group::saveMemberSet(const string &group, const set<string> &mset) {
   }
   
   auto result = Group().updateById(group, dictO({
-    { "modifyDate", Storage::instance()->getNowO() },
+    { "modifyDate", Storage::instance()->getNow() },
     { "members", newmembers }
   }));
   if (!result) {

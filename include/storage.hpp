@@ -21,7 +21,6 @@
 
 #include "storage/result.hpp"
 #include "storage/schema.hpp"
-#include "data.hpp"
 #include <map>
 
 using namespace std;
@@ -48,8 +47,7 @@ public:
   bool bulkInsert(const string &collName, const vector<DictO> &objs);
     // Insert all of the objects into the collection with that name.
 
-  DictO getNowO();
-  Data getNow();
+  DictO getNow();
     // return the correct object for a date that is now.
     
   void collectionWasChanged(const string &name);

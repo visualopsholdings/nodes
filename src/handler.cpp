@@ -16,7 +16,6 @@
 #include "security.hpp"
 #include "storage.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 namespace nodes {
 
@@ -106,7 +105,7 @@ bool Handler::update(Server *server, const string &type, const string &id, optio
   }
   
   auto obj1 = obj;
-  obj1["modifyDate"] = Storage::instance()->getNowO();
+  obj1["modifyDate"] = Storage::instance()->getNow();
   if (name) {
     obj1["name"] = *name;
   }
@@ -167,7 +166,7 @@ bool Handler::remove(Server *server, const string &type, const string &id, optio
   
   auto obj = dictO({
     { "deleted", true },
-    { "modifyDate", Storage::instance()->getNowO() }
+    { "modifyDate", Storage::instance()->getNow() }
   });
   
   // add in any parent field.
@@ -226,7 +225,7 @@ bool Handler::upstream(Server *server, const string &type, const string &id, con
     // set the upstream on doc.
     auto result = SchemaImpl::updateGeneralById(coll, id, dictO({
       { "$set", dictO({ 
-        { "modifyDate", Storage::instance()->getNowO() },
+        { "modifyDate", Storage::instance()->getNow() },
         { "upstream", true } 
       }) }
     }));

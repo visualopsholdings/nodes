@@ -14,7 +14,6 @@
 #include "storage/schema.hpp"
 #include "date.hpp"
 #include "log.hpp"
-#include "data.hpp"
 
 namespace nodes {
 

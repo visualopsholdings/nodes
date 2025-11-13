@@ -9,12 +9,11 @@
   https://github.com/visualopsholdings/nodes
 */
 
-#include <iostream>
-
 #include "data.hpp"
 #include "json.hpp"
 
 #include <boost/json.hpp>
+#include <iostream>
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
