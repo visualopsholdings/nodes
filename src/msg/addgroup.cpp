@@ -19,33 +19,31 @@
 
 namespace nodes {
 
-void addGroupMsg(Server *server, Data &j) {
+void addGroupMsg(Server *server, const IncomingMsg &in) {
 
-  auto upstream = j.getBool("upstream", true);
+  auto upstream = Dict::getBool(in.extra_fields.get("upstream"));
   if (upstream && upstream.value()) {
   
-    auto id = j.getString("id");
-    if (!id) {
+    if (!in.id) {
       server->sendErr("no group id");
       return;
     }
   
-    Handler::upstream(server, "group", id.value(), "name");
+    Handler::upstream(server, "group", in.id.value(), "name");
     return;
   }
   
-  auto me = j.getString("me");
-  if (!me) {
+  if (!in.me) {
     server->sendErr("no me");
     return;
   }
-  auto name = j.getString("name");
+  auto name = Dict::getString(in.extra_fields.get("name"));
   if (!name) {
     server->sendErr("no name");
     return;
   }
   
-  auto policy = Security::instance()->findPolicyForUser(me.value());
+  auto policy = Security::instance()->findPolicyForUser(in.me.value());
   if (!policy) {
     server->sendErr("could not get policy");
     return;
@@ -58,7 +56,7 @@ void addGroupMsg(Server *server, Data &j) {
     { "active", true }
   });
 
-  if (Handler::add(server, "group", obj, j.getString("corr", true))) {
+  if (Handler::add(server, "group", obj, in.corr)) {
     Security::instance()->regenerateGroups();
   }
 

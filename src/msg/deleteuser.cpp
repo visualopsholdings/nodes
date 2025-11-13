@@ -18,15 +18,14 @@
 
 namespace nodes {
 
-void deleteUserMsg(Server *server, Data &j) {
+void deleteUserMsg(Server *server, const IncomingMsg &in) {
 
-  auto id = j.getString("id");
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id");
     return;
   }
 
-  Handler::remove(server, "user", id.value(), j.getString("me", true));
+  Handler::remove(server, "user", in.id.value(), in.me);
 
 }
 

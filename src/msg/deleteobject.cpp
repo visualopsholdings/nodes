@@ -19,21 +19,19 @@
 
 namespace nodes {
 
-void deleteObjectMsg(Server *server, Data &j) {
+void deleteObjectMsg(Server *server, const IncomingMsg &in) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("no object type");
     return;
   }
 
-  auto id = j.getString("id");
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id");
     return;
   }
 
-  Handler::remove(server, objtype.value(), id.value(), j.getString("me", true));
+  Handler::remove(server, in.objtype.value(), in.id.value(), in.me);
 
 }
 

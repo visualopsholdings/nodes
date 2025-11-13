@@ -15,48 +15,41 @@
 
 namespace nodes {
 
-void upstreamMsg(Server *server, Data &j) {
+void upstreamMsg(Server *server, const IncomingMsg &in) {
    
-  auto msg = j.getString("msg", true);
+  auto msg = Dict::getString(in.extra_fields.get("msg"));
   if (msg) {
     L_ERROR("online err " << msg.value());
     return;
   }
   
-  auto type = j.getString("type");
-  if (!type) {
-    L_ERROR("reply missing type");
-    return;
-  }
+  if (in.type == "upstream") {
   
-  if (type.value() == "upstream") {
-  
-    auto id = j.getString("id");
-    if (!id) {
+    if (!in.id) {
       L_ERROR("got upstream with no id");
       return;
     }
     
-    if (server->_upstreamId == id.value()) {
+    if (server->_upstreamId == in.id.value()) {
       L_WARNING("ignoring second upstream with the same id");
       return;
     }
 
-    server->_upstreamId = id.value();
+    server->_upstreamId = in.id.value();
     server->_online = true;
     L_TRACE("upstream " << server->_upstreamId);
     
-    auto valid = j.getBool("valid");
+    auto valid = Dict::getBool(in.extra_fields.get("valid"));
     if (!valid || !valid.value()) {
       L_INFO("we are not a valid node. Don't sync.");
       return;
     }
     
-    server->sendUpDiscoverLocal(j.getString("corr", true));
+    server->sendUpDiscoverLocal(in.corr);
     return;
 
   }
-  L_ERROR("unknown msg type " << type.value());
+  L_ERROR("unknown msg type " << in.type);
      
 }
 

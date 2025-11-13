@@ -19,16 +19,15 @@
 
 namespace nodes {
 
-void setGroupMsg(Server *server, Data &j) {
+void setGroupMsg(Server *server, const IncomingMsg &in) {
 
-  auto id = j.getString("id");
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id in group");
     return;
   }  
   
-  Handler::update(server, "group", id.value(), 
-    j.getString("me", true), j.getString("name", true), DictO());
+  Handler::update(server, "group", in.id.value(), 
+    in.me, Dict::getString(in.extra_fields.get("name")), DictO());
   
 }
 

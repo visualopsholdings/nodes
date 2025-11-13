@@ -19,27 +19,30 @@
 
 namespace nodes {
 
-void setObjectMsg(Server *server, Data &j) {
+void setObjectMsg(Server *server, const IncomingMsg &in) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("no object type");
     return;
   }
-  auto id = j.getString("id");
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id in set object");
     return;
   }  
   
 //  L_TRACE(j);
   
-  auto name = j.getString("name", true);
+  auto name = Dict::getString(in.extra_fields.get("name"));
   
   DictO obj2;
   // set on all fields passed in except these
   auto fields = vector<string>{"type", "objtype", "me", "id", "name"};
-  for (auto i: j.dict()) {
+  auto obj = Dict::getObject(rfl::to_generic(in));
+  if (!obj) {
+    server->sendErr("can't convert to object!");
+    return;
+  }
+  for (auto i: *obj) {
     auto key = get<0>(i);
     if (find(fields.begin(), fields.end(), key) == fields.end()) {
       obj2[key] = get<1>(i);
@@ -49,8 +52,8 @@ void setObjectMsg(Server *server, Data &j) {
   L_TRACE("setting name " << (name ? name.value() : "(not)"));
   L_TRACE("setting obj " << Dict::toString(obj2));
   
-  Handler::update(server, objtype.value(), id.value(), 
-    j.getString("me", true), name, obj2);
+  Handler::update(server, in.objtype.value(), in.id.value(), 
+    in.me, name, obj2);
 
 }
 

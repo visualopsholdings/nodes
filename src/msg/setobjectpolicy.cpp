@@ -17,56 +17,68 @@
 
 namespace nodes {
 
-void setObjectPolicyMsg(Server *server, Data &j) {
+void setObjectPolicyMsg(Server *server, const IncomingMsg &in) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("no object type");
     return;
   }
-  auto id = j.getString("id");
-  if (!id) {
-    server->sendErr("no id in " + objtype.value());
+  if (!in.id) {
+    server->sendErr("no id in " + in.objtype.value());
     return;
   }  
   
   // get the collection name.
   string coll;
-  if (!Storage::instance()->collName(objtype.value(), &coll)) {
+  if (!Storage::instance()->collName(in.objtype.value(), &coll)) {
     server->sendErr("Could not get collection name for setobjectpolicy");
     return;
   }
   
-  if (!Security::instance()->canEdit(coll, j.getString("me", true), id.value())) {
-    server->sendErr("no edit for " + objtype.value() + " " + id.value());
+  if (!Security::instance()->canEdit(coll, in.me, in.id.value())) {
+    server->sendErr("no edit for " + in.objtype.value() + " " + in.id.value());
     return;
   }
 
-  auto result = SchemaImpl::findByIdGeneral(coll, id.value(), {});
+  auto result = SchemaImpl::findByIdGeneral(coll, in.id.value(), {});
   if (!result) {
-    server->sendErr(objtype.value() + " can't find");
+    server->sendErr(in.objtype.value() + " can't find");
     return;
   }
   auto orig = result->value();
   if (!orig) {
-    server->sendErr(objtype.value() + " not found");
+    server->sendErr(in.objtype.value() + " not found");
     return;
   }
 
   // build our add and remove vectors.
   vector<addTupleType> add;
-  auto arr = j.at("add").as_array();
-  transform(arr.begin(), arr.end(), back_inserter(add), [](auto e) { 
-    return addTupleType { e.at("type").as_string().c_str(), e.at("context").as_string().c_str(), e.at("_id").as_string().c_str() }; 
-  });
+  auto arr = Dict::getVector(in.extra_fields.get("add"));
+  if (arr) {
+    transform(arr->begin(), arr->end(), back_inserter(add), [](auto e) -> addTupleType {
+      auto type = Dict::getStringG(e, "type");
+      auto context = Dict::getStringG(e, "context");
+      auto _id = Dict::getStringG(e, "_id");
+      if (!(type && context && _id)) {
+        L_ERROR("line missing type, context or _id");
+        return addTupleType {};
+      }
+      return addTupleType { *type, *context, *_id }; 
+    });
+  }
   
   vector<string> remove;
-  arr = j.at("remove").as_array();
-  transform(arr.begin(), arr.end(), back_inserter(remove), [](auto e) { return e.as_string().c_str(); });
+  arr = Dict::getVector(in.extra_fields.get("remove"));
+  if (arr) {
+    transform(arr->begin(), arr->end(), back_inserter(remove), [](auto e) {
+      auto s = Dict::getString(e);
+      return s ? *s : "???";
+    });
+  }
   
   auto policyid = Dict::getString(orig.value(), "policy");
   if (!policyid) {
-    server->sendErr(objtype.value() + " no policy id");
+    server->sendErr(in.objtype.value() + " no policy id");
     return;
   }
   
@@ -75,7 +87,7 @@ void setObjectPolicyMsg(Server *server, Data &j) {
     server->sendErr("could not modify policy");
   }
   if (policy.value() == policyid.value()) {
-    L_INFO("policy didn't change for " << id.value());
+    L_INFO("policy didn't change for " << in.id.value());
     server->sendAck();
   }
   
@@ -90,10 +102,10 @@ void setObjectPolicyMsg(Server *server, Data &j) {
   if (upstream) {
     obj2["upstream"] = *upstream;
   }
-  server->sendUpd(objtype.value(), id.value(), obj2);
+  server->sendUpd(in.objtype.value(), in.id.value(), obj2);
     
   L_TRACE("updating " << Dict::toString(obj));
-  auto r = SchemaImpl::updateGeneralById(coll, id.value(), dictO({
+  auto r = SchemaImpl::updateGeneralById(coll, in.id.value(), dictO({
     { "$set", obj }
   }));
   

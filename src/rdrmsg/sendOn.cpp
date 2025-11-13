@@ -15,14 +15,19 @@
 
 namespace nodes {
 
-void sendOnMsg(Server *server, Data &j) {
+void sendOnMsg(Server *server, const IncomingMsg &in) {
    
   // old servers (NodeJS) still use socket id
-  auto corr = j.getString("socketid", true);
+  auto corr = Dict::getString(in.extra_fields.get("socketid"));
   if (!corr) {
-    corr = j.getString("corr", true);
+    corr = in.corr;
   }
-  server->publish(corr, j);
+  auto obj = Dict::getObject(rfl::to_generic(in));
+  if (!obj) {
+    server->sendErr("can't convert to object!");
+    return;
+  }
+  server->publish(corr, *obj);
   
 }
 

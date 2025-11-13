@@ -18,17 +18,16 @@
 
 namespace nodes {
 
-void moveObjectMsg(Server *server, Data &j) {
+void moveObjectMsg(Server *server, const IncomingMsg &in) {
 
-  auto objtype = j.getString("objtype");
-  if (!objtype) {
+  if (!in.objtype) {
     server->sendErr("no object type");
     return;
   }
 
   string parentfield;
   string parenttype;
-  if (!Storage::instance()->parentInfo(objtype.value(), &parentfield, &parenttype)) {
+  if (!Storage::instance()->parentInfo(in.objtype.value(), &parentfield, &parenttype)) {
     server->sendErr("object has no parent");
     return;
   }
@@ -40,7 +39,7 @@ void moveObjectMsg(Server *server, Data &j) {
     return;
   }
   
-  auto pcollid = j.getString("coll");
+  auto pcollid = Dict::getString(in.extra_fields.get("coll"));
   if (!pcollid) {
     server->sendErr("no coll");
     return;
@@ -51,37 +50,35 @@ void moveObjectMsg(Server *server, Data &j) {
     return;
   }
   
-  auto id = j.getString("id");
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id");
     return;
   }
 
-  auto me = j.getString("me");
-  if (!me) {
+  if (!in.me) {
     server->sendErr("no me");
     return;
   }
   
   // get the collection name.
   string coll;
-  if (!Storage::instance()->collName(objtype.value(), &coll, false)) {
+  if (!Storage::instance()->collName(in.objtype.value(), &coll, false)) {
     server->sendErr("Could not get collection name for moveObjectMsg");
     return;
   }
   
-  auto result = SchemaImpl::findByIdGeneral(coll, id.value(), {});
+  auto result = SchemaImpl::findByIdGeneral(coll, in.id.value(), {});
   if (!result) {
-    server->sendErr(objtype.value() + " can't find");
+    server->sendErr(in.objtype.value() + " can't find");
     return;
   }
   auto orig = result->value();
   if (!orig) {
-    server->sendErr(objtype.value() + " not found");
+    server->sendErr(in.objtype.value() + " not found");
     return;
   }
   
-  L_TRACE(objtype.value() << " old value " << Dict::toString(orig.value()));
+  L_TRACE(in.objtype.value() << " old value " << Dict::toString(orig.value()));
   
   auto origparent = Dict::getString(orig.value(), parentfield);
   if (!origparent) {
@@ -89,8 +86,8 @@ void moveObjectMsg(Server *server, Data &j) {
     return;
   }
 
-  if (!Security::instance()->canEdit(pcoll, me, origparent.value())) {
-    L_ERROR("no edit for " << objtype.value() << " " << id.value());
+  if (!Security::instance()->canEdit(pcoll, in.me, origparent.value())) {
+    L_ERROR("no edit for " << in.objtype.value() << " " << in.id.value());
     server->sendSecurity();
     return;
   }
@@ -107,15 +104,15 @@ void moveObjectMsg(Server *server, Data &j) {
   if (upstream) {
     obj2["upstream"] = *upstream;
   }
-  server->sendMov(objtype.value(), id.value(), obj2, parenttype, origparent.value());
+  server->sendMov(in.objtype.value(), in.id.value(), obj2, parenttype, origparent.value());
     
   // update locally
   L_TRACE("updating " << Dict::toString(obj));
-  auto r = SchemaImpl::updateGeneralById(coll, id.value(), dictO({
+  auto r = SchemaImpl::updateGeneralById(coll, in.id.value(), dictO({
     { "$set", obj }
   }));
   if (!r) {
-    server->sendErr("could not update " + objtype.value());
+    server->sendErr("could not update " + in.objtype.value());
     return;
   }
   

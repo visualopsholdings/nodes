@@ -60,23 +60,22 @@ void setsiteMsg(Server *server, const IncomingMsg &in);
 void queryMsg(Server *server, const IncomingMsg &in);
 void addUserMsg(Server *server, const IncomingMsg &in);
 void reloadMsg(Server *server, const IncomingMsg &in);
-
 void addMemberMsg(Server *server, const IncomingMsg &in);
 void deleteMemberMsg(Server *server, const IncomingMsg &in);
 void addObjectMsg(Server *server, const IncomingMsg &in);
 void addNodeMsg(Server *server, const IncomingMsg &in);
+void deleteObjectMsg(Server *server, const IncomingMsg &in);
+void moveObjectMsg(Server *server, const IncomingMsg &in);
+void addGroupMsg(Server *server, const IncomingMsg &in);
+void setGroupMsg(Server *server, const IncomingMsg &in);
+void setObjectMsg(Server *server, const IncomingMsg &in);
+void deleteGroupMsg(Server *server, const IncomingMsg &in);
+void setObjectPolicyMsg(Server *server, const IncomingMsg &in);
+void setGroupPolicyMsg(Server *server, const IncomingMsg &in);
+void deleteUserMsg(Server *server, const IncomingMsg &in);
 
-void deleteObjectMsg(Server *server, Data &data);
-void moveObjectMsg(Server *server, Data &data);
-void addGroupMsg(Server *server, Data &data);
-void setGroupMsg(Server *server, Data &data);
-void setObjectMsg(Server *server, Data &data);
-void deleteGroupMsg(Server *server, Data &data);
-void setObjectPolicyMsg(Server *server, Data &data);
-void setGroupPolicyMsg(Server *server, Data &data);
 void shareLinkMsg(Server *server, Data &data);
 void canRegisterMsg(Server *server, Data &data);
-void deleteUserMsg(Server *server, Data &data);
 void deleteNodeMsg(Server *server, Data &data);
 void purgeCountGroupsMsg(Server *server, Data &data);
 void purgeGroupsMsg(Server *server, Data &data);
@@ -89,10 +88,10 @@ void buildMsg(Server *server, Data &data);
 
 // remoteDataReq handlers
 void discoverResultMsg(Server *server, const IncomingMsg &in);
+void upstreamMsg(Server *server, const IncomingMsg &in);
+void sendOnMsg(Server *server, const IncomingMsg &in);
 
-void upstreamMsg(Server *server, Data &data);
 void dateMsg(Server *server, Data &data);
-void sendOnMsg(Server *server, Data &data);
 
 // remoteMsgSub handlers
 void updSubMsg(Server *server, Data &data);
@@ -172,18 +171,18 @@ Server::Server(bool test, bool noupstream,
   _messages2["deletemember"] = bind(&nodes::deleteMemberMsg, this, placeholders::_1);
   _messages2["addobject"] = bind(&nodes::addObjectMsg, this, placeholders::_1);
   _messages2["addnode"] = bind(&nodes::addNodeMsg, this, placeholders::_1);
-  
-  _messages["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
-  _messages["moveobject"] = bind(&nodes::moveObjectMsg, this, placeholders::_1);
-  _messages["addgroup"] = bind(&nodes::addGroupMsg, this, placeholders::_1);
-  _messages["setgroup"] = bind(&nodes::setGroupMsg, this, placeholders::_1);
-  _messages["setobject"] = bind(&nodes::setObjectMsg, this, placeholders::_1);
-  _messages["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
-  _messages["setobjectpolicy"] = bind(&nodes::setObjectPolicyMsg, this, placeholders::_1);
-  _messages["setgrouppolicy"] = bind(&nodes::setGroupPolicyMsg, this, placeholders::_1);
+  _messages2["deleteobject"] = bind(&nodes::deleteObjectMsg, this, placeholders::_1);
+  _messages2["moveobject"] = bind(&nodes::moveObjectMsg, this, placeholders::_1);
+  _messages2["addgroup"] = bind(&nodes::addGroupMsg, this, placeholders::_1);
+  _messages2["setgroup"] = bind(&nodes::setGroupMsg, this, placeholders::_1);
+  _messages2["setobject"] = bind(&nodes::setObjectMsg, this, placeholders::_1);
+  _messages2["deletegroup"] = bind(&nodes::deleteGroupMsg, this, placeholders::_1);
+  _messages2["setobjectpolicy"] = bind(&nodes::setObjectPolicyMsg, this, placeholders::_1);
+  _messages2["setgrouppolicy"] = bind(&nodes::setGroupPolicyMsg, this, placeholders::_1);
+  _messages2["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
+
   _messages["sharelink"] = bind(&nodes::shareLinkMsg, this, placeholders::_1);
   _messages["canreg"] = bind(&nodes::canRegisterMsg, this, placeholders::_1);
-  _messages["deleteuser"] = bind(&nodes::deleteUserMsg, this, placeholders::_1);
   _messages["deletenode"] = bind(&nodes::deleteNodeMsg, this, placeholders::_1);
   _messages["purgecountgroups"] = bind(&nodes::purgeCountGroupsMsg, this, placeholders::_1);
   _messages["purgegroups"] = bind(&nodes::purgeGroupsMsg, this, placeholders::_1);
@@ -202,10 +201,10 @@ Server::Server(bool test, bool noupstream,
     L_TRACE("ack");
   };
   _remoteDataReqMessages2["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
-
-  _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
+  _remoteDataReqMessages2["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
+  _remoteDataReqMessages2["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
+  
   _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
-  _remoteDataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
   
   _remoteMsgSubMessages["upd"] =  bind(&nodes::updSubMsg, this, placeholders::_1);
   _remoteMsgSubMessages["mov"] =  bind(&nodes::updSubMsg, this, placeholders::_1); // same handler as upd

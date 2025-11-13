@@ -18,15 +18,14 @@
 
 namespace nodes {
 
-void deleteGroupMsg(Server *server, Data &j) {
+void deleteGroupMsg(Server *server, const IncomingMsg &in) {
 
-  auto id = j.getString("id");
-  if (!id) {
+  if (!in.id) {
     server->sendErr("no id");
     return;
   }
 
-  Handler::remove(server, "group", id.value(), j.getString("me", true));
+  Handler::remove(server, "group", in.id.value(), in.me);
 
   Security::instance()->regenerateGroups();
 
