@@ -15,12 +15,12 @@
 #include "storage.hpp"
 #include "encrypter.hpp"
 #include "date.hpp"
+#include "log.hpp"
 #include "json.hpp"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <iostream>
-#include "log.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/hex.hpp>
 #include <boost/filesystem.hpp>
@@ -371,6 +371,10 @@ void removeAt(DictO *dict, const string &fullpath) {
     return;
   }
   
+//   L_INFO("find_pointer");
+//   L_INFO(obj);
+//   L_INFO(path);
+  
   // find the first part in the object.
   error_code ec;
   json *node = obj.find_pointer(path, ec);
@@ -379,6 +383,8 @@ void removeAt(DictO *dict, const string &fullpath) {
     return;
   }
   L_TRACE(path << ": " << *node);
+  
+//  L_INFO(*node);
   
   if (!(*node).is_array()) {
     L_ERROR("found node is not array");
@@ -395,8 +401,15 @@ void removeAt(DictO *dict, const string &fullpath) {
     newarr.push_back(arr[i]);
   }
   
+//   L_INFO("set_at_pointer");
+//   L_INFO(obj);
+//   L_INFO(path);
+//   L_INFO(newarr);
+
   // and then set the new array.
   obj.set_at_pointer(path, newarr);
+
+//  L_INFO(obj);
 
   // and copy back.
   stringstream ss;
