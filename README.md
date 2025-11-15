@@ -442,6 +442,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 13 Nov 2025
 - "Data" removed completely.
 
+### 15 Nov 2025
+- "Json" and boost::json removed completely.
 
 
 

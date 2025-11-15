@@ -16,7 +16,6 @@
 #include "encrypter.hpp"
 #include "date.hpp"
 #include "log.hpp"
-#include "json.hpp"
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -337,8 +336,6 @@ optional<string> Security::findPolicyForUser(const string &userid) {
 
 void removeAt(DictO *dict, const string &fullpath) {
 
-  auto obj = boost::json::parse(Dict::toString(*dict));
-  
   // this is the code that was needed in NodeJS to do this:
   // var spdb = spahql.db(policy);
   //   _.forEach(changes.remove, function(r) {
@@ -371,61 +368,41 @@ void removeAt(DictO *dict, const string &fullpath) {
     return;
   }
   
-//   L_INFO("find_pointer");
-//   L_INFO(obj);
-//   L_INFO(path);
-  
   // find the first part in the object.
-  error_code ec;
-  json *node = obj.find_pointer(path, ec);
-  if (ec) {
-    L_ERROR(ec);
+  auto node = Dict::find_pointer(*dict, path);
+  if (!node) {
     return;
   }
-  L_TRACE(path << ": " << *node);
+  L_TRACE(path << ": " << Dict::toString(*node));
   
-//  L_INFO(*node);
-  
-  if (!(*node).is_array()) {
+  auto arr = Dict::getVector(*node);
+  if (!arr) {
     L_ERROR("found node is not array");
     return;
   }
   
   // remove the element fron the array.
-  boost::json::array newarr;
-  auto arr = (*node).as_array();  
+  DictV newarr;
   for (int i=0; i<lastindex; i++) {
-    newarr.push_back(arr[i]);
+    newarr.push_back((*arr)[i]);
   }
-  for (int i=lastindex+1; i<arr.size(); i++) {
-    newarr.push_back(arr[i]);
+  for (int i=lastindex+1; i<arr->size(); i++) {
+    newarr.push_back((*arr)[i]);
   }
   
-//   L_INFO("set_at_pointer");
-//   L_INFO(obj);
-//   L_INFO(path);
-//   L_INFO(newarr);
-
   // and then set the new array.
-  obj.set_at_pointer(path, newarr);
-
-//  L_INFO(obj);
-
-  // and copy back.
-  stringstream ss;
-  ss << obj;
-  auto g = Dict::parseStream(ss);
-  if (!g) {
-    L_ERROR("couldnt parse " << ss.str());
+  auto newobj = Dict::set_at_pointer(*dict, path, newarr);
+  if (!newobj) {
     return;
   }
-  auto o = Dict::getObject(*g);
-  if (!o) {
-    L_ERROR("not object " << ss.str());
+
+  auto obj = Dict::getObject(*newobj);
+  if (!obj) {
+    L_ERROR("result is not an object");
     return;
   }
-  
-  *dict = *o;
+
+  *dict = *obj;
   
 }
 
@@ -642,16 +619,14 @@ optional<string> Security::createShareToken(const string &collid, const string &
   L_TRACE("share token will expire " << expires);
   L_TRACE("now " << Date::toISODate(Date::now()));
 
-  json keyd = {
+  auto keyd = dictO({
     { "id", collid },
 		{ "user", me },
 		{ "options", options },
 		{ "team", groupid },
 		{ "expires", expires }
-	};
-  stringstream ss;
-  ss << keyd;
-  string data = ss.str();
+	});
+  string data = Dict::toString(keyd);
   Encrypter encrypter(_key, _iv);
   return encrypter.encryptText(data);
   

@@ -16,8 +16,8 @@ cmake_policy(SET CMP0169 OLD) # FetchContent
 set(USE_MONGO ON)
 
 project (nodes)
-  find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread log_setup log json REQUIRED)
-#  find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread json REQUIRED)
+  find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread log_setup log REQUIRED)
+#  find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread REQUIRED)
   find_package(cppzmq REQUIRED)
   find_package(OpenSSL REQUIRED)
   add_definitions(-DBOOST_ALL_DYN_LINK) 
@@ -80,9 +80,8 @@ if(NOT base64_POPULATED)
 endif()
 
 set(LIBS zmq)
-set(BOOSTLIBS ${Boost_LOG_LIBRARY} ${Boost_JSON_LIBRARY})
+set(BOOSTLIBS ${Boost_LOG_LIBRARY})
 set(CORE
-  src/json.cpp
   src/date.cpp
 )
 set(UTILS
@@ -239,11 +238,6 @@ add_executable(TestDate test/testdate.cpp src/date.cpp)
   target_link_libraries(TestDate ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
 
 add_test(TestDate TestDate)
-
-add_executable(TestJson test/testjson.cpp src/json.cpp src/date.cpp)
-  target_link_libraries(TestJson ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
-
-add_test(TestJson TestJson)
 
 add_executable(TestEncrypter test/testencrypter.cpp src/encrypter.cpp)
   target_link_libraries(TestEncrypter ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${OPENSSL_LIBRARIES})
