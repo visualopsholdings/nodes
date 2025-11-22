@@ -198,7 +198,7 @@ void Security::queryIndexes(Schema<IndexRow> &schema, const vector<string> &inid
 
   auto q = dictO({{ "_id", dictO({{ "$in", createArray(inids) }}) }});
   
-  auto indexes = schema.find(q).all();
+  auto indexes = schema.find(q, {}, true).all();
   if (!indexes) {
     L_TRACE("indexes missing for " << schema.collName());
     return;
@@ -216,7 +216,7 @@ DictO Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, cons
 
   // collect all the groups the user is in.
   UserInGroups useringroups;
-  auto indexes = useringroups.find(dictO({{ "_id", userid }}), {"value"}).one();
+  auto indexes = useringroups.find(dictO({{ "_id", userid }}), {"value"}, true).one();
   vector<string> glist;
   if (indexes) {
     glist = indexes.value().all();
@@ -225,10 +225,12 @@ DictO Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, cons
   // collect all the policies for those groips
   vector<string> plist;
   queryIndexes(gperm, glist, &plist);
+//  L_TRACE("gperm plist size " << plist.size());
   
   // add all the policies just for this user.
   queryIndexes(uperm, { userid }, &plist);
-
+//  L_TRACE("uperm plist size " << plist.size());
+  
   auto q = dictO({ 
     { "$and", DictV{ 
       query,
@@ -236,7 +238,7 @@ DictO Security::withQuery(Schema<IndexRow> &gperm, Schema<IndexRow> &uperm, cons
       }
     } 
   });
-  L_TRACE(Dict::toString(q));
+//  L_TRACE("with " << Dict::toString(q));
 
   return q;
   
@@ -637,7 +639,8 @@ optional<DictO> Security::expandShareToken(const string &token) {
   Encrypter encrypter(_key, _iv);
   auto dec = encrypter.decryptText(token);
   if (dec) {
-    auto g = Dict::parseString(*dec);
+    // JSON for now.
+    auto g = Dict::parseString(*dec, ".json");
     if (!g) {
       return nullopt;
     }

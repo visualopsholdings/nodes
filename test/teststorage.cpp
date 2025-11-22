@@ -15,6 +15,8 @@
 #include "date.hpp"
 #include "dict.hpp"
 
+#include <bsoncxx/json.hpp>
+
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
@@ -56,7 +58,6 @@ BOOST_AUTO_TEST_CASE( notInit )
   
 }
 
-
 BOOST_AUTO_TEST_CASE( user )
 {
   cout << "=== user ===" << endl;
@@ -64,8 +65,8 @@ BOOST_AUTO_TEST_CASE( user )
   dbSetup();
   
   auto doc = User().find(dictO({{ "name", "tracy" }}), {"id", "name"}).one();
-//  cout << doc.value().j() << endl;
   BOOST_CHECK(doc);
+//  cout << Dict::toString(doc->dict()) << endl;
   BOOST_CHECK_EQUAL(doc->name(), "tracy");
   BOOST_CHECK_EQUAL(doc->id().size(), 24);
   cout << doc->id() << endl;
@@ -295,10 +296,60 @@ BOOST_AUTO_TEST_CASE( findLatest )
   
 }
 
+BOOST_AUTO_TEST_CASE( convertToBSON )
+{
+  cout << "=== convertToBSON ===" << endl;
+ 
+  auto doc = ResultImpl::convert(dictO({
+    { "$and", DictV{
+      dictO({
+        { "_id", dictO({{ "$oid", tracy }}) },
+      }),
+      dictO({
+        { "modifyDate", dictO({{ "$date", 1721890479599 }}) }
+      })
+    }
+  }}));
+  cout << bsoncxx::to_json(doc) << endl;
+ 
+}
 
+BOOST_AUTO_TEST_CASE( convertSetToBSON )
+{
+  cout << "=== convertSetToBSON ===" << endl;
+ 
+  auto doc = ResultImpl::convert(dictO({
+    { "$set", dictO({
+        { "modifyDate", "2022-01-01T13:00:00.0+00:00" },
+        { "name", "Shared Collection" },
+        { "policy", "6386dbabddf5aaf74ca1e1f6" },
+        { "upstream", true },
+        { "active", true }
+      })
+    }
+  }));
 
+//  cout << bsoncxx::to_json(doc) << endl;
+ 
+}
 
+BOOST_AUTO_TEST_CASE( convertFromBSON )
+{
+  cout << "=== convertFromBSON ===" << endl;
+ 
+  auto bson = ResultImpl::convert(dictO({
+    { "_id", dictO({{ "$oid", tracy }}) }, 
+    { "name", "tracy" },
+    { "modifyDate", dictO({{ "$date", 1641042000000 }}) }, 
+    { "members", DictV{
+       dictO({ { "_id", dictO({{ "$oid", "6920315c0651c850ca114235" }}) }, { "user", "6121bdfaec9e5a059715739c" } }),
+       dictO({ { "_id", dictO({{ "$oid", "6920315c0651c850ca114236" }}) }, { "user", "6142d258ddf5aa5644057d35" } })
+      }
+    } 
+  }));
 
-
-
-
+  auto dict = ResultImpl::convert(bson);
+  BOOST_CHECK(dict);
+//  cout << Dict::toString(*dict) << endl;
+  
+}

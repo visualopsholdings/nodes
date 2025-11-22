@@ -41,7 +41,7 @@ shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, bsoncxx
 
   if (sort) {
     return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, 
-      bsoncxx::from_json(Dict::toString(sort.value()))));
+      ResultImpl::convert(sort.value())));
   }
 
   return shared_ptr<ResultImpl>(new ResultImpl(Storage::instance()->_impl->coll(collection)._c, query, fields, limit, nullopt));
@@ -64,9 +64,7 @@ int SchemaImpl::countGeneral(const string &collection, const DictO &query) {
     return 0;
   }
 
-  bsoncxx::document::view_or_value q = bsoncxx::from_json(Dict::toString(query));
-
-  return countGeneral(collection, q);
+  return countGeneral(collection, ResultImpl::convert(query));
 
 }
 
@@ -83,14 +81,11 @@ bool SchemaImpl::existsGeneral(const string &collection, const string &id) {
 }
 
 shared_ptr<ResultImpl> SchemaImpl::findGeneral(const string &collection, const DictO &query, 
-          const vector<string> &fields, optional<int> limit, optional<DictO> sort) {
+          const vector<string> &fields, optional<int> limit, optional<DictO> sort, bool stringids) {
 
-  auto s = Dict::toString(query);
-  L_TRACE("find " << s << " in " << collection); 
+  L_TRACE("find " << Dict::toString(query) << " in " << collection); 
 
-  bsoncxx::document::view_or_value q = bsoncxx::from_json(s);
-  
-  return findGeneral(collection, q, fields, limit, sort);
+  return findGeneral(collection,  ResultImpl::convert(query, stringids), fields, limit, sort);
   
 }
 
@@ -119,16 +114,13 @@ shared_ptr<ResultImpl> SchemaImpl::findByIdsGeneral(const string &collection, co
 
 void SchemaImpl::deleteManyGeneral(const string &collection, const DictO &doc) {
 
-  auto s = Dict::toString(doc);
-  L_TRACE("deleteMany " << s << " in " << collection);
+  L_TRACE("deleteMany " << Dict::toString(doc) << " in " << collection);
 
   if (!testInit()) {
     return;
   }
 
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(s);
-
-  Storage::instance()->_impl->coll(collection)._c.delete_many(d);
+  Storage::instance()->_impl->coll(collection)._c.delete_many( ResultImpl::convert(doc));
   Storage::instance()->collectionWasChanged(collection);
 
 }
@@ -155,17 +147,14 @@ bool SchemaImpl::deleteById(const string &id) {
 
 optional<string> SchemaImpl::insertGeneral(const string &collection, const DictO &doc) {
 
-  auto s = Dict::toString(doc);
-  L_TRACE("insert " << s << " in " << collection);
+  L_TRACE("insert " << Dict::toString(doc) << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
   }
   
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(s);
-  
   try {
-    auto result = Storage::instance()->_impl->coll(collection)._c.insert_one(d);
+    auto result = Storage::instance()->_impl->coll(collection)._c.insert_one(ResultImpl::convert(doc));
     if (result) {
       Storage::instance()->collectionWasChanged(collection);
       return result.value().inserted_id().get_oid().value.to_string();
@@ -184,19 +173,14 @@ optional<string> SchemaImpl::insertGeneral(const string &collection, const DictO
 
 optional<int> SchemaImpl::updateGeneral(const string &collection, const DictO &query, const DictO &doc) {
 
-  auto s = Dict::toString(query);
-  L_TRACE("update " << s << " in " << collection);
+  L_TRACE("update " << Dict::toString(query) << " in " << collection);
 
   if (!testInit()) {
     return nullopt;
   }
 
-  bsoncxx::document::view_or_value q = bsoncxx::from_json(s);
-
-  s = Dict::toString(doc);
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(s);
-  
-  auto result = Storage::instance()->_impl->coll(collection)._c.update_many(q, d);
+  auto result = Storage::instance()->_impl->coll(collection)._c.update_many(
+     ResultImpl::convert(query),  ResultImpl::convert(doc));
   if (result) {
    Storage::instance()->collectionWasChanged(collection);
     return result->modified_count();
@@ -216,10 +200,7 @@ optional<string> SchemaImpl::updateGeneralById(const string &collection, const s
 
   bsoncxx::document::view_or_value q = make_document(kvp("_id", bsoncxx::oid(id)));
 
-  auto s = Dict::toString(doc);
-  bsoncxx::document::view_or_value d = bsoncxx::from_json(s);
-  
-  auto result = Storage::instance()->_impl->coll(collection)._c.update_one(q, d);
+  auto result = Storage::instance()->_impl->coll(collection)._c.update_one(q, ResultImpl::convert(doc));
   if (result) {
     Storage::instance()->collectionWasChanged(collection);
     return "1";
@@ -284,9 +265,7 @@ void SchemaImpl::aggregate(const string &filename) {
         L_ERROR("key is not object " << key);
         return;
       }
-      stringstream ss;
-      ss << Dict::toString(*obj);
-      bsoncxx::document::view_or_value d = bsoncxx::from_json(ss.str());
+      auto d =  ResultImpl::convert(*obj);
       if (key == "$group") {
         p.group(d);
       }

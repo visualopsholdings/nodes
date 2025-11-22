@@ -40,8 +40,8 @@ finish
 ci/run.sh upstream
 [ "$?" != "0" ] && exit 1
 
-# ci/nodestest.sh "A build can be downloaded"
-# [ "$?" != "0" ] && fail
+ci/nodestest.sh "A build can be downloaded"
+[ "$?" != "0" ] && fail
 
 ci/nodestest.sh "An existing user can be pulled from upstream"
 [ "$?" != "0" ] && fail

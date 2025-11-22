@@ -445,9 +445,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 15 Nov 2025
 - "Json" and boost::json removed completely.
 
-
-
-
+### 22 Nov 2025
+- We now parse BSON directly to and from out Dict objects for the MongoDB work. So no JSON.
 
 
 

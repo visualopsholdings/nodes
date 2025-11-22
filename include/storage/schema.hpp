@@ -28,8 +28,8 @@ class Schema: public SchemaImpl {
 public:
 
   // find documents with the query.
-  Result<RowType> find(const DictO &query, const vector<string> &fields = {}) {
-    return Result<RowType>(findResult(query, fields));
+  Result<RowType> find(const DictO &query, const vector<string> &fields = {}, bool stringids=false) {
+    return Result<RowType>(findResult(query, fields, stringids));
   }
     
   // find the document with this id.

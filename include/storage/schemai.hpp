@@ -60,7 +60,7 @@ public:
   virtual string collName() = 0;
   
   static shared_ptr<ResultImpl> findGeneral(const string &collection, const DictO &query, 
-          const vector<string> &fields, optional<int> limit=nullopt, optional<DictO> sort=nullopt);
+          const vector<string> &fields, optional<int> limit=nullopt, optional<DictO> sort=nullopt, bool stringids=false);
   static shared_ptr<ResultImpl> findByIdGeneral(const string &collection, const string &id, const vector<string> &fields);
   static shared_ptr<ResultImpl> findByIdsGeneral(const string &collection, const vector<string> &ids, const vector<string> &fields);
   static int countGeneral(const string &collection, const DictO &query);
@@ -70,8 +70,8 @@ public:
   static void deleteManyGeneral(const string &collection, const DictO &doc);
   static bool existsGeneral(const string &collection, const string &id);
 
-  shared_ptr<ResultImpl> findResult(const DictO &query, const vector<string> &fields) {
-    return findGeneral(collName(), query, fields);
+  shared_ptr<ResultImpl> findResult(const DictO &query, const vector<string> &fields, bool stringids=false) {
+    return findGeneral(collName(), query, fields, nullopt, nullopt, stringids);
   }
   shared_ptr<ResultImpl> findByIdResult(const string &id, const vector<string> &fields) {
     return findByIdGeneral(collName(), id, fields);

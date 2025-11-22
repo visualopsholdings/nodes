@@ -74,8 +74,8 @@ optional<string> CollectionImpl::insert_one(const DictO &doc) {
     return nullopt;
   }
 
-  // and write the object out.
-  file << Dict::toString(newdoc);
+  // and write the object out as JSON
+  file << Dict::toString(newdoc, true, ".json");
 
   return newid;
   
@@ -127,7 +127,7 @@ DictO CollectionImpl::find(const DictO &query, optional<const DictO> &sort) {
     }
     
     string input(istreambuf_iterator<char>(f), {});
-    auto doc = Dict::parseString(input);
+    auto doc = Dict::parseString(input, ".json");
     if (doc) {
       auto obj = Dict::getObject(*doc);
       if (!obj) {
@@ -162,7 +162,7 @@ DictV CollectionImpl::findAll(const DictO &query, optional<const DictO> &sort) {
     }
     
     string input(istreambuf_iterator<char>(f), {});
-    auto doc = Dict::parseString(input);
+    auto doc = Dict::parseString(input, ".json");
     if (doc) {
       auto obj = Dict::getObject(*doc);
       if (!obj) {
@@ -195,7 +195,7 @@ DictV CollectionImpl::findByIds(const vector<string> &ids) {
       return {{}};
     }
     string input(istreambuf_iterator<char>(f), {});
-    auto doc = Dict::parseString(input);
+    auto doc = Dict::parseString(input, ".json");
     if (doc) {
       auto obj = Dict::getObject(*doc);
       if (!obj) {

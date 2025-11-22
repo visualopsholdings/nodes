@@ -62,11 +62,13 @@ int main(int argc, char *argv[]) {
   req.connect("tcp://127.0.0.1:" + to_string(reqPort));
 	L_TRACE("Connect to ZMQ as Local REQ on " << reqPort);
   
-  auto j = Dict::parseString(jsonstr);
+  // input is JSON.
+  auto j = Dict::parseString(jsonstr, ".json");
   send(req, *j);
   auto jr = receive(req);
   L_DEBUG("<- " << Dict::toString(jr));
-  cout << Dict::toString(jr);
+  // receive JSON for now.
+  cout << Dict::toString(jr, false, ".json");
     
   return 0;
  
@@ -76,7 +78,8 @@ void send(zmq::socket_t &socket, const DictG &json) {
 
   L_DEBUG("-> " << Dict::toString(json));
 
-  string m = Dict::toString(json);
+  // send JSON for now.
+  string m = Dict::toString(json, false, ".json");
   zmq::message_t msg(m.length());
   memcpy(msg.data(), m.c_str(), m.length());
 #if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
@@ -97,7 +100,7 @@ DictG receive(zmq::socket_t &socket) {
 #endif
   string r((const char *)reply.data(), reply.size());
 
-  auto j = Dict::parseString(r);
+  auto j = Dict::parseString(r, ".json");
   L_DEBUG("<- " << Dict::toString(*j));
   
   return *j;

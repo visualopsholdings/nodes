@@ -29,7 +29,7 @@ using namespace nodes;
 
 int main(int argc, char *argv[]) {
 
-  string version = "Nodes v0.7.0, 11-Nov-2025.";
+  string version = "Nodes v0.8.0, 22-Nov-2025.";
   
   int pubPort;
   int repPort;

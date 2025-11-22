@@ -223,7 +223,7 @@ bool Storage::bulkInsert(const string &collName, const vector<DictO> &objs) {
  
   auto schema = GenericSchema(collName);
   for (auto i: objs) {
-  
+
     // the object we will be inserting.
     DictO obj;
 
@@ -246,27 +246,16 @@ bool Storage::bulkInsert(const string &collName, const vector<DictO> &objs) {
     }
     
     // create the id.
-    obj["_id"] = dictO({
-      { "$oid", id }
-    });
+    obj["_id"] = id;
 
-    // the modify date is not just a string.
-    auto mod = Dict::getString(i, "modifyDate");
-    if (mod) {
-      L_TRACE("converting string modify date");
-      obj["modifyDate"] = dictO({
-        { "$date", Date::fromISODate(*mod) }
-      });
-    }
-    
     // copy every other field.
     for (auto f: i) {
       auto key = get<0>(f);
-      if (key != "_id" && key != "id" && key != "modifyDate") {
+      if (key != "_id" && key != "id") {
         obj[key] = get<1>(f);
       }
     }
-    
+
     auto result = schema.insert(obj);
     if (!result) {
       L_ERROR("insert failed");
@@ -275,9 +264,13 @@ bool Storage::bulkInsert(const string &collName, const vector<DictO> &objs) {
     if (result.value() == "exists") {
       DictO r;
       // copy all but "_id"
+      string id;
       for (auto f: obj) {
         auto key = get<0>(f);
-        if (key != "_id") {
+        if (key == "_id") {
+          id = *Dict::getString(get<1>(f));
+        }
+        else {
           r[key] = get<1>(f);
         }
       }

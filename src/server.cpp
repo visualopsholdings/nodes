@@ -98,6 +98,7 @@ void discoverLocalMsg(Server *server, const IncomingMsg &in);
 
 void onlineMsg(Server *server, const IncomingMsg &in);
 void heartbeatMsg(Server *server, const IncomingMsg &in);
+void serverBuildMsg(Server *server, const IncomingMsg &in);
 void queryDrMsg(Server *server, const IncomingMsg &in);
 void updDrMsg(Server *server, const IncomingMsg &in);
 void addDrMsg(Server *server, const IncomingMsg &in);
@@ -211,6 +212,7 @@ Server::Server(bool test, bool noupstream,
 
   _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
   _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
+  _dataRepMessages["requestbuild"] =  bind(&nodes::serverBuildMsg, this, placeholders::_1);
 
   _dataRepMessages["query"] =  bind(&nodes::queryDrMsg, this, placeholders::_1);
   _dataRepMessages["upd"] =  bind(&nodes::updDrMsg, this, placeholders::_1);
@@ -358,6 +360,7 @@ void Server::runDownstreamOnly() {
       }
     }
     if (items[1].revents & ZMQ_POLLIN) {
+//      L_TRACE("got _dataRep event");
       if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
         sendErr("error in getting upstream rep message");
       }
@@ -412,8 +415,14 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
 
     L_TRACE("handling " << doc->type);
     map<string, msgHandler>::iterator handler = handlers.find(doc->type);
+    if (handler == handlers.end()) {
+      L_ERROR("handler for " << doc->type << " not found");
+      return false;
+    }
     try {
+      L_TRACE("calling handler");
       handler->second(*doc);
+      L_TRACE("handler called");
     }
     catch (exception &exc) {
       L_ERROR("what: " << exc.what());
@@ -442,7 +451,8 @@ void Server::sendTo(zmq::socket_t &socket, const DictO &in, const string &type, 
     in2["corr"] = *corr;
   }
 
-  sendTo(socket, Dict::toString(in2), type);
+  // we send and receive JSON for now.
+  sendTo(socket, Dict::toString(in2, false, ".json"), type);
 
 }
 
@@ -466,6 +476,8 @@ void Server::sendTo(zmq::socket_t &socket, const string &m, const string &type) 
 }
 
 void Server::setSrc(DictO *m) {
+
+//  L_TRACE("setSrc " << Dict::toString(*m));
 
   if (!Storage::appendArray(m, "path", _serverId)) {
     L_ERROR(_serverId << " is already in the path!");
@@ -763,8 +775,13 @@ void Server::sendObject(const IncomingMsg &m, const string &name, const DictG &o
 
 void Server::sendDataReq(optional<string> corr, const DictO &m) {
 
-  sendTo(_remoteDataReq->socket(), m, "rdr-> ", corr);
+  if (!_remoteDataReq) {
+    L_ERROR("no data req handler!");
+    return;
+  }
   
+  sendTo(_remoteDataReq->socket(), m, "rdr-> ", corr);
+ 
 }
 
 void Server::stopUpstream() {

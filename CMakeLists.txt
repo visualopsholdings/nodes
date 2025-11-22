@@ -17,7 +17,6 @@ set(USE_MONGO ON)
 
 project (nodes)
   find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread log_setup log REQUIRED)
-#  find_package(Boost 1.85.0 COMPONENTS program_options filesystem unit_test_framework chrono thread REQUIRED)
   find_package(cppzmq REQUIRED)
   find_package(OpenSSL REQUIRED)
   add_definitions(-DBOOST_ALL_DYN_LINK) 
@@ -26,8 +25,10 @@ project (nodes)
 if (USE_MONGO)
   find_package(mongocxx REQUIRED)
   add_definitions(-DMONGO_DB)
+  include_directories(/usr/local/include/bson-2.2.0)
 endif ()
-  find_package(bsoncxx REQUIRED)
+
+find_package(bsoncxx REQUIRED)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 23)
@@ -37,7 +38,7 @@ if (UNIX AND NOT APPLE)
   add_definitions(-funwind-tables) 
 endif ()
 if (APPLE)
-  include_directories(/usr/local/include /opt/homebrew/Cellar/zeromq/4.3.5_2/include /opt/homebrew/Cellar/openssl@3/3.5.2/include )
+  include_directories(/usr/local/include /opt/homebrew/Cellar/zeromq/4.3.5_2/include /opt/homebrew/Cellar/openssl@3/3.5.2/include)
   LINK_DIRECTORIES(/opt/homebrew/Cellar/zeromq/4.3.5_2/lib)
 endif ()
 
@@ -146,6 +147,7 @@ set(MESSAGES
   src/drmsg/online.cpp
   src/drmsg/discoverLocal.cpp
   src/drmsg/heartbeat.cpp
+  src/drmsg/serverBuild.cpp
   src/drmsg/query.cpp
   src/drmsg/upd.cpp
   src/drmsg/add.cpp
@@ -167,7 +169,7 @@ set(STORAGE
 
 # we always use BSON
 include_directories(${LIBBSONCXX_INCLUDE_DIR})
-set(BSONLIBS mongo::bsoncxx_shared)
+set(BSONLIBS mongo::bsoncxx_shared bson2)
 
 if (USE_MONGO)
   include_directories(${LIBMONGOCXX_INCLUDE_DIR})

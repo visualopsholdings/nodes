@@ -31,6 +31,8 @@ public:
   ResultImpl(CollectionImpl coll, bsoncxx::document::view_or_value query, const vector<string> &fields, 
       optional<int> limit, optional<bsoncxx::document::view_or_value> sort): 
     _c(coll), _mc(coll._c), _q(query), _f(fields), _limit(limit), _sort(sort) {};
+  static bsoncxx::document::view_or_value convert(const DictO &obj, bool stringids=false);
+  static std::optional<DictO> convert(const bsoncxx::document::view &view);
 #else
   ResultImpl(CollectionImpl coll, const vector<string> &ids, const vector<string> &fields): 
     _c(coll), _ids(ids), _f(fields) {};
@@ -56,6 +58,11 @@ private:
   bsoncxx::document::view_or_value _q;
   optional<bsoncxx::document::view_or_value> _sort;
   mongocxx::cursor find();
+  template<typename T>
+  static bool fixDoc(bsoncxx::builder::basic::document *builder, const std::string &key, const T &view);
+  template<typename T>
+  static bool fixStrings(bsoncxx::builder::basic::document *builder, const T &k, bool stringids);
+  static void fixBSONDoc(bsoncxx::builder::basic::document *builder, const bsoncxx::document::view &view);
 #else
   DictO _q;
   optional<vector<string> > _ids;
