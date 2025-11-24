@@ -105,5 +105,6 @@ When('she sends add collection from upstream with {string}') do |id|
 end
 
 When('she sends add collection from upstream with saved collection') do
-   $lastResult = Send({ "type": "addobject", "objtype": "collection", "upstream": true, "id": $savedResult["result"] })
+   id = $savedResult["result"]["id"]
+   $lastResult = Send({ "type": "addobject", "objtype": "collection", "upstream": true, "id": id })
 end

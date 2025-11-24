@@ -625,6 +625,18 @@ string Server::buildAckJson(optional<string> result) {
   
 }
 
+string Server::buildAckJson(const DictO &result) {
+
+  struct AckDictMsg {
+    string type = "ack";
+    rfl::ExtraFields<DictO> extra_fields;
+  } m{};
+  m.extra_fields["result"] = result;
+  
+  return rfl::json::write(m, rfl::json::pretty);
+  
+}
+
 string Server::buildCollResultJson(const IncomingMsg &in, const string &name, const DictV &array) {
 
   struct CollResult {
@@ -709,6 +721,12 @@ void Server::sendWarning(const string &msg) {
 }
 
 void Server::sendAck(optional<string> result) {
+
+  send(buildAckJson(result));
+  
+}
+
+void Server::sendAck(const DictO &result) {
 
   send(buildAckJson(result));
   
@@ -2123,4 +2141,51 @@ bool Server::shouldIgnoreAdd(const DictO &msg) {
 
   return false;
   
+}
+
+DictO Server::fixObjectForReturn(const DictO &j) {
+
+//  L_TRACE("fixing " << j);
+
+  DictO o;
+  for (auto i: j) {
+  
+    auto key = get<0>(i);
+//    L_TRACE("fixing " << key);
+    
+    auto val = get<1>(i);
+    
+    auto oval = Dict::getObject(val);
+    if (oval) {
+//      L_TRACE("value is object");
+      auto date = oval->get("$date");
+      if (date) {
+        o[key] = Date::toISODate(date);
+        continue;
+      }
+      o[key] = fixObjectForReturn(*oval);
+      continue;
+    }
+    
+    auto iv = Dict::getVector(val);
+    if (iv) {
+//      L_TRACE("value is vector");
+      DictV newarray;
+      // copy array, recursing into sub objects.
+      transform(iv->begin(), iv->end(), back_inserter(newarray), [this](auto e) -> DictG {
+        auto obj = Dict::getObject(e);
+        if (obj) {
+          return fixObjectForReturn(*obj); 
+        }
+        return e;
+      });
+      o[key] = newarray;
+      continue;
+    }
+    
+    o[key] = val;
+  }
+  
+  return o;
+
 }

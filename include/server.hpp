@@ -93,6 +93,7 @@ public:
   void sendWarning(const string &msg);
   void sendSecurity();
   void sendAck(optional<string> result=nullopt);
+  void sendAck(const DictO &result);
   void sendAckDown(optional<string> result=nullopt);
   void sendDataReq(optional<string> corr, const DictO &m);
   
@@ -135,6 +136,9 @@ public:
 
   optional<DictO> toObject(const IncomingMsg &in);
     // convert an incoming message to an object.
+    
+  DictO fixObjectForReturn(const DictO &j);
+    // after insertion, some objects need to be fixed when returned.
     
   string _hostName;
   bool _test;
@@ -201,6 +205,7 @@ private:
   string zeroDate();
   std::string buildErrJson(const std::string &level, const std::string &msg);
   std::string buildAckJson(std::optional<std::string> result);
+  std::string buildAckJson(const DictO &result);
   std::string buildCollResultJson(const IncomingMsg &in, const std::string &name, const DictV &array);
   std::string buildObjResultJson(const IncomingMsg &in, const std::string &name, const DictG &obj);
  

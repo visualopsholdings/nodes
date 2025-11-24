@@ -6,7 +6,8 @@ When('she sends obj {string} as {string} to {string}') do |text, user, coll|
 end
 
 When('she sends obj {string} as {string} to saved collection to upstream') do |text, user|
-   $lastResult = SendTo({ "type": "addobject", "objtype": "obj", "me": get_id(user), "coll": $savedResult["result"], "text": text, "corr": "1" }, getUpstreamPort())
+   id = $savedResult["result"]["id"]
+   $lastResult = SendTo({ "type": "addobject", "objtype": "obj", "me": get_id(user), "coll": id, "text": text, "corr": "1" }, getUpstreamPort())
 end
 
 When('she sends delete obj {string} as {string} in {string}') do |text, user, coll|
@@ -45,7 +46,8 @@ When('she sends objs for {string} as {string} to upstream') do |id, uid|
 end
 
 When('she sends objs for saved collection to upstream') do
-   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": $savedResult["result"] }, getUpstreamPort())
+   id = $savedResult["result"]["id"]
+   $lastResult = SendTo({ "type": "objects", "objtype": "obj", "coll": id }, getUpstreamPort())
 end
 
 When('she sends move obj {string} to {string} as {string} to upstream') do |id, coll, uid|

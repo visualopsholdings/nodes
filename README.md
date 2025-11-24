@@ -448,6 +448,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 22 Nov 2025
 - We now parse BSON directly to and from out Dict objects for the MongoDB work. So no JSON.
 
+### 24 Nov 2025
+- Send back the id and the possible modifyDate when creating new objects.
+
+
 
 
 

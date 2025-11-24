@@ -34,7 +34,7 @@ bool Handler::add(Server *server, const string &type, const DictO &obj, optional
     return false;
   }
   
-  auto obj2 = obj;
+  auto obj2 = server->fixObjectForReturn(obj);
   obj2["id"] = *id;
   obj2["type"] = type;
 
@@ -46,8 +46,16 @@ bool Handler::add(Server *server, const string &type, const DictO &obj, optional
     server->publish(corr.value(), obj2);
   }
   
+  auto result = dictO({
+    { "id", id.value() }
+  });
+  auto mod = Dict::getString(obj2, "modifyDate");
+  if (mod) {
+    result["modifyDate"] = *mod;
+  }
+  
   // and reply back
-  server->sendAck(id.value());
+  server->sendAck(result);
   
   return true;
   
