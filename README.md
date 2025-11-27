@@ -451,6 +451,10 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 24 Nov 2025
 - Send back the id and the possible modifyDate when creating new objects.
 
+### 27 Nov 2025
+- addobject needs to copy extra fields.
+
+
 
 
 

@@ -34,6 +34,7 @@ void setObjectMsg(Server *server, const IncomingMsg &in) {
   auto name = Dict::getString(in.extra_fields.get("name"));
   
   DictO obj2;
+  
   // set on all fields passed in except these
   auto fields = vector<string>{"type", "objtype", "me", "id", "name"};
   auto obj = server->toObject(in);

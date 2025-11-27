@@ -122,6 +122,15 @@ void addObjectMsg(Server *server, const IncomingMsg &in) {
     });
   }
   
+   // set on all fields passed in except these
+  auto fields = vector<string>{"type", "objtype", "me", "id", "name"};
+  for (auto i: in.extra_fields) {
+    auto key = get<0>(i);
+    if (find(fields.begin(), fields.end(), key) == fields.end()) {
+      obj[key] = get<1>(i);
+    }
+  }
+
   Handler::add(server, in.objtype.value(), obj, in.corr);
 
 }
