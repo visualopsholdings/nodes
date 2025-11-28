@@ -21,5 +21,11 @@ export NODES_REMOTE_MSG_PORT=8821
 # bind as upstream
 export NODES_DATA_PORT=8850
 export NODES_MSG_PORT=8851
+export MEDIA_DIR=media5
+
+if [ ! -d "$MEDIA_DIR" ];
+then
+  mkdir "$MEDIA_DIR"
+fi
 
 ./local.sh

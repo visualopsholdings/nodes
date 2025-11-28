@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
   int remoteMsgSubPort;
   string bindAddress;
   string schema;
+  string mediaDir;
   
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -66,6 +67,7 @@ int main(int argc, char *argv[]) {
     ("chainFile", po::value<string>(&chainFile)->default_value(""), "Certificate chain file for SSL.")
     ("test", po::bool_switch(&test), "We are testing so don't use VIDs.")
     ("noupstream", po::bool_switch(&noupstream), "Ignore upstream settings at start. A 'reload' message will try them though")
+    ("mediaDir", po::value<string>(&mediaDir)->default_value("private/media"), "Path to local media.")
     ("help", "produce help message")
     ;
   po::positional_options_description p;

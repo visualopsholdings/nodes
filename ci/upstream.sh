@@ -17,5 +17,16 @@ fi
 
 export NODES_DATA_PORT=8810
 export NODES_MSG_PORT=8811
+export MEDIA_DIR=media1
+
+if [ ! -d "$MEDIA_DIR" ];
+then
+  mkdir "$MEDIA_DIR"
+fi
+
+rm -rf $MEDIA_DIR/*
+cp test/media/eeeeeee-ffff-gggg-hhhhhhhh $MEDIA_DIR
+cp test/media/aaaaaaaa-bbbb-cccc-dddddddd $MEDIA_DIR
+cp test/media/llllllll-mmmm-nnnn-oooooooo $MEDIA_DIR
 
 ./local.sh
