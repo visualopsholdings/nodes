@@ -184,7 +184,7 @@ private:
   void sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr);
 #ifdef MONGO_DB
   bool collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
-    DictV *data, vector<string> *policies, optional<int> limit, bool mark);
+    DictV *data, vector<string> *policies, optional<int> limit, bool mark, optional<string> binstatus);
 #endif
   void collectPolicies(const vector<string> &policies, DictV *data);
   bool isValidId(const string &id);

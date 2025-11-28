@@ -28,6 +28,9 @@ OBJ_IDS = {
 # objs
    "Count 1"               => "67455997ca25979b57a61319",
    "Shared Obj X"          => "673ed9121dfe58ad02e185e6",
+   "Bin1"                  => "69291a747c733f82122f5f0b",
+   "Bin2"                  => "69291ac57c733f82122f5f0d",
+   "Bin3"                  => "69291add7c733f82122f5f0e",
    
 # policies
    "All Team 1 Policy"     => "6386dbabddf5aaf74ca1e1f6",

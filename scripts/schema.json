@@ -18,7 +18,9 @@
     "subobj": {
       "type": "obj",
       "field": "coll",
-      "namefield": "text"
+      "namefield": "text",
+      "binfield": "uuid",
+      "binstatusfield": "binStatus"
     }
   }
 ]

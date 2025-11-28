@@ -405,7 +405,7 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
 #endif
     // convert to JSON
     string r((const char *)reply.data(), reply.size());
-    L_DEBUG("trying handler " << name << " " << r);
+    L_DEBUG(name << " " << r);
 
     auto doc = rfl::json::read<IncomingMsg>(r);
     if (!doc) {
@@ -458,7 +458,7 @@ void Server::sendTo(zmq::socket_t &socket, const DictO &in, const string &type, 
 
 void Server::sendTo(zmq::socket_t &socket, const string &m, const string &type) {
 
-  L_DEBUG(type << " " << m);
+  L_DEBUG(type << m);
 
 	zmq::message_t msg(m.length());
 	memcpy(msg.data(), m.c_str(), m.length());
@@ -606,7 +606,7 @@ string Server::buildErrJson(const string &level, const string &msg) {
   } m{};
   m.level = level;
   m.msg = msg;
-  return rfl::json::write(m, rfl::json::pretty);
+  return rfl::json::write(m);
   
 }
 
@@ -621,7 +621,7 @@ string Server::buildAckJson(optional<string> result) {
   if (result) {
     m.result = *result;
   }
-  return rfl::json::write(m, rfl::json::pretty);
+  return rfl::json::write(m);
   
 }
 
@@ -633,7 +633,7 @@ string Server::buildAckJson(const DictO &result) {
   } m{};
   m.extra_fields["result"] = result;
   
-  return rfl::json::write(m, rfl::json::pretty);
+  return rfl::json::write(m);
   
 }
 
@@ -656,7 +656,7 @@ string Server::buildCollResultJson(const IncomingMsg &in, const string &name, co
         .latest = true
       }
     };
-    return rfl::json::write(m, rfl::json::pretty);
+    return rfl::json::write(m);
   }
 
   CollResult m{
@@ -666,7 +666,7 @@ string Server::buildCollResultJson(const IncomingMsg &in, const string &name, co
     }
   };
   m.extra_fields[name] = array; 
-  return rfl::json::write(m, rfl::json::pretty);
+  return rfl::json::write(m);
   
 }
 
@@ -688,14 +688,14 @@ string Server::buildObjResultJson(const IncomingMsg &in, const string &name, con
         .latest = true
       }
     };
-    return rfl::json::write(m, rfl::json::pretty);
+    return rfl::json::write(m);
   }
 
   ObjResult m{
     .type = name
   };
   m.extra_fields[name] = obj; 
-  return rfl::json::write(m, rfl::json::pretty);
+  return rfl::json::write(m);
   
 }
 
@@ -1091,7 +1091,8 @@ string Server::getCollName(const string &type, optional<string> coll) {
   
 }
 
-optional<DictV> Server::getSubobjsLatest(const DictO &subobj, const vector<string> &ids, const string &hasInitialSync, const string &upstreamLastSeen, bool collzd) {
+optional<DictV> Server::getSubobjsLatest(const DictO &subobj, const vector<string> &ids, 
+  const string &hasInitialSync, const string &upstreamLastSeen, bool collzd) {
 
   L_TRACE("getSubobjsLatest");
   
@@ -1145,14 +1146,14 @@ void Server::sendUpDiscover() {
     { "hasInitialSync", hasInitialSync == "true" }
   });
 
-  for (auto o: Storage::instance()->_schema) {
-    auto type = Dict::getString(o, "type");
+  for (auto schema: Storage::instance()->_schema) {
+    auto type = Dict::getString(schema, "type");
     if (!type) {
-      L_ERROR("type missing in schema obj " << Dict::toString(o));
+      L_ERROR("type missing in schema obj " << Dict::toString(schema));
       return;
     }
     
-    string collname = getCollName(type.value(), Dict::getString(o, "coll"));
+    string collname = getCollName(type.value(), Dict::getString(schema, "coll"));
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
     lastname = "last" + lastname;
@@ -1180,7 +1181,7 @@ void Server::sendUpDiscover() {
     
     msg[lastname] = colldate;
     
-    auto subobj = Dict::getObject(o, "subobj");
+    auto subobj = Dict::getObject(schema, "subobj");
     if (subobj) {
       auto d = getSubobjsLatest(subobj.value(), ids, hasInitialSync, upstreamLastSeen, colldate == zeroDate());
       if (!d) {
@@ -1240,7 +1241,7 @@ void Server::discoveryComplete() {
 
 #ifdef MONGO_DB
 bool Server::collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
-    DictV *data, vector<string> *policies, optional<int> limit, bool mark) {
+    DictV *data, vector<string> *policies, optional<int> limit, bool mark, optional<string> binstatus) {
 
   // fetch 1 more than the limit.
   optional<int> fetchlimit;
@@ -1258,6 +1259,16 @@ bool Server::collectObjs(const string &type, const string &collname, bsoncxx::do
         more = true;
         // remove the last 1 since only 1 extra
         val.pop_back();
+      }
+      if (binstatus) {
+        // add in the binstatus field to each object.
+        DictV newval;
+        transform(val.begin(), val.end(), back_inserter(newval), [binstatus](auto e) {
+          DictO d = *Dict::getObject(e);
+          d[*binstatus] = 0;
+          return d;
+        });
+        val = newval;
       }
       DictO obj = dictO({
         { "type", type },
@@ -1331,7 +1342,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
     
     string collname = getCollName(type.value(), Dict::getString(o, "coll"));
     
-    collectObjs(type.value(), collname, q, &data, &policies, nullopt, false);
+    collectObjs(type.value(), collname, q, &data, &policies, nullopt, false, nullopt);
     
     auto subobj = Dict::getObject(o, "subobj");
     if (subobj) {
@@ -1353,7 +1364,7 @@ void Server::sendUpDiscoverLocalUpstream(const string &upstreamLastSeen, optiona
           for (auto o: upstreams.value()) {
             auto id = Dict::getStringG(o, "id");
             collectObjs(subtype.value(), subcollname, 
-              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data, &policies, nullopt, true);
+              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id.value(), upstreamLastSeen), &data, &policies, nullopt, true, nullopt);
           }
         }
       }
@@ -1397,7 +1408,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
     
     string collname = getCollName(type.value(), Dict::getString(o, "coll"));
     
-    collectObjs(type.value(), collname, q, &data, &policies, nullopt, false);
+    collectObjs(type.value(), collname, q, &data, &policies, nullopt, false, nullopt);
     
     auto subobj = Dict::getObject(o, "subobj");
     if (subobj) {
@@ -1418,7 +1429,7 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
           string subcollname = getCollName(subtype.value(), Dict::getString(subobj.value(), "coll"));
           for (auto o: upstreams.value()) {
             auto id = Dict::getStringG(o, "id");
-            collectObjs(subtype.value(), subcollname, SchemaImpl::afterDateQuery(upstreamLastSeen), &data, &policies, nullopt, false);
+            collectObjs(subtype.value(), subcollname, SchemaImpl::afterDateQuery(upstreamLastSeen), &data, &policies, nullopt, false, nullopt);
           }
         }
       }
@@ -1563,7 +1574,7 @@ void Server::sendDownDiscoverResult(const IncomingMsg &in) {
       collectIds(objs.value(), &ids);
       
       // collect all the objects 
-      bool more = collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(ids, last.value()), &msgs, &policies, limit, false);
+      bool more = collectObjs(type.value(), collname, SchemaImpl::idRangeAfterDateQuery(ids, last.value()), &msgs, &policies, limit, false, nullopt);
       if (more) {
         hasMore = true;
       }
@@ -1579,6 +1590,11 @@ void Server::sendDownDiscoverResult(const IncomingMsg &in) {
           L_ERROR("type missing in schema subobj " << Dict::toString(subobj.value()));
           return;
         }
+        
+        // should we set the initial binstatus field?
+        auto hasInitialSync = Dict::getBool(in.extra_fields.get("hasInitialSync"));
+        auto binstatus = hasInitialSync && *hasInitialSync ? Dict::getString(subobj.value(), "binstatusfield") : nullopt;
+        
         string lastname = subtype.value();
         lastname[0] = toupper(lastname[0]);
         lastname = "last" + lastname;
@@ -1587,7 +1603,7 @@ void Server::sendDownDiscoverResult(const IncomingMsg &in) {
         if (ids.size() == 1 && *(ids.begin()) == "*") {
           auto last = Dict::getStringG(*(objs.value().begin()), lastname).value();
           more = collectObjs(subtype.value(), subcollname, 
-            SchemaImpl::afterDateQuery(last), &msgs, &policies, limit, false);
+            SchemaImpl::afterDateQuery(last), &msgs, &policies, limit, false, binstatus);
           if (more) {
             hasMore = true;
           }
@@ -1598,7 +1614,7 @@ void Server::sendDownDiscoverResult(const IncomingMsg &in) {
             auto last = Dict::getStringG(o, lastname).value();
             L_TRACE(id << " " << last);
             more = collectObjs(subtype.value(), subcollname, 
-              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id, last), &msgs, &policies, limit, false);
+              SchemaImpl::stringFieldEqualAfterDateQuery(field.value(), id, last), &msgs, &policies, limit, false, binstatus);
             if (more) {
               hasMore = true;
             }
