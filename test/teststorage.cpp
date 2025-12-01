@@ -353,3 +353,19 @@ BOOST_AUTO_TEST_CASE( convertFromBSON )
 //  cout << Dict::toString(*dict) << endl;
   
 }
+
+BOOST_AUTO_TEST_CASE( findNotNull )
+{
+  cout << "=== findNotNull ===" << endl;
+  
+  dbSetup();
+
+  auto docs = SchemaImpl::findGeneral("users", dictO({ 
+    { "fullname", dictO({{ "$ne", std::nullopt }}) }
+  }), {});
+
+  BOOST_CHECK(docs);
+  BOOST_CHECK_EQUAL(docs->all()->size(), 2);
+  
+}
+

@@ -19,7 +19,7 @@
       "type": "obj",
       "field": "coll",
       "namefield": "text",
-      "binfield": "uuid",
+      "binary": true,
       "binstatusfield": "binStatus"
     }
   }

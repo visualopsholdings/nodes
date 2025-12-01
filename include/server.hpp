@@ -52,8 +52,10 @@ typedef function<void (const IncomingMsg &in)> msgHandler;
 class Server {
 
 public:
-  Server(bool test, bool noupstream, 
-    int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub,
+  Server(bool test, bool noupstream, const string &mediaDir,
+    int pub, int rep, 
+    int dataRep, int msgPub, int binRep, 
+    int remoteDataReq, int remoteMsgSub, int remoteBinReq, 
     const string &dbConn, const string &dbName, const string &schema,
     const string &certFile, const string &chainFile, const string &hostName, const string &bindAddress);
   ~Server();
@@ -140,6 +142,9 @@ public:
   DictO fixObjectForReturn(const DictO &j);
     // after insertion, some objects need to be fixed when returned.
     
+  void collectSchemaBinary(const DictO &obj, DictO *msg);
+    // collect all the binary objects from the schema into the message.
+    
   string _hostName;
   bool _test;
   bool _online;
@@ -147,24 +152,29 @@ public:
   string _upstreamId;
   bool _reload;
   string _bindAddress;
+  string _mediaDir;
   
 private:
 
   shared_ptr<zmq::context_t> _context;
   shared_ptr<zmq::socket_t> _pub;
   shared_ptr<zmq::socket_t> _rep;
-  shared_ptr<Upstream> _remoteDataReq;
-  shared_ptr<Upstream> _remoteMsgSub;
   shared_ptr<Downstream> _dataRep;
   shared_ptr<Downstream> _msgPub;
+  shared_ptr<Downstream> _binRep;
+  shared_ptr<Upstream> _remoteDataReq;
+  shared_ptr<Upstream> _remoteMsgSub;
+  shared_ptr<Upstream> _remoteBinReq;
   map<string, msgHandler> _messages;
   map<string, msgHandler> _remoteDataReqMessages;
   map<string, msgHandler> _dataRepMessages;
   map<string, msgHandler> _remoteMsgSubMessages;
   int _remoteDataReqPort;
   int _remoteMsgSubPort;
+  int _remoteBinReqPort;
   int _dataRepPort;
   int _msgPubPort;
+  int _binRepPort;
   string _pubKey;
   time_t _lastHeartbeat;
   bool _noupstream;

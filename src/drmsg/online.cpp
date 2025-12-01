@@ -23,6 +23,8 @@ void onlineMsg(Server *server, const IncomingMsg &in) {
     return;
   }
   
+  L_INFO("<- online " << src);
+  
   auto pubKey = Dict::getString(in.extra_fields.get("pubKey"));
   if (!pubKey) {
     server->sendErrDown("online missing pubKey");

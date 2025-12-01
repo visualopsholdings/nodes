@@ -144,6 +144,7 @@ set(MESSAGES
   src/rdrmsg/date.cpp
   src/rdrmsg/sendOn.cpp
   src/rdrmsg/discoverResult.cpp
+  src/rdrmsg/discoverBinaryResult.cpp
   src/drmsg/online.cpp
   src/drmsg/discoverLocal.cpp
   src/drmsg/heartbeat.cpp
@@ -151,6 +152,7 @@ set(MESSAGES
   src/drmsg/query.cpp
   src/drmsg/upd.cpp
   src/drmsg/add.cpp
+  src/drmsg/discoverBinary.cpp
   src/rmsmsg/upd.cpp
   src/rmsmsg/add.cpp
   src/handler.cpp

@@ -85,6 +85,7 @@ void buildMsg(Server *server, const IncomingMsg &in);
 
 // remoteDataReq handlers
 void discoverResultMsg(Server *server, const IncomingMsg &in);
+void discoverBinaryResultMsg(Server *server, const IncomingMsg &in);
 void upstreamMsg(Server *server, const IncomingMsg &in);
 void sendOnMsg(Server *server, const IncomingMsg &in);
 void dateMsg(Server *server, const IncomingMsg &in);
@@ -95,6 +96,7 @@ void addSubMsg(Server *server, const IncomingMsg &in);
 
 // dataRep handles
 void discoverLocalMsg(Server *server, const IncomingMsg &in);
+void discoverBinaryMsg(Server *server, const IncomingMsg &in);
 
 void onlineMsg(Server *server, const IncomingMsg &in);
 void heartbeatMsg(Server *server, const IncomingMsg &in);
@@ -105,14 +107,16 @@ void addDrMsg(Server *server, const IncomingMsg &in);
 
 }
 
-Server::Server(bool test, bool noupstream, 
-    int pub, int rep, int dataRep, int msgPub, int remoteDataReq, int remoteMsgSub, 
+Server::Server(bool test, bool noupstream, const string &mediaDir,
+    int pub, int rep, 
+    int dataRep, int msgPub, int binRep, 
+    int remoteDataReq, int remoteMsgSub, int remoteBinReq, 
     const string &dbConn, const string &dbName, const string &schema, 
     const string &certFile, const string &chainFile, 
     const string &hostName, const string &bindAddress) :
-    _test(test), _certFile(certFile), _chainFile(chainFile),
-    _dataRepPort(dataRep), _msgPubPort(msgPub),
-    _remoteDataReqPort(remoteDataReq), _remoteMsgSubPort(remoteMsgSub),
+    _test(test), _certFile(certFile), _chainFile(chainFile), _mediaDir(mediaDir),
+    _dataRepPort(dataRep), _msgPubPort(msgPub), _binRepPort(binRep), 
+    _remoteDataReqPort(remoteDataReq), _remoteMsgSubPort(remoteMsgSub), _remoteBinReqPort(remoteBinReq), 
     _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false), 
     _hostName(hostName), _bindAddress(bindAddress) {
 
@@ -197,6 +201,7 @@ Server::Server(bool test, bool noupstream,
     L_TRACE("ack");
   };
   _remoteDataReqMessages["discoverResult"] =  bind(&nodes::discoverResultMsg, this, placeholders::_1);
+  _remoteDataReqMessages["discoverBinaryResult"] =  bind(&nodes::discoverBinaryResultMsg, this, placeholders::_1);
   _remoteDataReqMessages["upstream"] =  bind(&nodes::upstreamMsg, this, placeholders::_1);
   _remoteDataReqMessages["queryResult"] =  bind(&nodes::sendOnMsg, this, placeholders::_1);
   _remoteDataReqMessages["date"] =  bind(&nodes::dateMsg, this, placeholders::_1);
@@ -209,6 +214,7 @@ Server::Server(bool test, bool noupstream,
   _dataRepMessages["discover"] =  [&](const IncomingMsg &in) {
     sendDownDiscoverResult(in);
   };
+  _dataRepMessages["discoverBinary"] =  bind(&nodes::discoverBinaryMsg, this, placeholders::_1);
 
   _dataRepMessages["online"] =  bind(&nodes::onlineMsg, this, placeholders::_1);
   _dataRepMessages["heartbeat"] =  bind(&nodes::heartbeatMsg, this, placeholders::_1);
@@ -1203,6 +1209,46 @@ void Server::sendUpDiscover() {
 
 }
 
+void Server::collectSchemaBinary(const DictO &obj, DictO *msg) {
+
+  auto type = Dict::getString(obj, "type");
+  if (!type) {
+    L_ERROR("type missing in schema " << Dict::toString(obj));
+    return;
+  }
+  
+  auto binary = Dict::getBool(obj, "binary");
+  if (binary && *binary) {
+    auto binstatus = Dict::getString(obj, "binstatusfield");
+    if (!binstatus) {
+      L_ERROR("binstatusfield missing in schema " << Dict::toString(obj));
+      return;
+    }
+    string collname = getCollName(*type, Dict::getString(obj, "coll"));
+    auto result = SchemaImpl::findGeneral(collname, dictO({ 
+      { *binstatus, 0 },
+      { "uuid", dictO({{ "$ne", std::nullopt }}) }
+    }), { "uuid" });
+    if (result) {
+      auto vals = result->all();
+      if (vals) {
+        DictV v;
+        transform(vals->begin(), vals->end(), back_inserter(v), [](auto e) {
+          return e;
+        });
+        (*msg)[collname] = v;
+      }
+    }
+  }
+  
+  auto subobj = Dict::getObject(obj, "subobj");
+  if (subobj) {
+    // recurse down into the sub object.
+    collectSchemaBinary(*subobj, msg);
+  }
+
+}
+
 void Server::unmarkAll(const DictO &obj) {
 
   auto type = Dict::getString(obj, "type");
@@ -1393,24 +1439,24 @@ void Server::sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<
 
   DictV data;
   vector<string> policies;
-  for (auto o: Storage::instance()->_schema) {
+  for (auto schema: Storage::instance()->_schema) {
   
-    auto nosync = Dict::getBool(o, "nosync");
+    auto nosync = Dict::getBool(schema, "nosync");
     if (nosync && nosync.value()) {
       continue;
     }
     
-    auto type = Dict::getString(o, "type");
+    auto type = Dict::getString(schema, "type");
     if (!type) {
-      L_ERROR("type missing in schema obj " << Dict::toString(o));
+      L_ERROR("type missing in schema obj " << Dict::toString(schema));
       return;
     }
     
-    string collname = getCollName(type.value(), Dict::getString(o, "coll"));
+    string collname = getCollName(type.value(), Dict::getString(schema, "coll"));
     
     collectObjs(type.value(), collname, q, &data, &policies, nullopt, false, nullopt);
     
-    auto subobj = Dict::getObject(o, "subobj");
+    auto subobj = Dict::getObject(schema, "subobj");
     if (subobj) {
       auto field = Dict::getString(subobj.value(), "field");
       if (!field) {
@@ -1518,6 +1564,8 @@ void Server::sendDownDiscoverResult(const IncomingMsg &in) {
     return;
   }
 
+  L_INFO("<- discover " << src);
+  
   auto node = Node().find(dictO({ { "serverId", src } }), {}).one();
   if (!node) {
     sendErrDown("discover no node");
@@ -1535,20 +1583,20 @@ void Server::sendDownDiscoverResult(const IncomingMsg &in) {
   DictV msgs;
   DictO obj;
   vector<string> policies;
-  for (auto o: Storage::instance()->_schema) {
+  for (auto schema: Storage::instance()->_schema) {
   
-    auto nosync = Dict::getBool(o, "nosync");
+    auto nosync = Dict::getBool(schema, "nosync");
     if (nosync && nosync.value()) {
       continue;
     }
     
-    auto type = Dict::getString(o, "type");
+    auto type = Dict::getString(schema, "type");
     if (!type) {
-      L_ERROR("type missing in schema obj " << Dict::toString(o));
+      L_ERROR("type missing in schema obj " << Dict::toString(schema));
       return;
     }
     
-    string collname = getCollName(type.value(), Dict::getString(o, "coll"));
+    string collname = getCollName(type.value(), Dict::getString(schema, "coll"));
 
     string lastname = type.value();
     lastname[0] = toupper(lastname[0]);
@@ -1578,7 +1626,7 @@ void Server::sendDownDiscoverResult(const IncomingMsg &in) {
       if (more) {
         hasMore = true;
       }
-      auto subobj = Dict::getObject(o, "subobj");
+      auto subobj = Dict::getObject(schema, "subobj");
       if (subobj) {
         auto field = Dict::getString(subobj.value(), "field");
         if (!field) {
@@ -1638,6 +1686,7 @@ void Server::sendDownDiscoverResult(const IncomingMsg &in) {
   if (hasMore) {
     msg["more"] = true;
   }
+  
   // and send the result on.
   sendDown(msg);
 #endif

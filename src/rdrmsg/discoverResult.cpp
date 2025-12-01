@@ -38,7 +38,21 @@ void discoverResultMsg(Server *server, const IncomingMsg &in) {
     server->sendUpDiscover();
   }
   else {
-    server->discoveryComplete();
+  
+    DictO msg = dictO({
+      { "type", "discoverBinary" }
+    });
+  
+    // collect all the binary objects.
+    // we just ask for them all. We don't know how large they are. We might have to make
+    // this search many times.
+    for (auto schema: Storage::instance()->_schema) {
+      server->collectSchemaBinary(schema, &msg);
+    }
+    
+    server->setSrc(&msg);
+    server->sendDataReq(nullopt, msg);
+    
   }
  
 }
