@@ -454,7 +454,7 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 27 Nov 2025
 - addobject needs to copy extra fields.
 
-### 28 Nov 2025
+### 28 Nov 2025 - 2 Dec 2025
 - Start in on binary data for objects. There is a folder on the server with files that are named
   by UUIDs. There is a possible field called "uuid" in an object which attaches that object to
   the binary data in the file and this is synchronized.
