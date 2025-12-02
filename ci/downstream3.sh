@@ -18,10 +18,12 @@ fi
 # upstream
 export NODES_REMOTE_DATA_PORT=8820
 export NODES_REMOTE_MSG_PORT=8821
+export NODES_REMOTE_BIN_PORT=8822
 
 # bind as upstream
 export NODES_DATA_PORT=8830
 export NODES_MSG_PORT=8831
+export NODES_BIN_PORT=8832
 export MEDIA_DIR=media3
 
 if [ ! -d "$MEDIA_DIR" ];

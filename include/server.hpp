@@ -48,6 +48,7 @@ typedef struct {
 } IncomingMsg;
 
 typedef function<void (const IncomingMsg &in)> msgHandler;
+typedef function<void (const char *data, size_t size)> binMsgHandler;
 
 class Server {
 
@@ -74,6 +75,7 @@ public:
   void sendDownDiscoverResult(const IncomingMsg &in);
   void resetDB();
   void discoveryComplete();
+  void discoverBinary();
   
   void publish(optional<string> corr, const DictO &m) {
     sendTo(*_pub, m, "*-> ", corr);
@@ -92,12 +94,18 @@ public:
   void sendOn(const DictO &m);
   void sendErr(const string &msg);
   void sendErrDown(const string &msg);
+  void sendErrDownBin(const string &msg);
   void sendWarning(const string &msg);
   void sendSecurity();
   void sendAck(optional<string> result=nullopt);
   void sendAck(const DictO &result);
   void sendAckDown(optional<string> result=nullopt);
+  void sendAckDownBin();
   void sendDataReq(optional<string> corr, const DictO &m);
+  void sendBinReq(const DictO &m);
+  void sendDownBin(const DictO &m);
+  void sendDownBin(const std::string &s);
+  void sendDownBin(const std::vector<char> &d);
   
   // notifying other nodes.
   void sendUpd(const string &type, const string &id, const DictO &data);
@@ -142,8 +150,8 @@ public:
   DictO fixObjectForReturn(const DictO &j);
     // after insertion, some objects need to be fixed when returned.
     
-  void collectSchemaBinary(const DictO &obj, DictO *msg);
-    // collect all the binary objects from the schema into the message.
+  optional<tuple<string, DictG> > firstSchemaBinary(const DictO &obj);
+    // collect all the next binary object we need to transfer
     
   string _hostName;
   bool _test;
@@ -167,7 +175,9 @@ private:
   shared_ptr<Upstream> _remoteBinReq;
   map<string, msgHandler> _messages;
   map<string, msgHandler> _remoteDataReqMessages;
+  vector<binMsgHandler> _remoteBinReqMessages;
   map<string, msgHandler> _dataRepMessages;
+  map<string, msgHandler> _binRepMessages;
   map<string, msgHandler> _remoteMsgSubMessages;
   int _remoteDataReqPort;
   int _remoteMsgSubPort;
@@ -184,6 +194,7 @@ private:
   void sendTo(zmq::socket_t &socket, const DictO &j, const string &type, optional<string> corr);
   void sendTo(zmq::socket_t &socket, const std::string &j, const string &type);
   bool getMsg(const string &name, zmq::socket_t &socket, map<string, msgHandler> &handlers);
+  bool getBinMsg(const string &name, zmq::socket_t &socket, vector<binMsgHandler> &handlers);
   bool testCollectionChanged(const IncomingMsg &m, const string &name);
   void runUpstreamOnly();
   void runStandalone();
