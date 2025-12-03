@@ -19,21 +19,34 @@
 #define NUM_WIDTH         8
 #define BIN_MARKER        'B'
 #define MSG_POS           1
-#define TYPE_POS          2
+#define FLAGS_POS         2
+#define TYPE_POS          (FLAGS_POS+1)
 #define TYPE_LEN          12
 #define ID_POS            (TYPE_POS+TYPE_LEN)
 #define ID_LEN            24
 #define UUID_POS          (ID_POS+ID_LEN)
 #define UUID_LEN          27
 #define OFFSET_POS        (UUID_POS+UUID_LEN)
-#define FLAGS_POS         (OFFSET_POS+NUM_WIDTH)
-#define DATA_POS          (FLAGS_POS+1)
-#define FLAGS_FINISHED    0x1
+#define ERR_POS           OFFSET_POS
+#define DATA_POS          (OFFSET_POS+NUM_WIDTH)
+
+#define FLAGS_FINISHED    0x01
+#define FLAGS_TOOLARGE    0x02
+#define FLAGS_ERROR       0x04
 
 namespace nodes {
 
+const int Bin::NEEDS_DOWNLOAD = 0;
+const int Bin::DOWNLOADED = 1;
+const int Bin::TOO_LARGE = 2;
+const int Bin::DOWNLOAD_ERR = 3;
+
 int Bin::headerLength() {
   return DATA_POS;
+}
+
+int Bin::errHeaderLength() {
+  return ERR_POS;
 }
 
 void Bin::addNum(vector<char> *data, long n) {
@@ -56,20 +69,20 @@ void Bin::addType(vector<char> *data, const string &type) {
 
 }
 
-void Bin::createFileMsg(ifstream &file, vector<char> *data, unsigned char msg, const string &coll, const string &id, const string &uuid, long offset, long size) {
+void Bin::createFileMsg(ifstream &file, vector<char> *data, const string &type, const string &id, const string &uuid, long offset, long size) {
 
   data->push_back(BIN_MARKER); // binary start with the letter B.
-  data->push_back(msg); // the message number
+  data->push_back(0); // the message number
+  L_TRACE("flags at " << data->size());
+  data->push_back(FLAGS_FINISHED); // 1 byte flags (finished or not).
   L_TRACE("TYPE at " << data->size());
-  addType(data, coll);
+  addType(data, type);
   L_TRACE("ID at " << data->size());
   copy(id.begin(), id.end(), back_inserter(*data));
   L_TRACE("UUID at " << data->size());
   copy(uuid.begin(), uuid.end(), back_inserter(*data));
   L_TRACE("offset at " << data->size());
-  addNum(data, offset); // 8 bytes
-  L_TRACE("flags at " << data->size());
-  data->push_back(FLAGS_FINISHED); // 1 byte flags (finished or not).
+  addNum(data, offset);
   
   // and the data.
   L_TRACE("data at " << data->size());
@@ -79,25 +92,59 @@ void Bin::createFileMsg(ifstream &file, vector<char> *data, unsigned char msg, c
 
 }
 
-bool Bin::isBinary(const char *data, size_t size) {
+void Bin::createFileTooLargeMsg(vector<char> *data, const string &type, const string &id, const string &uuid, long size) {
 
-  if (size < SMALLEST_BINARY) {
+  data->push_back(BIN_MARKER); // binary start with the letter B.
+  data->push_back(0); // the message number
+  L_TRACE("flags at " << data->size());
+  data->push_back(FLAGS_TOOLARGE); // 1 byte flags (finished or not).
+  L_TRACE("TYPE at " << data->size());
+  addType(data, type);
+  L_TRACE("ID at " << data->size());
+  copy(id.begin(), id.end(), back_inserter(*data));
+  L_TRACE("UUID at " << data->size());
+  copy(uuid.begin(), uuid.end(), back_inserter(*data));
+  L_TRACE("offset at " << data->size());
+  addNum(data, 0);
+
+}
+
+void Bin::createFileErrMsg(vector<char> *data, const string &type, const string &id, const string &uuid, const string &err) {
+
+  data->push_back(BIN_MARKER); // binary start with the letter B.
+  data->push_back(0); // the message number
+  L_TRACE("flags at " << data->size());
+  data->push_back(FLAGS_ERROR); // 1 byte flags (finished or not).
+  L_TRACE("TYPE at " << data->size());
+  addType(data, type);
+  L_TRACE("ID at " << data->size());
+  copy(id.begin(), id.end(), back_inserter(*data));
+  L_TRACE("UUID at " << data->size());
+  copy(uuid.begin(), uuid.end(), back_inserter(*data));
+  L_TRACE("err at " << data->size());
+  copy(err.begin(), err.end(), back_inserter(*data));
+
+}
+
+bool Bin::isBinary() {
+
+  if (_size < SMALLEST_BINARY) {
     L_ERROR("data is too tiny");
     return false;
   }
   
-  return data[0] == BIN_MARKER;
+  return _data[0] == BIN_MARKER;
   
 }
 
-unsigned char Bin::msgNum(const char *data, size_t size) {
+unsigned char Bin::msgNum() {
 
-  if (size < (MSG_POS + 1)) {
+  if (_size < (MSG_POS + 1)) {
     L_ERROR("data is too tiny for message");
     return false;
   }
   
-  return data[MSG_POS];
+  return _data[MSG_POS];
 
 }
 
@@ -107,35 +154,79 @@ inline void ltrim(std::string &s) {
     }));
 }
 
-bool Bin::fileMsgDetails(const char *data, size_t size, string *type, string *id, string *uuid) {
+string Bin::getType() {
 
-  if (size < (UUID_POS + UUID_LEN)) {
-    L_ERROR("data is too tiny to have any details");
-    return false;
+  if (_size < (TYPE_POS + TYPE_LEN)) {
+    L_ERROR("data is too tiny to have a type");
+    return "??";
   }
   
-  *type = string(data+TYPE_POS, TYPE_LEN);
-  ltrim(*type);
-  *id = string(data+ID_POS, ID_LEN);
-  *uuid = string(data+UUID_POS, UUID_LEN);
+  string type(_data+TYPE_POS, TYPE_LEN);
+  ltrim(type);
+  return type;
+}
 
-  return true;
+string Bin::getID() {
+
+  if (_size < (ID_POS + ID_LEN)) {
+    L_ERROR("data is too tiny to have an id");
+    return "??";
+  }
+  
+  return string(_data+ID_POS, ID_LEN);
   
 }
 
-bool Bin::finishedFile(const char *data, size_t size) {
+string Bin::getUUID() {
 
-  if (size < FLAGS_POS) {
+  if (_size < (UUID_POS + UUID_LEN)) {
+    L_ERROR("data is too tiny to have a UUID");
+    return "??";
+  }
+  
+  return string(_data+UUID_POS, UUID_LEN);
+  
+}
+
+bool Bin::isFinished() {
+
+  if (_size < FLAGS_POS+1) {
     L_ERROR("data is too tiny to have flags");
     return false;
   }
 
-  return data[FLAGS_POS] & FLAGS_FINISHED;
+  return _data[FLAGS_POS] & FLAGS_FINISHED;
+
 }
 
-long Bin::getNum(const char *data, size_t offset) {
+bool Bin::isTooLarge() {
 
-  stringstream os(string(data+offset, NUM_WIDTH));
+  if (_size < FLAGS_POS+1) {
+    L_ERROR("data is too tiny to have flags");
+    return false;
+  }
+
+  return _data[FLAGS_POS] & FLAGS_TOOLARGE;
+
+}
+
+optional<string> Bin::getError() {
+
+  if (_size < ERR_POS) {
+    L_ERROR("data is too tiny for error");
+    return nullopt;
+  }
+  
+  if (_data[FLAGS_POS] & FLAGS_ERROR) {
+    return string(_data+ERR_POS, _size-ERR_POS);
+  }
+  
+  return nullopt;
+}
+
+long Bin::getNum(size_t offset) {
+
+  stringstream os(string(_data+offset, NUM_WIDTH));
   long num;
   os >> num;
   if (os.fail()) {
@@ -146,22 +237,22 @@ long Bin::getNum(const char *data, size_t offset) {
   
 }
 
-size_t Bin::writeFileMsg(const string &fn, const char *data, size_t size) {
+size_t Bin::writeFile(const string &fn) {
 
-  if (size < DATA_POS) {
+  if (_size < DATA_POS) {
     L_ERROR("data is too tiny to have file contents");
     return 0;
   }
   
-  long doffset = getNum(data, OFFSET_POS);
+  long doffset = getNum(OFFSET_POS);
   
   L_TRACE("ignoring offset " << doffset);
   
   ofstream fs(fn, std::ios::out | std::ios::binary);
-  fs.write(data+DATA_POS, size-DATA_POS);
+  fs.write(_data+DATA_POS, _size-DATA_POS);
   fs.close();
   
-  return size-DATA_POS;
+  return _size-DATA_POS;
   
 }
 

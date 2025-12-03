@@ -31,6 +31,7 @@ OBJ_IDS = {
    "Bin1"                  => "69291a747c733f82122f5f0b",
    "Bin2"                  => "69291ac57c733f82122f5f0d",
    "Bin3"                  => "69291add7c733f82122f5f0e",
+   "Bin4"                  => "692bfe831c6f80e3f9c90f67",
    
 # policies
    "All Team 1 Policy"     => "6386dbabddf5aaf74ca1e1f6",

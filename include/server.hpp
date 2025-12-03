@@ -94,7 +94,6 @@ public:
   void sendOn(const DictO &m);
   void sendErr(const string &msg);
   void sendErrDown(const string &msg);
-  void sendErrDownBin(const string &msg);
   void sendWarning(const string &msg);
   void sendSecurity();
   void sendAck(optional<string> result=nullopt);
@@ -205,7 +204,7 @@ private:
   void sendUpDiscoverLocalMirror(const string &upstreamLastSeen, optional<string> corr);
 #ifdef MONGO_DB
   bool collectObjs(const string &type, const string &collname, bsoncxx::document::view_or_value q, 
-    DictV *data, vector<string> *policies, optional<int> limit, bool mark, optional<string> binstatus);
+    DictV *data, vector<string> *policies, optional<int> limit, bool mark);
 #endif
   void collectPolicies(const vector<string> &policies, DictV *data);
   bool isValidId(const string &id);
@@ -230,6 +229,22 @@ private:
   std::string buildCollResultJson(const IncomingMsg &in, const std::string &name, const DictV &array);
   std::string buildObjResultJson(const IncomingMsg &in, const std::string &name, const DictG &obj);
  
+};
+
+class SendBinData {
+
+public:
+  SendBinData(Server *server): _server(server) {}
+  ~SendBinData() {
+    _server->sendDownBin(_data);
+  }
+  
+  vector<char> *data() { return &_data; }
+  
+private:
+  Server *_server;
+  vector<char> _data;
+  
 };
 
 } // nodes

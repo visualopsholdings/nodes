@@ -50,8 +50,9 @@ Feature: Upstream Test
          | Count 1         | Dec 24 2022  | p1     | Collection 2       | tracy  | $Count 1        | |
          | Shared Obj X    | Dec 25 2022  | p1     | Shared Collection  | tracy  | $Shared Obj X   | |
          | Bin1            | Dec 25 2022  | p1     | Collection 1       | tracy  | $Bin1           | aaaaaaaa-bbbb-cccc-dddddddd |
-         | Bin2            | Dec 25 2022  | p1     | Collection 1       | tracy  | $Bin2           | eeeeeee-ffff-gggg-hhhhhhhh |
+         | Bin2            | Dec 25 2022  | p1     | Collection 1       | tracy  | $Bin2           | eeeeeeee-ffff-gggg-hhhhhhhh |
          | Bin3            | Dec 25 2022  | p1     | Collection 1       | tracy  | $Bin3           | llllllll-mmmm-nnnn-oooooooo |
+         | Bin4            | Dec 25 2022  | p1     | Collection 1       | tracy  | $Bin4           | xxxxxxxx-mmmm-nnnn-oooooooo |
 
       And there are 500 generated objs in collection "Collection 1" with prefix "Obj " from "tracy" with policy "p1" at "2022-7-25"
       And there are 100 generated objs in collection "Shared Collection" with prefix "Shared Obj " from "tracy" with policy "p1" at "2022-8-25"

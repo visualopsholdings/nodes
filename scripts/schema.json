@@ -19,8 +19,7 @@
       "type": "obj",
       "field": "coll",
       "namefield": "text",
-      "binary": true,
-      "binstatusfield": "binStatus"
+      "binary": true
     }
   }
 ]

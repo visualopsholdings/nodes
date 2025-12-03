@@ -18,30 +18,61 @@
 
 namespace nodes {
 
+void markObj(const string &coll, const string &id, int status) {
+
+  auto r = SchemaImpl::updateGeneralById(coll, id, dictO({
+    { "$set", dictO({{ "binStatus", status }}) }
+  }));
+  if (!r) {
+    L_ERROR("could not update " + coll + ":" + id);
+  }
+    
+}
+
 void discoverBinaryResultMsg(Server *server, const char *data, size_t size) {
    
-  string type, id, uuid;
-  Bin::fileMsgDetails(data, size, &type, &id, &uuid);
+  Bin binary(data, size);
 
-  // test here if we should go again!
+  auto type = binary.getType();
+  string coll;
+  if (!Storage::instance()->collName(type, &coll)) {
+    L_ERROR("Could not get collection name for " + type);
+    return;
+  }
+  auto id = binary.getID();
+
+  auto err = binary.getError();
+  if (err) {
+    L_ERROR(*err);
+    markObj(coll, id, Bin::DOWNLOAD_ERR);
+    server->discoverBinary();
+    return;
+  }
+  
+  if (binary.isTooLarge()) {
+    markObj(coll, id, Bin::TOO_LARGE);
+    server->discoverBinary();
+    return;
+  }
+  
+  // work out the filename.
   stringstream ss;
   ss << server->_mediaDir;
   ss << "/";
-  ss << uuid;
+  ss << binary.getUUID();
   
-  L_DEBUG("writing to file " << ss.str());
+  L_TRACE("writing to file " << ss.str());
   
-  size = Bin::writeFileMsg(ss.str(), data, size);
+  size = binary.writeFile(ss.str());
   
-  if (Bin::finishedFile(data, size)) {
-    // write the status as 1
-    // go and get the next file.
-    L_DEBUG("set status for " << type << " " << id);
+  if (binary.isFinished()) {
+    markObj(coll, id, Bin::DOWNLOADED);
+    server->discoverBinary();
     return;
   }
   
   // ask for the next bit of the file.
-  L_DEBUG("ask for more of " << type << " " << id);
+  L_WARNING("ask for more of " << binary.getType() << " " << binary.getID());
 
 }
 

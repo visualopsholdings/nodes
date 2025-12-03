@@ -10,7 +10,7 @@ then
   ci/upstreamdb.sh
   [ "$?" != "0" ] && exit 1
 
-  build/Counts --dbName=$MONGO_PORT_27017_DB --users=4 --groups=2 --collections=4 --objs=605 --policies=4
+  build/Counts --dbName=$MONGO_PORT_27017_DB --users=4 --groups=2 --collections=4 --objs=606 --policies=4
   [ "$?" != "0" ] && exit 1
   
 fi
@@ -26,7 +26,7 @@ then
 fi
 
 rm -rf $MEDIA_DIR/*
-cp test/media/eeeeeee-ffff-gggg-hhhhhhhh $MEDIA_DIR
+cp test/media/eeeeeeee-ffff-gggg-hhhhhhhh $MEDIA_DIR
 cp test/media/aaaaaaaa-bbbb-cccc-dddddddd $MEDIA_DIR
 cp test/media/llllllll-mmmm-nnnn-oooooooo $MEDIA_DIR
 

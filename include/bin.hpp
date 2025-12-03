@@ -16,6 +16,7 @@
 
 #include <fstream>
 #include <vector>
+#include <optional>
 
 using namespace std;
 
@@ -25,20 +26,42 @@ class Bin {
  
 public:
 
-  static bool isBinary(const char *data, size_t size);
-  static unsigned char msgNum(const char *data, size_t size);
- 
-  static void createFileMsg(ifstream &file, vector<char> *data, unsigned char msg, const string &coll, const string &id, const string &uuid, long offset, long size);
-  static bool fileMsgDetails(const char *data, size_t size, string *type, string *id, string *uuid);
-  static size_t writeFileMsg(const string &fn, const char *data, size_t size);
-  static bool finishedFile(const char *data, size_t size);
- 
+  Bin(const char *data, size_t size): _data(data), _size(size) {}
+  Bin(): _data(0), _size(0) {}
+  
+  bool isBinary();
+  unsigned char msgNum();
+  
+  // binary FILE specific
+  static void createFileMsg(ifstream &file, vector<char> *data, const string &type, const string &id, const string &uuid, long offset, long size);
+  static void createFileTooLargeMsg(vector<char> *data, const string &type, const string &id, const string &uuid, long size);
+  static void createFileErrMsg(vector<char> *data, const string &type, const string &id, const string &uuid, const string &err);
+  
+  string getType();
+  string getID();
+  string getUUID();
+  size_t writeFile(const string &fn);
+  bool isFinished();
+  bool isTooLarge();
+  optional<string> getError();
+
   // for tests.
   static int headerLength();
+  static int errHeaderLength();
   
+  // the value of the binStatus field in an object with a binary attachment.
+  static const int NEEDS_DOWNLOAD;
+  static const int DOWNLOADED;
+  static const int TOO_LARGE;
+  static const int DOWNLOAD_ERR;
+ 
 private:
+  const char *_data;
+  size_t _size;
+  
+  long getNum(size_t offset);
+
   static void addNum(vector<char> *data, long n);
-  static long getNum(const char *data, size_t offset);
   static void addType(vector<char> *data, const string &type);
  
 };

@@ -86,7 +86,7 @@ Feature: Downstream Test
       When she sends collections
       Then she receives 3 collections
       When she sends objs for "Collection 1" as "tracy"
-      Then she receives 503 objs
+      Then she receives 504 objs
 
       When she sends collections to downstream 2
       Then she receives 3 collections
@@ -101,11 +101,16 @@ Feature: Downstream Test
       When she sends collections to downstream 4
       Then she receives 5 collections
       When she sends objs for "$Collection 1" to downstream 4
-      Then she receives 503 objs
+      Then she receives 504 objs
       When she sends objs for "$Collection 2" to downstream 4
       Then she receives 1 objs
       When she sends objs for "$Shared Collection" to downstream 4
       Then she receives 101 objs
+      
+      And eventually the obj "Bin1" has bin status 1 in the DB
+      And eventually the obj "Bin2" has bin status 1 in the DB
+      And eventually the obj "Bin3" has bin status 2 in the DB
+      And eventually the obj "Bin4" has bin status 3 in the DB
 
    @javascript
    Scenario: Massive servers are synched
@@ -305,13 +310,13 @@ Feature: Downstream Test
       
       When she sends collections
       And she receives 3 collections
-      Then eventually there are 604 objs in the DB
+      Then eventually there are 605 objs in the DB
       
       When she sends add collection from upstream with saved collection
       And she receives ack
       And she sends collections
       And she receives 4 collections
-      Then eventually there are 606 objs in the DB
+      Then eventually there are 607 objs in the DB
       
       When she sends obj "I know" as "tracy" to "New Collection"
       Then eventually the collection "New Collection" has 3 objs in the DB
