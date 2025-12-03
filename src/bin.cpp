@@ -74,7 +74,7 @@ void Bin::createFileMsg(ifstream &file, vector<char> *data, const string &type, 
   data->push_back(BIN_MARKER); // binary start with the letter B.
   data->push_back(0); // the message number
   L_TRACE("flags at " << data->size());
-  data->push_back(FLAGS_FINISHED); // 1 byte flags (finished or not).
+  data->push_back(0); // 1 byte flags (finished or not).
   L_TRACE("TYPE at " << data->size());
   addType(data, type);
   L_TRACE("ID at " << data->size());
@@ -86,10 +86,25 @@ void Bin::createFileMsg(ifstream &file, vector<char> *data, const string &type, 
   
   // and the data.
   L_TRACE("data at " << data->size());
+  
   // if we are asked too, we should only write from offset to size NOT the 
   // whole file.
-  copy(istreambuf_iterator<char>(file), istreambuf_iterator<char>(), back_inserter(*data));
-
+  auto i = istreambuf_iterator<char>(file);
+  auto end = istreambuf_iterator<char>();
+  
+  // seek to the offset.
+  file.seekg(offset);
+  
+  // read that much data
+  for (; i != end && size > 0; i++, size--) {
+    data->push_back(*i);
+  }
+  
+  // set the flags for the end.
+  if (i == end) {
+    (*data)[FLAGS_POS] = FLAGS_FINISHED;
+  }
+  
 }
 
 void Bin::createFileTooLargeMsg(vector<char> *data, const string &type, const string &id, const string &uuid, long size) {
@@ -237,6 +252,12 @@ long Bin::getNum(size_t offset) {
   
 }
 
+void Bin::dump() {
+  
+  L_INFO(string(_data+DATA_POS, _size-DATA_POS););
+  
+}
+
 size_t Bin::writeFile(const string &fn) {
 
   if (_size < DATA_POS) {
@@ -244,15 +265,25 @@ size_t Bin::writeFile(const string &fn) {
     return 0;
   }
   
-  long doffset = getNum(OFFSET_POS);
+  long offset = getNum(OFFSET_POS);
+  L_TRACE("offset " << offset);
   
-  L_TRACE("ignoring offset " << doffset);
+  ofstream fs(fn, ios::in | std::ios::out | std::ios::binary);
   
-  ofstream fs(fn, std::ios::out | std::ios::binary);
-  fs.write(_data+DATA_POS, _size-DATA_POS);
+  // seek to the offset.
+  fs.seekp(offset, ios_base::beg);
+  
+  long wsize = _size-DATA_POS;
+  L_TRACE("wsize " << wsize);
+  
+  // write what we have
+  fs.write(_data+DATA_POS, wsize);
+  
+  // close and 
   fs.close();
   
-  return _size-DATA_POS;
+  // return what we wrote.
+  return wsize;
   
 }
 

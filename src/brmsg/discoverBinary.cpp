@@ -27,7 +27,7 @@ namespace nodes {
 
 void discoverBinaryMsg(Server *server, const IncomingMsg &in) {
    
-  L_INFO("<- discoverBinary ");
+  L_INFO("<- discoverBinary");
   
   // make sure data is ALWAYS sent.
   SendBinData data(server);

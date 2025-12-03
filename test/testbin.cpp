@@ -74,5 +74,44 @@ BOOST_AUTO_TEST_CASE( createFileErrMsg )
   BOOST_CHECK(err);
   BOOST_CHECK_EQUAL(*err, msg);
   
+}
+
+BOOST_AUTO_TEST_CASE( chunkFile )
+{
+  cout << "=== chunkFile ===" << endl;
+  
+  string type = "test";
+  string id = "667d0baedfb1ed18430d8ed3";
+  string uuid = "eeeeeeee-ffff-gggg-hhhhhhhh";
+  string fn = "../test/media/lorem.txt";
+  
+  long size = filesystem::file_size(fn);
+  cout << size << endl;
+  
+  long chunksize = 2048;
+  
+  {
+    ifstream file(fn, ios::binary);
+    BOOST_CHECK(file.is_open());
+  
+    vector<char> data;
+    Bin::createFileMsg(file, &data, type, id, uuid, 0, chunksize);
+    file.close();
+
+    Bin binary(data.data(), data.size());
+    BOOST_CHECK_EQUAL(binary.writeFile("test.txt"), chunksize);
+  }
+  
+  {
+    ifstream file(fn, ios::binary);
+    BOOST_CHECK(file.is_open());
+  
+    vector<char> data;
+    Bin::createFileMsg(file, &data, type, id, uuid, chunksize, size-chunksize);
+    file.close();
+
+    Bin binary(data.data(), data.size());
+    BOOST_CHECK_EQUAL(binary.writeFile("test.txt"), size-chunksize);
+  }
   
 }

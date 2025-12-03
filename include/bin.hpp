@@ -45,6 +45,8 @@ public:
   bool isTooLarge();
   optional<string> getError();
 
+  void dump();
+
   // for tests.
   static int headerLength();
   static int errHeaderLength();
