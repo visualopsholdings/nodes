@@ -55,24 +55,38 @@ void discoverBinaryResultMsg(Server *server, const char *data, size_t size) {
     return;
   }
   
-  // work out the filename.
-  stringstream ss;
-  ss << server->_mediaDir;
-  ss << "/";
-  ss << binary.getUUID();
+  // get the filenames.
+  std::filesystem::path p(server->_mediaDir);
+  p /= binary.getUUID();
+  std::filesystem::path normp = p;
+  if (binary.getOffset() > 0 || !binary.isFinished()) {
+    p += "_";
+  }
   
-  L_TRACE("writing to file " << ss.str());
+  L_TRACE("writing to file " << p.string());
   
-  size = binary.writeFile(ss.str());
+  auto wsize = binary.writeFile(p.string());
   
   if (binary.isFinished()) {
+    if (binary.getOffset() > 0) {
+      // rename our file to not have an "_" at the end.
+      std::filesystem::rename(p, normp);
+    }
     markObj(coll, id, Bin::DOWNLOADED);
     server->discoverBinary();
     return;
   }
   
-  // ask for the next bit of the file.
-  L_WARNING("ask for more of " << binary.getType() << " " << binary.getID());
+  DictO msg = dictO({
+    { "type", "discoverBinary" },
+    { "offset", (long)(binary.getOffset()+wsize) },
+    { type, dictO({
+      { "id", id },
+      { "uuid", binary.getUUID() }
+      })
+    }
+  });
+  server->sendBinReq(msg);
 
 }
 

@@ -53,7 +53,8 @@ typedef function<void (const char *data, size_t size)> binMsgHandler;
 class Server {
 
 public:
-  Server(bool test, bool noupstream, const string &mediaDir,
+  Server(bool test, bool noupstream, 
+    const string &mediaDir, long maxFileSize, long chunkSize,
     int pub, int rep, 
     int dataRep, int msgPub, int binRep, 
     int remoteDataReq, int remoteMsgSub, int remoteBinReq, 
@@ -160,6 +161,8 @@ public:
   bool _reload;
   string _bindAddress;
   string _mediaDir;
+  long _maxFileSize;
+  long _chunkSize;
   
 private:
 

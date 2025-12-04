@@ -25,9 +25,8 @@ export NODES_MSG_PORT=8851
 export NODES_BIN_PORT=8852
 export MEDIA_DIR=media5
 
-if [ ! -d "$MEDIA_DIR" ];
-then
-  mkdir "$MEDIA_DIR"
-fi
+# clear out and recreate the media dir.
+rm -rf "$MEDIA_DIR"
+mkdir "$MEDIA_DIR"
 
 ./local.sh

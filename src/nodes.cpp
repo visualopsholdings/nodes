@@ -50,6 +50,8 @@ int main(int argc, char *argv[]) {
   string bindAddress;
   string schema;
   string mediaDir;
+  long maxFileSize;
+  long chunkSize;
   
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -72,6 +74,8 @@ int main(int argc, char *argv[]) {
     ("test", po::bool_switch(&test), "We are testing so don't use VIDs.")
     ("noupstream", po::bool_switch(&noupstream), "Ignore upstream settings at start. A 'reload' message will try them though")
     ("mediaDir", po::value<string>(&mediaDir)->default_value("private/media"), "Path to local media.")
+    ("maxFileSize", po::value<long>(&maxFileSize)->default_value(2048), "Maxinmum file size to down/upload in K.")
+    ("chunkSize", po::value<long>(&chunkSize)->default_value(512), "The chunk size to down/upload in K.")
     ("help", "produce help message")
     ;
   po::positional_options_description p;
@@ -90,7 +94,8 @@ int main(int argc, char *argv[]) {
   
   L_INFO(version);
 
-  Server server(test, noupstream, mediaDir,
+  Server server(test, noupstream, 
+    mediaDir, maxFileSize, chunkSize,
     pubPort, repPort, dataReqPort, msgSubPort, binReqPort, 
     remoteDataReqPort, remoteMsgSubPort, remoteBinReqPort, 
     dbConn, dbName, schema, certFile, chainFile, hostName, bindAddress);

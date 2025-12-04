@@ -19,15 +19,16 @@
 
 namespace fs = std::filesystem;
 
-const auto ONEM = 1024 * 1024;
-const auto MAX_FILE_SIZE = 2 * ONEM;
-//const auto CHUNK_SIZE = 2 * ONEM;
+const auto ONEK = 1024;
 
 namespace nodes {
 
 void discoverBinaryMsg(Server *server, const IncomingMsg &in) {
    
   L_INFO("<- discoverBinary");
+  
+  L_TRACE("maxFileSize " << server->_maxFileSize);
+  L_TRACE("chunkSize " << server->_chunkSize);
   
   // make sure data is ALWAYS sent.
   SendBinData data(server);
@@ -50,20 +51,23 @@ void discoverBinaryMsg(Server *server, const IncomingMsg &in) {
     Bin::createFileErrMsg(data.data(), type, *id, "??", "discoverBinary missing uuid field for " + type);
     return;
   }
+  auto offset = Dict::getNumG(in.extra_fields, "offset");
+  if (!offset) {
+    Bin::createFileErrMsg(data.data(), type, *id, *uuid, "discoverBinary missing offset field");
+    return;
+  }
   
   if (in.extra_fields.size() == 0) {
     Bin::createFileErrMsg(data.data(), type, *id, *uuid, "discoverBinary missing objects");
     return;
   }
   
+  std::filesystem::path p(server->_mediaDir);
+  p /= *uuid;
    // how big is the binary file.
-  stringstream ss;
-  ss << server->_mediaDir;
-  ss << "/";
-  ss << *uuid;
   int size;
   try {
-    size = fs::file_size(ss.str());
+    size = fs::file_size(p);
   }
   catch (exception &exc) {
     L_ERROR(exc.what());
@@ -71,26 +75,21 @@ void discoverBinaryMsg(Server *server, const IncomingMsg &in) {
     return;
   }
   
-  if (size > MAX_FILE_SIZE) {
-    L_WARNING("skipping file " << ss.str() << " too large " << size);
+  if (size > (server->_maxFileSize * ONEK)) {
+    L_WARNING("skipping file " << p.string() << " too large " << size);
     Bin::createFileTooLargeMsg(data.data(), type, *id, *uuid, size);
     return;
   }
   
-//   if (size > CHUNK_SIZE) {
-//     server->sendErrDownBin("not supported yet");
-//     return;
-//   }
-// 
-  // send the file
-  ifstream file(ss.str(), ios::binary);
+  // send the whole file
+  ifstream file(p, ios::binary);
   if (!file.is_open()) {
     Bin::createFileErrMsg(data.data(), type, *id, *uuid, "couldn't open file");
     return;
   }
   
-  // send the file message down.
-  Bin::createFileMsg(file, data.data(), type, *id, *uuid, 0, size);
+  // send the message down, but in chunk sizes.
+  Bin::createFileMsg(file, data.data(), type, *id, *uuid, *offset, (server->_chunkSize * ONEK));
   file.close();
   
 }

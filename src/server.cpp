@@ -108,14 +108,16 @@ void addDrMsg(Server *server, const IncomingMsg &in);
 
 }
 
-Server::Server(bool test, bool noupstream, const string &mediaDir,
+Server::Server(bool test, bool noupstream, 
+    const string &mediaDir, long maxFileSize, long chunkSize,
     int pub, int rep, 
     int dataRep, int msgPub, int binRep, 
     int remoteDataReq, int remoteMsgSub, int remoteBinReq, 
     const string &dbConn, const string &dbName, const string &schema, 
     const string &certFile, const string &chainFile, 
     const string &hostName, const string &bindAddress) :
-    _test(test), _certFile(certFile), _chainFile(chainFile), _mediaDir(mediaDir),
+    _test(test), _certFile(certFile), _chainFile(chainFile), 
+    _mediaDir(mediaDir), _maxFileSize(maxFileSize), _chunkSize(chunkSize),
     _dataRepPort(dataRep), _msgPubPort(msgPub), _binRepPort(binRep), 
     _remoteDataReqPort(remoteDataReq), _remoteMsgSubPort(remoteMsgSub), _remoteBinReqPort(remoteBinReq), 
     _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false), 
@@ -490,6 +492,8 @@ bool Server::getBinMsg(const string &name, zmq::socket_t &socket, vector<binMsgH
       L_ERROR("invalid binary msg num " << msgnum);
       return false;
     }
+
+    L_DEBUG(name << " " << msgnum << " " << reply.size());
 
     try {
       L_TRACE("calling handler");
@@ -1425,6 +1429,7 @@ void Server::discoverBinary() {
     if (bin) {
       DictO msg = dictO({
         { "type", "discoverBinary" },
+        { "offset", 0 },
         { get<string>(*bin), get<DictG>(*bin) }
       });
       sendBinReq(msg);

@@ -40,6 +40,7 @@ public:
   string getType();
   string getID();
   string getUUID();
+  long getOffset();
   size_t writeFile(const string &fn);
   bool isFinished();
   bool isTooLarge();
@@ -63,6 +64,7 @@ private:
   
   long getNum(size_t offset);
 
+  static void createFileHeader(vector<char> *data, const string &type, const string &id, const string &uuid, unsigned char flags);
   static void addNum(vector<char> *data, long n);
   static void addType(vector<char> *data, const string &type);
  

@@ -12,4 +12,8 @@ export NODES_REP_PORT=3113
 
 export NODE=false
 
+# clear out and recreate the media dir.
+rm -rf mediaout
+mkdir mediaout
+
 bundle exec cucumber -n "$1" -r features/step_definitions -r features/support -r build/_deps/nodes-test-src/features 

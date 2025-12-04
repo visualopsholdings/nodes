@@ -54,7 +54,7 @@ void Bin::addNum(vector<char> *data, long n) {
   stringstream ss;
   ss << std::setw(NUM_WIDTH) << n;
   string s = ss.str();
-  L_TRACE("[" << s << "]");
+//  L_TRACE("[" << s << "]");
   copy(s.begin(), s.end(), back_inserter(*data));
 
 }
@@ -64,28 +64,35 @@ void Bin::addType(vector<char> *data, const string &type) {
   stringstream ss;
   ss << std::setw(TYPE_LEN) << type.substr(0, TYPE_LEN);
   string s = ss.str();
-  L_TRACE("[" << s << "]");
+//  L_TRACE("[" << s << "]");
   copy(s.begin(), s.end(), back_inserter(*data));
+
+}
+
+void Bin::createFileHeader(vector<char> *data, const string &type, const string &id, const string &uuid, unsigned char flags) {
+
+  data->push_back(BIN_MARKER); // binary start with the letter B.
+  data->push_back(0); // the message number
+//  L_TRACE("flags at " << data->size());
+  data->push_back(flags);
+//  L_TRACE("TYPE at " << data->size());
+  addType(data, type);
+//  L_TRACE("ID at " << data->size());
+  copy(id.begin(), id.end(), back_inserter(*data));
+//  L_TRACE("UUID at " << data->size());
+  copy(uuid.begin(), uuid.end(), back_inserter(*data));
 
 }
 
 void Bin::createFileMsg(ifstream &file, vector<char> *data, const string &type, const string &id, const string &uuid, long offset, long size) {
 
-  data->push_back(BIN_MARKER); // binary start with the letter B.
-  data->push_back(0); // the message number
-  L_TRACE("flags at " << data->size());
-  data->push_back(0); // 1 byte flags (finished or not).
-  L_TRACE("TYPE at " << data->size());
-  addType(data, type);
-  L_TRACE("ID at " << data->size());
-  copy(id.begin(), id.end(), back_inserter(*data));
-  L_TRACE("UUID at " << data->size());
-  copy(uuid.begin(), uuid.end(), back_inserter(*data));
-  L_TRACE("offset at " << data->size());
+  createFileHeader(data, type, id, uuid, 0);
+
+  //  L_TRACE("offset at " << data->size());
   addNum(data, offset);
   
   // and the data.
-  L_TRACE("data at " << data->size());
+//  L_TRACE("data at " << data->size());
   
   // if we are asked too, we should only write from offset to size NOT the 
   // whole file.
@@ -109,34 +116,17 @@ void Bin::createFileMsg(ifstream &file, vector<char> *data, const string &type, 
 
 void Bin::createFileTooLargeMsg(vector<char> *data, const string &type, const string &id, const string &uuid, long size) {
 
-  data->push_back(BIN_MARKER); // binary start with the letter B.
-  data->push_back(0); // the message number
-  L_TRACE("flags at " << data->size());
-  data->push_back(FLAGS_TOOLARGE); // 1 byte flags (finished or not).
-  L_TRACE("TYPE at " << data->size());
-  addType(data, type);
-  L_TRACE("ID at " << data->size());
-  copy(id.begin(), id.end(), back_inserter(*data));
-  L_TRACE("UUID at " << data->size());
-  copy(uuid.begin(), uuid.end(), back_inserter(*data));
-  L_TRACE("offset at " << data->size());
-  addNum(data, 0);
+  createFileHeader(data, type, id, uuid, FLAGS_TOOLARGE);
+  
+//   L_TRACE("size at " << data->size());
+  addNum(data, size);
 
 }
 
 void Bin::createFileErrMsg(vector<char> *data, const string &type, const string &id, const string &uuid, const string &err) {
 
-  data->push_back(BIN_MARKER); // binary start with the letter B.
-  data->push_back(0); // the message number
-  L_TRACE("flags at " << data->size());
-  data->push_back(FLAGS_ERROR); // 1 byte flags (finished or not).
-  L_TRACE("TYPE at " << data->size());
-  addType(data, type);
-  L_TRACE("ID at " << data->size());
-  copy(id.begin(), id.end(), back_inserter(*data));
-  L_TRACE("UUID at " << data->size());
-  copy(uuid.begin(), uuid.end(), back_inserter(*data));
-  L_TRACE("err at " << data->size());
+  createFileHeader(data, type, id, uuid, FLAGS_ERROR);
+//  L_TRACE("err at " << data->size());
   copy(err.begin(), err.end(), back_inserter(*data));
 
 }
@@ -239,6 +229,12 @@ optional<string> Bin::getError() {
   return nullopt;
 }
 
+long Bin::getOffset() {
+
+  return getNum(OFFSET_POS);
+  
+}
+
 long Bin::getNum(size_t offset) {
 
   stringstream os(string(_data+offset, NUM_WIDTH));
@@ -266,15 +262,20 @@ size_t Bin::writeFile(const string &fn) {
   }
   
   long offset = getNum(OFFSET_POS);
-  L_TRACE("offset " << offset);
+//  L_TRACE("offset " << offset);
   
-  ofstream fs(fn, ios::in | std::ios::out | std::ios::binary);
+  auto flags = std::ios::out | std::ios::binary;
+  if (offset > 0) {
+    flags |= ios::in;
+  }
+  
+  ofstream fs(fn, flags);
   
   // seek to the offset.
   fs.seekp(offset, ios_base::beg);
   
   long wsize = _size-DATA_POS;
-  L_TRACE("wsize " << wsize);
+//  L_TRACE("wsize " << wsize);
   
   // write what we have
   fs.write(_data+DATA_POS, wsize);

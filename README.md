@@ -206,7 +206,7 @@ https://github.com/visualopsholdings/nodes-irc
 
 ## Current development focus
 
-### Extensions to allow other types of messages (like binary)
+### Binary file synching.
 ### Really low end file system store instead of MongoDB
 
 ## License
@@ -459,6 +459,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
   by UUIDs. There is a possible field called "uuid" in an object which attaches that object to
   the binary data in the file and this is synchronized.
   
+### 4 Dec 2025
+- Implemented chunking.
 
 
 
