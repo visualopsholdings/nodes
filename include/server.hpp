@@ -44,6 +44,8 @@ typedef struct {
   optional<string> corr;
   optional<IncomingMsgTest> test;
   optional<vector<string> > path;
+  optional<long> offset;
+  optional<bool> full;
   rfl::ExtraFields<DictG> extra_fields;
 } IncomingMsg;
 
@@ -76,7 +78,7 @@ public:
   void sendDownDiscoverResult(const IncomingMsg &in);
   void resetDB();
   void discoveryComplete();
-  void discoverBinary();
+  void discoverBinary(bool full);
   
   void publish(optional<string> corr, const DictO &m) {
     sendTo(*_pub, m, "*-> ", corr);

@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE( createFileMsg )
   BOOST_CHECK(file.is_open());
 
   vector<char> data;
-  Bin::createFileMsg(file, &data, type, id, uuid, 0, size);
+  Bin::createFileMsg(file, &data, type, id, uuid, false, 0, size);
   file.close();
   
   BOOST_CHECK_EQUAL(data.size(), size + Bin::headerLength());
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE( createFileErrMsg )
   string msg = "got an error";
   
   vector<char> data;
-  Bin::createFileErrMsg(&data, type, id, uuid, msg);
+  Bin::createFileErrMsg(&data, type, id, uuid, false, msg);
   
   BOOST_CHECK_EQUAL(data.size(), msg.size() + Bin::errHeaderLength());
 
@@ -82,7 +82,7 @@ int processChunk(const string &fn, const string &outfile, long offset, long size
   BOOST_CHECK(file.is_open());
 
   vector<char> data;
-  Bin::createFileMsg(file, &data, "test", "667d0baedfb1ed18430d8ed3", "eeeeeeee-ffff-gggg-hhhhhhhh", offset, size);
+  Bin::createFileMsg(file, &data, "test", "667d0baedfb1ed18430d8ed3", "eeeeeeee-ffff-gggg-hhhhhhhh", false, offset, size);
   file.close();
 
   Bin binary(data.data(), data.size());

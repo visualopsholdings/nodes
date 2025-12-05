@@ -30,9 +30,10 @@
 #define ERR_POS           OFFSET_POS
 #define DATA_POS          (OFFSET_POS+NUM_WIDTH)
 
-#define FLAGS_FINISHED    0x01
-#define FLAGS_TOOLARGE    0x02
-#define FLAGS_ERROR       0x04
+#define FLAGS_FINISHED    0b00000001
+#define FLAGS_TOOLARGE    0b00000010
+#define FLAGS_ERROR       0b00000100
+#define FLAGS_FULLSCAN    0b00001000
 
 namespace nodes {
 
@@ -71,6 +72,8 @@ void Bin::addType(vector<char> *data, const string &type) {
 
 void Bin::createFileHeader(vector<char> *data, const string &type, const string &id, const string &uuid, unsigned char flags) {
 
+  L_DEBUG("createFileHeader " << std::bitset<8>(flags));
+  
   data->push_back(BIN_MARKER); // binary start with the letter B.
   data->push_back(0); // the message number
 //  L_TRACE("flags at " << data->size());
@@ -84,9 +87,14 @@ void Bin::createFileHeader(vector<char> *data, const string &type, const string 
 
 }
 
-void Bin::createFileMsg(ifstream &file, vector<char> *data, const string &type, const string &id, const string &uuid, long offset, long size) {
+void Bin::createFileMsg(ifstream &file, vector<char> *data, const string &type, const string &id, const string &uuid, bool fullscan, long offset, long size) {
 
-  createFileHeader(data, type, id, uuid, 0);
+  L_DEBUG("createFileMsg " << fullscan);
+  auto flags = 0;
+  if (fullscan) {
+    flags |= FLAGS_FULLSCAN;
+  }
+  createFileHeader(data, type, id, uuid, flags);
 
   //  L_TRACE("offset at " << data->size());
   addNum(data, offset);
@@ -109,23 +117,33 @@ void Bin::createFileMsg(ifstream &file, vector<char> *data, const string &type, 
   
   // set the flags for the end.
   if (i == end) {
-    (*data)[FLAGS_POS] = FLAGS_FINISHED;
+    L_DEBUG("setting finished");
+    (*data)[FLAGS_POS] |= FLAGS_FINISHED;
   }
   
 }
 
-void Bin::createFileTooLargeMsg(vector<char> *data, const string &type, const string &id, const string &uuid, long size) {
+void Bin::createFileTooLargeMsg(vector<char> *data, const string &type, const string &id, const string &uuid, bool fullscan, long size) {
 
-  createFileHeader(data, type, id, uuid, FLAGS_TOOLARGE);
+  auto flags = FLAGS_TOOLARGE;
+  if (fullscan) {
+    flags |= FLAGS_FULLSCAN;
+  }
+  createFileHeader(data, type, id, uuid, flags);
   
 //   L_TRACE("size at " << data->size());
   addNum(data, size);
 
 }
 
-void Bin::createFileErrMsg(vector<char> *data, const string &type, const string &id, const string &uuid, const string &err) {
+void Bin::createFileErrMsg(vector<char> *data, const string &type, const string &id, const string &uuid, bool fullscan, const string &err) {
 
-  createFileHeader(data, type, id, uuid, FLAGS_ERROR);
+  L_DEBUG("createFileErrMsg " << err << " " << fullscan);
+  auto flags = FLAGS_ERROR;
+  if (fullscan) {
+    flags |= FLAGS_FULLSCAN;
+  }
+  createFileHeader(data, type, id, uuid, flags);
 //  L_TRACE("err at " << data->size());
   copy(err.begin(), err.end(), back_inserter(*data));
 
@@ -193,25 +211,32 @@ string Bin::getUUID() {
   
 }
 
-bool Bin::isFinished() {
+bool Bin::testFlags(unsigned char flag) {
 
   if (_size < FLAGS_POS+1) {
     L_ERROR("data is too tiny to have flags");
     return false;
   }
 
-  return _data[FLAGS_POS] & FLAGS_FINISHED;
+  return _data[FLAGS_POS] & flag;
+
+}
+
+bool Bin::isFinished() {
+
+  return testFlags(FLAGS_FINISHED);
 
 }
 
 bool Bin::isTooLarge() {
 
-  if (_size < FLAGS_POS+1) {
-    L_ERROR("data is too tiny to have flags");
-    return false;
-  }
+  return testFlags(FLAGS_TOOLARGE);
 
-  return _data[FLAGS_POS] & FLAGS_TOOLARGE;
+}
+
+bool Bin::isFullScan() {
+
+  return testFlags(FLAGS_FULLSCAN);
 
 }
 

@@ -33,9 +33,9 @@ public:
   unsigned char msgNum();
   
   // binary FILE specific
-  static void createFileMsg(ifstream &file, vector<char> *data, const string &type, const string &id, const string &uuid, long offset, long size);
-  static void createFileTooLargeMsg(vector<char> *data, const string &type, const string &id, const string &uuid, long size);
-  static void createFileErrMsg(vector<char> *data, const string &type, const string &id, const string &uuid, const string &err);
+  static void createFileMsg(ifstream &file, vector<char> *data, const string &type, const string &id, const string &uuid, bool fullscan, long offset, long size);
+  static void createFileTooLargeMsg(vector<char> *data, const string &type, const string &id, const string &uuid, bool fullscan, long size);
+  static void createFileErrMsg(vector<char> *data, const string &type, const string &id, const string &uuid, bool fullscan, const string &err);
   
   string getType();
   string getID();
@@ -44,6 +44,7 @@ public:
   size_t writeFile(const string &fn);
   bool isFinished();
   bool isTooLarge();
+  bool isFullScan();
   optional<string> getError();
 
   void dump();
@@ -63,6 +64,7 @@ private:
   size_t _size;
   
   long getNum(size_t offset);
+  bool testFlags(unsigned char flag);
 
   static void createFileHeader(vector<char> *data, const string &type, const string &id, const string &uuid, unsigned char flags);
   static void addNum(vector<char> *data, long n);

@@ -1416,12 +1416,12 @@ void Server::discoveryComplete() {
     }
   }
     
-  // kick off the start of binary discover.
-  discoverBinary();
+  // kick off the start of binary discover. Do a full scan
+  discoverBinary(true);
   
 }
 
-void Server::discoverBinary() {
+void Server::discoverBinary(bool full) {
 
   // send a request for the first binary object we need.
   for (auto schema: Storage::instance()->_schema) {
@@ -1429,8 +1429,9 @@ void Server::discoverBinary() {
     if (bin) {
       DictO msg = dictO({
         { "type", "discoverBinary" },
+        { get<string>(*bin), get<DictG>(*bin) },
         { "offset", 0 },
-        { get<string>(*bin), get<DictG>(*bin) }
+        { "full", full }
       });
       sendBinReq(msg);
     }

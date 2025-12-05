@@ -45,13 +45,17 @@ void discoverBinaryResultMsg(Server *server, const char *data, size_t size) {
   if (err) {
     L_ERROR(*err);
     markObj(coll, id, Bin::DOWNLOAD_ERR);
-    server->discoverBinary();
+    if (binary.isFullScan()) {
+      server->discoverBinary(true);
+    }
     return;
   }
   
   if (binary.isTooLarge()) {
     markObj(coll, id, Bin::TOO_LARGE);
-    server->discoverBinary();
+    if (binary.isFullScan()) {
+      server->discoverBinary(true);
+    }
     return;
   }
   
@@ -73,18 +77,21 @@ void discoverBinaryResultMsg(Server *server, const char *data, size_t size) {
       std::filesystem::rename(p, normp);
     }
     markObj(coll, id, Bin::DOWNLOADED);
-    server->discoverBinary();
+    if (binary.isFullScan()) {
+      server->discoverBinary(true);
+    }
     return;
   }
   
   DictO msg = dictO({
     { "type", "discoverBinary" },
-    { "offset", (long)(binary.getOffset()+wsize) },
     { type, dictO({
       { "id", id },
       { "uuid", binary.getUUID() }
       })
-    }
+    },
+    { "offset", (long)(binary.getOffset()+wsize) },
+    { "full", binary.isFullScan() }
   });
   server->sendBinReq(msg);
 
