@@ -56,6 +56,15 @@ FetchContent_MakeAvailable(dict)
 include_directories(build/_deps/dict-src/include)
 
 FetchContent_Declare(
+  nodes-storage
+  GIT_REPOSITORY https://github.com/visualopsholdings/nodes-storage.git
+  GIT_TAG main
+)
+FetchContent_MakeAvailable(nodes-storage)
+
+include_directories(build/_deps/nodes-storage-src/include)
+
+FetchContent_Declare(
   nodes-test
   GIT_REPOSITORY https://github.com/visualopsholdings/nodes-test.git
   GIT_TAG main
@@ -82,16 +91,12 @@ endif()
 
 set(LIBS zmq)
 set(BOOSTLIBS ${Boost_LOG_LIBRARY})
-set(CORE
-  src/date.cpp
-)
 set(UTILS
   src/vid.cpp 
   src/security.cpp
   src/upstream.cpp
   src/downstream.cpp
   src/encrypter.cpp
-  src/log.cpp
 )
 set(MESSAGES 
   src/msg/login.cpp 
@@ -158,68 +163,22 @@ set(MESSAGES
 
 include_directories(include)
 
-set(STORAGE
-  src/storage/storage.cpp 
-  src/storage/dynamicrow.cpp 
-  src/storage/schema.cpp 
-  src/storage/group.cpp 
-  src/storage/schemai.cpp 
-  src/storage/collectioni.cpp
-)
-
-# we always use BSON
-include_directories(${LIBBSONCXX_INCLUDE_DIR})
-set(BSONLIBS mongo::bsoncxx_shared bson2)
-
-if (USE_MONGO)
-  include_directories(${LIBMONGOCXX_INCLUDE_DIR})
-  set(STORAGEILIBS mongo::mongocxx_shared)
-  set(STORAGEI
-    src/storage/mongo/schemai.cpp 
-    src/storage/mongo/resulti.cpp 
-    src/storage/mongo/storagei.cpp 
-  )
-else ()
-  set(STORAGEI
-    src/storage/fs/collectioni.cpp 
-    src/storage/fs/schemai.cpp 
-    src/storage/fs/resulti.cpp 
-    src/storage/fs/storagei.cpp 
-  )
-endif ()
-
-add_library(StorageLib SHARED 
-  ${STORAGE}
-  ${STORAGEI}
-  ${CORE})
-    target_link_libraries(StorageLib DictLib ${BOOSTLIBS} ${STORAGEILIBS} ${BSONLIBS})
-
 add_executable(nodes src/nodes.cpp src/server.cpp ${MESSAGES} ${UTILS})
     target_link_libraries(nodes StorageLib DictLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${LIBS} ${STORAGEILIBS} ${OPENSSL_LIBRARIES})
 
-add_executable(Send test/send.cpp src/log.cpp)
-  target_link_libraries(Send DictLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
+add_executable(Send test/send.cpp)
+  target_link_libraries(Send StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS})
 
-add_executable(Counts test/counts.cpp src/log.cpp)
+add_executable(Counts test/counts.cpp)
   target_link_libraries(Counts StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${STORAGEILIBS})
 
-add_executable(nodesaggregate src/nodesaggregate.cpp src/log.cpp)
+add_executable(nodesaggregate src/nodesaggregate.cpp)
   target_link_libraries(nodesaggregate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
 
-add_executable(Generate test/generate.cpp src/log.cpp)
+add_executable(Generate test/generate.cpp)
   target_link_libraries(Generate StorageLib ${Boost_PROGRAM_OPTIONS_LIBRARY} ${BOOSTLIBS} ${LIBS} ${STORAGEILIBS})
 
 # Tests
-
-add_executable(TestStorage test/teststorage.cpp)
-  target_link_libraries(TestStorage StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
-
-add_test(TestStorage TestStorage)
-
-add_executable(TestCollection test/testcollection.cpp src/storage/collectioni.cpp ${CORE})
-  target_link_libraries(TestCollection DictLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
-
-add_test(TestCollection TestCollection)
 
 add_executable(TestVID test/testvid.cpp src/vid.cpp)
   target_link_libraries(TestVID ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
@@ -235,11 +194,6 @@ add_executable(TestAggregate test/testaggregate.cpp)
   target_link_libraries(TestAggregate StorageLib ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${STORAGEILIBS})
 
 add_test(TestAggregate TestAggregate)
-
-add_executable(TestDate test/testdate.cpp src/date.cpp)
-  target_link_libraries(TestDate ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
-
-add_test(TestDate TestDate)
 
 add_executable(TestEncrypter test/testencrypter.cpp src/encrypter.cpp)
   target_link_libraries(TestEncrypter ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${OPENSSL_LIBRARIES})

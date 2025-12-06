@@ -177,6 +177,19 @@ You can run tests that build multiple servers and run tests between then with:
 ci/allnodetests.sh
 ```
 
+## Other Project dependencies
+
+Storage relies on the external project:
+
+https://github.com/visualopsholdings/nodes-storage
+
+If this changes, you can fetch it down and rebuild again with:
+
+```
+cd build
+rm -rf _deps/nodes-storage-* && make -j4
+```
+
 ## Testing dependencies
 
 Testing relies on the external project:
@@ -464,6 +477,7 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 
 ### 6 Dec 2025
 - Move the binary handling over to https://github.com/visualopsholdings/nodes-media
+- Move the storage code over to https://github.com/visualopsholdings/nodes-storage
 
 
 
