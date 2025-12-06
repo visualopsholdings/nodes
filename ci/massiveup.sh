@@ -17,6 +17,5 @@ fi
 
 export NODES_DATA_PORT=8810
 export NODES_MSG_PORT=8811
-export NODES_BIN_PORT=8812
 
 ./local.sh

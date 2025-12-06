@@ -48,21 +48,6 @@ ci/nodestest.sh "A new collection created on upstream appears on downstream mirr
 ci/nodestest.sh "A new group created on upstream appears on downstream mirrors"
 [ "$?" != "0" ] && fail
 
-# make sure the media downloaded.
-diff test/media/aaaaaaaa-bbbb-cccc-dddddddd media4/aaaaaaaa-bbbb-cccc-dddddddd 
-[ "$?" != "0" ] && fail
-
-diff test/media/eeeeeeee-ffff-gggg-hhhhhhhh media4/eeeeeeee-ffff-gggg-hhhhhhhh
-[ "$?" != "0" ] && fail
-
-# need to make this work too
-# 
-# diff test/media/aaaaaaaa-bbbb-cccc-dddddddd media6/aaaaaaaa-bbbb-cccc-dddddddd 
-# [ "$?" != "0" ] && fail
-# 
-# diff test/media/eeeeeeee-ffff-gggg-hhhhhhhh media6/eeeeeeee-ffff-gggg-hhhhhhhh
-# [ "$?" != "0" ] && fail
-
 finish
 
 exit 0

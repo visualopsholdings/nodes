@@ -17,16 +17,9 @@ fi
 # upstream
 export NODES_REMOTE_DATA_PORT=8840
 export NODES_REMOTE_MSG_PORT=8841
-export NODES_REMOTE_BIN_PORT=8842
 
 # bind as upstream
 export NODES_DATA_PORT=8860
 export NODES_MSG_PORT=8861
-export NODES_BIN_PORT=8862
-export MEDIA_DIR=media6
-
-# clear out and recreate the media dir.
-rm -rf "$MEDIA_DIR"
-mkdir "$MEDIA_DIR"
 
 ./local.sh

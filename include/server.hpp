@@ -44,8 +44,6 @@ typedef struct {
   optional<string> corr;
   optional<IncomingMsgTest> test;
   optional<vector<string> > path;
-  optional<long> offset;
-  optional<bool> full;
   rfl::ExtraFields<DictG> extra_fields;
 } IncomingMsg;
 
@@ -56,10 +54,9 @@ class Server {
 
 public:
   Server(bool test, bool noupstream, 
-    const string &mediaDir, long maxFileSize, long chunkSize,
     int pub, int rep, 
-    int dataRep, int msgPub, int binRep, 
-    int remoteDataReq, int remoteMsgSub, int remoteBinReq, 
+    int dataRep, int msgPub,
+    int remoteDataReq, int remoteMsgSub,
     const string &dbConn, const string &dbName, const string &schema,
     const string &certFile, const string &chainFile, const string &hostName, const string &bindAddress);
   ~Server();
@@ -78,7 +75,6 @@ public:
   void sendDownDiscoverResult(const IncomingMsg &in);
   void resetDB();
   void discoveryComplete();
-  void discoverBinary(bool full);
   
   void publish(optional<string> corr, const DictO &m) {
     sendTo(*_pub, m, "*-> ", corr);
@@ -104,10 +100,6 @@ public:
   void sendAckDown(optional<string> result=nullopt);
   void sendAckDownBin();
   void sendDataReq(optional<string> corr, const DictO &m);
-  void sendBinReq(const DictO &m);
-  void sendDownBin(const DictO &m);
-  void sendDownBin(const std::string &s);
-  void sendDownBin(const std::vector<char> &d);
   
   // notifying other nodes.
   void sendUpd(const string &type, const string &id, const DictO &data);
@@ -152,9 +144,6 @@ public:
   DictO fixObjectForReturn(const DictO &j);
     // after insertion, some objects need to be fixed when returned.
     
-  optional<tuple<string, DictG> > firstSchemaBinary(const DictO &obj);
-    // collect all the next binary object we need to transfer
-    
   string _hostName;
   bool _test;
   bool _online;
@@ -162,9 +151,6 @@ public:
   string _upstreamId;
   bool _reload;
   string _bindAddress;
-  string _mediaDir;
-  long _maxFileSize;
-  long _chunkSize;
   
 private:
 
@@ -173,22 +159,17 @@ private:
   shared_ptr<zmq::socket_t> _rep;
   shared_ptr<Downstream> _dataRep;
   shared_ptr<Downstream> _msgPub;
-  shared_ptr<Downstream> _binRep;
   shared_ptr<Upstream> _remoteDataReq;
   shared_ptr<Upstream> _remoteMsgSub;
-  shared_ptr<Upstream> _remoteBinReq;
   map<string, msgHandler> _messages;
   map<string, msgHandler> _remoteDataReqMessages;
-  vector<binMsgHandler> _remoteBinReqMessages;
   map<string, msgHandler> _dataRepMessages;
   map<string, msgHandler> _binRepMessages;
   map<string, msgHandler> _remoteMsgSubMessages;
   int _remoteDataReqPort;
   int _remoteMsgSubPort;
-  int _remoteBinReqPort;
   int _dataRepPort;
   int _msgPubPort;
-  int _binRepPort;
   string _pubKey;
   time_t _lastHeartbeat;
   bool _noupstream;
@@ -234,22 +215,6 @@ private:
   std::string buildCollResultJson(const IncomingMsg &in, const std::string &name, const DictV &array);
   std::string buildObjResultJson(const IncomingMsg &in, const std::string &name, const DictG &obj);
  
-};
-
-class SendBinData {
-
-public:
-  SendBinData(Server *server): _server(server) {}
-  ~SendBinData() {
-    _server->sendDownBin(_data);
-  }
-  
-  vector<char> *data() { return &_data; }
-  
-private:
-  Server *_server;
-  vector<char> _data;
-  
 };
 
 } // nodes

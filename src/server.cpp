@@ -19,7 +19,6 @@
 #include "security.hpp"
 #include "date.hpp"
 #include "log.hpp"
-#include "bin.hpp"
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -86,7 +85,6 @@ void buildMsg(Server *server, const IncomingMsg &in);
 
 // remoteDataReq handlers
 void discoverResultMsg(Server *server, const IncomingMsg &in);
-void discoverBinaryResultMsg(Server *server, const char *data, size_t size);
 void upstreamMsg(Server *server, const IncomingMsg &in);
 void sendOnMsg(Server *server, const IncomingMsg &in);
 void dateMsg(Server *server, const IncomingMsg &in);
@@ -97,7 +95,6 @@ void addSubMsg(Server *server, const IncomingMsg &in);
 
 // dataRep handles
 void discoverLocalMsg(Server *server, const IncomingMsg &in);
-void discoverBinaryMsg(Server *server, const IncomingMsg &in);
 
 void onlineMsg(Server *server, const IncomingMsg &in);
 void heartbeatMsg(Server *server, const IncomingMsg &in);
@@ -109,17 +106,15 @@ void addDrMsg(Server *server, const IncomingMsg &in);
 }
 
 Server::Server(bool test, bool noupstream, 
-    const string &mediaDir, long maxFileSize, long chunkSize,
     int pub, int rep, 
-    int dataRep, int msgPub, int binRep, 
-    int remoteDataReq, int remoteMsgSub, int remoteBinReq, 
+    int dataRep, int msgPub,
+    int remoteDataReq, int remoteMsgSub,
     const string &dbConn, const string &dbName, const string &schema, 
     const string &certFile, const string &chainFile, 
     const string &hostName, const string &bindAddress) :
     _test(test), _certFile(certFile), _chainFile(chainFile), 
-    _mediaDir(mediaDir), _maxFileSize(maxFileSize), _chunkSize(chunkSize),
-    _dataRepPort(dataRep), _msgPubPort(msgPub), _binRepPort(binRep), 
-    _remoteDataReqPort(remoteDataReq), _remoteMsgSubPort(remoteMsgSub), _remoteBinReqPort(remoteBinReq), 
+    _dataRepPort(dataRep), _msgPubPort(msgPub),
+    _remoteDataReqPort(remoteDataReq), _remoteMsgSubPort(remoteMsgSub),
     _online(false), _lastHeartbeat(0), _noupstream(noupstream), _reload(false), 
     _hostName(hostName), _bindAddress(bindAddress) {
 
@@ -225,10 +220,6 @@ Server::Server(bool test, bool noupstream,
   _dataRepMessages["mov"] =  bind(&nodes::updDrMsg, this, placeholders::_1); // same handler as upd
   _dataRepMessages["add"] =  bind(&nodes::addDrMsg, this, placeholders::_1);
   
-  _remoteBinReqMessages.push_back(bind(&nodes::discoverBinaryResultMsg, this, placeholders::_1, placeholders::_2));
-
-  _binRepMessages["discoverBinary"] =  bind(&nodes::discoverBinaryMsg, this, placeholders::_1);
-
   Storage::instance()->init(dbConn, dbName, schema);
   
 }
@@ -244,7 +235,49 @@ void Server::runUpstreamOnly() {
       { *_rep, 0, ZMQ_POLLIN, 0 },
       { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
       { _remoteMsgSub->socket(), 0, ZMQ_POLLIN, 0 },
-      { _remoteBinReq->socket(), 0, ZMQ_POLLIN, 0 }
+  };
+  const std::chrono::milliseconds timeout{500};
+  while (!_reload) {
+  
+    // check connection events for upstream stuff.
+    _remoteDataReq->check();
+    if (_online) {
+      sendUpHeartbeat();
+    }
+    else {
+//      L_TRACE("not online yet");
+    }
+    _remoteMsgSub->check();
+
+//    L_DEBUG("polling for messages");
+    zmq::message_t message;
+    zmq::poll(&items[0], 3, timeout);
+  
+    if (items[0].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-", *_rep, _messages)) {
+        sendErr("error in getting rep message");
+      }
+    }
+    if (items[1].revents & ZMQ_POLLIN) {
+      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
+    }
+    if (items[2].revents & ZMQ_POLLIN) {
+      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
+        sendErr("error in getting upstream rep message");
+      }
+    }
+  }
+}
+
+void Server::runUpstreamDownstream() {
+
+  L_TRACE("running with upstream and downstream");
+  L_INFO("init nodes"); // used to detect server startup
+  zmq::pollitem_t items [] = {
+      { *_rep, 0, ZMQ_POLLIN, 0 },
+      { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
+      { _dataRep->socket(), 0, ZMQ_POLLIN, 0 },
+      { _remoteMsgSub->socket(), 0, ZMQ_POLLIN, 0 },
   };
   const std::chrono::milliseconds timeout{500};
   while (!_reload) {
@@ -272,54 +305,6 @@ void Server::runUpstreamOnly() {
       getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
     }
     if (items[2].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
-        sendErr("error in getting upstream rep message");
-      }
-    }
-    if (items[3].revents & ZMQ_POLLIN) {
-      getBinMsg("<-rbr", _remoteBinReq->socket(), _remoteBinReqMessages);
-    }
-  }
-}
-
-void Server::runUpstreamDownstream() {
-
-  L_TRACE("running with upstream and downstream");
-  L_INFO("init nodes"); // used to detect server startup
-  zmq::pollitem_t items [] = {
-      { *_rep, 0, ZMQ_POLLIN, 0 },
-      { _remoteDataReq->socket(), 0, ZMQ_POLLIN, 0 },
-      { _dataRep->socket(), 0, ZMQ_POLLIN, 0 },
-      { _remoteMsgSub->socket(), 0, ZMQ_POLLIN, 0 },
-      { _remoteBinReq->socket(), 0, ZMQ_POLLIN, 0 },
-      { _binRep->socket(), 0, ZMQ_POLLIN, 0 }
-  };
-  const std::chrono::milliseconds timeout{500};
-  while (!_reload) {
-  
-    // check connection events for upstream stuff.
-    _remoteDataReq->check();
-    if (_online) {
-      sendUpHeartbeat();
-    }
-    else {
-//      L_TRACE("not online yet");
-    }
-    _remoteMsgSub->check();
-
-//    L_DEBUG("polling for messages");
-    zmq::message_t message;
-    zmq::poll(&items[0], 6, timeout);
-  
-    if (items[0].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-", *_rep, _messages)) {
-        sendErr("error in getting rep message");
-      }
-    }
-    if (items[1].revents & ZMQ_POLLIN) {
-      getMsg("<-rdr", _remoteDataReq->socket(), _remoteDataReqMessages);
-    }
-    if (items[2].revents & ZMQ_POLLIN) {
       if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
         sendErr("error in getting upstream rep message");
       }
@@ -327,14 +312,6 @@ void Server::runUpstreamDownstream() {
     if (items[3].revents & ZMQ_POLLIN) {
       if (!getMsg("<-ms", _remoteMsgSub->socket(), _remoteMsgSubMessages)) {
         sendErr("error in getting remote upstream sub message");
-      }
-    }
-    if (items[4].revents & ZMQ_POLLIN) {
-      getBinMsg("<-rbr", _remoteBinReq->socket(), _remoteBinReqMessages);
-    }
-    if (items[5].revents & ZMQ_POLLIN) {
-      if (!getMsg("<-br", _binRep->socket(), _binRepMessages)) {
-        sendErr("error in getting upstream bin rep message");
       }
     }
   }
@@ -370,14 +347,13 @@ void Server::runDownstreamOnly() {
   zmq::pollitem_t items [] = {
       { *_rep, 0, ZMQ_POLLIN, 0 },
       { _dataRep->socket(), 0, ZMQ_POLLIN, 0 },
-      { _binRep->socket(), 0, ZMQ_POLLIN, 0 }
   };
   const std::chrono::milliseconds timeout{500};
   while (!_reload) {
   
 //    L_DEBUG("polling for messages");
     zmq::message_t message;
-    zmq::poll(&items[0], 3, timeout);
+    zmq::poll(&items[0], 2, timeout);
   
     if (items[0].revents & ZMQ_POLLIN) {
       if (!getMsg("<-", *_rep, _messages)) {
@@ -388,12 +364,6 @@ void Server::runDownstreamOnly() {
 //      L_TRACE("got _dataRep event");
       if (!getMsg("<-dr", _dataRep->socket(), _dataRepMessages)) {
         sendErr("error in getting upstream rep message");
-      }
-    }
-    if (items[2].revents & ZMQ_POLLIN) {
-//      L_TRACE("got _binRep event");
-      if (!getMsg("<-br", _binRep->socket(), _binRepMessages)) {
-        sendErr("error in getting upstream bin rep message");
       }
     }
   }
@@ -460,52 +430,6 @@ bool Server::getMsg(const string &name, zmq::socket_t &socket, map<string, msgHa
       L_ERROR("location: " << boost::get_throw_location(exc));
       return false;
     }
-    return true;
-  }
-  catch (zmq::error_t &e) {
-    L_WARNING("got exc with " << name << " recv" << e.what() << "(" << e.num() << ")");
-  }
-
-  return true;
-  
-}
-
-bool Server::getBinMsg(const string &name, zmq::socket_t &socket, vector<binMsgHandler> &handlers) {
-
-  L_TRACE("got " << name << " binary message");
-  zmq::message_t reply;
-  try {
-#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-    socket.recv(&reply);
-#else
-    auto res = socket.recv(reply, zmq::recv_flags::none);
-#endif
-
-    Bin binary((const char *)reply.data(), reply.size());
-    if (!binary.isBinary()) {
-      L_ERROR("message is not binary.");
-      return false;
-    }
-    
-    int msgnum = binary.msgNum();
-    if (msgnum < 0 || msgnum >= handlers.size()) {
-      L_ERROR("invalid binary msg num " << msgnum);
-      return false;
-    }
-
-    L_DEBUG(name << " " << msgnum << " " << reply.size());
-
-    try {
-      L_TRACE("calling handler");
-      handlers[msgnum]((const char *)reply.data(), reply.size());
-      L_TRACE("handler called");
-    }
-    catch (exception &exc) {
-      L_ERROR("what: " << exc.what());
-      L_ERROR("location: " << boost::get_throw_location(exc));
-      return false;
-    }
-
     return true;
   }
   catch (zmq::error_t &e) {
@@ -612,37 +536,6 @@ void Server::sendDown(const std::string &m) {
 
   sendTo(_dataRep->socket(), m, "dr-> ");
   
-}
-
-void Server::sendDownBin(const DictO &m) {
-
-  sendTo(_binRep->socket(), m, "br-> ", nullopt);
-  
-}
-
-void Server::sendDownBin(const std::string &m) {
-
-  sendTo(_binRep->socket(), m, "br-> ");
-  
-}
-
-void Server::sendDownBin(const std::vector<char> &d) {
-
-  L_DEBUG("br-> " << d.size());
-
-	zmq::message_t msg(d.size());
-	memcpy(msg.data(), d.data(), d.size());
-  try {
-#if CPPZMQ_VERSION == ZMQ_MAKE_VERSION(4, 3, 1)
-    _binRep->socket().send(msg);
-#else
-    _binRep->socket().send(msg, zmq::send_flags::none);
-#endif
-  }
-  catch (zmq::error_t &e) {
-    L_WARNING("got exc publish" << e.what() << "(" << e.num() << ")");
-  }
-
 }
 
 void Server::pubDown(const DictO &m) {
@@ -846,12 +739,6 @@ void Server::sendAckDown(optional<string> result) {
   
 }
 
-void Server::sendAckDownBin() {
-
-  sendDownBin(buildAckJson(nullopt));
-  
-}
-
 void Server::sendSecurity() {
 
   L_ERROR("security error");
@@ -916,17 +803,6 @@ void Server::sendDataReq(optional<string> corr, const DictO &m) {
  
 }
 
-void Server::sendBinReq(const DictO &m) {
-
-  if (!_remoteBinReq) {
-    L_ERROR("no bin req handler!");
-    return;
-  }
-  
-  sendTo(_remoteBinReq->socket(), m, "rbr-> ", nullopt);
- 
-}
-
 void Server::stopUpstream() {
 
   if (_remoteDataReq) {
@@ -936,10 +812,6 @@ void Server::stopUpstream() {
   if (_remoteMsgSub) {
     _remoteMsgSub->socket().close();
     _remoteMsgSub.reset();
-  }
-  if (_remoteBinReq) {
-    _remoteBinReq->socket().close();
-    _remoteBinReq.reset();
   }
 
 }
@@ -959,16 +831,6 @@ void Server::clearUpstream() {
 
 void Server::connectUpstream() {
 
-  if (_dataRepPort && !_binRepPort) {
-    L_ERROR("data rep specified without bin rep.");
-    return;
-  }
-  
-  if (_remoteDataReqPort && !_remoteBinReqPort) {
-    L_ERROR("remote data rep specified without remote bin rep.");
-    return;
-  }
-  
   int major, minor, patch;
   zmq_version(&major, &minor, &patch);
   L_INFO("zmq version " << major << "." << minor << "." << patch);
@@ -999,7 +861,6 @@ void Server::connectUpstream() {
   if (_dataRepPort && _msgPubPort) {
     _msgPub.reset(new Downstream(this, *_context, ZMQ_PUB, "msgPub", _msgPubPort, privateKey.value()));
     _dataRep.reset(new Downstream(this, *_context, ZMQ_REP, "dataRep", _dataRepPort, privateKey.value()));
-    _binRep.reset(new Downstream(this, *_context, ZMQ_REP, "binRep", _binRepPort, privateKey.value()));
   }
 
   auto serverId = Info::getInfo(docs.value(), "serverId");
@@ -1041,8 +902,6 @@ void Server::connectUpstream() {
 #else
   _remoteMsgSub->socket().set(zmq::sockopt::subscribe, "");
 #endif
-  _remoteBinReq.reset(new Upstream(this, *_context, ZMQ_REQ, "remoteBinReq", upstream.value(), _remoteBinReqPort, 
-    upstreamPubKey.value(), privateKey.value(), _pubKey));
     
 }
 
@@ -1345,43 +1204,6 @@ void Server::sendUpDiscover() {
 
 }
 
-optional<tuple<string, DictG> > Server::firstSchemaBinary(const DictO &obj) {
-
-  auto type = Dict::getString(obj, "type");
-  if (!type) {
-    L_ERROR("type missing in schema " << Dict::toString(obj));
-    return nullopt;
-  }
-  
-  auto binary = Dict::getBool(obj, "binary");
-  if (binary && *binary) {
-    string collname = getCollName(*type, Dict::getString(obj, "coll"));
-    auto result = SchemaImpl::findGeneral(collname, dictO({ 
-      { "$or", DictV{ 
-        dictO({{ "binStatus", Bin::NEEDS_DOWNLOAD }}), 
-        dictO({{ "binStatus", std::nullopt }})
-        }
-      },
-      { "uuid", dictO({{ "$ne", std::nullopt }}) }
-    }), { "uuid" }, 1, dictO({{ "modifyDate", -1 }}));
-    if (result) {
-      auto vals = result->all();
-      if (vals) {
-        return tuple<string, DictG>(*type, *(vals->begin()));
-      }
-    }
-  }
-  
-  auto subobj = Dict::getObject(obj, "subobj");
-  if (subobj) {
-    // recurse down into the sub object.
-    return firstSchemaBinary(*subobj);
-  }
-
-  return nullopt;
-  
-}
-
 void Server::unmarkAll(const DictO &obj) {
 
   auto type = Dict::getString(obj, "type");
@@ -1415,27 +1237,11 @@ void Server::discoveryComplete() {
       unmarkAll(subobj.value());
     }
   }
-    
-  // kick off the start of binary discover. Do a full scan
-  discoverBinary(true);
-  
-}
 
-void Server::discoverBinary(bool full) {
-
-  // send a request for the first binary object we need.
-  for (auto schema: Storage::instance()->_schema) {
-    auto bin = firstSchemaBinary(schema);
-    if (bin) {
-      DictO msg = dictO({
-        { "type", "discoverBinary" },
-        { get<string>(*bin), get<DictG>(*bin) },
-        { "offset", 0 },
-        { "full", full }
-      });
-      sendBinReq(msg);
-    }
-  }
+  // start off discovery in a connected server.
+  publish(nullopt, dictO({
+    { "type", "discoveryComplete" }
+  }));
   
 }
 

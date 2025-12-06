@@ -92,7 +92,6 @@ set(UTILS
   src/downstream.cpp
   src/encrypter.cpp
   src/log.cpp
-  src/bin.cpp
 )
 set(MESSAGES 
   src/msg/login.cpp 
@@ -155,8 +154,6 @@ set(MESSAGES
   src/rmsmsg/upd.cpp
   src/rmsmsg/add.cpp
   src/handler.cpp
-  src/rbrmsg/discoverBinaryResult.cpp
-  src/brmsg/discoverBinary.cpp
 )
 
 include_directories(include)
@@ -248,8 +245,3 @@ add_executable(TestEncrypter test/testencrypter.cpp src/encrypter.cpp)
   target_link_libraries(TestEncrypter ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS} ${OPENSSL_LIBRARIES})
 
 add_test(TestEncrypter TestEncrypter)
-
-add_executable(TestBin test/testbin.cpp src/bin.cpp)
-  target_link_libraries(TestBin ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY} ${BOOSTLIBS})
-
-add_test(TestBin TestBin)

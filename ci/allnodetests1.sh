@@ -73,13 +73,6 @@ ci/nodestest.sh "Change to a collection is reflected in the downstream servers"
 ci/nodestest.sh "An existing user can pulled be through 2 upstreams"
 [ "$?" != "0" ] && fail
 
-# make sure the media downloaded.
-diff test/media/aaaaaaaa-bbbb-cccc-dddddddd media4/aaaaaaaa-bbbb-cccc-dddddddd 
-[ "$?" != "0" ] && fail
-
-diff test/media/eeeeeeee-ffff-gggg-hhhhhhhh media4/eeeeeeee-ffff-gggg-hhhhhhhh
-[ "$?" != "0" ] && fail
-
 finish
 
 ci/run.sh upstream

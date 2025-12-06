@@ -106,11 +106,6 @@ Feature: Downstream Test
       Then she receives 1 objs
       When she sends objs for "$Shared Collection" to downstream 4
       Then she receives 101 objs
-      
-      And eventually the obj "Bin1" has bin status 1 in the DB
-      And eventually the obj "Bin2" has bin status 1 in the DB
-      And eventually the obj "Bin3" has bin status 2 in the DB
-      And eventually the obj "Bin4" has bin status 3 in the DB
 
    @javascript
    Scenario: Massive servers are synched

@@ -462,6 +462,8 @@ Nodes is licensed under [version 3 of the GNU General Public License] contained 
 ### 4 Dec 2025
 - Implemented chunking.
 
+### 6 Dec 2025
+- Move the binary handling over to https://github.com/visualopsholdings/nodes-media
 
 
 

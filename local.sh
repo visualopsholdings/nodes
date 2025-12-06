@@ -6,13 +6,11 @@
 # NODES_PUB_PORT          (3012)      the port number for MSG (pub)
 # NODES_REP_PORT          (3013)      the port number for DATA (rep)
 # NODES_DATA_PORT                     if specified the place to bind to for DATA
-# NODES_BIN_PORT                      if specified the place to bind to for BIN
 #
 # If NODES_DATA_PORT has something
 #   NODES_MSG_PORT                    the place to bind to for MSG
 #   NODES_REMOTE_DATA_PORT  (8810)    the place to connect to upstream for DATA
 #   NODES_REMOTE_MSG_PORT   (8811)    the place to connect to upstream for MSG
-#   NODES_REMOTE_BIN_PORT   (8812)    the place to connect to upstream for BIN
 #
 # info - general messages
 # debug - outputs JOSN being transferred
@@ -27,18 +25,6 @@ if [ "$NODES_PUB_PORT" == "" ]; then
 fi
 if [ "$NODES_REP_PORT" == "" ]; then
 	export NODES_REP_PORT=3013
-fi
-
-if [ "$MEDIA_DIR" == "" ]; then
-	export MEDIA_DIR=mediaout
-  if [ ! -d "$MEDIA_DIR" ];
-  then
-    mkdir "$MEDIA_DIR"
-  fi
-fi
-
-if [ "$MEDIA_DIR" != "" ]; then
-	export MEDIA_DIR_SETTING="--mediaDir $MEDIA_DIR"
 fi
 
 if [ "$NODES_DATA_PORT" == "" ]; then
@@ -56,13 +42,8 @@ else
 	if [ "$NODES_REMOTE_MSG_PORT" == "" ]; then
 		export NODES_REMOTE_MSG_PORT=8811
 	fi
-	if [ "$NODES_REMOTE_BIN_PORT" == "" ]; then
-		export NODES_REMOTE_BIN_PORT=8812
-	fi
   build/nodes --test --logLevel=$LOG --dbName=$MONGO_PORT_27017_DB \
     --repPort=$NODES_REP_PORT --pubPort=$NODES_PUB_PORT \
-	  --dataReqPort=$NODES_DATA_PORT --msgSubPort=$NODES_MSG_PORT --binReqPort=$NODES_BIN_PORT  \
-	  --remoteDataReqPort=$NODES_REMOTE_DATA_PORT --remoteMsgSubPort=$NODES_REMOTE_MSG_PORT \
-	  --remoteBinReqPort=$NODES_REMOTE_BIN_PORT \
-    $MEDIA_DIR_SETTING
+	  --dataReqPort=$NODES_DATA_PORT --msgSubPort=$NODES_MSG_PORT  \
+	  --remoteDataReqPort=$NODES_REMOTE_DATA_PORT --remoteMsgSubPort=$NODES_REMOTE_MSG_PORT
 fi
