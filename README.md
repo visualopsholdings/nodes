@@ -217,6 +217,14 @@ https://github.com/visualopsholdings/nodes-web
 
 https://github.com/visualopsholdings/nodes-irc
 
+### Binary data handling
+
+https://github.com/visualopsholdings/nodes-media
+
+### Storage code
+
+https://github.com/visualopsholdings/nodes-storage
+
 ## Current development focus
 
 ### Binary file synching.
